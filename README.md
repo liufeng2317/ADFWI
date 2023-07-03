@@ -2,7 +2,7 @@
  * @Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
  * @Date: 2023-07-03 11:16:43
  * @LastEditors: LiuFeng
- * @LastEditTime: 2023-07-03 13:21:57
+ * @LastEditTime: 2023-07-03 13:34:11
  * @FilePath: /TorchInversion/README.md
  * @Description: 
  * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -28,21 +28,23 @@ TorchInversion is a powerful PyTorch-based framework that enables the developmen
 ### Case Stydy for full waveform inversion
 Details of this example can be found in [Layer Model forward](./demo/02_01_forward_LayeredModel.ipynb) and [Layer Model inversion](./demo/02_02_inversion_LayeredModel.ipynb)
 
-* The true model and some setting of the model:
+* The **true model** and some setting of the model:
 ![](./demo/data/02_LayerModel/AD/model/True/observed_system.png)
 
 * The wavelet and the dampling setting
     <div align="center"><img src="./demo/data/02_LayerModel/AD/model/True/ricker.png" width = 80%></div>
     <div align="center"><img src="./demo/data/02_LayerModel/AD/model/True/damp_global.png" width = 80%></div>
 
-* Initial model
+* **Initial model**
     ![](./demo/data/02_LayerModel/AD/model/Initial/model_init.png)
 
-* Gradient Map of the first iteration
-    <div align="center"><img src="./demo/data/02_LayerModel/AD/model/inv/../../inv/grad/0.png" width = 80%></div>
+* **Gradient** Map of the first iteration
 
-* inversion result
-    ![](./demo/data/02_LayerModel/AD/model/inv/../../inv/model/inversion.gif)
+<div align="center"><img src="./demo/data/02_LayerModel/AD/model/inv/../../inv/grad/0.png" width = 80%></div>
+
+* **Inversion result**
+
+![](./demo/data/02_LayerModel/AD/model/inv/../../inv/model/inversion.gif)
 
 It is important to note that we have not been particularly careful in adjusting the update parameters and processing the gradients in detail, but there are many details in the FWI work that can greatly improve the effectiveness and efficiency of the inversion
 
