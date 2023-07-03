@@ -2,12 +2,12 @@
  * @Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
  * @Date: 2023-07-03 11:16:43
  * @LastEditors: LiuFeng
- * @LastEditTime: 2023-07-03 17:33:14
+ * @LastEditTime: 2023-07-03 18:43:18
  * @FilePath: /TorchInversion/README.md
  * @Description: 
  * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 -->
-## Torch Waveform Inversion (TWILight)
+## Torch Waveform Inversion
 TorchInversion is a powerful PyTorch-based framework that enables the development of a 2-D Acoustic Wave Propagator, specifically designed for seismic imaging and inversion applications. By leveraging TorchInversion, users gain access to a versatile toolset that simplifies the experimentation process and harnesses the capabilities of PyTorch's automatic differentiation.
 
 ### Key Features
