@@ -2,7 +2,7 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:15:39
 * LastEditors: LiuFeng
-* LastEditTime: 2023-06-30 15:31:40
+* LastEditTime: 2023-07-11 23:15:25
 * FilePath: /Acoustic_AD/ADinversion/utils.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -19,7 +19,7 @@ def source_wavelet(nt, dt, f0, srctype):
     '''
     # time and wavelet arrays
     t       = np.linspace(0, dt*nt, num=nt, endpoint=False)
-    wavelet = np.zeros_like(t)
+    wavelet = np.zeros_like(t,dtype='float32')
 
     if srctype.lower() in ['ricker']:
         t0 = 1.2/f0

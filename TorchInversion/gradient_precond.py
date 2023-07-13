@@ -66,9 +66,8 @@ def grad_taper(nx, ny, tapersize=20, thred=0.05, marine_or_land='Marine'):
 def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'land'):
     nx = param.nx
     ny = param.ny
-    vpmax = 6500
+    vpmax = param.vmax
 
-    # set the taper for muting the gradient around the source 
     if marine_or_land.lower() in ['marine', 'offshore']:
         grad_thred = 0.0
     elif marine_or_land.lower() in ['land', 'onshore']:
@@ -84,6 +83,7 @@ def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'lan
         span = 40
     else:                     # in case the grid number is less than 40
         span = int(min(nx, ny)/2)
+    
     forw = smooth2d(forw, span)
     epsilon = 0.0001
     forw = forw / np.max(forw)

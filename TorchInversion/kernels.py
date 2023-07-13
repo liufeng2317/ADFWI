@@ -2,7 +2,7 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:15:22
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-01 14:41:31
+* LastEditTime: 2023-07-13 19:48:09
 * FilePath: /Acoustic_AD/ADinversion/kernels.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -22,6 +22,17 @@ def pad_torch(v:torch.Tensor,pml:int,nx:int,ny:int,ns:int,device:str):
         cc[:,:,list(range(ny_pml-pml,ny_pml))] = cc[:,:,[ny_pml-pml-1]]
     return cc
 
+def pad_torchSingle(v:torch.Tensor,pml:int,nx:int,ny:int,ns:int,device:str):
+    nx_pml = nx+2*pml
+    ny_pml = ny+2*pml
+    cc = torch.zeros((nx_pml,ny_pml)).to(device)
+    cc[pml:nx_pml-pml,pml:ny_pml-pml] = v
+    with torch.no_grad():
+        cc[list(range(0,pml)),pml:pml+ny] = torch.ones_like(cc[list(range(0,pml)),pml:pml+ny])*cc[[pml],pml:pml+ny]
+        cc[list(range(nx_pml-pml,nx_pml)),pml:pml+ny] = torch.ones_like(cc[list(range(nx_pml-pml,nx_pml)),pml:pml+ny])*cc[[nx_pml-pml-1],pml:pml+ny]
+        cc[:,list(range(0,pml))] = cc[:,[pml]]
+        cc[:,list(range(ny_pml-pml,ny_pml))] = cc[:,[ny_pml-pml-1]]
+    return cc
 
 def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
                         nt:int, dt:float, pml:int, fs:int,
@@ -30,9 +41,9 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
                         rcv_x:torch.Tensor, rcv_y:torch.Tensor, rcv_n:int,
                         v:torch.Tensor, rho:torch.Tensor, device:str):
     ###################################################################################
-    c = pad_torch(v,pml,nx,ny,src_n,device=device)
-    den = pad_torch(rho,pml,nx,ny,src_n,device=device)
-    damp_global = torch.ones((src_n,nx_pml,ny_pml),dtype=torch.float32).to(device)*damp_global
+    c = pad_torchSingle(v,pml,nx,ny,src_n,device=device)
+    den = pad_torchSingle(rho,pml,nx,ny,src_n,device=device)
+    damp_global = damp_global
     
     # Second order staggered grid finite difference forward modeling（Acoutic wave）
     p = torch.zeros((src_n,nx_pml,ny_pml),dtype=torch.float32).to(device=device)
@@ -47,42 +58,46 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
     c1_staggered = 9.0/8.0
     c2_staggered = -1.0/24.0
     
+    # parameter for waveform simulation
     alpha1 = den*c*c*dt/dx
     kappa1 = damp_global*dt
     
     alpha2 = dt/(den*dx)
     kappa2 = torch.zeros_like(damp_global).to(device)
-    kappa2[:,:,1:ny_pml-2] = 0.5*(damp_global[:,:,1:ny_pml-2]+damp_global[:,:,2:ny_pml-1])*dt
+    kappa2[:,1:ny_pml-2] = 0.5*(damp_global[:,1:ny_pml-2]+damp_global[:,2:ny_pml-1])*dt
     
     kappa3 = torch.zeros_like(damp_global).to(device)
-    kappa3[:,pml:nx_pml-2,:] = 0.5*(damp_global[:,pml:nx_pml-2,:]+damp_global[:,pml+1:nx_pml-1,:])*dt
+    kappa3[pml:nx_pml-2,:] = 0.5*(damp_global[pml:nx_pml-2,:]+damp_global[pml+1:nx_pml-1,:])*dt
     
     for it in range(1,nt):
         # Update the pressure        
         p[:,pml+1:nx_pml-2,2:ny_pml-2] = \
-            (1.0-kappa1[:,pml+1:nx_pml-2,2:ny_pml-2])*p[:,pml+1:nx_pml-2,2:ny_pml-2] - \
-            alpha1[:,pml+1:nx_pml-2,2:ny_pml-2]*(\
+            (1.0-kappa1[pml+1:nx_pml-2,2:ny_pml-2])*p[:,pml+1:nx_pml-2,2:ny_pml-2] - \
+            alpha1[pml+1:nx_pml-2,2:ny_pml-2]*(\
             c1_staggered*(u[:,pml+1:nx_pml-2,2:ny_pml-2] - u[:,pml+1:nx_pml-2,1:ny_pml-3] + w[:,pml+1:nx_pml-2,2:ny_pml-2] - w[:,pml:nx_pml-3,2:ny_pml-2]) + \
             c2_staggered*(u[:,pml+1:nx_pml-2,3:ny_pml-1] - u[:,pml+1:nx_pml-2,0:ny_pml-4] + w[:,pml+2:nx_pml-1,2:ny_pml-2] - w[:,pml-1:nx_pml-4,2:ny_pml-2]))
 
         # Add source
-        p[list(range(src_n)),src_x,src_y] = p[list(range(src_n)),src_x,src_y] + dt*st[it]
-
+        if len(st.shape) == 1:
+            p[list(range(src_n)),src_x,src_y] = p[list(range(src_n)),src_x,src_y] + dt*st[it]
+        else:
+            p[list(range(src_n)),src_x,src_y] = p[list(range(src_n)),src_x,src_y] + dt*st[:,it]
+            
         # Free surface
         if fs==1:
             p[:,pml-1,:] = -p[:,pml+1,:]
         
         # Update horizontal particle velocity: u
         u[:,pml:nx_pml-1,1:ny_pml-2] = \
-            (1.0 - kappa2[:,pml:nx_pml-1,1:ny_pml-2])*u[:,pml:nx_pml-1,1:ny_pml-2] - \
-            alpha2[:,pml:nx_pml-1,1:ny_pml-2]*( \
+            (1.0 - kappa2[pml:nx_pml-1,1:ny_pml-2])*u[:,pml:nx_pml-1,1:ny_pml-2] - \
+            alpha2[pml:nx_pml-1,1:ny_pml-2]*( \
             c1_staggered*(p[:,pml:nx_pml-1,2:ny_pml-1] - p[:,pml:nx_pml-1,1:ny_pml-2]) + 
             c2_staggered*(p[:,pml:nx_pml-1,3:ny_pml] - p[:,pml:nx_pml-1,0:ny_pml-3]))
 
         # Update verticle particle velocity: w
         w[:,pml:nx_pml-2,1:ny_pml-1] = \
-            (1.0 - kappa3[:,pml:nx_pml-2,1:ny_pml-1])*w[:,pml:nx_pml-2,1:ny_pml-1] - \
-            alpha2[:,pml:nx_pml-2,1:ny_pml-1]*(\
+            (1.0 - kappa3[pml:nx_pml-2,1:ny_pml-1])*w[:,pml:nx_pml-2,1:ny_pml-1] - \
+            alpha2[pml:nx_pml-2,1:ny_pml-1]*(\
                 c1_staggered*(p[:,pml+1:nx_pml-1,1:ny_pml-1] - p[:,pml:nx_pml-2,1:ny_pml-1]) +\
                 c2_staggered*(p[:,pml+2:nx_pml,1:ny_pml-1] - p[:,pml-1:nx_pml-3,1:ny_pml-1])
             )

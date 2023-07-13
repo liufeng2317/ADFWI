@@ -2,7 +2,7 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:24:35
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-03 11:22:47
+* LastEditTime: 2023-07-13 19:56:08
 * FilePath: /TorchInversion/TorchInversion/propagators.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -10,14 +10,13 @@
 import torch
 import torch.nn as nn
 from TorchInversion.utils import numpy2tensor
-from TorchInversion.kernels import acoustic_FM2_kernel
+from TorchInversion.kernels import *
 
 
 class Model():
     def __init__(self,param,model,src,rcv,obs_data=[],device="cpu"):
         pass
     
-
 
 class Acoustic_Simulation(nn.Module):
     def __init__(self,param,model,src,rcv,obs_data=[],device="cpu"):

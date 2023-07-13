@@ -2,7 +2,7 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-28 15:24:45
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-01 14:39:13
+* LastEditTime: 2023-07-11 23:01:33
 * FilePath: /Acoustic_AD/ADinversion/plots.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -53,6 +53,8 @@ def plot_model(model,save_path="",show=False):
 def plot_wavelet(src,save_path="",show=False):
     stf_t = src.stf_t
     stf_val = src.stf_val
+    if stf_val.ndim == 2:
+        stf_val = stf_val[0,:]
     nt = stf_val.shape[0]
     #Plot wavelet after intergration
     fig = plt.figure(figsize=(8,6))
