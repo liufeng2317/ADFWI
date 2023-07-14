@@ -2,7 +2,7 @@
  * @Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
  * @Date: 2023-07-03 11:16:43
  * @LastEditors: LiuFeng
- * @LastEditTime: 2023-07-14 18:00:59
+ * @LastEditTime: 2023-07-14 18:05:17
  * @FilePath: /TorchInversion/README.md
  * @Description: 
  * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -67,7 +67,7 @@ Details of this example can be found in [Layer Model forward](./demo/03_01_forwa
 <div float="left" align="center"><img src="./demo/data/03_LayerAnomaly/AD/model/True/ricker.png" width = 48% style="display: inline-block; vertical-align: middle;"> <img src="./demo/data/03_LayerAnomaly/AD/model/True/damp_global.png" width = 50% style="display: inline-block; vertical-align: middle;"></div>
 
 * **Initial model** and **Gradient** Map of the first iteration
-<div align="center"><img src="./demo/data/03_LayerAnomaly/AD/model/Initial/model_init.png" width=40% style="display: inline-block; vertical-align: middle;"> <img src="./demo/data/03_LayerAnomaly/AD/inv/grad/0.png" width = 50% style="display: inline-block; vertical-align: middle;"></div>
+<div align="center"><img src="./demo/data/03_LayerAnomaly/AD/model/Initial/model_init.png" width=50% style="display: inline-block; vertical-align: middle;"> <img src="./demo/data/03_LayerAnomaly/AD/inv/grad/0.png" width = 45% style="display: inline-block; vertical-align: middle;"></div>
 
 * The **inversion result**
 <div align="center">
