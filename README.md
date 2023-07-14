@@ -2,7 +2,7 @@
  * @Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
  * @Date: 2023-07-03 11:16:43
  * @LastEditors: LiuFeng
- * @LastEditTime: 2023-07-14 18:05:17
+ * @LastEditTime: 2023-07-14 18:06:57
  * @FilePath: /TorchInversion/README.md
  * @Description: 
  * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -58,7 +58,7 @@ It is important to note that we have not been particularly careful in adjusting 
 <details>
 <summary><strong>Anomaly Layer Model</strong></summary>
 
-Details of this example can be found in [Layer Model forward](./demo/03_01_forward_LayerAnomaly.ipynb) and [Layer Model inversion](./demo/03_02_inversion_LayereAnomaly.ipynb)
+Details of this example can be found in [Layer Anomaly Model forward](./demo/03_01_forward_LayerAnomaly.ipynb) and [Layer Anomaly Model inversion](./demo/03_02_inversion_LayereAnomaly.ipynb)
 
 * The **true model** and some setting of the model:
 <div align="center"><img src="./demo/data/03_LayerAnomaly/AD/model/True/observed_system.png" width=55%></div>
@@ -80,7 +80,7 @@ Details of this example can be found in [Layer Model forward](./demo/03_01_forwa
 <details>
 <summary><strong>Marmousi Model</strong></summary>
 
-Details of this example can be found in [Layer Model forward](./demo/04_01_forward_Marmousi2.ipynb) and [Layer Model inversion](./demo/04_02_inversion_Marmousi2.ipynb)
+Details of this example can be found in [Marmousi Model forward](./demo/04_01_forward_Marmousi2.ipynb) and [Marmousi Model inversion](./demo/04_02_inversion_Marmousi2.ipynb)
 
 * The **true model** and some setting of the model:
 <div align="center"><img src="./demo/data/04_Marmousi2/AD_shotInMiddle/model/True/observed_system.png" width=55% ></div>
