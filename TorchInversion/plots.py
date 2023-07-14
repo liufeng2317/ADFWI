@@ -2,8 +2,8 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-28 15:24:45
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-11 23:01:33
-* FilePath: /Acoustic_AD/ADinversion/plots.py
+* LastEditTime: 2023-07-14 17:55:44
+* FilePath: /TorchInversion/TorchInversion/plots.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 '''
@@ -43,7 +43,7 @@ def plot_model(model,save_path="",show=False):
     plt.title("rho")
     
     if save_path != "":
-        plt.savefig(save_path)
+        plt.savefig(save_path,bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -68,7 +68,7 @@ def plot_wavelet(src,save_path="",show=False):
     ax.plot(stf_t[0:nt+1], stf_val[0:nt+1], 'g-')
     
     if save_path != "":
-        plt.savefig(save_path)
+        plt.savefig(save_path,bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -77,14 +77,14 @@ def plot_wavelet(src,save_path="",show=False):
 
 def plot_dampRegion(model,save_path="",show=False):
     damp_global = model.damp_global
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(12,8))
     ax = plt.axes()
     im = plt.imshow(damp_global,cmap='gray_r')
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     plt.colorbar(im,cax=cax)
     
     if save_path != "":
-        plt.savefig(save_path)
+        plt.savefig(save_path,bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -98,12 +98,15 @@ def plot_observeSystem(param,model,src,rcv,save_path="",show=False):
     src_x = src.src_x
     pml = param.pml
     
-    plt.figure()
-    plt.imshow(v)
-    plt.scatter(rcv_y,rcv_x,20)
-    plt.scatter(src_y-pml,src_x-pml,20)
+    fig = plt.figure(figsize=(12,8))
+    ax = plt.axes()
+    im = plt.imshow(v)
+    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    plt.colorbar(im,cax=cax)
+    ax.scatter(rcv_y,rcv_x,20,marker="v")
+    ax.scatter(src_y-pml,src_x-pml,20,marker='*')
     if save_path != "":
-        plt.savefig(save_path)
+        plt.savefig(save_path,bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -256,7 +259,7 @@ def wiggle(data, tt=None, xx=None, color='k', sf=0.15, verbose=False,save_path="
     ax.set_ylim(tt[0], tt[-1])
     ax.invert_yaxis()
     if save_path != "":
-        plt.savefig(save_path)
+        plt.savefig(save_path,bbox_inches="tight")
     if show:
         plt.show()
     else:
