@@ -2,8 +2,8 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-28 15:24:45
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-14 17:55:44
-* FilePath: /TorchInversion/TorchInversion/plots.py
+* LastEditTime: 2023-12-31 10:02:53
+* FilePath: /ADFWI/TorchInversion/plots.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 '''
@@ -29,15 +29,15 @@ def plot_model(model,save_path="",show=False):
     v = model.v
     rho = model.rho
     #Plot velocity and density after pad or before pad
-    fig = plt.figure(figsize=(12,8))
+    fig = plt.figure(figsize=(10,6))
     ax = plt.subplot(211)
-    im = plt.imshow(v)
+    im = plt.imshow(v,cmap='jet_r')
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     plt.colorbar(im,cax=cax)
     plt.title("v(m/s)")
     
     ax = plt.subplot(212)
-    im = plt.imshow(rho)
+    im = plt.imshow(rho,cmap='jet_r')
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     plt.colorbar(im,cax=cax)
     plt.title("rho")
@@ -100,11 +100,14 @@ def plot_observeSystem(param,model,src,rcv,save_path="",show=False):
     
     fig = plt.figure(figsize=(12,8))
     ax = plt.axes()
-    im = plt.imshow(v)
+    # im = plt.imshow(v,cmap='jet_r',vmin=3000,vmax=3030)
+    im = plt.imshow(v,cmap='jet_r')
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    # plt.colorbar(im,cax=cax)
     plt.colorbar(im,cax=cax)
-    ax.scatter(rcv_y,rcv_x,20,marker="v")
-    ax.scatter(src_y-pml,src_x-pml,20,marker='*')
+    ax.scatter(rcv_y,rcv_x,20,marker="v",c='w',label="receiver")
+    ax.scatter(src_y-pml,src_x-pml,20,marker='*',c='k',label="source")
+    ax.legend(fontsize=12)
     if save_path != "":
         plt.savefig(save_path,bbox_inches="tight")
     if show:
@@ -263,4 +266,71 @@ def wiggle(data, tt=None, xx=None, color='k', sf=0.15, verbose=False,save_path="
     if show:
         plt.show()
     else:
+        plt.close()
+        
+        
+def wiggle_cmp(data1,data2, tt=None, xx=None, color1='k',color2='r', sf=0.15, verbose=False,save_path="",show=False):
+    '''Wiggle plot of a sesimic data section
+    '''
+    # Input check
+    data1, tt, xx, ts = wiggle_input_check(data1, tt, xx, sf, verbose)
+    data2, tt, xx, ts = wiggle_input_check(data2, tt, xx, sf, verbose)
+
+    if not data1.shape == data2.shape:
+        raise Exception("The size of data1 = {} not equal to data2 = {}".format(str(data1.shape),str(data2.shape)))
+    
+    # Plot data using matplotlib.pyplot
+    Ntr = data1.shape[1]
+    ax = plt.gca()
+    for ntr in range(Ntr):
+        trace1 = data1[:, ntr]
+        trace2 = data2[:, ntr]
+        offset = xx[ntr]
+
+        if verbose:
+            print(offset)
+
+        trace_zi1, tt_zi1 = insert_zeros(trace1, tt)
+        trace_zi2, tt_zi2 = insert_zeros(trace2, tt)
+        # ax.fill_betweenx(tt_zi1, offset, trace_zi1 + offset,where=trace_zi1 >= 0,facecolor=color)
+        # ax.fill_betweenx(tt_zi2, offset, trace_zi2 + offset,where=trace_zi2 >= 0,facecolor=color)
+        ax.plot(trace_zi1 + offset, tt_zi1, color1)
+        ax.plot(trace_zi2 + offset, tt_zi2, color2)
+
+    ax.set_xlim(xx[0] - ts, xx[-1] + ts)
+    ax.set_ylim(tt[0], tt[-1])
+    ax.invert_yaxis()
+    if save_path != "":
+        plt.savefig(save_path,bbox_inches="tight")
+    if show:
+        plt.show()
+    else:
+        plt.close()
+        
+        
+##############################################
+#           Inversion Result
+##############################################
+def plot_inversion_iter(i,v,grads,save_path):
+    if i%1==0:
+        plt.figure()
+        plt.pcolormesh(v,cmap="jet_r")
+        plt.title("Iter {}".format(i))
+        plt.xlabel("x (km)")
+        plt.ylabel("z (km)")
+        plt.gca().invert_yaxis()
+        plt.axis('scaled')
+        plt.colorbar(shrink=0.5)
+        plt.savefig(os.path.join(save_path,"inv/model/{}.png".format(i)),bbox_inches="tight")
+        plt.close()
+        
+        plt.figure()
+        plt.pcolormesh(grads,cmap="bwr_r")
+        plt.title("Iter {}".format(i))
+        plt.xlabel("x (km)")
+        plt.ylabel("z (km)")
+        plt.gca().invert_yaxis()
+        plt.axis('scaled')
+        plt.colorbar(shrink=0.5)
+        plt.savefig(os.path.join(save_path,"inv/grad/{}.png".format(i)),bbox_inches="tight")
         plt.close()

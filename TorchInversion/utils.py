@@ -2,8 +2,8 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:15:39
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-11 23:15:25
-* FilePath: /Acoustic_AD/ADinversion/utils.py
+* LastEditTime: 2023-12-11 21:35:06
+* FilePath: /Acoustic_AD/TorchInversion/utils.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 '''
@@ -13,13 +13,14 @@ from obspy.core import UTCDateTime
 import obspy 
 import copy
 import torch
+from torchinfo import summary
 
 def source_wavelet(nt, dt, f0, srctype):
     ''' source time function
     '''
     # time and wavelet arrays
     t       = np.linspace(0, dt*nt, num=nt, endpoint=False)
-    wavelet = np.zeros_like(t,dtype='float32')
+    wavelet = np.zeros_like(t)
 
     if srctype.lower() in ['ricker']:
         t0 = 1.2/f0
@@ -27,6 +28,7 @@ def source_wavelet(nt, dt, f0, srctype):
         wavelet = (1 - 2 * temp * (t - t0) ** 2) * np.exp(- temp * (t - t0) ** 2)
     else:
         raise ValueError('Other wavelets can be implemented here.')
+
     return wavelet
 
 
@@ -64,7 +66,8 @@ def set_damp(vmax,nx_pml,nz_pml,pml,dx):
     damp = np.zeros(pml)
 
     a = (pml-1)*dx
-    kappa = 3.0*vmax*log(1000.0)/(2.0*a)  # Adjust the damping effect.
+    kappa = 3.0*3000*log(1000.0)/(2.0*a)  # Adjust the damping effect.
+    # kappa = 3.0*vmax*log(1000.0)/(2.0*a)  # Adjust the damping effect.
 
     for ix in range(0,pml):
         xa = ix*dx/a
@@ -190,3 +193,41 @@ def numpy2list(a):
         return a.tolist()
     else:
         return a
+    
+    
+##########################################################################
+#                          NN model structure     
+##########################################################################
+# def model_structure(model):
+#     blank = ' '
+#     print('-' * 90)
+#     print('|' + ' ' * 11 + 'weight name' + ' ' * 10 + '|' \
+#           + ' ' * 15 + 'weight shape' + ' ' * 15 + '|' \
+#           + ' ' * 3 + 'number' + ' ' * 3 + '|')
+#     print('-' * 90)
+#     num_para = 0
+#     type_size = 1  # 如果是浮点数就是4
+
+#     for index, (key, w_variable) in enumerate(model.named_parameters()):
+#         if len(key) <= 30:
+#             key = key + (30 - len(key)) * blank
+#         shape = str(w_variable.shape)
+#         if len(shape) <= 40:
+#             shape = shape + (40 - len(shape)) * blank
+#         each_para = 1
+#         for k in w_variable.shape:
+#             each_para *= k
+#         num_para += each_para
+#         str_num = str(each_para)
+#         if len(str_num) <= 10:
+#             str_num = str_num + (10 - len(str_num)) * blank
+
+#         print('| {} | {} | {} |'.format(key, shape, str_num))
+#     print('-' * 90)
+#     print('The total number of parameters: ' + str(num_para))
+#     print('The parameters of Model {}: {:4f}M'.format(model._get_name(), num_para * type_size / 1000 / 1000))
+#     print('-' * 90)
+    
+
+def summary_NN_structure(model,device="cpu"):
+    print(summary(model,device=device))

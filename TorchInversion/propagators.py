@@ -2,8 +2,8 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:24:35
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-13 19:56:08
-* FilePath: /TorchInversion/TorchInversion/propagators.py
+* LastEditTime: 2024-01-01 16:05:03
+* FilePath: /ADFWI/TorchInversion/propagators.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 '''
@@ -12,14 +12,12 @@ import torch.nn as nn
 from TorchInversion.utils import numpy2tensor
 from TorchInversion.kernels import *
 
-
-class Model():
-    def __init__(self,param,model,src,rcv,obs_data=[],device="cpu"):
-        pass
     
-
+############################################################################
+#                       Update using Torch optimizer
+############################################################################
 class Acoustic_Simulation(nn.Module):
-    def __init__(self,param,model,src,rcv,obs_data=[],device="cpu"):
+    def __init__(self,param,model,src,rcv,v,rho,obs_data=[],device="cpu"):
         super(Acoustic_Simulation,self).__init__()
         # modeling parameter
         self.nx = param.nx;         self.ny = param.ny
@@ -27,10 +25,8 @@ class Acoustic_Simulation(nn.Module):
         self.nt = param.nt;         self.dt = param.dt
         self.pml = param.pml;       self.fs = param.fs
         self.nx_pml = param.nx_pml; self.ny_pml = param.ny_pml
-        
+        self.vmin = param.vmin;     self.vmax = param.vmax
         # velocity model
-        self.init_v = model.v
-        self.init_rho = model.rho
         self.damp_global = model.damp_global
         
         # source 
@@ -44,13 +40,15 @@ class Acoustic_Simulation(nn.Module):
         self.rcv_x = rcv.rcv_x
         self.rcv_y = rcv.rcv_y
         self.rcv_n = rcv.rcv_n
-        
-        # inversion or forward
-        self.obs_data = obs_data # 【shot,time,observedata】
 
         # device 
         self.device = device
         
+        # initial model
+        self.rho = rho
+        self.v = torch.nn.Parameter(v)
+        
+        self.obs_data = obs_data
         self.to_tensor()
     
     def to_tensor(self):
@@ -62,43 +60,25 @@ class Acoustic_Simulation(nn.Module):
         self.stf_val = numpy2tensor(self.stf_val).to(self.device)
         self.src_x = numpy2tensor(self.src_x).to(self.device)
         self.src_y = numpy2tensor(self.src_y).to(self.device)
-
-    def inversion(self,v,rho):
-        csg,forw = acoustic_FM2_kernel(
-                self.nx,self.ny,self.dx,self.dy,
-                self.nt,self.dt,self.pml,self.fs,
-                self.nx_pml,self.ny_pml,self.damp_global,
-                self.src_x,self.src_y,self.src_n,self.stf_val,
-                self.rcv_x,self.rcv_y,self.rcv_n,
-            v,rho,device=self.device)
-        # normalize
-        csg = csg/(torch.max(torch.abs(csg),axis=1,keepdim=True).values)
-        # the observed data
-        csg_obs = numpy2tensor(self.obs_data).to(self.device)
-        # the L2 misfit
-        loss = torch.sum(torch.sqrt(torch.sum((csg-csg_obs)*(csg-csg_obs)*self.dt,axis=1)))
-        loss.backward()
-        if self.device == 'cpu':
-            forw = forw.detach()
-            csg = csg.detach()
-            grads_ = v.grad.detach()
-            loss_ = loss.detach()
-        else:
-            forw = forw.cpu().detach()
-            csg = csg.cpu().detach()
-            grads_ = v.grad.cpu().detach()
-            loss_ = loss.cpu().detach()
-        return loss_,grads_,csg,forw
+        # init v and rho
+        self.v = numpy2tensor(self.v).to(self.device)
+        self.rho = numpy2tensor(self.rho).to(self.device)
+        # obs data
+        self.obs_data = numpy2tensor(self.obs_data).to(self.device)
     
-    def forward(self,v,rho):
-        csg,_ = acoustic_FM2_kernel(
+    def forward(self):
+        if self.device == "cpu":
+            self.rho = torch.pow(self.v.detach(),0.25)*310
+        else:
+            self.rho = torch.pow(self.v.cpu().detach(),0.25)*310
+        self.rho = self.rho.to(self.device)
+        # forward modeling
+        csg,forw = acoustic_FM2_kernel(
             self.nx,self.ny,self.dx,self.dy,
             self.nt,self.dt,self.pml,self.fs,
             self.nx_pml,self.ny_pml,self.damp_global,
             self.src_x,self.src_y,self.src_n,self.stf_val,
             self.rcv_x,self.rcv_y,self.rcv_n,
-            v,rho,device=self.device)
-        # normalize
-        csg = csg/(torch.max(torch.abs(csg),axis=1,keepdim=True).values)
-        # inversion return the loss and grads
-        return csg
+            self.v,self.rho,device=self.device)
+        return csg,forw
+    

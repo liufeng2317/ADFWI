@@ -1071,6 +1071,7 @@ class Optimization(object):
             # if the number of linesearch iteration outreaches the maximum allowed
             # without decreasing the misfit then the linesearch has failed
             self.task='FAILURE!'
+            
         else:
             # If not initialization step and number of linesearch iteration ok
             # then perform one linesearch iteration                     

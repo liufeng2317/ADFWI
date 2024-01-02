@@ -2,13 +2,15 @@
 * Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
 * Date: 2023-06-27 19:15:22
 * LastEditors: LiuFeng
-* LastEditTime: 2023-07-13 19:48:09
-* FilePath: /Acoustic_AD/ADinversion/kernels.py
+* LastEditTime: 2023-12-12 18:34:52
+* FilePath: /Acoustic_AD/TorchInversion/kernels.py
 * Description: 
 * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
 '''
 import torch
 from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
 
 def pad_torch(v:torch.Tensor,pml:int,nx:int,ny:int,ns:int,device:str):
     nx_pml = nx+2*pml
@@ -28,7 +30,7 @@ def pad_torchSingle(v:torch.Tensor,pml:int,nx:int,ny:int,ns:int,device:str):
     cc = torch.zeros((nx_pml,ny_pml)).to(device)
     cc[pml:nx_pml-pml,pml:ny_pml-pml] = v
     with torch.no_grad():
-        cc[list(range(0,pml)),pml:pml+ny] = torch.ones_like(cc[list(range(0,pml)),pml:pml+ny])*cc[[pml],pml:pml+ny]
+        cc[list(range(0,pml)),pml:pml+ny] = torch.ones_like(cc[list(range(pml)),pml:pml+ny])*cc[[pml],pml:pml+ny]
         cc[list(range(nx_pml-pml,nx_pml)),pml:pml+ny] = torch.ones_like(cc[list(range(nx_pml-pml,nx_pml)),pml:pml+ny])*cc[[nx_pml-pml-1],pml:pml+ny]
         cc[:,list(range(0,pml))] = cc[:,[pml]]
         cc[:,list(range(ny_pml-pml,ny_pml))] = cc[:,[ny_pml-pml-1]]
@@ -59,7 +61,7 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
     c2_staggered = -1.0/24.0
     
     # parameter for waveform simulation
-    alpha1 = den*c*c*dt/dx
+    alpha1 = den*c*c*dt/dx  ## ！
     kappa1 = damp_global*dt
     
     alpha2 = dt/(den*dx)
@@ -68,7 +70,6 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
     
     kappa3 = torch.zeros_like(damp_global).to(device)
     kappa3[pml:nx_pml-2,:] = 0.5*(damp_global[pml:nx_pml-2,:]+damp_global[pml+1:nx_pml-1,:])*dt
-    
     for it in range(1,nt):
         # Update the pressure        
         p[:,pml+1:nx_pml-2,2:ny_pml-2] = \
@@ -102,6 +103,7 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
                 c2_staggered*(p[:,pml+2:nx_pml,1:ny_pml-1] - p[:,pml-1:nx_pml-3,1:ny_pml-1])
             )
         
+        # 
         if fs == 1:
             w[:,pml-1,list(range(0,ny_pml))] = w[:,pml,list(range(0,ny_pml))]
         
@@ -114,4 +116,13 @@ def acoustic_FM2_kernel(nx:int, ny:int, dx:float, dy:float,
         
         with torch.no_grad():
             forw = forw + torch.sum(p*p,dim=0)[pml:pml+nx,pml:pml+ny]
+        
+        # 暂存波场
+        # with torch.no_grad():
+        #     if it%20==0:
+        #         plt.figure()
+        #         plt.imshow(p[0,:,:].cpu().detach().numpy())
+        #         plt.savefig("/media/liufeng/a0b205ec-bfb3-473f-a6f0-0680c5da64ba/project/004_inversion/ADInversion/Acoustic/Acoustic_AD/TestADinversion/data/01_test_gradient/snapshot/{}.png".format(it),bbox_inches='tight')
+        #         plt.close()
+            
     return csg,forw

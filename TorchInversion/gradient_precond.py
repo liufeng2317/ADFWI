@@ -45,8 +45,7 @@ def grad_taper(nx, ny, tapersize=20, thred=0.05, marine_or_land='Marine'):
     # for masking the water layer, use the zero threds
     if marine_or_land in ['Marine', 'Offshore']: 
         taper = np.ones((nx, ny))
-        for ix in range(nx):
-            taper[ix, :tapersize] = 0.0
+        taper[:tapersize,:] = 0.0
             
     # for the land gradient damping, use the small threds
     else:
@@ -64,8 +63,7 @@ def grad_taper(nx, ny, tapersize=20, thred=0.05, marine_or_land='Marine'):
     return taper
 
 def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'land'):
-    nx = param.nx
-    ny = param.ny
+    nx = param.nx;ny = param.ny
     vpmax = param.vmax
 
     if marine_or_land.lower() in ['marine', 'offshore']:
@@ -74,6 +72,7 @@ def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'lan
         grad_thred = 0.001
     else:
         raise ValueError('not supported modeling marine_or_land: %s'%(marine_or_land))
+
     # tapper mask 
     if grad_mute > 0:
         grad *= grad_taper(nx, ny, tapersize = grad_mute, thred = grad_thred, marine_or_land=marine_or_land)
@@ -90,7 +89,7 @@ def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'lan
     precond = forw
     precond = precond / np.max(precond)
     precond[precond < epsilon] = epsilon
-    grad = grad / np.power(precond, 1)
+    grad = grad / np.power(precond, 2)
     
     # smooth the gradient
     if grad_smooth > 0:
@@ -100,12 +99,8 @@ def grad_precond(param,grad,forw,grad_mute=0,grad_smooth=0,marine_or_land = 'lan
         # land gradient smooth
         else:
             grad = smooth2d(grad, span=grad_smooth)
-
-    # gradient with respect to the velocity
-    grad = - 2 * grad   #  / np.power(simu.model.vp, 3)
-
-    # grad = np.linspace(0,1,ny).reshape(-1,1)*grad
     
     # scale the gradient properly
-    grad *= vpmax / abs(grad).max()
+    grad = vpmax * grad/ abs(grad).max()
+    
     return grad
