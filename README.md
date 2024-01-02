@@ -123,6 +123,6 @@ You can simply clone the project and follow the example in the demo.
   title        = {TorchInversion},
   month        = July,
   year         = 2023,
-  version      = {v0.0.1},
+  version      = {v0.1},
 }
 ```
