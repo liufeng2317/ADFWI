@@ -2,7 +2,7 @@
  * @Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
  * @Date: 2023-07-03 11:16:43
  * @LastEditors: LiuFeng
- * @LastEditTime: 2024-01-02 21:25:56
+ * @LastEditTime: 2024-01-02 21:27:32
  * @FilePath: /TorchInversion/README.md
  * @Description: 
  * Copyright (c) 2023 by ${git_name} email: ${git_email}, All Rights Reserved.
@@ -105,8 +105,7 @@ Details of this example can be found in [Marmousi Model forward](./example/marmo
 <div float="left" align="center"><img src="./example/marmousi2Model/data/multiShotTop/model/True/ricker.png" width = 40% style="display: inline-block; vertical-align: middle;"> <img src="./example/marmousi2Model/data/multiShotTop/model/True/damp_global.png" width = 55% style="display: inline-block; vertical-align: middle;"></div>
 
 * **Initial model** and **inversion result**
-<div align="center"><img src="./example/marmousi2Model/data/multiShotTop/model/Initial/model_init.png" width=40% style="display: inline-block; vertical-align: middle;"><img src="./example/marmousi2Model/data/multiShotTop/inv/Adam/inv.gif" width=58% style="display: inline-block; vertical-align: middle;>
-</div>
+<div align="center"><img src="./example/marmousi2Model/data/multiShotTop/model/Initial/model_init.png" width=40% style="display: inline-block; vertical-align: middle;"><img src="./example/marmousi2Model/data/multiShotTop/inv/Adam/inv.gif" width=58% style="display: inline-block; vertical-align: middle;"></div>
 
 </details>
 
