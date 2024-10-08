@@ -56,21 +56,14 @@ In addition, **ADFWI** provides a comprehensive collection of Objective function
 
 ## ⚡️ Installation
 
-To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) framework, please follow the steps outlined below:
+To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) framework, please follow these steps:
 
 1. **Ensure Prerequisites**  
    Before you begin, make sure you have the following software installed on your system:  
    - **Python 3.8 or higher**: Download Python from the official website: [Python Downloads](https://www.python.org/downloads/).
    - **pip** (Python package installer).
 
-2. **Clone the Repository**  
-   Start by cloning the ADFWI repository from GitHub: 
-   ```bash
-   git clone https://github.com/liufeng2317/ADFWI.git
-   cd ADFWI
-   ```
-
-3. **Create a Virtual Environment (Optional but Recommended)**
+2. **Create a Virtual Environment (Optional but Recommended)**
    It is recommended to create a virtual environment to manage your project dependencies. You can use either `venv` or `conda`. 
    For example, using `conda`:
    ```bash
@@ -78,16 +71,27 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
    conda activate adfwi-env
    ```
 
-4. **Install Required Packages**
-   Install the necessary packages using pip:
-   ```bash
-   pip install -r requirements.txt
-   ```
+3. **Install Required Packages**
+- Method 1: **Clone the github Repository**
+  This method provides the latest version, which may be more suitable for your research:
+    ```bash
+    git clone https://github.com/liufeng2317/ADFWI.git
+    cd ADFWI
+    ```
+    Then, install the necessary packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
+- Method 2: Install via pip
+  Alternatively, you can directly install ADFWI from PyPI:
+  ```bash
+    pip install ADFWI
+  ```
 
-5. **Verify the Installation**
-   To verify that ADFWI is installed correctly, run any examples located in the examples folder.
+4. **Verify the Installation**
+  To ensure that ADFWI is installed correctly, run any examples located in the examples folder.
 
-6. **Troubleshooting**
+5. **Troubleshooting**
    If you encounter any issues during installation, please check the Issues section of the GitHub repository for potential solutions or to report a new issue.
 
 ---
