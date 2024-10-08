@@ -168,6 +168,9 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 </table>
 
 ### 3. Misfits Tests
+
+It is worth mentioning that here we show the performance of different objective functions under **poorer initial models**, and under better initial model conditions, each objective function performs better, and the relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
+
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -253,6 +256,16 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Wasserstein_Sinkhorn/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Hybrid Misfit: Envelope & Global Correlation (WECI)</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_WECI.py">Example-WECI</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-WECI/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
 </table>
