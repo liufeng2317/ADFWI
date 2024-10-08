@@ -16,12 +16,17 @@
 <br/>
 <div align="center">
   <img src="https://visitor-badge.laobi.icu/badge?page_id=liufeng2317.liufeng2317&" />
-  <!-- 添加 shields.io 的常用 bar -->
-  <img src="https://img.shields.io/github/license/liufeng2317/ADFWI" />
   <img src="https://img.shields.io/github/stars/liufeng2317/ADFWI" />
   <img src="https://img.shields.io/github/forks/liufeng2317/ADFWI" />
 </div>
-
+<div align="center">
+  <img src="https://img.shields.io/github/license/liufeng2317/ADFWI" />
+  <img src="https://img.shields.io/github/repo-size/liufeng2317/ADFWI"/>
+  <img src="https://img.shields.io/github/last-commit/liufeng2317/ADFWI"/>
+  <img src="https://img.shields.io/badge/lauguage-python-%233572A5"/>
+  <img src="https://img.shields.io/badge/lauguage-jupyter-%23F37626"/>
+  <img src="https://img.shields.io/badge/lauguage-shell-%2389E051"/>
+</div>
 <h1 align="center">Automatic Differentiation-Based Full Waveform Inversion</h1>
 
 - [👩‍💻 Introduction](#-introduction)
@@ -173,10 +178,10 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <td style="text-align: center; vertical-align: middle;">Ricker-Synthetic-Test</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker (some other tests in the same folder)</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/data/Figure6_Ricker_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/Figures/misfit_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
