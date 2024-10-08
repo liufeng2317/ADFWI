@@ -38,6 +38,7 @@
   - [4. Optimizer Tests](#4-optimizer-tests)
   - [5. Regularization Methods](#5-regularization-methods)
   - [6. Deep Image Prior (Earth Model Reparameterization)](#6-deep-image-prior-earth-model-reparameterization)
+  - [7. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#7-uncertainty-estimation-using-deep-neural-networks-dnns)
 - [📝 Features](#-features)
 - [⚖️ LICENSE](#️-license)
 - [🔰 Contact](#-contact)
@@ -188,70 +189,70 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <td style="text-align: center; vertical-align: middle;">L1-norm</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_L1.py">Example-L1</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_L1.py">Example-L1</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-L1/inversion_process.gif" alt="L1" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L1/inversion_process.gif" alt="L1" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">L2-norm</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_L2.py">Example-L2</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_L2.py">Example-L2</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-L2/inversion_process.gif" alt="L2" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L2/inversion_process.gif" alt="L2" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">T-distribution (StudentT)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_StudentT.py">Example-StudentT</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_StudentT.py">Example-StudentT</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-StudentT/inversion_process.gif" alt="StudentT" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-StudentT/inversion_process.gif" alt="StudentT" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Envelope</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_Envelope.py">Example-Envelope</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_Envelope.py">Example-Envelope</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-Envelope/inversion_process.gif" alt="Envelope" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Envelope/inversion_process.gif" alt="Envelope" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Global Correlation (GC)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_GC.py">Example-GC</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_GC.py">Example-GC</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-GC/inversion_process.gif" alt="GC" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-GC/inversion_process.gif" alt="GC" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Soft Dynamic Time Warping (soft-DTW)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_SoftDTW.py">Example-SoftDTW</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_SoftDTW.py">Example-SoftDTW</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-SoftDTW/inversion_process.gif" alt="SoftDTW" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-SoftDTW/inversion_process.gif" alt="SoftDTW" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Wasserstein Distance with Sinkhorn</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/02_inversion_WassersteinSinkhorn.py">Example-Wasserstein</a>
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_WassersteinSinkhorn.py">Example-Wasserstein</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/data/inversion-Wasserstein_Sinkhorn/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Wasserstein_Sinkhorn/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
 </table>
@@ -469,6 +470,15 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
 </table>
+
+### 7. Uncertainty Estimation Using Deep Neural Networks (DNNs)
+
+We employ a 2-layered CNN architecture, derived from the Deep Image Prior (DIP) test described earlier, to perform uncertainty estimation. The code can be found [2-layer-CNNs-Uncertainty-Estimation](./examples/dip/01_Multi-CNN/04_uncertainty_assesment.ipynb).The variable `p` represents the dropout ratio applied during both training and inference to evaluate uncertainty.
+
+<div style="text-align: center;">
+    <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN" style="max-width: 500px; height: auto;" />
+</div>
+
 
 ---
 
