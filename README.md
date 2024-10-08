@@ -85,7 +85,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 - Method 2: Install via pip
   Alternatively, you can directly install ADFWI from PyPI:
   ```bash
-    pip install ADFWI
+    pip install ADFWI-Torch
   ```
 
 4. **Verify the Installation**
