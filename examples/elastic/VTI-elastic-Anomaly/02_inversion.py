@@ -7,12 +7,12 @@ from scipy import integrate
 import sys
 import os
 sys.path.append("../../../")
-from ADSWIT.propagator  import *
-from ADSWIT.model       import *
-from ADSWIT.view        import *
-from ADSWIT.utils       import *
-from ADSWIT.survey      import *
-from ADSWIT.fwi         import *
+from ADFWI.propagator  import *
+from ADFWI.model       import *
+from ADFWI.view        import *
+from ADFWI.utils       import *
+from ADFWI.survey      import *
+from ADFWI.fwi         import *
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     d_obs.load(os.path.join(project_path,"waveform/obs_data.npz"))
     print(d_obs.__repr__())
     
-    from ADSWIT.fwi.misfit import Misfit_waveform_L2
+    from ADFWI.fwi.misfit import Misfit_waveform_L2
     iteration = 500
     # optimizer
     optimizer   =   torch.optim.AdamW(model.parameters(), lr = 0.05,betas=(0.9,0.999), weight_decay=1e-4)

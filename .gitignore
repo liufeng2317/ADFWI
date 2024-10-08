@@ -1,9 +1,10 @@
 *.npz
 *.pt
+*.out
+*.sh
 __pycache__/
 log/
 examples/datasets/
 examples/dip/03_ResNet/
 backup/
-*.out
-*.sh
+setup.py

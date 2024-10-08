@@ -7,12 +7,12 @@ from scipy import integrate
 import sys
 import os
 sys.path.append("../../../../")
-from ADSWIT.propagator  import *
-from ADSWIT.model       import *
-from ADSWIT.view        import *
-from ADSWIT.utils       import *
-from ADSWIT.survey      import *
-from ADSWIT.fwi         import *
+from ADFWI.propagator  import *
+from ADFWI.model       import *
+from ADFWI.view        import *
+from ADFWI.utils       import *
+from ADFWI.survey      import *
+from ADFWI.fwi         import *
 # numba初始化CUDA设备
 from numba import cuda
 cuda.select_device(5)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
 
     # Setup misfit function
-    from ADSWIT.fwi.misfit import Misfit_sdtw
+    from ADFWI.fwi.misfit import Misfit_sdtw
     loss_fn = Misfit_sdtw(gamma=1,sparse_sampling=2,dt=dt)
 
     # gradient processor

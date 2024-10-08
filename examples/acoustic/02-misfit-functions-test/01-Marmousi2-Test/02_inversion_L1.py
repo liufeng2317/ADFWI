@@ -7,12 +7,12 @@ from scipy import integrate
 import sys
 import os
 sys.path.append("../../../../")
-from ADSWIT.propagator  import *
-from ADSWIT.model       import *
-from ADSWIT.view        import *
-from ADSWIT.utils       import *
-from ADSWIT.survey      import *
-from ADSWIT.fwi         import *
+from ADFWI.propagator  import *
+from ADFWI.model       import *
+from ADFWI.view        import *
+from ADFWI.utils       import *
+from ADFWI.survey      import *
+from ADFWI.fwi         import *
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
 
     # Setup misfit function
-    from ADSWIT.fwi.misfit import Misfit_waveform_L1
+    from ADFWI.fwi.misfit import Misfit_waveform_L1
     loss_fn = Misfit_waveform_L1(dt=dt)
 
     # gradient processor
