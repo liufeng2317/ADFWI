@@ -41,6 +41,7 @@
   - [7. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#7-uncertainty-estimation-using-deep-neural-networks-dnns)
 - [📝 Features](#-features)
 - [⚖️ LICENSE](#️-license)
+- [🗓️ To-Do List](#️-to-do-list)
 - [🔰 Contact](#-contact)
 
 ---
@@ -542,6 +543,65 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 - **Modify**: You can modify the software to suit your needs.
 - **Distribute**: You can distribute the original or modified software to others.
 - **Private Use**: You can use the software privately without any restrictions.
+
+---
+
+## 🗓️ To-Do List
+
+- <details>
+    <summary><b>C++ / C-Based Forward Propagator</b></summary>
+    <b>Objective</b>: Develop a forward wave propagation algorithm using C++ or C.  
+    
+    <b>Explanation</b>: Implementing the forward propagator in lower-level languages like C++ or C will significantly enhance computational performance, particularly for large-scale simulations. The aim is to leverage the improved memory management, faster execution, and more efficient parallel computing capabilities of these languages over Python-based implementations.
+  </details>
+
+- <details>
+    <summary><b>Resource Optimization for Memory Efficiency</b></summary>
+    <b>Objective</b>: Reduce memory consumption for improved resource utilization.  
+
+    <b>Explanation</b>: The current computational framework may encounter memory bottlenecks, especially when processing large datasets. Optimizing memory usage by identifying redundant storage, streamlining data structures, and using efficient algorithms will help in scaling up the computations while maintaining or even enhancing performance. This task is critical for expanding the capacity of the system to handle larger and more complex datasets.
+  </details>
+
+- <details>
+    <summary><b>Custom Input Data Management System</b></summary>
+    <b>Objective</b>: Develop a tailored system for managing input data effectively.  
+    
+    <b>Explanation</b>: A customized data management framework is needed to better organize, preprocess, and handle input data efficiently. This may involve designing workflows for data formatting, conversion, and pre-processing steps, ensuring the consistency and integrity of input data. Such a system will provide flexibility in managing various input types and scales, and it will be crucial for maintaining control over data quality throughout the project lifecycle.
+  </details>
+
+- <details>
+    <summary><b>Enhanced Gradient Processing</b></summary>
+    <b>Objective</b>: Implement advanced techniques for gradient handling.  
+
+    <b>Explanation</b>: Developing a sophisticated gradient processing strategy will improve the inversion results by ensuring that gradients are effectively utilized and interpreted. This may include techniques such as gradient clipping, adaptive learning rates, and noise reduction methods to enhance the stability and convergence of the optimization process, ultimately leading to more accurate inversion outcomes.
+  </details>
+
+- <details>
+    <summary><b>Multi-Scale Inversion Strategies</b></summary>
+    <b>Objective</b>: Introduce multi-scale approaches for improved inversion accuracy. 
+
+    <b>Explanation</b>: Multi-scale inversion involves processing data at various scales to capture both large-scale trends and small-scale features effectively. Implementing this strategy will enhance the robustness of the inversion process, allowing for better resolution of subsurface structures. Techniques such as hierarchical modeling and wavelet analysis may be considered to achieve this goal, thus improving the overall quality of the inversion results.
+  </details>
+
+- <details>
+    <summary><b>Real Data Testing</b></summary>
+    <b>Objective</b>: Evaluate the performance and robustness of the developed methodologies using real-world datasets.  
+    <b>Explanation</b>: Conducting tests with actual data is crucial for validating the effectiveness of the implemented algorithms. This will involve the following steps:
+    
+    1. <b>Dataset Selection</b>: Identify relevant real-world datasets that reflect the complexities of the target applications. These datasets should include diverse scenarios and noise characteristics typical in field data.
+
+    2. <b>Preprocessing</b>: Apply necessary preprocessing techniques to ensure data quality and consistency. This may include data normalization, filtering, and handling missing or corrupted values.
+
+    3. <b>Implementation</b>: Utilize the developed algorithms on the selected datasets, monitoring their performance metrics such as accuracy, computational efficiency, and convergence behavior.
+
+    4. <b>Comparison</b>: Compare the results obtained from the implemented methods against established benchmarks or existing methodologies to assess improvements.
+
+    5. <b>Analysis</b>: Analyze the outcomes to identify strengths and weaknesses, and document any discrepancies or unexpected behaviors. This analysis will help refine the algorithms and inform future iterations.
+
+    6. <b>Reporting</b>: Summarize the findings in a comprehensive report, detailing the testing procedures, results, and any implications for future work.
+
+    This actual data testing phase is essential for ensuring that the developed methodologies not only perform well in controlled environments but also translate effectively to real-world applications. It serves as a critical validation step before broader deployment and adoption.
+  </details>
 
 ---
 ## 🔰 Contact
