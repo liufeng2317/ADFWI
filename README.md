@@ -612,7 +612,7 @@ Email: liufeng2317@mail.sjtu.edu.cn or liufeng1@pjlab.org.cn
 
 ```bibtex
 @software{LiuFeng2317,
-  author       = {Feng Liu, GuangYuan Zou, \& Haipeng Li},
+  author       = {Feng Liu, GuangYuan Zou, Haipeng Li},
   title        = {ADFWI},
   month        = July,
   year         = 2024,
