@@ -606,16 +606,20 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 ---
 ## 🔰 Contact
 
-**Liu Feng**  
-Shanghai Artificial Intelligence Laboratory & Shanghai Jiao Tong University  
-Email: liufeng2317@mail.sjtu.edu.cn or liufeng1@pjlab.org.cn  
+Developed by **Feng Liu** at the University of Science and Technology of China (USTC) and Shanghai Jiao Tong University (SJTU).
+
+The related paper ***Full Waveform Inversion of (An)Isotropic Wave Physics in a Versatile Deep Learning Framework*** is currently in preparation.
+
+For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.cn](mailto:liufeng2317@sjtu.edu.cn) or [liufeng2317@mail.ustc.edu.cn](mailto:liufeng2317@mail.ustc.edu.cn).
+
+
 
 ```bibtex
-@software{LiuFeng2317,
-  author       = {Feng Liu, GuangYuan Zou, Haipeng Li},
+@software{LiuFeng,
+  author       = {Feng Liu, Haipeng Li, GuangYuan Zou and Junlun Li},
   title        = {ADFWI},
   month        = July,
   year         = 2024,
-  version      = {v1.1},
+  version      = {v1.0},
 }
 ```
