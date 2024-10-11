@@ -16,7 +16,7 @@ from .SoftDTW import Misfit_sdtw
 from .WDGC import Misfit_weighted_DTW_GC
 
 from .Wasserstein_sinkhorn import Misfit_wasserstein_sinkhorn
-from .Wasserstein_1 import Misfit_Wasserstein1
-from .Wasserstein_1d import Misfit_wasserstein_1d
+# from .Wasserstein_1 import Misfit_Wasserstein1
+# from .Wasserstein_1d import Misfit_wasserstein_1d
 
 from .Normalized_Integration_method import Misfit_NIM
