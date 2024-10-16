@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional,Dict
 import numpy as np
 import torch
+from torch import Tensor
 import matplotlib.pyplot as plt
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
@@ -9,29 +10,35 @@ from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
 from .acoustic_kernels import forward_kernel
 
 class AcousticPropagator(torch.nn.Module):
-    """The class of defining the propagator for the isotropic acoustic wave
-    equation (stress-velocity form), which is solved by the finite
+    """Defines the propagator for the isotropic acoustic wave
+    equation (stress-velocity form), solved by the finite
     difference method.
 
     Parameters:
     -----------
     model (AbstractModel)   : The model object
-    survey (Survey)         :The survey object
+    survey (Survey)         : The survey object
+    device (Optional[str])  : Device type, default is 'cpu'
+    cpu_num (Optional[int]) : Number of CPU threads, default is 1
+    gpu_num (Optional[int]) : Number of GPU devices, default is 1
+    dtype (torch.dtype)     : Data type for tensors, default is torch.float32
     """
     def __init__(self,
-                model:AbstractModel,survey:Survey,
-                device:Optional[str]    = 'cpu',
-                cpu_num:Optional[int]   = 1,
-                gpu_num:Optional[int]   = 1,
-                dtype                   = torch.float32
-                ):
+                 model  : AbstractModel,
+                 survey : Survey,
+                 device : Optional[str] = 'cpu',
+                 cpu_num: Optional[int] = 1,
+                 gpu_num: Optional[int] = 1,
+                 dtype  : torch.dtype = torch.float32
+                 ):
         super().__init__()
         
+        # Validate model and survey types
         if not isinstance(model, AbstractModel):
-            raise ValueError("model is not AbstractModel")
+            raise ValueError("model is not an instance of AbstractModel")
 
         if not isinstance(survey, Survey):
-            raise ValueError("survey is not Survey")
+            raise ValueError("survey is not an instance of Survey")
         
         # ---------------------------------------------------------------
         # set the model and survey
@@ -67,8 +74,8 @@ class AcousticPropagator(torch.nn.Module):
         # ---------------------------------------------------------------
         self.source         = self.survey.source
         self.src_loc        = self.source.get_loc()
-        self.src_x          = self.src_loc[:,0]
-        self.src_z          = self.src_loc[:,1]
+        self.src_x          = numpy2tensor(self.src_loc[:,0],torch.long).to(self.device)
+        self.src_z          = numpy2tensor(self.src_loc[:,1],torch.long).to(self.device)
         self.src_n          = self.source.num
         self.wavelet        = numpy2tensor(self.source.get_wavelet(),self.dtype).to(self.device)
         self.moment_tensor  = numpy2tensor(self.source.get_moment_tensor(),self.dtype).to(self.device)
@@ -78,36 +85,46 @@ class AcousticPropagator(torch.nn.Module):
         # ---------------------------------------------------------------
         self.receiver       = self.survey.receiver
         self.rcv_loc        = self.receiver.get_loc()
-        self.rcv_x          = self.rcv_loc[:,0]
-        self.rcv_z          = self.rcv_loc[:,1]
+        self.rcv_x          = numpy2tensor(self.rcv_loc[:,0],torch.long).to(self.device)
+        self.rcv_z          = numpy2tensor(self.rcv_loc[:,1],torch.long).to(self.device)
         self.rcv_n          = self.receiver.num
         
         
-    def boundary_condition(self,vmax=None):
-        # for the acoustic propagator, we set free_surface = False alwalys
-        if self.abc_type.lower() in ["pml"]:
+    def boundary_condition(self, vmax=None):
+        """Set boundary conditions based on the specified ABC type."""
+        if self.abc_type.lower() == "pml":
             if vmax is not None:
-                damp = bc_pml(self.nx,self.nz,self.dx,self.dz,pml=self.nabc,
-                                vmax=vmax,
-                                free_surface=False)
+                damp = bc_pml(self.nx, self.nz, self.dx, self.dz, pml=self.nabc, vmax=vmax, free_surface=False)
             else:
-                damp = bc_pml(self.nx,self.nz,self.dx,self.dz,pml=self.nabc,
-                                vmax=self.model.vp.cpu().detach().numpy().max(),
-                                free_surface=False)
-        elif self.abc_type.lower() in ['gerjan']:
-            damp = bc_gerjan(self.nx,self.nz,self.dx,self.dz,pml=self.nabc,alpha=self.model.abc_jerjan_alpha,
-                            free_surface=False)
-        else:
-            damp = bc_sincos(self.nx,self.nz,self.dx,self.dz,pml=self.nabc,
+                damp = bc_pml(self.nx, self.nz, self.dx, self.dz, pml=self.nabc,
+                               vmax=self.model.vp.cpu().detach().numpy().max(),
+                               free_surface=False)
+        elif self.abc_type.lower() == 'gerjan':
+            damp = bc_gerjan(self.nx, self.nz, self.dx, self.dz, pml=self.nabc, alpha=self.model.abc_jerjan_alpha,
                              free_surface=False)
-        self.damp = numpy2tensor(damp,self.dtype).to(self.device)
-        return 
+        else:
+            damp = bc_sincos(self.nx, self.nz, self.dx, self.dz, pml=self.nabc,
+                             free_surface=False)
+
+        self.damp = numpy2tensor(damp, self.dtype).to(self.device) 
     
     def forward(self,
-                model:Optional[AbstractModel]   = None,
-                shot_index                      = None,
-                checkpoint_segments             = 1,
-                ):
+                model: Optional[AbstractModel] = None,
+                shot_index: Optional[int] = None,
+                checkpoint_segments: int = 1,
+                ) -> Dict[str, Tensor]:
+        """Forward simulation for selected shots.
+
+        Parameters:
+        -----------
+        model (Optional[AbstractModel]) : Model to use for simulation, defaults to the instance's model
+        shot_index (Optional[int])       : Index of the shot to simulate
+        checkpoint_segments (int)        : Number of segments for checkpointing to save memory
+
+        Returns:
+        --------
+        record_waveform (dict) : Dictionary containing recorded waveforms
+        """
         # calculate the thomson/lame and elastic moduli parameters
         model = self.model if model is None else model
         model.forward()
