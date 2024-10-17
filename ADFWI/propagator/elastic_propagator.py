@@ -80,8 +80,8 @@ class ElasticPropagator(torch.nn.Module):
         # ---------------------------------------------------------------
         self.source         = self.survey.source
         self.src_loc        = self.source.get_loc()
-        self.src_x          = self.src_loc[:,0]
-        self.src_z          = self.src_loc[:,1]
+        self.src_x          = numpy2tensor(self.src_loc[:,0],torch.long).to(self.device)
+        self.src_z          = numpy2tensor(self.src_loc[:,1],torch.long).to(self.device)
         self.src_n          = self.source.num
         self.wavelet        = numpy2tensor(self.source.get_wavelet(),self.dtype).to(self.device)
         self.moment_tensor  = numpy2tensor(self.source.get_moment_tensor(),self.dtype).to(self.device)
@@ -91,8 +91,8 @@ class ElasticPropagator(torch.nn.Module):
         # ---------------------------------------------------------------
         self.receiver       = self.survey.receiver
         self.rcv_loc        = self.receiver.get_loc()
-        self.rcv_x          = self.rcv_loc[:,0]
-        self.rcv_z          = self.rcv_loc[:,1]
+        self.rcv_x          = numpy2tensor(self.rcv_loc[:,0],torch.long).to(self.device)
+        self.rcv_z          = numpy2tensor(self.rcv_loc[:,1],torch.long).to(self.device)
         self.rcv_n          = self.receiver.num
         
         
@@ -121,6 +121,7 @@ class ElasticPropagator(torch.nn.Module):
         # calculate the thomson/lame and elastic moduli parameters
         model = self.model if model is None else model
         model.forward()
+        
         # foward simulation for select shots
         src_x = self.src_x[shot_index] if shot_index is not None else self.src_x
         src_z = self.src_z[shot_index] if shot_index is not None else self.src_z
