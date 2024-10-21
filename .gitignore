@@ -8,3 +8,12 @@ examples/datasets/
 examples/dip/03_ResNet/
 backup/
 setup.py
+README_PIP.md
+ADFWI_PIP
+ADFWI_Torch.egg-info
+build
+dist
+MANIFEST.in
+examples/dip/04_InversionNet/
+examples/acoustic/01-model-test/
+examples/elastic/
