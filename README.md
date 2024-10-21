@@ -524,12 +524,23 @@ We employ a 2-layered CNN architecture, derived from the Deep Image Prior (DIP) 
   - AdamW
   - NAdam
   - RAdam
+
 - **Deep Neural Network Integration**
-  - DNNs reparameterize the Earth Model for learnable regularization
-  - Droupout for access the inversion uncertainty
+  - **DNNs Reparameterization**: DNNs reparameterize the Earth model, introducing learnable regularization to improve the inversion process.
+  - **Dropout**: Applied to assess inversion uncertainty by randomly dropping units during training, providing a measure of model robustness.
+  - **Multiphysics Joint Inversion (on-going)**: Neural networks are used to fuse data from different physical fields, enabling joint inversion for a more comprehensive and accurate Earth model.
+
 - **Resource Management**
-  - Mini-batch
-  - Checkpointing
+  - **Mini-batch**: multi-shot data can be large due to different source positions and time steps. Splitting it into mini-batches prevents loading the entire dataset into memory at once.
+  - **Checkpointing**: a **key** memory-saving technique, particularly for backpropagation in FWI. Instead of storing all intermediate results, only a few checkpoints are saved. During backpropagation, missing steps are recomputed, reducing memory usage at the cost of extra computation.
+  - **boundary saving (on-going)**: methods are being developed to efficiently reduce memory usage by saving only the wavefield boundaries during forward propagation instead of the entire wavefield, allowing for their later use in backpropagation.
+
+- **Acceleration Methods**
+  - **GPU Acceleration**: Utilizes the parallel processing power of GPUs to significantly speed up computations, especially for large-scale simulations like FWI.
+  - **JIT(Just-in-Time)**: Speeds up code execution by compiling Python code into optimized machine code at runtime, improving performance without modifying the original codebase.
+  - **Reconstruction Using Lower-Level Language (C++) (on-going)**: Involves rewriting performance-critical components in C++ to leverage lower-level optimizations, resulting in faster execution times and improved overall efficiency.
+
+
 - **Robustness and Portability**
   - Each of the method has proposed a code for testing.
 
@@ -547,6 +558,17 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 ---
 
 ## 🗓️ To-Do List
+
+- <details>
+    <summary><b>Memory Optimization through Boundary and Wavefield Reconstruction</b></summary>
+    <b>Objective</b>: Implement a strategy to save boundaries and reconstruct wavefields to reduce memory usage.  
+
+    <b>Explanation</b>: This approach focuses on saving only the wavefield boundaries during forward propagation and reconstructing the wavefields as needed. By doing so, it aims to minimize memory consumption while ensuring the accuracy of wave propagation simulations, particularly in large-scale models.
+    
+    <b>Related Work</b>: 
+    - [1] P. Yang, J. Gao, and B. Wang, *RTM using Effective Boundary Saving: A Staggered Grid GPU Implementation*, Comput. Geosci., vol. 68, pp. 64–72, Jul. 2014. doi: [10.1016/j.cageo.2014.04.004](https://doi.org/10.1016/j.cageo.2014.04.004).
+    - [2] Wang, S., Jiang, Y., Song, P., Tan, J., Liu, Z., & He, B., 2023. *Memory Optimization in RNN-Based Full Waveform Inversion Using Boundary Saving Wavefield Reconstruction*, IEEE Trans. Geosci. Remote Sens., 61, 1–12. doi: [10.1109/TGRS.2023.3317529](https://doi.org/10.1109/TGRS.2023.3317529).
+    </details>
 
 - <details>
     <summary><b>C++ / C-Based Forward Propagator</b></summary>

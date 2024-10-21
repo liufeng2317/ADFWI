@@ -1,5 +1,5 @@
-from .elastic_propagator import ElasticPropagator
+from .elastic_propagator    import ElasticPropagator
 
-from .acoustic_propagator import AcousticPropagator
+from .acoustic_propagator   import AcousticPropagator
 
-from .gradient_process import GradProcessor
+from .gradient_process      import GradProcessor

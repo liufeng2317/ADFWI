@@ -266,7 +266,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                        rcv_x, rcv_z, rcv_n,
                        kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                        p, u, w,
-                       device, dtype)
+                       device, dtype, use_reentrant=True)
 
         # Save the waveform recorded on the receiver
         rcv_p[:, k:k + chunk.shape[-1]] = rcv_p_temp
