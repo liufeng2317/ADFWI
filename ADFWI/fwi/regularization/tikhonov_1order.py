@@ -1,3 +1,12 @@
+'''
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-05-05 19:51:52
+* LastEditors: LiuFeng
+* LastEditTime: 2024-05-05 20:29:15
+* Description: 
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+'''
+
 from .base import Regularization,regular_StepLR
 import torch
 import numpy as np

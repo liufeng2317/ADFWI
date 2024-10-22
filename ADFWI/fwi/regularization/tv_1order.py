@@ -1,10 +1,10 @@
 '''
-* Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
 * Date: 2024-05-08 16:07:17
 * LastEditors: LiuFeng
 * LastEditTime: 2024-05-22 10:11:59
 * Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@mail.ustc.edu.cn, All Rights Reserved.
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
 from .base import Regularization,regular_StepLR
 import torch

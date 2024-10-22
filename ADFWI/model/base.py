@@ -1,3 +1,16 @@
+"""
+* Modified from: https://github.com/seisfwi/SWIT
+* Original Author: Haipeng Li
+* Original Author Email: haipeng@stanford.edu
+=========================================================
+* Author: Liu Feng (SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-04-20 09:32:43
+* LastEditors: Liu Feng
+* LastEditTime: 2024-05-15 19:30:38
+* Description: 
+* Copyright (c) 2024 by Liu Feng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+"""
+
 import numpy as np
 import torch
 from torch import Tensor
@@ -69,7 +82,6 @@ class AbstractModel(torch.nn.Module):
         self.x = np.arange(nx)*self.dx + self.ox
         self.z = np.arange(nz)*self.dz + self.oz
         
-        # 
         
         # initialize some empty model and associated parameters
         self.pars           = []

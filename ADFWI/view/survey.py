@@ -1,3 +1,12 @@
+'''
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-04-19 22:07:06
+* LastEditors: LiuFeng
+* LastEditTime: 2024-05-10 14:53:29
+* Description: 
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 from ADFWI.utils import gpu2cpu

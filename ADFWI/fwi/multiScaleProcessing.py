@@ -1,11 +1,11 @@
 '''
-* Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
 * Date: 2024-03-01 20:51:32
 * LastEditors: LiuFeng
 * LastEditTime: 2024-03-21 10:49:51
 * Description: 
 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@mail.ustc.edu.cn, All Rights Reserved.
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
 import numpy as np
 import torch 

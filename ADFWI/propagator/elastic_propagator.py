@@ -1,10 +1,10 @@
 '''
-* Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
 * Date: 2024-05-03 22:33:52
 * LastEditors: LiuFeng
 * LastEditTime: 2024-05-15 18:41:40
 * Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@mail.ustc.edu.cn, All Rights Reserved.
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
 from typing import Optional
 import numpy as np

@@ -1,3 +1,12 @@
+'''
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-04-26 19:42:24
+* LastEditors: LiuFeng
+* LastEditTime: 2024-05-13 23:16:49
+* Description: 
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+'''
+
 from ADFWI.model import AbstractModel
 from ADFWI.utils import numpy2tensor
 from ADFWI.view import plot_vp_rho,plot_model

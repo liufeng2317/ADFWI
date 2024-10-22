@@ -1,3 +1,12 @@
+
+'''
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-05-14 09:08:12
+* LastEditors: LiuFeng
+* LastEditTime: 2024-05-26 10:41:48
+* Description: 
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

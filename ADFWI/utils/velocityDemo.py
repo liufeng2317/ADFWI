@@ -1,5 +1,5 @@
 '''
-* Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
 * Date: 2023-12-10 20:30:00
 * LastEditors: LiuFeng
 * LastEditTime: 2024-05-20 11:22:22

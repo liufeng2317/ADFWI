@@ -1,10 +1,10 @@
 '''
-* Author: LiuFeng(USTC) : liufeng2317@mail.ustc.edu.cn
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
 * Date: 2024-04-19 17:05:45
 * LastEditors: LiuFeng
 * LastEditTime: 2024-05-07 16:05:36
 * Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@mail.ustc.edu.cn, All Rights Reserved.
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,6 +1,14 @@
+'''
+* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
+* Date: 2024-04-20 09:32:43
+* LastEditors: LiuFeng
+* LastEditTime: 2024-05-15 19:30:38
+* Description: 
+* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+'''
+
 from .base import Misfit
 import torch
-
 
 class Misfit_waveform_studentT(Misfit):
     """ Roubust T Loss (Alvaro et al., 2023; Guo et al., 2023)
