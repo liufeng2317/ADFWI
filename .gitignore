@@ -5,7 +5,6 @@
 __pycache__/
 log/
 examples/datasets/
-examples/dip/03_ResNet/
 backup/
 setup.py
 README_PIP.md
@@ -14,6 +13,8 @@ ADFWI_Torch.egg-info
 build
 dist
 MANIFEST.in
+examples/dip/03_ResNet/
 examples/dip/04_InversionNet/
+examples/dip/05_SparseShotsTests/
 examples/acoustic/01-model-test/
 examples/elastic/

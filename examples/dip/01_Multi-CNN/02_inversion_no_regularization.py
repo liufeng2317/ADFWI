@@ -6,7 +6,7 @@ matplotlib.use("agg")
 from scipy import integrate
 import sys
 import os
-sys.path.append("../../../../")
+sys.path.append("../../../")
 from ADFWI.propagator  import *
 from ADFWI.model       import *
 from ADFWI.view        import *
