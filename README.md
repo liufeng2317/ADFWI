@@ -210,11 +210,10 @@ We assess the convexity of different objective functions by simulating seismic r
 <table>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Convexity</td>
-        <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker Shift</a><br>
-            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/02_misfit_wavelets-shift_and_Amplitude.ipynb">Example-Ricker Shift & vary Amplitude</a><br>
-            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/03_misfit_wavelets-shift_and_f0.ipynb">Example-Ricker Shift & domain Frequency</a><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker Shift</a><br><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/02_misfit_wavelets-shift_and_Amplitude.ipynb">Example-Ricker Shift & vary Amplitude</a><br><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/03_misfit_wavelets-shift_and_f0.ipynb">Example-Ricker Shift & domain Frequency</a><br><br>
             <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/04_misfit_wavelets-shift_and_Gaussian_noise.ipynb">Example-Ricker Shift & Gaussian noise</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
@@ -231,13 +230,13 @@ It is worth mentioning that here we show the performance of different objective 
 
 <div style="display: flex; justify-content: center; align-items: flex-start;">
     <div style="margin-right: 10px;">
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/TestWithDiffMisfit.png" alt="Optimized_Model" style="max-height: 250px; width: auto;" />
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/TestWithDiffMisfit.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
     </div>
     <div>
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_SSIM.png" alt="Optimized_Model_misfits" style="max-height: 250px; width: auto;" />
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_SSIM.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
     </div>
     <div>
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_MAPE.png" alt="Optimized_Model_misfits" style="max-height: 250px; width: auto;" />
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_MAPE.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
     </div>
 </div>
 
@@ -360,10 +359,10 @@ The results presented below specifically characterize the impact of using the `L
 
 <div style="display: flex; justify-content: center; align-items: flex-start;">
     <div style="margin-right: 20px;">
-        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Optimizer_Model.png" alt="Optimized_Model" style="max-height: 300px; width: auto;" />
+        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Optimizer_Model.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
     </div>
     <div>
-        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Data_and_Model_Misfits.png" alt="Optimized_Model_misfits" style="max-height: 300px; width: auto;" />
+        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Data_and_Model_Misfits.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
     </div>
 </div>
 
@@ -486,10 +485,10 @@ The results presented below specifically characterize the impact of using the `L
 
 <div style="display: flex; justify-content: center; align-items: flex-start;">
     <div style="margin-right: 20px;">
-        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Model.png" alt="Optimized_Model" style="max-height: 300px; width: auto;" />
+        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Model.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
     </div>
     <div>
-        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Data_and_Model_misfit.png" alt="Optimized_Model_misfits" style="max-height: 300px; width: auto;" />
+        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Data_and_Model_misfit.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
     </div>
 </div>
 
