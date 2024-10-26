@@ -217,7 +217,7 @@ We assess the convexity of different objective functions by simulating seismic r
             <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/04_misfit_wavelets-shift_and_Gaussian_noise.ipynb">Example-Ricker Shift & Gaussian noise</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/Figures/misfit_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto;" />
+            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/Figures/misfit_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto; " />
         </td>
     </tr>
 </table>
@@ -228,17 +228,26 @@ We assess the convexity of different objective functions by simulating seismic r
 It is worth mentioning that here we show the performance of different objective functions under **poorer initial models**, and under better initial model conditions, each objective function performs better, and the relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
 
 
-<div style="display: flex; justify-content: center; align-items: flex-start;">
-    <div style="margin-right: 10px;">
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/TestWithDiffMisfit.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
-    </div>
-    <div>
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_SSIM.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
-    </div>
-    <div>
-        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_MAPE.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
-    </div>
-</div>
+<table style="width: 100%; table-layout: fixed;">
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/TestWithDiffMisfit.png" 
+                 alt="Optimized_Model" 
+                 style="max-height: 150px; width: auto; max-height: 200px;" />
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_SSIM.png" 
+                 alt="Optimized_Model_misfits" 
+                 style="max-height: 150px; width: auto; max-height: 200px;" />
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_MAPE.png" 
+                 alt="Optimized_Model_misfits" 
+                 style="max-height: 150px; width: auto; max-height: 200px;" />
+        </td>
+    </tr>
+</table>
+
 
 <table>
     <tr>
@@ -357,14 +366,21 @@ It is worth mentioning that here we show the performance of different objective 
 ### 4. Optimizer Tests
 The results presented below specifically characterize the impact of using the `L2-norm objective function` in conjunction with the Marmousi2 model. It is important to note that the effects of different optimization algorithms may vary significantly when applied to other objective functions or models. Consequently, the findings should be interpreted within this specific context, and further investigations are recommended to explore the performance of these algorithms across a broader range of scenarios.
 
-<div style="display: flex; justify-content: center; align-items: flex-start;">
-    <div style="margin-right: 20px;">
-        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Optimizer_Model.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
-    </div>
-    <div>
-        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Data_and_Model_Misfits.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
-    </div>
-</div>
+<table style="width: 100%; table-layout: fixed;">
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Optimizer_Model.png" 
+                 alt="Optimized_Model" 
+                 style="height: 100%; width: auto; max-height: 200px;" />
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Data_and_Model_Misfits.png" 
+                 alt="Optimized_Model_misfits" 
+                 style="height: 100%; width: auto; max-height: 200px;" />
+        </td>
+    </tr>
+</table>
+
 
 
 <table>
