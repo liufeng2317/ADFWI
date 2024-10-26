@@ -101,6 +101,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 
 ### 1. Iso-acoustic Model Tests
 
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -165,9 +166,10 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
     </tr>
 
 </table>
-
+</div>
 
 ### 2. Iso-elastic & VTI-elastic Model Tests
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -202,6 +204,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
 </table>
+</div>
 
 ### 3. Misfits Tests
 
@@ -249,6 +252,7 @@ It is worth mentioning that here we show the performance of different objective 
 </table>
 
 
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -361,7 +365,7 @@ It is worth mentioning that here we show the performance of different objective 
         </td>
     </tr>
 </table>
-
+</div>
 
 ### 4. Optimizer Tests
 The results presented below specifically characterize the impact of using the `L2-norm objective function` in conjunction with the Marmousi2 model. It is important to note that the effects of different optimization algorithms may vary significantly when applied to other objective functions or models. Consequently, the findings should be interpreted within this specific context, and further investigations are recommended to explore the performance of these algorithms across a broader range of scenarios.
@@ -382,7 +386,7 @@ The results presented below specifically characterize the impact of using the `L
 </table>
 
 
-
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -495,7 +499,7 @@ The results presented below specifically characterize the impact of using the `L
         </td>
     </tr>
 </table>
-
+</div>
 
 ### 5. Regularization Methods
 
@@ -515,6 +519,7 @@ The results presented below specifically characterize the impact of using the `L
 </table>
 
 
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -588,10 +593,11 @@ The results presented below specifically characterize the impact of using the `L
         </td>
     </tr>
 </table>
-
+</div>
 
 ### 6. Deep Image Prior (Earth Model Reparameterization)
 
+<div style="text-align: center;">
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -665,7 +671,7 @@ The results presented below specifically characterize the impact of using the `L
         </td>
     </tr>
 </table>
-
+</div>
 
 ### 7. Uncertainty Estimation Using Deep Neural Networks (DNNs)
 
