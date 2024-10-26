@@ -15,7 +15,7 @@ from tqdm import tqdm
 from ADFWI.model       import AbstractModel
 from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
-from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
+from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -151,8 +151,8 @@ class AcousticFWI(torch.nn.Module):
                 # misfit
                 if isinstance(self.loss_fn,Misfit):
                     data_loss = self.loss_fn.forward(syn_p,self.obs_p[shot_index])
-                elif isinstance(self.loss_fn,Misfit_NIM):
-                    data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index],self.loss_fn.p,self.loss_fn.trans_type,self.loss_fn.theta)
+                # elif isinstance(self.loss_fn,Misfit_NIM):
+                #     data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index],self.loss_fn.p,self.loss_fn.trans_type,self.loss_fn.theta)
                 else:
                     data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index])
                 

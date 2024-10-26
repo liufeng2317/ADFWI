@@ -11,19 +11,32 @@ import torch
 
 
 class Misfit_waveform_L1(Misfit):
-    ''' Waveform difference L2-norm (Tarantola, 1984)
-    
-    Paraemters:
+    '''Waveform L1-norm difference misfit (Tarantola, 1984)
+
+    Parameters:
     -----------
-        dt (float)      : time sampling interval
-        obs (Tensors)   : the observed waveform 
-        syn (Tensors)   : the synthetic waveform 
+        dt (float)      : Time sampling interval.
+        obs (Tensor)    : Observed waveform.
+        syn (Tensor)    : Synthetic waveform.
     '''
-    def __init__(self,dt=1) -> None:
+    def __init__(self, dt=1) -> None:
         super().__init__()
         self.dt = dt
 
-    def forward(self,obs,syn):
-        rsd = obs - syn 
-        loss = torch.sum(torch.abs(rsd*self.dt))
+    def forward(self, obs, syn):
+        '''Compute the L1-norm waveform misfit between observed and synthetic data.
+
+        Args:
+            obs (Tensor): Observed waveform.
+            syn (Tensor): Synthetic waveform.
+        
+        Returns:
+            Tensor: L1-norm misfit loss.
+        '''
+        # Calculate residuals by subtracting synthetic from observed data
+        rsd = obs - syn
+
+        # Compute the L1-norm loss by summing the absolute value of residuals, weighted by dt
+        loss = torch.sum(torch.abs(rsd * self.dt))
+        
         return loss

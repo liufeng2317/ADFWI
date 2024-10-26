@@ -143,9 +143,9 @@ if __name__ == "__main__":
     np.savez(os.path.join(project_path,"inversion-L1/iter_vp.npz"),data=np.array(iter_vp))
     np.savez(os.path.join(project_path,"inversion-L1/iter_loss.npz"),data=np.array(iter_loss))
     
-    ###########################################
-    # visualize the inversion results
-    ###########################################
+    #------------------------------------------------------
+    #            Visualize the Inversion Results
+    #------------------------------------------------------
     # the animation results
     import numpy as np
     import matplotlib.pyplot as plt

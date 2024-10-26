@@ -15,7 +15,7 @@ def MAPE(true_v,inv_v):
         res = 100/(nx*nz) * np.sum(np.abs(inv_v-true_v)/true_v)
     return res
 
-def SSIM(true_v,inv_v,win_size=3):
+def SSIM(true_v,inv_v,win_size=11):
     if len(true_v.shape) != len(inv_v.shape):
         ssim_res = []
         for i in range(inv_v.shape[0]):

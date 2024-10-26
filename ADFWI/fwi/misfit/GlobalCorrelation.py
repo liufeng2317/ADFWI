@@ -22,24 +22,17 @@ class Misfit_global_correlation(Misfit):
         super().__init__()
         self.dt = dt
     
-    # Two loops for calculate the misfits (shots & traces)
-    # def forward(self,obs,syn):
-    #     obs_norm = torch.sqrt(torch.sum(obs*obs,axis=1))
-    #     syn_norm = torch.sqrt(torch.sum(syn*syn,axis=1))
-    #     rsd = torch.zeros((obs.shape[0],obs.shape[2])).to(obs.device)
-    #     for ishot in range(obs.shape[0]):
-    #         obs_shot_norm = obs[ishot]/obs_norm[ishot]
-    #         syn_shot_norm = syn[ishot]/syn_norm[ishot]
-    #         for itrace in range(obs.shape[2]):
-    #             obs_trace_norm = obs_shot_norm[:,itrace].reshape(1,-1)
-    #             syn_trace_norm = syn_shot_norm[:,itrace].reshape(1,-1)
-    #             corrcoef_input = torch.vstack((obs_trace_norm,syn_trace_norm))
-    #             rsd[ishot,itrace] = -torch.corrcoef(corrcoef_input)[0][1]
-    #     loss = torch.sum(rsd*self.dt)
-    #     return loss
-    
     # One loop for calculate the misfits (traces)
     def forward(self, obs, syn):
+        """Compute the global correlation misfit between observed and synthetic waveforms.
+        
+        Args:
+            obs (Tensor): Observed waveform, shape (batch, channels, traces).
+            syn (Tensor): Synthetic waveform, shape (batch, channels, traces).
+        
+        Returns:
+            Tensor: Correlation-based misfit loss.
+        """
         # Compute norms
         obs_norm = obs.norm(dim=1, keepdim=True)  # Shape: (N, 1, M)
         syn_norm = syn.norm(dim=1, keepdim=True)  # Shape: (N, 1, M)

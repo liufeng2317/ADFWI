@@ -112,37 +112,62 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic Marmousi2</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/01-Marmousi2/02_inversion.ipynb">Example-Marmousi2</a></td>
-        <td style="text-align: center; vertical-align: middle;"><img src="./examples/acoustic/01-model-test/01-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 300px; height: auto;"/></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/01-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic FootHill</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/02-FootHill/02_inversion.ipynb">Example-FootHill</a></td>
-        <td style="text-align: center; vertical-align: middle;"><img src="./examples/acoustic/01-model-test/02-FootHill/data/inversion/inversion_process.gif" alt="FootHill" style="max-width: 300px; height: auto;"/></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/02-FootHill/data/inversion/inversion_process.gif" alt="FootHill" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic SEAM-I</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/03-SEAM-I/02_inversion.ipynb">Example-SEAM-I</a></td>
-        <td style="text-align: center; vertical-align: middle;"><img src="./examples/acoustic/01-model-test/03-SEAM-I/data/inversion/inversion_process.gif" alt="SEAM-I" style="max-width: 300px; height: auto;"/></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/03-SEAM-I/data/inversion/inversion_process.gif" alt="SEAM-I" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic Overthrust-offshore</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/04-Overthrust-offshore/02_inversion.ipynb">Example-Overthrust-offshore</a></td>
-        <td style="text-align: center; vertical-align: middle;"><img src="./examples/acoustic/01-model-test/04-Overthrust-offshore/data/inversion/inversion_process.gif" alt="Overthrust-offshore" style="max-width: 300px; height: auto;"/></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/04-Overthrust-offshore/data/inversion/inversion_process.gif" alt="Overthrust-offshore" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic Anomaly</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/05-Anomaly/02_inversion.ipynb">Example-Anomaly</a></td>
-        <td style="text-align: center; vertical-align: middle;"><img src="./examples/acoustic/01-model-test/05-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;"/></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/05-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
     </tr>
+
 </table>
 
 
 ### 2. Iso-elastic & VTI-elastic Model Tests
-
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -157,7 +182,10 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
             <a href="./examples/elastic/Iso-elastic-Marmousi2/02_inversion.py">Example-Marmousi2</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/elastic/Iso-elatic-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 600px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/Iso-elatic-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 600px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -167,14 +195,51 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
             <a href="./examples/elastic/VTI-elastic-Anomaly/02_inversion.py">Example-Anomaly</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/elastic/VTI-elastic-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/VTI-elastic-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
 </table>
 
 ### 3. Misfits Tests
 
+We assess the convexity of different objective functions by simulating seismic records using shifted wavelets. The following table summarizes the results and provides examples for further exploration.
+
+<table>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Convexity</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker Shift</a><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/02_misfit_wavelets-shift_and_Amplitude.ipynb">Example-Ricker Shift & vary Amplitude</a><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/03_misfit_wavelets-shift_and_f0.ipynb">Example-Ricker Shift & domain Frequency</a><br>
+            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/04_misfit_wavelets-shift_and_Gaussian_noise.ipynb">Example-Ricker Shift & Gaussian noise</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/Figures/misfit_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto;" />
+        </td>
+    </tr>
+</table>
+
+
+****
+
 It is worth mentioning that here we show the performance of different objective functions under **poorer initial models**, and under better initial model conditions, each objective function performs better, and the relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
+
+
+<div style="display: flex; justify-content: center; align-items: flex-start;">
+    <div style="margin-right: 10px;">
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/TestWithDiffMisfit.png" alt="Optimized_Model" style="max-height: 250px; width: auto;" />
+    </div>
+    <div>
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_SSIM.png" alt="Optimized_Model_misfits" style="max-height: 250px; width: auto;" />
+    </div>
+    <div>
+        <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/MisfitTest_MAPE.png" alt="Optimized_Model_misfits" style="max-height: 250px; width: auto;" />
+    </div>
+</div>
 
 <table>
     <tr>
@@ -184,23 +249,16 @@ It is worth mentioning that here we show the performance of different objective 
         <th style="text-align: center;">Example Figure</th>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Ricker-Synthetic-Test</td>
-        <td style="text-align: center; vertical-align: middle;">✅</td>
-        <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/01_misfit_wavelets-shift.ipynb">Example-Ricker (some other tests in the same folder)</a>
-        </td>
-        <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/00-Ricker-Test/Figures/misfit_shift.png" alt="Ricker-cmp" style="max-width: 300px; height: auto;" />
-        </td>
-    </tr>
-    <tr>
         <td style="text-align: center; vertical-align: middle;">L1-norm</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_L1.py">Example-L1</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L1/inversion_process.gif" alt="L1" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L1/inversion_process.gif" alt="L1" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -210,7 +268,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_L2.py">Example-L2</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L2/inversion_process.gif" alt="L2" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-L2/inversion_process.gif" alt="L2" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -220,7 +281,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_StudentT.py">Example-StudentT</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-StudentT/inversion_process.gif" alt="StudentT" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-StudentT/inversion_process.gif" alt="StudentT" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -230,7 +294,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_Envelope.py">Example-Envelope</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Envelope/inversion_process.gif" alt="Envelope" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Envelope/inversion_process.gif" alt="Envelope" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -240,7 +307,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_GC.py">Example-GC</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-GC/inversion_process.gif" alt="GC" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-GC/inversion_process.gif" alt="GC" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -250,7 +320,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_SoftDTW.py">Example-SoftDTW</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-SoftDTW/inversion_process.gif" alt="SoftDTW" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-SoftDTW/inversion_process.gif" alt="SoftDTW" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -260,7 +333,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_WassersteinSinkhorn.py">Example-Wasserstein</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Wasserstein_Sinkhorn/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-Wasserstein_Sinkhorn/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -270,13 +346,28 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_WECI.py">Example-WECI</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-WECI/inversion_process.gif" alt="Wasserstein" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-WECI/inversion_process.gif" alt="WECI" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
 </table>
 
 
 ### 4. Optimizer Tests
+The results presented below specifically characterize the impact of using the `L2-norm objective function` in conjunction with the Marmousi2 model. It is important to note that the effects of different optimization algorithms may vary significantly when applied to other objective functions or models. Consequently, the findings should be interpreted within this specific context, and further investigations are recommended to explore the performance of these algorithms across a broader range of scenarios.
+
+<div style="display: flex; justify-content: center; align-items: flex-start;">
+    <div style="margin-right: 20px;">
+        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Optimizer_Model.png" alt="Optimized_Model" style="max-height: 300px; width: auto;" />
+    </div>
+    <div>
+        <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/Data_and_Model_Misfits.png" alt="Optimized_Model_misfits" style="max-height: 300px; width: auto;" />
+    </div>
+</div>
+
+
 <table>
     <tr>
         <th style="text-align: center;">Model Test Name</th>
@@ -291,7 +382,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_SGD.py">Example-SGD</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-SGD/inversion_process.gif" alt="SGD" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-SGD/inversion_process.gif" alt="SGD" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -301,7 +395,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_ASGD.py">Example-ASGD</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-ASGD/inversion_process.gif" alt="ASGD" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-ASGD/inversion_process.gif" alt="ASGD" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -311,7 +408,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_RMSProp.py">Example-RMSProp</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-RMSProp/inversion_process.gif" alt="RMSProp" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-RMSProp/inversion_process.gif" alt="RMSProp" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -321,7 +421,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_Adagrad.py">Example-Adagrad</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-Adagrad/inversion_process.gif" alt="Adagrad" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-Adagrad/inversion_process.gif" alt="Adagrad" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -331,7 +434,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_Adam.py">Example-Adam</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-Adam/inversion_process.gif" alt="Adam" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-Adam/inversion_process.gif" alt="Adam" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -341,7 +447,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_AdamW.py">Example-AdamW</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-AdamW/inversion_process.gif" alt="AdamW" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-AdamW/inversion_process.gif" alt="AdamW" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -351,7 +460,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_NAdam.py">Example-NAdam</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-NAdam/inversion_process.gif" alt="NAdam" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-NAdam/inversion_process.gif" alt="NAdam" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -361,12 +473,25 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_RAdam.py">Example-RAdam</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-RAdam/inversion_process.gif" alt="RAdam" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-RAdam/inversion_process.gif" alt="RAdam" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
 </table>
 
+
 ### 5. Regularization Methods
+
+<div style="display: flex; justify-content: center; align-items: flex-start;">
+    <div style="margin-right: 20px;">
+        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Model.png" alt="Optimized_Model" style="max-height: 300px; width: auto;" />
+    </div>
+    <div>
+        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Data_and_Model_misfit.png" alt="Optimized_Model_misfits" style="max-height: 300px; width: auto;" />
+    </div>
+</div>
 
 <table>
     <tr>
@@ -382,7 +507,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/02_inversion_no_regularization.py">no-regular</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -392,7 +520,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/02_inversion_Tikhonov-1order.py">Example-Tikhonov1</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-Tikhonov1-order/inversion_process.gif" alt="Tikhonov1" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-Tikhonov1-order/inversion_process.gif" alt="Tikhonov1" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -402,7 +533,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/02_inversion_Tikhonov-2order.py">Example-Tikhonov2</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-Tikhonov2-order/inversion_process.gif" alt="Tikhonov2" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-Tikhonov2-order/inversion_process.gif" alt="Tikhonov2" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -412,7 +546,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/02_inversion_TV-1order.py">Example-TV1</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-TV1-order/inversion_process.gif" alt="TV1" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-TV1-order/inversion_process.gif" alt="TV1" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -422,7 +559,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/02_inversion_TV-2order.py">Example-TV2</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-TV2-order/inversion_process.gif" alt="TV2" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/inversion-TV2-order/inversion_process.gif" alt="TV2" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
 </table>
@@ -444,7 +584,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/dip/01_Multi-CNN/02_inversion_no_regularization.py">no-regular</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/01_Multi-CNN/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/dip/01_Multi-CNN/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -454,7 +597,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/dip/01_Multi-CNN/02_inversion_2layer-4-32.py">Example-2LayerCNN</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/inversion_process.gif" alt="2LayerCNN" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/inversion_process.gif" alt="2LayerCNN" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -464,7 +610,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/dip/01_Multi-CNN/02_inversion_3layer-16-32-16.py">Example-3LayerCNN</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/01_Multi-CNN/data/inversion-3layer-16-32-16/inversion_process.gif" alt="3LayerCNN" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/dip/01_Multi-CNN/data/inversion-3layer-16-32-16/inversion_process.gif" alt="3LayerCNN" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -474,7 +623,10 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/dip/02_Unet/02_inversion_3layer_64channels.py">Example-3LayerUNet</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/02_Unet/data/inversion-3layer-64channels/inversion_process.gif" alt="4LayerCNN" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/dip/02_Unet/data/inversion-3layer-64channels/inversion_process.gif" alt="3LayerUNet" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -484,10 +636,14 @@ It is worth mentioning that here we show the performance of different objective 
             <a href="./examples/dip/02_Unet/02_inversion_4layer_64channels.py">Example-4LayerUNet</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/02_Unet/data/inversion-4layer-64channels/inversion_process.gif" alt="4LayerCNN" style="max-width: 300px; height: auto;" />
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/dip/02_Unet/data/inversion-4layer-64channels/inversion_process.gif" alt="4LayerUNet" style="max-width: 300px; height: auto;" />
+            </details>
         </td>
     </tr>
 </table>
+
 
 ### 7. Uncertainty Estimation Using Deep Neural Networks (DNNs)
 
@@ -507,23 +663,8 @@ We employ a 2-layered CNN architecture, derived from the Deep Image Prior (DIP) 
   - VTI-Elastic
   - TTI-Elastic
 - **Various Objective Functions**
-  - L1-norm
-  - L2-norm
-  - Smooth-L1 norm
-  - Envelope
-  - Global Correlation
-  - T-Distribution (StudentT)
-  - Soft Dynamic Time Wrapping (SoftDTW)
-  - Wasserstein Distance-based with Sinkhorn (Wassrestein)
+
 - **Various Optimization Methods**
-  - SGD
-  - ASGD
-  - RMSProp
-  - Adagrad
-  - Adam
-  - AdamW
-  - NAdam
-  - RAdam
 
 - **Deep Neural Network Integration**
   - **DNNs Reparameterization**: DNNs reparameterize the Earth model, introducing learnable regularization to improve the inversion process.
