@@ -483,14 +483,21 @@ The results presented below specifically characterize the impact of using the `L
 
 ### 5. Regularization Methods
 
-<div style="display: flex; justify-content: center; align-items: flex-start;">
-    <div style="margin-right: 20px;">
-        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Model.png" alt="Optimized_Model" style="max-height: 150px; width: auto;" />
-    </div>
-    <div>
-        <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Data_and_Model_misfit.png" alt="Optimized_Model_misfits" style="max-height: 150px; width: auto;" />
-    </div>
-</div>
+<table style="width: 100%; table-layout: fixed;">
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Model.png" 
+                 alt="Optimized_Model" 
+                 style="height: 100%; height: auto; max-height: 200px;" />
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/acoustic/04-regularization-techniques-test/01-Marmousi2-Test/data/Regularization_Data_and_Model_misfit.png" 
+                 alt="Optimized_Model_misfits" 
+                 style="height: 100%; height: auto; max-height: 200px;" />
+        </td>
+    </tr>
+</table>
+
 
 <table>
     <tr>
