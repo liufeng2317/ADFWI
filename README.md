@@ -112,11 +112,22 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-acoustic Marmousi2</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
-        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/01-Marmousi2/02_inversion.ipynb">Example-Marmousi2</a></td>
+        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/01-Marmousi2/02_inversion.ipynb">Example-Marmousi2 (low)</a></td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
                 <img src="./examples/acoustic/01-model-test/01-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Iso-acoustic Marmousi2</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/06-LargeScaleTest-Marmousi2/02_inversion.ipynb">Example-Marmousi2 (high)</a></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/06-LargeScaleTest-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 300px; height: auto;"/>
             </details>
         </td>
     </tr>
