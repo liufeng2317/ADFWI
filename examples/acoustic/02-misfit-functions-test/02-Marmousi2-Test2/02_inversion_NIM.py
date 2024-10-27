@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     # Setup misfit function
     from ADFWI.fwi.misfit import Misfit_NIM
-    loss_fn = Misfit_NIM(p=2,trans_type='linear',theta=1,dt=1)
+    loss_fn = Misfit_NIM(p=1,trans_type='linear',theta=1,dt=1)
 
     # gradient processor
     grad_mask = np.ones_like(vp_init)

@@ -179,6 +179,8 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 </table>
 </div>
 
+****
+
 ### 2. Iso-elastic & VTI-elastic Model Tests
 <div style="text-align: center;">
 <table>
@@ -217,6 +219,8 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 </table>
 </div>
 
+****
+
 ### 3. Misfits Tests
 
 We assess the convexity of different objective functions by simulating seismic records using shifted wavelets. The following table summarizes the results and provides examples for further exploration.
@@ -239,7 +243,7 @@ We assess the convexity of different objective functions by simulating seismic r
 
 ****
 
-It is worth mentioning that here we show the performance of different objective functions under **poorer initial models**, and under better initial model conditions, each objective function performs better, and the relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
+It is important to note that we present the performance of various objective functions under **poorer initial models**. When using better initial model conditions, each objective function demonstrates improved performance. Relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
 
 
 <table style="width: 100%; table-layout: fixed;">
@@ -261,6 +265,7 @@ It is worth mentioning that here we show the performance of different objective 
         </td>
     </tr>
 </table>
+
 
 
 <div style="text-align: center;">
@@ -378,7 +383,53 @@ It is worth mentioning that here we show the performance of different objective 
 </table>
 </div>
 
+****
+
+The following misfit functions are still in beta version and are undergoing further development and validation. Their performance and reliability will be evaluated in future studies.
+
+<div style="text-align: center;">
+<table style="width: 100%;">
+    <tr>
+        <th style="text-align: center;">Misfit Name</th>
+        <th style="text-align: center;">Status</th>
+        <th style="text-align: center;">Example Path</th>
+        <th style="text-align: center;">Example Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Travel Time</td>
+        <td style="text-align: center; vertical-align: middle;">🛠️</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_TravelTime.py">Example-TravelTime</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <!-- <img src="#" alt="TravelTime" style="max-width: 300px; height: auto;" /> -->
+                🖼️ Image under development
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Normalized Integration Method (NIM)</td>
+        <td style="text-align: center; vertical-align: middle;">🛠️</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/02_inversion_NIM.py">Example-NIM</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <!-- <img src="#" alt="TravelTime" style="max-width: 300px; height: auto;" /> -->
+                🖼️ Image under development
+            </details>
+        </td>
+    </tr>
+</table>
+</div>
+
+***
+
 ### 4. Optimizer Tests
+
 The results presented below specifically characterize the impact of using the `L2-norm objective function` in conjunction with the Marmousi2 model. It is important to note that the effects of different optimization algorithms may vary significantly when applied to other objective functions or models. Consequently, the findings should be interpreted within this specific context, and further investigations are recommended to explore the performance of these algorithms across a broader range of scenarios.
 
 <table style="width: 100%; table-layout: fixed;">
