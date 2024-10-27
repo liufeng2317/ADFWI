@@ -404,8 +404,8 @@ The following misfit functions are still in beta version and are undergoing furt
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <!-- <img src="#" alt="TravelTime" style="max-width: 300px; height: auto;" /> -->
-                🖼️ Image under development
+                <img src="./examples/acoustic/02-misfit-functions-test/02-Marmousi2-Test2/data/inversion-TravelTime/inversion_process.gif" alt="TravelTime" style="max-width: 300px; height: auto;" />
+                <!-- 🖼️ Image under development -->
             </details>
         </td>
     </tr>

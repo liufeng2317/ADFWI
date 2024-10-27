@@ -18,4 +18,4 @@ examples/dip/03_ResNet/
 examples/dip/04_InversionNet/
 examples/dip/05_SparseShotsTests/
 examples/acoustic/01-model-test/
-# examples/elastic/
+examples/elastic/
