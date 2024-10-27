@@ -199,7 +199,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/elastic/Iso-elatic-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 600px; height: auto;" />
+                <img src="./examples/elastic/Iso-elastic-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-width: 600px; height: auto;" />
             </details>
         </td>
     </tr>
