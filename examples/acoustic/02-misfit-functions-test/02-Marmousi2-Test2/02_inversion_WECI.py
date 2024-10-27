@@ -146,51 +146,13 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #            Visualize the Inversion Results
     #------------------------------------------------------
-    # the animation results
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.animation as animation
-    from IPython.display import HTML
-    # plot the misfit
-    plt.figure(figsize=(8,6))
-    plt.plot(iter_loss,c='k')
-    plt.xlabel("Iterations", fontsize=12)
-    plt.ylabel("L2-norm Misfits", fontsize=12)
-    plt.tick_params(labelsize=12)
-    plt.savefig(os.path.join(project_path,"inversion-WECI/misfit.png"),bbox_inches='tight',dpi=100)
-    plt.close()
+    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
-    # plot the initial model and inverted resutls
-    plt.figure(figsize=(12,8))
-    plt.subplot(121)
-    plt.imshow(vp_init,cmap='jet_r')
-    plt.subplot(122)
-    plt.imshow(iter_vp[-1],cmap='jet_r')
-    plt.savefig(os.path.join(project_path,"inversion-WECI/inverted_res.png"),bbox_inches='tight',dpi=100)
-    plt.close()
-
-    # Set up the figure for plotting
-    fig, ax = plt.subplots(figsize=(8, 6))
-    cax = ax.imshow(iter_vp[0], aspect='equal', cmap='jet_r', vmin=vp_true.min(), vmax=vp_true.max())
-    ax.set_title('Inversion Process Visualization')
-    ax.set_xlabel('X Coordinate')
-    ax.set_ylabel('Z Coordinate')
-    # Create a horizontal colorbar
-    cbar = fig.colorbar(cax, ax=ax, orientation='horizontal', fraction=0.046, pad=0.2)
-    cbar.set_label('Velocity (m/s)')
-    # Adjust the layout to minimize white space
-    plt.subplots_adjust(top=0.85, bottom=0.2, left=0.1, right=0.9)
-    # Initialization function
-    def init():
-        cax.set_array(iter_vp[0])  # Use the 2D array directly
-        return cax,
-    # Animation function
-    def animate(i):
-        cax.set_array(iter_vp[i])  # Update with the i-th iteration directly
-        return cax,
-    # Create the animation
-    ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(iter_vp), interval=100, blit=True)
-    # Save the animation as a video file (e.g., MP4 format)
-    ani.save(os.path.join(project_path, "inversion-WECI/inversion_process.gif"), writer='pillow', fps=10)
-    # Display the animation using HTML
-    plt.close(fig)  # Prevents static display of the last frame
+    # misfit
+    plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,"inversion-WECI/misfit.png"),show=False)
+    
+    # inverted results
+    plot_initial_and_inverted(vp_init=vp_init,iter_vp=iter_vp,save_path=os.path.join(project_path,"inversion-WECI/inverted_res.png"),show=False)
+    
+    # inversion animation
+    animate_inversion_process(iter_vp=iter_vp,vmin=vp_true.min(),vmax=vp_true.max(),save_path=os.path.join(project_path, "inversion-WECI/inversion_process.gif"),fps=10)

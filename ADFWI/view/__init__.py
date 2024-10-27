@@ -5,3 +5,5 @@ from .velocity_model import (plot_vp_rho,plot_vp_vs_rho,plot_eps_delta_gamma,plo
 from .boundary_condition import plot_bcx_bcz,plot_damp
 
 from .survey import plot_survey,plot_wavelet
+
+from .inverted_loss_model import *

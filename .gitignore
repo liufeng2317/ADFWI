@@ -13,6 +13,7 @@ ADFWI_Torch.egg-info
 build
 dist
 MANIFEST.in
+examples/acoustic/02-misfit-functions-test/03-NewMisfit-Test
 examples/dip/03_ResNet/
 examples/dip/04_InversionNet/
 examples/dip/05_SparseShotsTests/
