@@ -31,22 +31,27 @@ class Misfit_sdtw(Misfit):
         self.gamma  = gamma
         self.sparse_sampling = sparse_sampling
         self.dt = dt
-        
-    def forward(self,obs,syn):
+    
+    def forward(self, obs, syn):
         device = obs.device
-        # optionally choose a pairwise distance function
         fun = pysdtw.distance.pairwise_l2_squared_exact
 
-        # create the SoftDTW distance function
-        rsd = torch.zeros((obs.shape[0],obs.shape[2])).to(obs.device)
+        # Preallocate the output tensor
+        rsd = torch.zeros((obs.shape[0], obs.shape[2]), device=device)
+
+        # Initialize SoftDTW once
+        sdtw = pysdtw.SoftDTW(gamma=self.gamma, dist_func=fun, use_cuda=device != "cpu")
+
         for ishot in range(obs.shape[0]):
-            sdtw = pysdtw.SoftDTW(gamma=self.gamma, dist_func=fun, use_cuda= False if device=="cpu" else True)
-            obs_shot = obs[ishot,::self.sparse_sampling,:].T
-            syn_shot = syn[ishot,::self.sparse_sampling,:].T
-            obs_shot = torch.unsqueeze(obs_shot,2).to(device=device)
-            syn_shot = torch.unsqueeze(syn_shot,2).to(device=device)
-            # soft-DTW divergence 
-            std = sdtw(obs_shot,syn_shot) - 0.5*(sdtw(obs_shot,obs_shot) + sdtw(syn_shot,syn_shot))
+            obs_shot = obs[ishot, ::self.sparse_sampling, :].T.unsqueeze(2)
+            syn_shot = syn[ishot, ::self.sparse_sampling, :].T.unsqueeze(2)
+
+            # Compute soft-DTW divergences
+            sdtw_obs     =  sdtw(obs_shot, obs_shot)
+            sdtw_syn     =  sdtw(syn_shot, syn_shot)
+            sdtw_obs_syn =  sdtw(obs_shot, syn_shot)
+            std =sdtw_obs_syn - 0.5 * (sdtw_obs + sdtw_syn)   
             rsd[ishot] = std
-        loss = torch.sum(rsd*self.dt)
+
+        loss = torch.sum(rsd * self.dt)
         return loss

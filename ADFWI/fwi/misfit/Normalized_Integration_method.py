@@ -6,8 +6,8 @@
 * Description: 
 * Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
-from .base import Misfit
 import torch
+from torch.autograd import Function
 
 """
     NIM misfit
@@ -64,7 +64,7 @@ def transform(f, g, trans_type, theta):
     nu = nu + c + 1e-18
     return mu, nu, d
 
-def trace_sum_normalize(x, time_dim=1):
+def trace_sum_normalize(x, time_dim=0):
     """
     Normalize each trace by its sum along the specified dimension.
     
@@ -78,7 +78,16 @@ def trace_sum_normalize(x, time_dim=1):
     x = x / (x.sum(dim=time_dim, keepdim=True) + 1e-18)  # Avoid division by zero
     return x
 
-class Misfit_NIM(Misfit):
+def trace_max_normalize(x, time_dim=0):
+    """
+    normalization with the maximum value of each trace (the value of each trace is in [-1,1] after the processing)
+    note that the channel should be 1
+    """
+    x_max,_ = torch.max(x.abs(), dim=time_dim, keepdim=True)
+    x = x / (x_max+1e-18)
+    return x
+
+class Misfit_NIM(Function):
     """
     Normalized Integration Method (NIM), computes misfit between cumulative distributions of transformed signals.
     
@@ -91,38 +100,64 @@ class Misfit_NIM(Misfit):
     Note:
         NIM is equivalent to the Wasserstein-1 distance when p=1.
     """
-    def __init__(self, p=2, trans_type='linear', theta=1., dt=1):
-        super().__init__()
-        self.p          = p
+    def __init__(self, p=1,trans_type='linear',theta=1,dt=1):
+        self.p = p
         self.trans_type = trans_type
-        self.theta      = theta
-        self.dt         = dt
-
-    def forward(self, syn: torch.Tensor, obs: torch.Tensor) -> torch.Tensor:
-        assert self.p >= 1, "Norm degree must be >= 1"
+        self.theta = theta
+        self.dt = dt
+    
+    @staticmethod
+    def forward(ctx, syn, obs, p=2, trans_type='linear', theta=1.):
+        assert p >= 1, "Norm degree must be >= 1"
         assert syn.shape == obs.shape, "Shape mismatch between synthetic and observed data"
         
         # Flatten the input tensors for transformation (shape: [num_shots, num_time_steps * num_receivers])
         num_shots, num_time_steps, num_receivers = syn.shape
-        syn_flat = syn.reshape(num_shots, num_time_steps * num_receivers)
-        obs_flat = obs.reshape(num_shots, num_time_steps * num_receivers)
+        
+        # [num_shots, num_time_steps, num_receivers] --> [num_shots, num_receivers, num_time_steps]
+        syn_transposed = syn.permute(1, 0, 2)
+        obs_transposed = obs.permute(1, 0, 2) 
+
+        # Reshape input tensors for transformation
+        syn_flat = syn_transposed.reshape(num_time_steps, num_shots * num_receivers)
+        obs_flat = obs_transposed.reshape(num_time_steps, num_shots * num_receivers)
         
         # Transform signals to ensure non-negativity
-        mu, nu, d = transform(syn_flat, obs_flat, self.trans_type, self.theta)
+        mu, nu, d = transform(syn_flat, obs_flat, trans_type, theta)
         
         # Normalize each trace by its sum
-        mu = trace_sum_normalize(mu, time_dim=1)
-        nu = trace_sum_normalize(nu, time_dim=1)
+        mu = trace_sum_normalize(mu, time_dim=0)
+        nu = trace_sum_normalize(nu, time_dim=0)
         
         # Compute cumulative sums over the time dimension
-        F = torch.cumsum(mu, dim=1)  # Keep the cumulative sum along the flattened time dimension
-        G = torch.cumsum(nu, dim=1)  # Keep the cumulative sum along the flattened time dimension
+        F = torch.cumsum(mu, dim=0)  # Keep the cumulative sum along the flattened time dimension
+        G = torch.cumsum(nu, dim=0)  # Keep the cumulative sum along the flattened time dimension
         
-        # Calculate the residual and apply the chosen norm
-        rsd = F - G
-        result = (torch.abs(rsd * self.dt) ** self.p).sum()  # Sum over all elements for the final misfit
+        # Save the necessary tensors for backward computation
+        ctx.save_for_backward(F - G, mu,  d)
+        ctx.p = p
+        ctx.num_shots = num_shots  # Save as an attribute
+        ctx.num_time_steps = num_time_steps  # Save as an attribute
+        ctx.num_receivers = num_receivers  # Save as an attribute
         
-        return result
+        return (torch.abs(F - G) ** p).sum()
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        residual, mu, d = ctx.saved_tensors
+        p = ctx.p
+        num_shots = ctx.num_shots
+        num_time_steps = ctx.num_time_steps
+        num_receivers = ctx.num_receivers
+        
+        if p == 1:  # Check if p is 1
+            df = torch.sign(residual) * mu * d
+        else:
+            df = (residual) ** (p - 1) * mu * d     
+        
+        df = df.reshape(num_time_steps, num_shots, num_receivers).permute(1, 0, 2)
+        return -df, None, None, None, None
+
 
 
 
