@@ -73,7 +73,7 @@ def plot_initial_and_inverted(vp_init, iter_vp, save_path="", show=False,cmap='j
         # Close the plot
         plt.close()
 
-def animate_inversion_process(iter_vp, vmin=None,vmax=None, save_path="", fps=10):
+def animate_inversion_process(iter_vp, vmin=None,vmax=None, save_path="", fps=10, interval=150):
     """
     Create an animation of the inversion process.
 
@@ -113,7 +113,7 @@ def animate_inversion_process(iter_vp, vmin=None,vmax=None, save_path="", fps=10
         return cax,
 
     # Create the animation
-    ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(iter_vp), interval=100, blit=True)
+    ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(iter_vp), interval=interval, blit=True)
 
     # Save the animation as a video file (e.g., GIF format)
     if save_path:
