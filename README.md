@@ -105,7 +105,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
         <th style="text-align: center;">Example's Path</th>
         <th style="text-align: center;">Example's Figure</th>
@@ -186,10 +186,10 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2</td>
@@ -242,7 +242,6 @@ We assess the convexity of different objective functions by simulating seismic r
 </table>
 
 
-****
 
 It is important to note that we present the performance of various objective functions under **poorer initial models**. When using better initial model conditions, each objective function demonstrates improved performance. Relevant results can be found in [Better Initial Model](./examples/acoustic/02-misfit-functions-test/01-Marmousi2-Test/).
 
@@ -272,10 +271,10 @@ It is important to note that we present the performance of various objective fun
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">L1-norm</td>
@@ -384,7 +383,6 @@ It is important to note that we present the performance of various objective fun
 </table>
 </div>
 
-****
 
 The following misfit functions are still in beta version and are undergoing further development and validation. Their performance and reliability will be evaluated in future studies.
 
@@ -393,8 +391,8 @@ The following misfit functions are still in beta version and are undergoing furt
     <tr>
         <th style="text-align: center;">Misfit Name</th>
         <th style="text-align: center;">Status</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Travel Time</td>
@@ -452,10 +450,10 @@ The results presented below specifically characterize the impact of using the `L
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">Stochastic Gradient Descent (SGD)</td>
@@ -585,10 +583,10 @@ The results presented below specifically characterize the impact of using the `L
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">no-regularization</td>
@@ -663,10 +661,10 @@ The results presented below specifically characterize the impact of using the `L
 <div style="text-align: center;">
 <table>
     <tr>
-        <th style="text-align: center;">Model Test Name</th>
+        <th style="text-align: center;">Test Name</th>
         <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Example Path</th>
-        <th style="text-align: center;">Example Figure</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">no-regularization</td>
@@ -738,16 +736,52 @@ The results presented below specifically characterize the impact of using the `L
 
 ### 7. Uncertainty Estimation Using Deep Neural Networks (DNNs)
 
-We employ a 2-layered CNN architecture, derived from the Deep Image Prior (DIP) test described earlier, to perform uncertainty estimation. The code can be found [2-layer-CNNs-Uncertainty-Estimation](./examples/dip/01_Multi-CNN/04_uncertainty_assesment.ipynb).The variable `p` represents the dropout ratio applied during both training and inference to evaluate uncertainty.
+We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, to perform uncertainty estimation. The variable `p` represents the dropout ratio applied during both training and inference to evaluate uncertainty.
 
 <div style="text-align: center;">
-    <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 400px; height: auto;" />
+<table>
+    <tr>
+        <th style="text-align: center;">Test Name</th>
+        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">2LayerCNN-uncertainty</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/dip/01_Multi-CNN/04_uncertainty_assesment.ipynb">Codes</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 300px; height: auto;" />
+        </td>
+    </tr>
+</table>
 </div>
 
+
 ### 8. Gradient Comparation between AD & Central Difference
-A comparative analysis of gradient calculations obtained through AD and the central difference method. The code can be find at [Link](./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb).
+A comparative analysis of gradient calculations obtained through AD and the central difference method.
+
 <div style="text-align: center;">
-    <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="GradientCmp" style="max-width: 300px; height: auto;" />
+<table>
+    <tr>
+        <th style="text-align: center;">Test Name</th>
+        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Acoustic</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 300px; height: auto;" />
+        </td>
+    </tr>
+</table>
 </div>
 
 ---
