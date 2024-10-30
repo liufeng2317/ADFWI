@@ -778,7 +778,7 @@ A comparative analysis of gradient calculations obtained through AD and the cent
             <a href="./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 300px; height: auto;" />
+            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 200px; height: auto;" />
         </td>
     </tr>
 </table>
