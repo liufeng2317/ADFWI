@@ -39,6 +39,7 @@
   - [5. Regularization Methods](#5-regularization-methods)
   - [6. Deep Image Prior (Earth Model Reparameterization)](#6-deep-image-prior-earth-model-reparameterization)
   - [7. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#7-uncertainty-estimation-using-deep-neural-networks-dnns)
+  - [8. Gradient Comparation between AD \& Central Difference](#8-gradient-comparation-between-ad--central-difference)
 - [📝 Features](#-features)
 - [⚖️ LICENSE](#️-license)
 - [🗓️ To-Do List](#️-to-do-list)
@@ -740,9 +741,14 @@ The results presented below specifically characterize the impact of using the `L
 We employ a 2-layered CNN architecture, derived from the Deep Image Prior (DIP) test described earlier, to perform uncertainty estimation. The code can be found [2-layer-CNNs-Uncertainty-Estimation](./examples/dip/01_Multi-CNN/04_uncertainty_assesment.ipynb).The variable `p` represents the dropout ratio applied during both training and inference to evaluate uncertainty.
 
 <div style="text-align: center;">
-    <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN" style="max-width: 500px; height: auto;" />
+    <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 400px; height: auto;" />
 </div>
 
+### 8. Gradient Comparation between AD & Central Difference
+A comparative analysis of gradient calculations obtained through AD and the central difference method. The code can be find at [Link](./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb).
+<div style="text-align: center;">
+    <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="GradientCmp" style="max-width: 300px; height: auto;" />
+</div>
 
 ---
 
