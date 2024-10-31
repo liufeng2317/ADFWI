@@ -111,7 +111,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <th style="text-align: center;">Example's Figure</th>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic Marmousi2</td>
+        <td style="text-align: center; vertical-align: middle;">Marmousi2  (low resulotion)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/01-Marmousi2/02_inversion.ipynb">Example-Marmousi2 (low)</a></td>
         <td style="text-align: center; vertical-align: middle;">
@@ -122,7 +122,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic Marmousi2</td>
+        <td style="text-align: center; vertical-align: middle;">Marmousi2 (high resulotion)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/06-LargeScaleTest-Marmousi2/02_inversion.ipynb">Example-Marmousi2 (high)</a></td>
         <td style="text-align: center; vertical-align: middle;">
@@ -133,9 +133,9 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic FootHill</td>
+        <td style="text-align: center; vertical-align: middle;">FootHill (low resulotion)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
-        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/02-FootHill/02_inversion.ipynb">Example-FootHill</a></td>
+        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/02-FootHill/02_inversion.ipynb">Example-FootHill (low)</a></td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
@@ -144,7 +144,18 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic SEAM-I</td>
+        <td style="text-align: center; vertical-align: middle;">FootHill (high resulotion)</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/07-LargeScaleTest-FootHill/02_inversion.ipynb">Example-FootHill (high)</a></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/07-LargeScaleTest-FootHill/data/inversion/inversion_process.gif" alt="FootHill" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">SEAM-I</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/03-SEAM-I/02_inversion.ipynb">Example-SEAM-I</a></td>
         <td style="text-align: center; vertical-align: middle;">
@@ -155,7 +166,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic Overthrust-offshore</td>
+        <td style="text-align: center; vertical-align: middle;">Overthrust-offshore</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/04-Overthrust-offshore/02_inversion.ipynb">Example-Overthrust-offshore</a></td>
         <td style="text-align: center; vertical-align: middle;">
@@ -166,7 +177,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-acoustic Anomaly</td>
+        <td style="text-align: center; vertical-align: middle;">Anomaly</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/05-Anomaly/02_inversion.ipynb">Example-Anomaly</a></td>
         <td style="text-align: center; vertical-align: middle;">
