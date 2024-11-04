@@ -19,12 +19,13 @@ from scipy.ndimage import gaussian_filter
 ############################################################
 #                   Marmousi Model
 ############################################################
-def extract_data(meta):
-    data = []
-    for trace in meta:
-        data.append(trace.data)
-    return np.array(data)
 
+def download_marmousi_model(in_dir):
+    # Check for model files and download if missing
+    for filename in ["vp_marmousi-ii.segy.gz", "vs_marmousi-ii.segy.gz", "density_marmousi-ii.segy.gz"]:
+        if not os.path.exists(os.path.join(in_dir, filename)):
+            os.system(f"wget http://www.agl.uh.edu/downloads/{filename} -P {in_dir}")
+    return
 
 def load_marmousi_model(in_dir):
     """Load the Marmousi model data from the specified directory.
@@ -36,15 +37,17 @@ def load_marmousi_model(in_dir):
         dict: A dictionary containing the velocity and density models 
               along with spatial coordinates and increments.
     """
-
-    # Check for model files and download if missing
-    for filename in ["vp_marmousi-ii.segy.gz", "vs_marmousi-ii.segy.gz", "density_marmousi-ii.segy.gz"]:
-        if not os.path.exists(os.path.join(in_dir, filename)):
-            os.system(f"wget http://www.agl.uh.edu/downloads/{filename} -P {in_dir}")
+    download_marmousi_model(in_dir)
+    
+    def extract_data(meta):
+        data = []
+        for trace in meta:
+            data.append(trace.data)
+        return np.array(data)
 
     # Read data from SEGY files and convert units
-    vs = extract_data(obspy.read(os.path.join(in_dir, "vs_marmousi-ii.segy.gz"), format='segy')) * 1e3
-    vp = extract_data(obspy.read(os.path.join(in_dir, "vp_marmousi-ii.segy.gz"), format='segy')) * 1e3
+    vs  = extract_data(obspy.read(os.path.join(in_dir, "vs_marmousi-ii.segy.gz"), format='segy')) * 1e3
+    vp  = extract_data(obspy.read(os.path.join(in_dir, "vp_marmousi-ii.segy.gz"), format='segy')) * 1e3
     rho = extract_data(obspy.read(os.path.join(in_dir, "density_marmousi-ii.segy.gz"), format='segy')) * 1e3
 
     # Define spatial ranges and create coordinate arrays
@@ -66,7 +69,6 @@ def load_marmousi_model(in_dir):
     }
     
     return marmousi_model  # Return the complete model data
-
 
 
 def resample_marmousi_model(x, y, model):
@@ -124,16 +126,16 @@ def get_smooth_marmousi_model(model, gaussian_kernel=10, mask_extra_detph=2, rcv
 
     if mask_extra_detph > 0:
         # Smooth from a specified depth downwards
-        vp[:, rcv_depth + mask_extra_detph:] = gaussian_filter(vp[:, rcv_depth + mask_extra_detph:], 
+        vp[:, rcv_depth + mask_extra_detph:]  = gaussian_filter(vp[:, rcv_depth + mask_extra_detph:], 
                                                                [gaussian_kernel, gaussian_kernel], mode='reflect')
-        vs[:, rcv_depth + mask_extra_detph:] = gaussian_filter(vs[:, rcv_depth + mask_extra_detph:], 
+        vs[:, rcv_depth + mask_extra_detph:]  = gaussian_filter(vs[:, rcv_depth + mask_extra_detph:], 
                                                                [gaussian_kernel, gaussian_kernel], mode='reflect')
         rho[:, rcv_depth + mask_extra_detph:] = gaussian_filter(rho[:, rcv_depth + mask_extra_detph:], 
                                                                 [gaussian_kernel, gaussian_kernel], mode='reflect')
     else:
         # Smooth the entire model
-        vp = gaussian_filter(vp, [gaussian_kernel, gaussian_kernel], mode='reflect')
-        vs = gaussian_filter(vs, [gaussian_kernel, gaussian_kernel], mode='reflect')
+        vp  = gaussian_filter(vp, [gaussian_kernel, gaussian_kernel], mode='reflect')
+        vs  = gaussian_filter(vs, [gaussian_kernel, gaussian_kernel], mode='reflect')
         rho = gaussian_filter(rho, [gaussian_kernel, gaussian_kernel], mode='reflect')
 
     # Create a new dictionary for the smoothed model data
@@ -202,13 +204,12 @@ def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=No
     
     return new_model
 
-    
-
 
 ############################################################
 #                   Layer Model
 ############################################################
 from scipy.interpolate import interp1d
+
 def step_profile_layerModel(x_range, y_range, step):
     """Generate a step-profile layer model based on specified ranges and step size.
 
@@ -486,11 +487,15 @@ def get_anomaly_model(layer_model, n_pml):
 #                   Overthrust model
 ############################################################
 import h5py
-import math
+
+def download_overthrust_model(in_dir):
+    if not os.path.exists(in_dir):
+        os.system("wget {} -P {}".format("https://zenodo.org/records/4252588/files/overthrust_3D_true_model.h5", in_dir))  
+        os.system("wget {} -P {}".format("https://zenodo.org/records/4252588/files/overthrust_3D_initial_model.h5", in_dir))  
+    return
 
 def load_overthrust_model(in_dir):
-    if not os.path.exists(in_dir):
-        os.system("wget {} -P {}".format("https://zenodo.org/records/4252588/files/overthrust_3D_true_model.h5", in_dir))
+    download_overthrust_model(in_dir)
     h5_data = h5py.File(os.path.join(in_dir,"overthrust_3D_true_model.h5"))
     data_m = np.array(h5_data["m"]).astype(float)
     data_n = np.array(h5_data["n"]).astype(float)
@@ -509,8 +514,7 @@ def load_overthrust_model(in_dir):
     return overthrust_model
 
 def load_overthrust_initial_model(in_dir):
-    if not os.path.exists(in_dir):
-        os.system("wget {} -P {}".format("https://zenodo.org/records/4252588/files/overthrust_3D_initial_model.h5", in_dir))
+    download_overthrust_model(in_dir)
     h5_data = h5py.File(os.path.join(in_dir,"overthrust_3D_initial_model.h5"))
     data_m = np.array(h5_data["m0"]).astype(float)
     data_n = np.array(h5_data["n"]).astype(float)
@@ -539,3 +543,15 @@ def resample_overthrust_model(model):
     overthrust_model['x']   = np.arange(ny)*50
     overthrust_model['y']   = np.arange(nx)*50
     return overthrust_model
+
+
+############################################################
+#                   Foothill model
+############################################################
+# the source data is from  https://github.com/seisfwi/SWIT
+def download_foothill(in_dir):
+    if not os.path.exists(in_dir):
+        os.system("wget {} -P {}".format("https://github.com/seisfwi/SWIT/blob/main/examples/case-07-foothill/model/Foothill_801_321_25m.dat", in_dir))
+        os.system("wget {} -P {}".format("https://github.com/seisfwi/SWIT/blob/main/examples/case-07-foothill/model/Foothill_801_331_25m.dat", in_dir))
+        os.system("wget {} -P {}".format("https://github.com/seisfwi/SWIT/blob/main/examples/case-07-foothill/model/Foothill_801_331_25m_smooth25.dat", in_dir))
+    return

@@ -259,13 +259,13 @@ class ElasticFWI(torch.nn.Module):
                     if self.model.get_requires_grad("vp"):
                         regularization_loss_vp = self.regularization_fn.forward(self.model.vp)
                     if self.model.get_requires_grad("vs"):
-                        temp_alphax = self.regularization_fn.alphax 
-                        temp_alphaz = self.regularization_fn.alphaz
-                        self.regularization_fn.alphax = temp_alphax * 5 
-                        self.regularization_fn.alphaz = temp_alphaz * 5 
+                        # temp_alphax = self.regularization_fn.alphax 
+                        # temp_alphaz = self.regularization_fn.alphaz
+                        # self.regularization_fn.alphax = temp_alphax * 5 
+                        # self.regularization_fn.alphaz = temp_alphaz * 5 
                         regularization_loss_vs = self.regularization_fn.forward(self.model.vs)
-                        self.regularization_fn.alphax = temp_alphax 
-                        self.regularization_fn.alphaz = temp_alphaz
+                        # self.regularization_fn.alphax = temp_alphax 
+                        # self.regularization_fn.alphaz = temp_alphaz
                     if self.model.get_requires_grad("rho"):
                         regularization_loss_rho = self.regularization_fn.forward(self.model.rho)
                     regularization_loss = regularization_loss_vp+regularization_loss_vs+regularization_loss_rho

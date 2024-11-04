@@ -49,6 +49,7 @@ class AcousticModel(AbstractModel):
                 abc_type:Optional[str]                      = 'PML',
                 abc_jerjan_alpha:Optional[float]            = 0.0053,
                 nabc:Optional[int]                          = 20,
+                auto_update_rho:Optional[bool]              = True,
                 device                                      = 'cpu',
                 dtype                                       = torch.float32
                 )->None:
@@ -76,6 +77,9 @@ class AcousticModel(AbstractModel):
         # check the input model
         self._check_bounds()
         self.check_dims()
+        
+        # update rho using the empirical function
+        self.auto_update_rho = auto_update_rho
         
     def _parameterization(self):
         """setting variable and gradients
@@ -120,15 +124,16 @@ class AcousticModel(AbstractModel):
     def forward(self) -> Tuple:
         """Forward method of the elastic model class
         """
+        # using the empirical function to setting rho
+        if self.auto_update_rho and not self.rho_grad:
+            self.set_rho_using_empirical_function()
+            
         # Clip the model parameters
         self.clip_params()
         
         # set the constraints on the parameters if necessary
-        self.constrain_range(self.vp,  self.lower_bound["vp"],  self.upper_bound["vp"])
+        # self.constrain_range(self.vp,  self.lower_bound["vp"],  self.upper_bound["vp"])
         
-        # using the empirical function to setting rho
-        self.set_rho_using_empirical_function()
-        
-        self.constrain_range(self.rho, self.lower_bound["rho"], self.upper_bound["rho"])
+        # self.constrain_range(self.rho, self.lower_bound["rho"], self.upper_bound["rho"])
         
         return 

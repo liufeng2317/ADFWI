@@ -329,8 +329,7 @@ class AbstractModel(torch.nn.Module):
                 # replace nan with the mean value
                 value[torch.isnan(value)] = max_value # value_const[~torch.isnan(value_const)].mean()
             
-            value = torch.clamp(value, min_value, max_value)
-            # print(value.min(), value.max())           
+            value = torch.clamp(value, min_value, max_value)      
             # Using the following scheme occurs NaN sometimes
             # value = torch.logit((value - min_value) / (max_value - min_value))
             # value = (torch.sigmoid(value) * (max_value - min_value) + min_value)
