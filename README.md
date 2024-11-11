@@ -260,7 +260,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/elastic/VTI-elastic-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
+                <img src="./examples/elastic/VTI-elastic-Anomaly-eps/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
