@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from typing import Optional,Tuple,Union,List
-from ADFWI.utils import gpu2cpu,numpy2tensor
+from ADFWI.utils import gpu2cpu,numpy2tensor,tensor2numpy
 from ADFWI.model.base import AbstractModel
 from ADFWI.model.parameters import (thomsen_init,elastic_moduli_init,
                          vs_vp_to_Lame,thomsen_to_elastic_moduli,
@@ -46,23 +46,24 @@ class IsotropicElasticModel(AbstractModel):
                 ox:float,oz:float,
                 nx:int,nz:int,
                 dx:float,dz:float,
-                vp:Optional[Union[np.array,Tensor]]         = None,     # model parameter
-                vs:Optional[Union[np.array,Tensor]]         = None,
-                rho:Optional[Union[np.array,Tensor]]        = None,
-                vp_bound: Optional[Tuple[float, float]]     = None,     # model parameter's boundary
-                vs_bound: Optional[Tuple[float, float]]     = None,
-                rho_bound: Optional[Tuple[float, float]]    = None,
-                vp_grad:Optional[bool]                      = False,    # requires gradient or not
-                vs_grad:Optional[bool]                      = False,
-                rho_grad:Optional[bool]                     = False,
-                free_surface:Optional[bool]                 = False,
-                abc_type:Optional[str]                      = 'PML',
-                abc_jerjan_alpha:Optional[float]            = 0.0053,
-                nabc:Optional[int]                          = 20,
-                auto_update_rho:Optional[bool]              = True,
-                auto_update_vp:Optional[bool]               = False,
-                device                                      = 'cpu',
-                dtype                                       = torch.float32
+                vp:Optional[Union[np.array,Tensor]]              = None,     # model parameter
+                vs:Optional[Union[np.array,Tensor]]              = None,
+                rho:Optional[Union[np.array,Tensor]]             = None,
+                vp_bound: Optional[Tuple[float, float]]          = None,     # model parameter's boundary
+                vs_bound: Optional[Tuple[float, float]]          = None,
+                rho_bound: Optional[Tuple[float, float]]         = None,
+                vp_grad:Optional[bool]                           = False,    # requires gradient or not
+                vs_grad:Optional[bool]                           = False,
+                rho_grad:Optional[bool]                          = False,
+                free_surface:Optional[bool]                      = False,
+                abc_type:Optional[str]                           = 'PML',
+                abc_jerjan_alpha:Optional[float]                 = 0.0053,
+                nabc:Optional[int]                               = 20,
+                auto_update_rho:Optional[bool]                   = True,
+                auto_update_vp:Optional[bool]                    = False,
+                water_layer_mask:Optional[Union[np.array,Tensor]]= None,
+                device                                           = 'cpu',
+                dtype                                            = torch.float32
                 )->None:
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
@@ -114,7 +115,12 @@ class IsotropicElasticModel(AbstractModel):
         # update rho using the empirical function
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
-        
+    
+        if water_layer_mask is not None:
+            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
+        else:
+            self.water_layer_mask = None
+            
     def _parameterization_thomson(self):
         """setting variable and gradients
         """
@@ -198,19 +204,48 @@ class IsotropicElasticModel(AbstractModel):
     def set_rho_using_empirical_function(self):
         """approximate rho via empirical relations with vp
         """
+        rho         = self.rho.cpu().detach().numpy()
         vp          = self.vp.cpu().detach().numpy()
-        rho         = np.power(vp, 0.25) * 310
-        rho         = numpy2tensor(rho,self.dtype).to(self.device)
+        rho_empirical  = np.power(vp, 0.25) * 310
+        if self.water_layer_mask is not None:
+            mask = self.water_layer_mask.cpu().detach().numpy()
+            rho_empirical[mask] = rho[mask]
+        rho         = numpy2tensor(rho_empirical,self.dtype).to(self.device)
         self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
         return
     
     def set_vp_using_empirical_function(self):
         """approximate vp via empirical relations with vs
         """
+        vp = self.vp.cpu().detach().numpy()
         vs = self.vs.cpu().detach().numpy()
-        vp = vs*np.sqrt(3)
-        vp = numpy2tensor(vp,self.dtype).to(self.device)
+        vp_empirical = vs*np.sqrt(3)
+        if self.water_layer_mask is not None:
+            mask = self.water_layer_mask.cpu().detach().numpy()
+            vp_empirical[mask] = vp[mask]
+        vp = numpy2tensor(vp_empirical,self.dtype).to(self.device)
         self.vp = torch.nn.Parameter(vp,requires_grad=self.vp_grad)
+        return
+    
+    def clip_params(self)->None:
+        """Clip the model parameters to the given bounds
+        """
+        for par in self.pars:
+            if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
+                # Retrieve the model parameter
+                m = getattr(self, par)
+                min_value = self.lower_bound[par]
+                max_value = self.upper_bound[par]
+
+                # Create a temporary copy for masking purposes
+                m_temp = m.clone()  # Use .clone() instead of .copy() to avoid issues with gradients
+
+                # Clip the values of the parameter using in-place modification with .data
+                m.data.clamp_(min_value, max_value)
+
+                # Apply the water layer mask if it is not None, using in-place modification
+                if self.water_layer_mask is not None:
+                    m.data = torch.where(self.water_layer_mask, m_temp.data, m.data)
         return
     
 
@@ -290,12 +325,13 @@ class AnisotropicElasticModel(AbstractModel):
                 gamma_grad:Optional[bool]                   = False,
                 delta_grad:Optional[bool]                   = False,
                 free_surface:Optional[bool]                 = False,
-                auto_update_rho:Optional[bool]              = False,    # auto update parameters
-                auto_update_vp:Optional[bool]               = False,
                 anisotropic_type:Optional[str]              = "vti",
                 abc_type:Optional[str]                      = 'PML',
                 abc_jerjan_alpha:Optional[float]            = 0.0053,
                 nabc:Optional[int]                          = 20,
+                auto_update_rho:Optional[bool]              = False,    # auto update parameters
+                auto_update_vp:Optional[bool]               = False,
+                water_layer_mask:Optional[Union[np.array,Tensor]]= None,
                 device                                      = 'cpu',
                 dtype                                       = torch.float32
                 )->None:
@@ -364,6 +400,11 @@ class AnisotropicElasticModel(AbstractModel):
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
         
+        if water_layer_mask is not None:
+            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
+        else:
+            self.water_layer_mask = None
+                
     def _parameterization_thomson(self):
         # numpy2tensor
         self.vp     = numpy2tensor(self.vp   ,self.dtype).to(self.device)
@@ -455,10 +496,31 @@ class AnisotropicElasticModel(AbstractModel):
         vp = numpy2tensor(vp,self.dtype).to(self.device)
         self.vp = torch.nn.Parameter(vp,requires_grad=self.vp_grad)
         return
+    
+    def clip_params(self)->None:
+        """Clip the model parameters to the given bounds
+        """
+        for par in self.pars:
+            if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
+                # Retrieve the model parameter
+                m = getattr(self, par)
+                min_value = self.lower_bound[par]
+                max_value = self.upper_bound[par]
+
+                # Create a temporary copy for masking purposes
+                m_temp = m.clone()  # Use .clone() instead of .copy() to avoid issues with gradients
+
+                # Clip the values of the parameter using in-place modification with .data
+                m.data.clamp_(min_value, max_value)
+
+                # Apply the water layer mask if it is not None, using in-place modification
+                if self.water_layer_mask is not None:
+                    m.data = torch.where(self.water_layer_mask, m_temp.data, m.data)
+        return
+    
         
     def forward(self) -> None:
         """Forward method of the elastic model class
-        
         """
         # set the constraints on the parameters if necessary
         if self.auto_update_rho:

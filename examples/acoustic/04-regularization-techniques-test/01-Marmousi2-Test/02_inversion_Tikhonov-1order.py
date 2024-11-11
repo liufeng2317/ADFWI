@@ -61,10 +61,10 @@ if __name__ == "__main__":
     model = AcousticModel(ox,oz,nx,nz,dx,dz,
                         vp_init,rho_init,
                         vp_bound=[vp_true.min(),vp_true.max()],
-                        vp_grad=True,
+                        vp_grad=True,rho_grad=False,
                         free_surface=free_surface,
-                        abc_type="PML",abc_jerjan_alpha=0.007,
-                        nabc=nabc,
+                        abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc,
+                        auto_update_rho=True,
                         device=device,dtype=dtype)
     
     model.save(os.path.join(project_path,"model/init_model.npz"))
@@ -110,20 +110,20 @@ if __name__ == "__main__":
     print(d_obs.__repr__())
     
     # optimizer
-    iteration   =   300
+    iteration   =   500
     optimizer   =   torch.optim.Adam(model.parameters(), lr=10)
-    scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
+    scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=300,gamma=0.75,last_epoch=-1)
 
     # Setup misfit function
     from ADFWI.fwi.misfit import Misfit_global_correlation
     loss_fn = Misfit_global_correlation(dt=1)
     
     from ADFWI.fwi.regularization import regularization_Tikhonov_1order
-    regularization_fn = regularization_Tikhonov_1order(nx,nz,dx,dz,1e-7,1e-7,step_size=50,gamma=0.9)
+    regularization_fn = regularization_Tikhonov_1order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
     
     # gradient processor
     grad_mask = np.ones_like(vp_init)
-    grad_mask[:10,:] = 0
+    grad_mask[:12,:] = 0
     gradient_processor = GradProcessor(grad_mask=grad_mask)
 
     # Initialize the acoustic full waveform inversion (FWI) object.
@@ -133,6 +133,8 @@ if __name__ == "__main__":
                     scheduler=scheduler,
                     loss_fn=loss_fn,
                     regularization_fn=regularization_fn,
+                    regularization_weights_x=[1e-7,0],
+                    regularization_weights_z=[1e-7,0],
                     obs_data=d_obs,
                     gradient_processor=gradient_processor,
                     waveform_normalize=True, 
@@ -140,7 +142,7 @@ if __name__ == "__main__":
                     save_fig_epoch=50,  
                     save_fig_path=os.path.join(project_path, "inversion-Tikhonov1-order"))
 
-    fwi.forward(iteration=iteration,batch_size=None,checkpoint_segments=1)
+    fwi.forward(iteration=iteration,batch_size=None,checkpoint_segments=2)
     
     iter_vp     = fwi.iter_vp
     iter_loss   = fwi.iter_loss 

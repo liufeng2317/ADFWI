@@ -136,15 +136,15 @@ class AbstractModel(torch.nn.Module):
                     self.lower_bound[par] < self.upper_bound[par]
                 ), "Lower bound must be smaller than upper bound"
 
-            if self.lower_bound[par] is not None:
-                if self.lower_bound[par] + eps > self.get_model(par).min():
-                    Warning(f"Lower bound must be larger than minimum value, set to {self.get_model(par).min()}")
-                    self.lower_bound[par] = self.get_model(par).min() - eps
+            # if self.lower_bound[par] is not None:
+            #     if self.lower_bound[par] + eps > self.get_model(par).min():
+            #         Warning(f"Lower bound must be larger than minimum value, set to {self.get_model(par).min()}")
+            #         self.lower_bound[par] = self.get_model(par).min() - eps
 
-            if self.upper_bound[par] is not None:
-                if self.upper_bound[par] - eps < self.get_model(par).max():
-                    Warning(f"Upper bound must be smaller than maximum value, set to {self.get_model(par).max()}")
-                    self.upper_bound[par] = self.get_model(par).max() + eps
+            # if self.upper_bound[par] is not None:
+            #     if self.upper_bound[par] - eps < self.get_model(par).max():
+            #         Warning(f"Upper bound must be smaller than maximum value, set to {self.get_model(par).max()}")
+            #         self.upper_bound[par] = self.get_model(par).max() + eps
     
     def check_dims(self) -> None:
         """Check the provided model dimensions are legal

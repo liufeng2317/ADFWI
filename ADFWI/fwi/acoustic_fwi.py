@@ -6,7 +6,7 @@
 * Description: 
 * Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
-from typing import Optional,Union
+from typing import Optional,Union,List
 import os
 import math
 import torch
@@ -28,12 +28,14 @@ class AcousticFWI(torch.nn.Module):
                  optimizer:torch.optim.Optimizer,scheduler:torch.optim.lr_scheduler,
                  loss_fn:Union[Misfit,torch.autograd.Function],
                  obs_data:SeismicData,
-                 gradient_processor:Optional[GradProcessor]     = None,
-                 regularization_fn:Optional[Regularization]     = None, 
-                 waveform_normalize:Optional[bool]              = True,
-                 cache_result:Optional[bool]                    = True,
-                 save_fig_epoch:Optional[int]                   = -1,
-                 save_fig_path:Optional[str]                    = "",
+                 gradient_processor:Optional[GradProcessor]             = None,
+                 regularization_fn:Optional[Regularization]             = None, 
+                 regularization_weights_x:Optional[List[Union[float]]]  = [0,0], # vp/rho in x direction
+                 regularization_weights_z:Optional[List[Union[float]]]  = [0,0], # vp/rho in z direction
+                 waveform_normalize:Optional[bool]                      = True,
+                 cache_result:Optional[bool]                            = True,
+                 save_fig_epoch:Optional[int]                           = -1,
+                 save_fig_path:Optional[str]                            = "",
                 ):
         """
         Parameters:
@@ -50,16 +52,18 @@ class AcousticFWI(torch.nn.Module):
             cache_result (bool)         : save the temp result of the inversion or not
         """
         super().__init__()
-        self.propagator         = propagator
-        self.model              = model
-        self.optimizer          = optimizer
-        self.scheduler          = scheduler
-        self.loss_fn            = loss_fn
-        self.regularization_fn  = regularization_fn
-        self.obs_data           = obs_data
-        self.gradient_processor = gradient_processor
-        self.device             = self.propagator.device
-        self.dtype              = self.propagator.dtype 
+        self.propagator                 = propagator
+        self.model                      = model
+        self.optimizer                  = optimizer
+        self.scheduler                  = scheduler
+        self.loss_fn                    = loss_fn
+        self.regularization_fn          = regularization_fn
+        self.regularization_weights_x   = regularization_weights_x
+        self.regularization_weights_z   = regularization_weights_z
+        self.obs_data                   = obs_data
+        self.gradient_processor         = gradient_processor
+        self.device                     = self.propagator.device
+        self.dtype                      = self.propagator.dtype 
         
         # observed data
         self.waveform_normalize = waveform_normalize
@@ -77,7 +81,9 @@ class AcousticFWI(torch.nn.Module):
         else: 
             self.vp_min = vp_bound[0]
             self.vp_max = vp_bound[1]
-        
+            if self.model.water_layer_mask is not None:
+                self.vp_min = 1500
+
         rho_bound =  self.model.get_bound("rho")
         if rho_bound[0] is None and rho_bound[1] is None:
             self.rho_min = self.model.get_model("rho").min() - 500
@@ -85,7 +91,9 @@ class AcousticFWI(torch.nn.Module):
         else: 
             self.rho_min = rho_bound[0]
             self.rho_max = rho_bound[1]
-            
+            if self.model.water_layer_mask is not None:
+                self.rho_min = 1000
+        
         # save result
         self.cache_result   = cache_result
         self.iter_vp        = []
@@ -111,7 +119,12 @@ class AcousticFWI(torch.nn.Module):
                             dx=self.model.dx,dz=self.model.dz,
                             vmin=self.rho_min,vmax=self.rho_max,
                             save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
+                else:
+                    plot_model(data,title=f"Iteration {i}",
+                            dx=self.model.dx,dz=self.model.dz,
+                            save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False,cmap='coolwarm')
         return
+    
 
     def forward(self,
                 iteration:int,
@@ -167,7 +180,17 @@ class AcousticFWI(torch.nn.Module):
                     data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index])
                 # misfit： regularization
                 if self.regularization_fn is not None:
-                    regularization_loss = self.regularization_fn.forward(self.model.vp)
+                    regularization_loss_vp,regularization_loss_rho = torch.tensor(0.0,device=self.device),torch.tensor(0.0,device=self.device)
+                    if self.model.get_requires_grad("vp"):
+                        self.regularization_fn.alphax,self.regularization_fn.alphaz = self.regularization_weights_x[0],self.regularization_weights_z[0]
+                        if self.regularization_fn.alphax >0 or self.regularization_fn.alphaz>0:
+                            regularization_loss_vp = self.regularization_fn.forward(self.model.vp)
+                    
+                    if self.model.get_requires_grad("rho"):
+                        self.regularization_fn.alphax,self.regularization_fn.alphaz = self.regularization_weights_x[1],self.regularization_weights_z[1]
+                        if self.regularization_fn.alphax >0 or self.regularization_fn.alphaz>0:
+                            regularization_loss_rho = self.regularization_fn.forward(self.model.rho)
+                    regularization_loss = regularization_loss_vp+regularization_loss_rho
                     loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
                     loss = data_loss + regularization_loss
                 else:
@@ -178,40 +201,49 @@ class AcousticFWI(torch.nn.Module):
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
             # gradient precondition
-            if self.model.get_requires_grad("vp"):    
-                if self.gradient_processor != None:
-                    with torch.no_grad():
-                        grads_vp   = self.model.vp.grad.cpu().detach().numpy()
-                        vmax_vp     = np.max(grads_vp)
-                        grads_vp   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vp,grad=grads_vp,forw=forw)
-                        grads_vp   = numpy2tensor(grads_vp,dtype=self.propagator.dtype).to(self.propagator.device)
-                        self.model.vp.grad = grads_vp
+            if self.model.get_requires_grad("vp") and self.gradient_processor != None:    
+                with torch.no_grad():
+                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
+                    vmax_vp    = np.max(grads_vp)
+                    grads_vp   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vp,grad=grads_vp,forw=forw)
+                    grads_vp   = numpy2tensor(grads_vp,dtype=self.propagator.dtype).to(self.propagator.device)
+                    self.model.vp.grad = grads_vp
             
-            if self.model.get_requires_grad("rho"):
+            if self.model.get_requires_grad("rho") and self.gradient_processor != None:
                 with torch.no_grad():
                     grads_rho   = self.model.rho.grad.cpu().detach().numpy()
                     vmax_rho    = np.max(grads_rho)
                     grads_rho   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_rho,grad=grads_rho,forw=forw)
                     grads_rho   = numpy2tensor(grads_rho,dtype=self.propagator.dtype).to(self.propagator.device)
                     self.model.rho.grad = grads_rho
-            
+        
             self.optimizer.step()
             self.scheduler.step()
             
-            # save the temp result
+            # constrain the velocity model
+            self.model.forward()
+            
             if self.cache_result:
-                temp_vp   = self.propagator.model.vp.cpu().detach().numpy()
-                temp_rho  = self.propagator.model.rho.cpu().detach().numpy()
+                # model
+                temp_vp   = self.model.vp.cpu().detach().numpy()
+                temp_rho  = self.model.rho.cpu().detach().numpy()
                 self.iter_vp.append(temp_vp)
                 self.iter_rho.append(temp_rho)
                 self.iter_loss.append(loss_batch)
-            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
+                
+                self.save_figure(i,temp_vp     , model_type="vp")
+                self.save_figure(i,temp_rho    , model_type="rho")
+                
+                # gradient
+                if self.model.get_requires_grad("vp"):
+                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
+                    self.save_figure(i,grads_vp    , model_type="grad_vp")
+                if self.model.get_requires_grad("rho"):
+                    grads_rho  = self.model.rho.grad.cpu().detach().numpy()
+                    self.save_figure(i,grads_rho   , model_type="grad_rho")
             
             self.true_epoch = 0
-            
-            # save the result
-            self.save_figure(i,temp_vp,model_type="vp")
-            self.save_figure(i,temp_rho,model_type="rho")
+            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
     
     def forward_closure(self,
                 iteration:int,
@@ -251,37 +283,41 @@ class AcousticFWI(torch.nn.Module):
                     syn_p   = rcv_p
                     if self.waveform_normalize:
                         syn_p = syn_p/(torch.max(torch.abs(syn_p),axis=1,keepdim=True).values)
-                    # misfit
+                    # misfit : data
                     if isinstance(self.loss_fn,Misfit):
                         data_loss = self.loss_fn.forward(syn_p,self.obs_p[shot_index])
                     elif isinstance(self.loss_fn,Misfit_NIM):
                         data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index],self.loss_fn.p,self.loss_fn.trans_type,self.loss_fn.theta)
                     else:
                         data_loss = self.loss_fn.apply(syn_p,self.obs_p[shot_index])
-                    
+                    # regularization
                     if self.regularization_fn is not None:
-                        regularization_loss = self.regularization_fn.forward(self.model.vp)
+                        regularization_loss_vp,regularization_loss_rho = 0,0
+                        if self.model.get_requires_grad("vp"):
+                            self.regularization_fn.alphax,self.regularization_fn.alphaz = self.regularization_weights_x[0],self.regularization_weights_z[0]
+                            regularization_loss_vp = self.regularization_fn.forward(self.model.vp)
+                        if self.model.get_requires_grad("rho"):
+                            self.regularization_fn.alphax,self.regularization_fn.alphaz = self.regularization_weights_x[1],self.regularization_weights_z[1]
+                            regularization_loss_rho = self.regularization_fn.forward(self.model.rho)
+                        regularization_loss = regularization_loss_vp+regularization_loss_rho
                         loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
                         loss = data_loss + regularization_loss
                     else:
                         loss_batch = loss_batch + data_loss.item()
                         loss = data_loss
-                    loss.backward()
                     if math.ceil(n_shots/batch_size) == 1:
                         pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
                         
-
                 # gradient precondition
-                if self.model.get_requires_grad("vp"):    
-                    if self.gradient_processor != None:
-                        with torch.no_grad():
-                            grads_vp   = self.model.vp.grad.cpu().detach().numpy()
-                            vmax_vp     = np.max(grads_vp)
-                            grads_vp   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vp,grad=grads_vp,forw=forw)
-                            grads_vp   = numpy2tensor(grads_vp,dtype=self.propagator.dtype).to(self.propagator.device)
-                            self.model.vp.grad = grads_vp
+                if self.model.get_requires_grad("vp") and self.gradient_processor != None:    
+                    with torch.no_grad():
+                        grads_vp   = self.model.vp.grad.cpu().detach().numpy()
+                        vmax_vp     = np.max(grads_vp)
+                        grads_vp   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vp,grad=grads_vp,forw=forw)
+                        grads_vp   = numpy2tensor(grads_vp,dtype=self.propagator.dtype).to(self.propagator.device)
+                        self.model.vp.grad = grads_vp
                 
-                if self.model.get_requires_grad("rho"):
+                if self.model.get_requires_grad("rho") and self.gradient_processor != None:
                     with torch.no_grad():
                         grads_rho   = self.model.rho.grad.cpu().detach().numpy()
                         vmax_rho    = np.max(grads_rho)
@@ -295,13 +331,27 @@ class AcousticFWI(torch.nn.Module):
             loss_batch = self.optimizer.step(closure=closure)
             self.scheduler.step()
             
+            # constrain the velocity model
+            self.model.forward()
+            
             # save the result
             if self.cache_result:
+                # save the inverted resutls
                 temp_vp   = self.model.vp.cpu().detach().numpy()
                 temp_rho  = self.model.rho.cpu().detach().numpy()
+                
                 self.iter_vp.append(temp_vp)
                 self.iter_rho.append(temp_rho)
                 self.iter_loss.append(loss_batch)
-            self.save_figure(i,temp_vp     , model_type="vp")
-            self.save_figure(i,temp_rho    , model_type="rho")
+                
+                self.save_figure(i,temp_vp     , model_type="vp")
+                self.save_figure(i,temp_rho    , model_type="rho")
+                
+                # save the inverted gradient
+                if self.model.get_requires_grad("vp"):
+                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
+                    self.save_figure(i,grads_vp    , model_type="grad_vp")
+                if self.model.get_requires_grad("rho"):
+                    grads_rho  = self.model.rho.grad.cpu().detach().numpy()
+                    self.save_figure(i,grads_rho   , model_type="grad_rho")
             pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))

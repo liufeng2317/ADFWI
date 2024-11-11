@@ -25,7 +25,9 @@ def _l2_norm(x,eps = 1e-9):
 
 class Regularization():
     def __init__(self,nx:int,nz:int,dx:float,dz:float,
-                 alphax:float,alphaz:float,step_size:Optional[int]=1000,gamma:Optional[int]=1) -> None:
+                 alphax:float,alphaz:float,
+                 step_size:Optional[int]=1000,gamma:Optional[int]=1,
+                 device="cpu",dtype=torch.float32) -> None:
         """
         Parameters:
         -------------
@@ -47,6 +49,8 @@ class Regularization():
         self.nz         = nz
         self.dx         = dx
         self.dz         = dz
+        self.device     = device
+        self.dtype      = dtype
     
     @abstractmethod
     def forward(self):

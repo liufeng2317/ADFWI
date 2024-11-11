@@ -48,11 +48,11 @@ def smooth2d(Z, span=10):
 
     return Z
 
-def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='Marine'):
+def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine'):
     ''' Gradient taper
     '''
     # for masking the water layer, use the zero threds
-    if marine_or_land in ['Marine', 'Offshore']: 
+    if marine_or_land in ['marine', 'Offshore']: 
         taper = np.ones((nz, nx))
         taper[:tapersize,:] = 0.0
             
@@ -77,7 +77,8 @@ class GradProcessor():
                  grad_mask=None,
                  norm_grad=True,
                  forw_illumination=True,
-                 marine_or_land="land"):
+                 marine_or_land="land",
+                 ):
         self.grad_mute      = grad_mute
         self.grad_smooth    = grad_smooth   
         self.grad_mask      = grad_mask
@@ -87,14 +88,13 @@ class GradProcessor():
 
     def forward(self,nx,nz,vmax,grad,forw=None):
         # tapper mask
-        if self.marine_or_land.lower() in ['marine', 'offshore']:
-            grad_thred = 0.0
-        elif self.marine_or_land.lower() in ['land', 'onshore']:
-            grad_thred = 0.001
-        else:
-            raise ValueError('not supported modeling marine_or_land: %s'%(self.marine_or_land))
-        
         if self.grad_mute > 0:
+            if self.marine_or_land.lower() in ['marine', 'offshore']:
+                grad_thred = 0.0
+            elif self.marine_or_land.lower() in ['land', 'onshore']:
+                grad_thred = 0.001
+            else:
+                raise ValueError('not supported modeling marine_or_land: %s'%(self.marine_or_land))
             grad *= grad_taper(nz, nx, tapersize = self.grad_mute, thred = grad_thred, marine_or_land=self.marine_or_land)
         
         # grad mask
@@ -107,12 +107,12 @@ class GradProcessor():
                 grad *= self.grad_mask
         
         # apply the inverse Hessian
-        if min(nz, nx) > 40:      # set 40 grids in default
-            span = 40
-        else:                     # in case the grid number is less than 40
-            span = int(min(nz, nx)/2)
-        
         if self.forw_illumination and forw is not None:
+            if min(nz, nx) > 40:      # set 40 grids in default
+                span = 40
+            else:                     # in case the grid number is less than 40
+                span = int(min(nz, nx)/2)
+            
             forw = smooth2d(forw, span)
             epsilon = 0.0001
             precond = forw

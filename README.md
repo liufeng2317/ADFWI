@@ -132,6 +132,17 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
             </details>
         </td>
     </tr>
+        <tr>
+        <td style="text-align: center; vertical-align: middle;">Marmousi2 (vp and rho)</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;"><a href="./examples/acoustic/01-model-test/08-Marmousi2-vp-rho/02_inversion.ipynb">Example-vp & rho</a></td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/01-model-test/08-Marmousi2-vp-rho/data/inversion-0/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;"/>
+            </details>
+        </td>
+    </tr>
     <tr>
         <td style="text-align: center; vertical-align: middle;">FootHill (low resulotion)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
@@ -187,7 +198,6 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
             </details>
         </td>
     </tr>
-
 </table>
 </div>
 
@@ -203,28 +213,67 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
         <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2</td>
+        <td style="text-align: center; vertical-align: middle;">Iso-elastic Anomaly</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/elastic/Iso-elastic-Marmousi2/02_inversion.py">Example-Marmousi2</a>
+            <a href="./examples/elastic/Iso-elastic-Anomaly/02_inversion.ipynb">Example-Anomaly</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/elastic/Iso-elastic-Marmousi2/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+                <img src="./examples/elastic/Iso-elastic-Anomaly/data/inversion-Adam/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
             </details>
         </td>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">VTI-elastic Anomaly</td>
+        <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2-1</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/elastic/VTI-elastic-Anomaly/02_inversion.py">Example-Anomaly</a>
+            <a href="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop/02_inversion.ipynb">Shot & Rec on Surface </a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop/data/inversion_tv2/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2-2</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/elastic/Iso-elastic-Marmousi2-shotWater-recWater/02_inversion.ipynb">Shot & Rec Underwater</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotWater-recWater/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">VTI-elastic Anomaly-1</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/elastic/VTI-elastic-Anomaly-eps/02_inversion.py">Inv Epsilon</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
                 <img src="./examples/elastic/VTI-elastic-Anomaly/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">VTI-elastic Anomaly-2</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/elastic/VTI-elastic-Anomaly-eps-delta/02_inversion.py">Inv Epsilon & Delta</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/VTI-elastic-Anomaly-eps-delta/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -807,6 +856,9 @@ A comparative analysis of gradient calculations obtained through AD and the cent
 
 - **Various Optimization Methods**
 
+- **Multiscale FWI inversion**
+    - multi-frequency
+
 - **Deep Neural Network Integration**
   - **DNNs Reparameterization**: DNNs reparameterize the Earth model, introducing learnable regularization to improve the inversion process.
   - **Dropout**: Applied to assess inversion uncertainty by randomly dropping units during training, providing a measure of model robustness.
@@ -881,7 +933,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 - <details>
-    <summary><b>Multi-Scale Inversion Strategies</b></summary>
+    <summary><b>Multi-Scale Inversion Strategies (done!)</b></summary>
     <b>Objective</b>: Introduce multi-scale approaches for improved inversion accuracy. 
 
     <b>Explanation</b>: Multi-scale inversion involves processing data at various scales to capture both large-scale trends and small-scale features effectively. Implementing this strategy will enhance the robustness of the inversion process, allowing for better resolution of subsurface structures. Techniques such as hierarchical modeling and wavelet analysis may be considered to achieve this goal, thus improving the overall quality of the inversion results.

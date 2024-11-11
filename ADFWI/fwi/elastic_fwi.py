@@ -6,7 +6,7 @@
 * Description: 
 * Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
-from typing import Optional,Union
+from typing import Optional,Union,List
 import os
 import math
 import torch
@@ -20,20 +20,25 @@ from ADFWI.fwi.regularization import Regularization
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
+from ADFWI.fwi.multiScaleProcessing import lpass
+
 class ElasticFWI(torch.nn.Module):
     """Acoustic Full waveform inversion class
     """
     def __init__(self,propagator:ElasticPropagator,model:AbstractModel,
                  optimizer:torch.optim.Optimizer,scheduler:torch.optim.lr_scheduler,
                  loss_fn:Union[Misfit,torch.autograd.Function],
-                 obs_data:SeismicData,gradient_processor:GradProcessor,
-                 regularization_fn:Optional[Regularization] = None,
-                 waveform_normalize:Optional[bool]          = True,
-                 cache_result:Optional[bool]                = True,
-                 cache_gradient:Optional[bool]              = True,
-                 save_fig_epoch:Optional[int]               = -1,
-                 save_fig_path:Optional[str]                = "",
-                 inversion_component:Optional[np.array]     = ["pressure"],
+                 obs_data:SeismicData,
+                 gradient_processor: Union[GradProcessor,List[GradProcessor]] = None,                # vp/vs/rho epsilon/delta/gamma
+                 regularization_fn:Optional[Regularization]                   = None,
+                 regularization_weights_x:Optional[List[Union[float]]]        = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
+                 regularization_weights_z:Optional[List[Union[float]]]        = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
+                 waveform_normalize:Optional[bool]                            = True,
+                 cache_result:Optional[bool]                                  = True,
+                 cache_gradient:Optional[bool]                                = True,
+                 save_fig_epoch:Optional[int]                                 = -1,
+                 save_fig_path:Optional[str]                                  = "",
+                 inversion_component:Optional[np.array]                       = ["pressure"],
                 ):
         """
         Parameters:
@@ -44,21 +49,23 @@ class ElasticFWI(torch.nn.Module):
             scheduler (torch.optim.scheduler)               : the pytorch learning rate decay scheduler
             loss_fn   (Misfit or torch.autograd.Function)   : the misfit function
             obs_data  (SeismicData)                         : the observed dataset
-            gradient_processor (GradProcessor)              : the gradient processor
+            gradient_processor (GradProcessor)              : the gradient processor (Once you give only one parameter and no list, the processor will apply to all parameters)
             waveform_normalize (bool)   : normalize the waveform or not, default True
             cache_result (bool)         : save the temp result of the inversion or not
         """
         super().__init__()
-        self.propagator         = propagator
-        self.model              = model
-        self.optimizer          = optimizer
-        self.scheduler          = scheduler
-        self.loss_fn            = loss_fn
-        self.regularization_fn  = regularization_fn
-        self.obs_data           = obs_data
-        self.gradient_processor = gradient_processor
-        self.device             = self.propagator.device
-        self.dtype              = self.propagator.dtype 
+        self.propagator                 = propagator
+        self.model                      = model
+        self.optimizer                  = optimizer
+        self.scheduler                  = scheduler
+        self.loss_fn                    = loss_fn
+        self.regularization_fn          = regularization_fn
+        self.regularization_weights_x   = regularization_weights_x
+        self.regularization_weights_z   = regularization_weights_z
+        self.obs_data                   = obs_data
+        self.gradient_processor         = gradient_processor
+        self.device                     = self.propagator.device
+        self.dtype                      = self.propagator.dtype 
         
         # observed data
         self.waveform_normalize = waveform_normalize
@@ -67,12 +74,13 @@ class ElasticFWI(torch.nn.Module):
         obs_vx  = numpy2tensor(self.obs_data.data["vx"],self.dtype).to(self.device)
         obs_vz  = numpy2tensor(self.obs_data.data["vz"],self.dtype).to(self.device)
         if self.waveform_normalize:
-            obs_p  =  obs_p/(torch.max(torch.abs(obs_p),axis=1,keepdim=True).values)
+            obs_p  =  obs_p/(torch.max(torch.abs(obs_p) ,axis=1,keepdim=True).values)
             obs_vx = obs_vx/(torch.max(torch.abs(obs_vx),axis=1,keepdim=True).values)
             obs_vz = obs_vz/(torch.max(torch.abs(obs_vz),axis=1,keepdim=True).values)
         self.obs_p = obs_p
         self.obs_vx = obs_vx
         self.obs_vz = obs_vz
+        
         # save result
         self.cache_result   = cache_result
         self.cache_gradient = cache_gradient
@@ -89,7 +97,52 @@ class ElasticFWI(torch.nn.Module):
         # inversion component
         self.inversion_component = inversion_component
     
-    def save_vp_vs_rho_fig(self,i,vp,vs,rho):
+    # misfits calculation
+    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
+        """
+        Generalized function to calculate misfit loss for a given component.
+        """
+        if normalization:
+            synthetic_waveform = synthetic_waveform / (torch.max(torch.abs(synthetic_waveform), axis=1, keepdim=True).values)
+        # Apply low-pass filter if cutoff frequency is provided
+        if cutoff_freq is not None:
+            synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
+        if isinstance(loss_fn, Misfit):
+            return loss_fn.forward(synthetic_waveform, observed_waveform)
+        else:
+            return loss_fn.apply(synthetic_waveform, observed_waveform)
+    
+    # regularization calculation
+    def calculate_regularization_loss(self, model_param, weight_x, weight_z, regularization_fn):
+        """
+        Generalized function to calculate regularization loss for a given parameter.
+        """
+        regularization_loss = torch.tensor(0.0, device=model_param.device)
+        # Check if the parameter requires gradient
+        if model_param.requires_grad:
+            # Set the regularization weights for x and z directions
+            regularization_fn.alphax = weight_x
+            regularization_fn.alphaz = weight_z
+            # Calculate regularization loss if any weight is greater than zero
+            if regularization_fn.alphax > 0 or regularization_fn.alphaz > 0:
+                regularization_loss = regularization_fn.forward(model_param)
+        return regularization_loss
+    
+    # gradient precondition
+    def process_gradient(self, parameter,forw,idx=None):
+        with torch.no_grad():
+            grads = parameter.grad.cpu().detach().numpy()
+            vmax = np.max(parameter.cpu().detach().numpy())
+            # Apply gradient processor
+            if isinstance(self.gradient_processor, GradProcessor):
+                grads = self.gradient_processor.forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
+            else:
+                grads = self.gradient_processor[idx].forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
+            # Convert grads back to tensor and assign
+            grads_tensor = numpy2tensor(grads, dtype=self.propagator.dtype).to(self.propagator.device)
+            parameter.grad = grads_tensor
+
+    def save_vp_vs_rho_fig(self,epoch_id,vp,vs,rho):
         vp_bound    =  self.model.get_bound("vp")
         vs_bound    =  self.model.get_bound("vs")
         rho_bound   =  self.model.get_bound("rho")
@@ -99,37 +152,43 @@ class ElasticFWI(torch.nn.Module):
         else: 
             self.vp_min = vp_bound[0]
             self.vp_max = vp_bound[1]
-        
+            if self.model.water_layer_mask is not None:
+                self.vp_min = 1500
         if vs_bound[0] is None and vs_bound[1] is None:
             self.vs_min = self.model.get_model("vs").min() - 500
             self.vs_max = self.model.get_model("vs").max() + 500
         else: 
             self.vs_min = vs_bound[0]
             self.vs_max = vs_bound[1]
-        
+            if self.model.water_layer_mask is not None:
+                self.vs_min = 0        
         if rho_bound[0] is None and rho_bound[1] is None:
             self.rho_min = self.model.get_model("rho").min() - 200
             self.rho_max = self.model.get_model("rho").max() + 200
         else: 
             self.rho_min = rho_bound[0]
             self.rho_max = rho_bound[1]
-        
+            if self.model.water_layer_mask is not None:
+                self.rho_min = 1000
         
         if self.save_fig_epoch == -1:
             pass
-        elif i%self.save_fig_epoch == 0:
+        elif epoch_id%self.save_fig_epoch == 0:
             if os.path.exists(self.save_fig_path):
                 plot_vp_vs_rho(
                     vp=vp,vs=vs,rho=rho,
                     # title=f"Iteration {i}",
                     figsize=(12,5),wspace=0.2,cbar_pad_fraction=0.18,cbar_height=0.04,
                     dx=self.model.dx,dz=self.model.dz,
-                    save_path=os.path.join(self.save_fig_path,f"model_{i}.png"),
+                    vp_min=self.vp_min,vp_max=self.vp_max,
+                    vs_min=self.vs_min,vs_max=self.vs_max,
+                    rho_min=self.rho_min,rho_max=self.rho_max,
+                    save_path=os.path.join(self.save_fig_path,f"model_{epoch_id}.png"),
                     show=False
                     )
         return
     
-    def save_eps_delta_gamma_fig(self,i,eps,delta,gamma,model_type="eps"):
+    def save_eps_delta_gamma_fig(self,epoch_id,eps,delta,gamma):
         eps_bound    =  self.model.get_bound("eps")
         delta_bound    =  self.model.get_bound("delta")
         gamma_bound   =  self.model.get_bound("gamma")
@@ -156,34 +215,78 @@ class ElasticFWI(torch.nn.Module):
     
         if self.save_fig_epoch == -1:
             pass
-        elif i%self.save_fig_epoch == 0:
+        elif epoch_id%self.save_fig_epoch == 0:
             if os.path.exists(self.save_fig_path):
                 plot_eps_delta_gamma(
                     eps=eps,delta=delta,gamma=gamma,
                     # title=f"Iteration {i}",
-                    figsize=(12,5),wspace=0.2,cbar_pad_fraction=0.18,cbar_height=0.04,
+                    figsize=(12,5),wspace=0.3,cbar_pad_fraction=0.01,cbar_height=0.04,
                     dx=self.model.dx,dz=self.model.dz,
-                    save_path=os.path.join(self.save_fig_path,f"anisotropic_model_{i}.png"),
+                    save_path=os.path.join(self.save_fig_path,f"anisotropic_model_{epoch_id}.png"),
                     show=False
                     )
         return
     
-    def save_gradient_fig(self,i,data,model_type="vp"):
+    def save_gradient_fig(self,epoch_id,data,model_type="vp"):
         if self.save_fig_epoch == -1:
             pass
-        elif i%self.save_fig_epoch == 0:
+        elif epoch_id%self.save_fig_epoch == 0:
             if os.path.exists(self.save_fig_path):
-                plot_model(data,title=f"Iteration {i}",
+                plot_model(data,title=f"Iteration {epoch_id}",
                         dx=self.model.dx,dz=self.model.dz,
-                        save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
+                        save_path=os.path.join(self.save_fig_path,f"{model_type}_{epoch_id}.png"),
+                        show=False,cmap='seismic')
         return
+    
+    def save_model_and_gradients(self,epoch_id,loss_epoch):
+        """
+            Save model parameters and gradients if caching is enabled.
+        """
+        # Save the loss
+        self.iter_loss.append(loss_epoch)
 
+        # Save the model parameters
+        param_names = ["vp", "vs", "rho"]
+        anisotropic_params = ["eps", "delta", "gamma"] if isinstance(self.model, AnisotropicElasticModel) else []
+        for name in param_names + anisotropic_params:
+            param = getattr(self.model, name, None)
+            if param is not None:
+                temp_param = param.cpu().detach().numpy()
+                getattr(self, f"iter_{name}").append(temp_param)
+        
+        # save the figure
+        self.save_vp_vs_rho_fig(epoch_id,self.model.vp.cpu().detach().numpy(),
+                                         self.model.vs.cpu().detach().numpy(),
+                                         self.model.rho.cpu().detach().numpy())
+        if isinstance(self.model,AnisotropicElasticModel):
+            self.save_eps_delta_gamma_fig(epoch_id,
+                                          self.model.eps.cpu().detach().numpy(),
+                                          self.model.delta.cpu().detach().numpy(),
+                                          self.model.gamma.cpu().detach().numpy())
+
+        # Save gradients if required
+        for name in param_names:
+            if self.model.get_requires_grad(name):
+                temp_grad = getattr(self.model, name).grad.cpu().detach().numpy()
+                getattr(self, f"iter_{name}_grad").append(temp_grad)
+                self.save_gradient_fig(epoch_id, temp_grad, model_type=f"grad_{name}")
+
+        # For anisotropic model parameters, save gradients if required
+        if isinstance(self.model, AnisotropicElasticModel):
+            for name in anisotropic_params:
+                if self.model.get_requires_grad(name):
+                    temp_grad = getattr(self.model, name).grad.cpu().detach().numpy()
+                    getattr(self, f"iter_{name}_grad").append(temp_grad)
+                    self.save_gradient_fig(epoch_id, temp_grad, model_type=f"grad_{name}")
+        return
+    
     def forward(self,
                 iteration:int,
                 fd_order:int                        = 4,
                 batch_size:Optional[int]            = None,
                 checkpoint_segments:Optional[int]   = 1 ,
                 start_iter                          = 0,
+                cutoff_freq                         = None,
                 ):
         """
         Parameters:
@@ -202,7 +305,7 @@ class ElasticFWI(torch.nn.Module):
         for i in pbar_epoch:
             # batch
             self.optimizer.zero_grad()
-            loss_batch = 0
+            loss_epoch = 0
             pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
             for batch in pbar_batch:
                 # forward simulation
@@ -211,160 +314,72 @@ class ElasticFWI(torch.nn.Module):
                 shot_index  = np.arange(begin_index,end_index)
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
-                forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]                
+                forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]
                 
-                # misfit calculation
-                loss_pressure,loss_vx,loss_vz = 0,0,0
+                # misfits
+                loss_pressure, loss_vx, loss_vz = 0, 0, 0
                 if "pressure" in self.inversion_component:
-                    # forward wavefiled
                     if batch == 0:
-                        forw  = -(forward_wavefield_txx+forward_wavefield_tzz).cpu().detach().numpy()
+                        forw  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
                     else:
-                        forw += -(forward_wavefield_txx+forward_wavefield_tzz).cpu().detach().numpy()
-                    # synthetic waveform（Pressure = -(\tau_xx + \tau_zz)）
-                    syn_p   = -(rcv_txx+rcv_tzz)
-                    if self.waveform_normalize:
-                        syn_p = syn_p/(torch.max(torch.abs(syn_p),axis=1,keepdim=True).values)
-                    # misfit
-                    if isinstance(self.loss_fn,Misfit):
-                        loss_pressure = self.loss_fn.forward(syn_p,self.obs_p[shot_index])
-                    else:
-                        loss_pressure = self.loss_fn.apply(syn_p,self.obs_p[shot_index])
+                        forw += -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
+                    syn_p = -(rcv_txx + rcv_tzz)
+                    loss_pressure = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vx" in self.inversion_component:
-                    # misfit
-                    forw = None
-                    # forw = forward_wavefield_vx.cpu().detach().numpy()
-                    syn_vx = rcv_vx
-                    if self.waveform_normalize:
-                        syn_vx = syn_vx/(torch.max(torch.abs(syn_vx),axis=1,keepdim=True).values)
-                    if isinstance(self.loss_fn,Misfit):
-                        loss_vx = self.loss_fn.forward(syn_vx,self.obs_vx[shot_index]) 
-                    else:
-                        loss_vx = self.loss_fn.apply(syn_vx,self.obs_vx[shot_index])
+                    forw = forward_wavefield_vx.cpu().detach().numpy()
+                    loss_vx = self.calculate_loss(rcv_vx, self.obs_vx[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vz" in self.inversion_component:
-                    # misfit
-                    forw = None
-                    # forw = forward_wavefield_vz.cpu().detach().numpy()
-                    syn_vz = rcv_vz
-                    if self.waveform_normalize:
-                        syn_vz = rcv_vz/(torch.max(torch.abs(rcv_vz),axis=1,keepdim=True).values)
-                    if isinstance(self.loss_fn,Misfit):
-                        loss_vz = self.loss_fn.forward(syn_vz,self.obs_vz[shot_index]) 
-                    else:
-                        loss_vz = self.loss_fn.apply(syn_vz,self.obs_vz[shot_index])
-                data_loss = loss_pressure+loss_vx + loss_vz
+                    forw = forward_wavefield_vz.cpu().detach().numpy()
+                    loss_vz = self.calculate_loss(rcv_vz, self.obs_vz[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
+                data_loss = loss_pressure + loss_vx + loss_vz
                 
+                # regularization
                 if self.regularization_fn is not None:
-                    regularization_loss_vp,regularization_loss_vs,regularization_loss_rho = 0,0,0
-                    if self.model.get_requires_grad("vp"):
-                        regularization_loss_vp = self.regularization_fn.forward(self.model.vp)
-                    if self.model.get_requires_grad("vs"):
-                        # temp_alphax = self.regularization_fn.alphax 
-                        # temp_alphaz = self.regularization_fn.alphaz
-                        # self.regularization_fn.alphax = temp_alphax * 5 
-                        # self.regularization_fn.alphaz = temp_alphaz * 5 
-                        regularization_loss_vs = self.regularization_fn.forward(self.model.vs)
-                        # self.regularization_fn.alphax = temp_alphax 
-                        # self.regularization_fn.alphaz = temp_alphaz
-                    if self.model.get_requires_grad("rho"):
-                        regularization_loss_rho = self.regularization_fn.forward(self.model.rho)
-                    regularization_loss = regularization_loss_vp+regularization_loss_vs+regularization_loss_rho
-                    loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
+                    # Initialize regularization losses
+                    regularization_loss_vp  = self.calculate_regularization_loss(self.model.vp , self.regularization_weights_x[0], self.regularization_weights_z[0], self.regularization_fn)
+                    regularization_loss_vs  = self.calculate_regularization_loss(self.model.vs , self.regularization_weights_x[1], self.regularization_weights_z[1], self.regularization_fn)
+                    regularization_loss_rho = self.calculate_regularization_loss(self.model.rho, self.regularization_weights_x[2], self.regularization_weights_z[2], self.regularization_fn)
+                    # For anisotropic model parameters
+                    regularization_loss_eps = regularization_loss_delta = regularization_loss_gamma = torch.tensor(0.0, device=self.device)
+                    if isinstance(self.model, AnisotropicElasticModel):
+                        regularization_loss_eps   = self.calculate_regularization_loss(self.model.eps  , self.regularization_weights_x[3], self.regularization_weights_z[3], self.regularization_fn)
+                        regularization_loss_delta = self.calculate_regularization_loss(self.model.delta, self.regularization_weights_x[4], self.regularization_weights_z[4], self.regularization_fn)
+                        regularization_loss_gamma = self.calculate_regularization_loss(self.model.gamma, self.regularization_weights_x[5], self.regularization_weights_z[5], self.regularization_fn)
+                    # Summing all regularization losses
+                    regularization_loss = (regularization_loss_vp + regularization_loss_vs + regularization_loss_rho +
+                                        regularization_loss_eps + regularization_loss_delta + regularization_loss_gamma)
+                    # Adding regularization loss to total loss
+                    loss_epoch += data_loss.item() + regularization_loss.item()
                     loss = data_loss + regularization_loss
                 else:
-                    loss_batch = loss_batch + data_loss.item()
+                    loss_epoch += data_loss.item()
                     loss = data_loss
                 loss.backward()
                 if math.ceil(n_shots/batch_size) == 1:
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
-            # gradient precondition : seperate writting for future processing
+            # gradient process
             if self.model.get_requires_grad("vp"):
-                with torch.no_grad():
-                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
-                    vmax_vp    = np.max(self.model.vp.cpu().detach().numpy())
-                    grads_vp   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vp,grad=grads_vp,forw=forw)
-                    grads_vp   = numpy2tensor(grads_vp,dtype=self.propagator.dtype).to(self.propagator.device)
-                    self.model.vp.grad = grads_vp
-            
+                self.process_gradient(self.model.vp, forw=forw, idx=0)
             if self.model.get_requires_grad("vs"):
-                with torch.no_grad():
-                    grads_vs   = self.model.vs.grad.cpu().detach().numpy()
-                    vmax_vs    = np.max(self.model.vs.cpu().detach().numpy())
-                    grads_vs   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_vs,grad=grads_vs,forw=forw)
-                    grads_vs   = numpy2tensor(grads_vs,dtype=self.propagator.dtype).to(self.propagator.device)
-                    self.model.vs.grad = grads_vs
-                        
+                self.process_gradient(self.model.vs, forw=forw, idx=1)
             if self.model.get_requires_grad("rho"):
-                with torch.no_grad():
-                    grads_rho   = self.model.rho.grad.cpu().detach().numpy()
-                    vmax_rho    = np.max(self.model.rho.cpu().detach().numpy())
-                    grads_rho   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_rho,grad=grads_rho,forw=forw)
-                    grads_rho   = numpy2tensor(grads_rho,dtype=self.propagator.dtype).to(self.propagator.device)
-                    self.model.rho.grad = grads_rho
-            
-            if isinstance(self.model,AnisotropicElasticModel):
+                self.process_gradient(self.model.rho, forw=forw, idx=2)
+            if isinstance(self.model, AnisotropicElasticModel):
                 if self.model.get_requires_grad("eps"):
-                    with torch.no_grad():
-                        grads_eps   = self.model.eps.grad.cpu().detach().numpy()
-                        vmax_eps    = np.max(self.model.eps.cpu().detach().numpy())
-                        grads_eps   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_eps,grad=grads_eps,forw=forw)
-                        grads_eps   = numpy2tensor(grads_eps,dtype=self.propagator.dtype).to(self.propagator.device)
-                        self.model.eps.grad = grads_eps    
+                    self.process_gradient(self.model.eps, forw=forw, idx=3)
                 if self.model.get_requires_grad("delta"):
-                    with torch.no_grad():
-                        grads_delta    = self.model.delta.grad.cpu().detach().numpy()
-                        vmax_delta    = np.max(self.model.delta.cpu().detach().numpy())
-                        grads_delta   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax_delta,grad=grads_delta,forw=forw)
-                        grads_delta   = numpy2tensor(grads_delta,dtype=self.propagator.dtype).to(self.propagator.device)
-                        self.model.delta.grad = grads_delta
-                      
+                    self.process_gradient(self.model.delta, forw=forw, idx=4)
+
+            # update model parameters
             self.optimizer.step()
             self.scheduler.step()
             
-            # save the temp result
+            # constrain the velocity model
+            self.model.forward()
+
+            # cache results
             if self.cache_result:
-                # save the model
-                temp_vp      = self.propagator.model.vp.cpu().detach().numpy()
-                self.iter_vp.append(temp_vp)
-                temp_vs      = self.propagator.model.vs.cpu().detach().numpy()
-                self.iter_vs.append(temp_vs)
-                temp_rho     = self.propagator.model.rho.cpu().detach().numpy()
-                self.iter_rho.append(temp_rho)
-                if isinstance(self.model,AnisotropicElasticModel):
-                    temp_eps     = self.propagator.model.eps.cpu().detach().numpy()
-                    self.iter_eps.append(temp_eps)
-                    temp_delta     = self.propagator.model.delta.cpu().detach().numpy()
-                    self.iter_delta.append(temp_delta)
-                    temp_gamma     = self.propagator.model.gamma.cpu().detach().numpy()
-                    self.iter_gamma.append(temp_gamma)
-                self.iter_loss.append(loss_batch)
-                
-                # save the gradient
-                if self.model.get_requires_grad("vp"):
-                    temp_grad_vp = grads_vp.cpu().detach().numpy()
-                    self.iter_vp_grad.append(temp_grad_vp)
-                    self.save_gradient_fig(i,temp_grad_vp,model_type="grad_vp")
-                if self.model.get_requires_grad("vs"):
-                    temp_grad_vs = grads_vs.cpu().detach().numpy()
-                    self.iter_vs_grad.append(temp_grad_vs)
-                    self.save_gradient_fig(i,temp_grad_vs,model_type="grad_vs")
-                if self.model.get_requires_grad("rho"):
-                    temp_grad_rho = grads_rho.cpu().detach().numpy()
-                    self.iter_rho_grad.append(temp_grad_rho)
-                    self.save_gradient_fig(i,temp_grad_rho,model_type="grad_rho")
-                if isinstance(self.model,AnisotropicElasticModel):
-                    if self.model.get_requires_grad("eps"):
-                        temp_grad_eps = grads_eps.cpu().detach().numpy()
-                        self.iter_eps_grad.append(temp_grad_eps)
-                        self.save_gradient_fig(i,temp_grad_eps,model_type="grad_eps")
-                    if self.model.get_requires_grad("delta"):
-                        temp_grad_delta = grads_delta.cpu().detach().numpy()
-                        self.iter_delta_grad.append(temp_grad_delta)
-                        self.save_gradient_fig(i,temp_grad_delta,model_type="grad_delta")
-                
-                # save the figure
-                self.save_vp_vs_rho_fig(i,temp_vp,temp_vs,temp_rho)
-                if isinstance(self.model,AnisotropicElasticModel):
-                    self.save_eps_delta_gamma_fig(i,temp_eps,temp_delta,temp_gamma,model_type="eps")
-            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
+                self.save_model_and_gradients(epoch_id=i,loss_epoch=loss_epoch)   
+                         
+            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_epoch))
