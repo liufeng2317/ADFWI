@@ -32,14 +32,15 @@
 - [👩‍💻 Introduction](#-introduction)
 - [⚡️ Installation](#️-installation)
 - [👾 Examples](#-examples)
-  - [1. Iso-acoustic Model Tests](#1-iso-acoustic-model-tests)
-  - [2. Iso-elastic \& VTI-elastic Model Tests](#2-iso-elastic--vti-elastic-model-tests)
-  - [3. Misfits Tests](#3-misfits-tests)
-  - [4. Optimizer Tests](#4-optimizer-tests)
-  - [5. Regularization Methods](#5-regularization-methods)
-  - [6. Deep Image Prior (Earth Model Reparameterization)](#6-deep-image-prior-earth-model-reparameterization)
-  - [7. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#7-uncertainty-estimation-using-deep-neural-networks-dnns)
-  - [8. Gradient Comparation between AD \& Central Difference](#8-gradient-comparation-between-ad--central-difference)
+  - [1. Gradient Comparation between AD \& Central Difference](#1-gradient-comparation-between-ad--central-difference)
+  - [2. Iso-acoustic Model Tests](#2-iso-acoustic-model-tests)
+  - [3. Iso-elastic \& VTI-elastic Model Tests](#3-iso-elastic--vti-elastic-model-tests)
+  - [4. Misfits Tests](#4-misfits-tests)
+  - [5. Optimizer Tests](#5-optimizer-tests)
+  - [6. Regularization Methods](#6-regularization-methods)
+  - [7. Multi-Scale Strategy in FWI](#7-multi-scale-strategy-in-fwi)
+  - [8. Deep Image Prior (Earth Model Reparameterization)](#8-deep-image-prior-earth-model-reparameterization)
+  - [9. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#9-uncertainty-estimation-using-deep-neural-networks-dnns)
 - [📝 Features](#-features)
 - [⚖️ LICENSE](#️-license)
 - [🗓️ To-Do List](#️-to-do-list)
@@ -48,9 +49,9 @@
 ---
 
 ## 👩‍💻 Introduction
-**ADFWI** is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated seismic data. Utilizing automatic differentiation (AD), ADFWI **simplifies the derivation and implementation of Full Waveform Inversion (FWI)**, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and tilted transverse isotropy (TTI) models.
+&emsp;&emsp;**ADFWI** is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated waveform. Utilizing automatic differentiation (AD), ADFWI **simplifies the derivation and implementation of Full Waveform Inversion (FWI)**, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and tilted transverse isotropy (TTI) models.
 
-In addition, **ADFWI** provides a comprehensive collection of Objective functions, regularization techniques, optimization algorithms, and deep neural networks. This rich set of tools facilitates researchers in conducting experiments and comparisons, enabling them to explore innovative approaches and refine their methodologies effectively.
+&emsp;&emsp;In addition, **ADFWI** provides a comprehensive collection of **Objective functions**, **regularization techniques**, **optimization algorithms**, and **deep neural networks**. This rich set of tools facilitates researchers in conducting experiments and comparisons, enabling them to explore innovative approaches and refine their methodologies effectively.
 
 ![ADFWI](./docs/Md_img/Figure1-AISWIT-Workflow.png)
 
@@ -58,11 +59,11 @@ In addition, **ADFWI** provides a comprehensive collection of Objective function
 
 ## ⚡️ Installation
 
-To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) framework, please follow these steps:
+To install ADFWI, please follow these steps:
 
 1. **Ensure Prerequisites**  
-   Before you begin, make sure you have the following software installed on your system:  
-   - **Python 3.8 or higher**: Download Python from the official website: [Python Downloads](https://www.python.org/downloads/).
+   make sure you have the following software installed on your system:  
+   - **Python 3.8+**: Download Python from the official website: [Python Downloads](https://www.python.org/downloads/).
    - **pip** (Python package installer).
 
 2. **Create a Virtual Environment (Optional but Recommended)**
@@ -100,7 +101,31 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 
 ## 👾 Examples
 
-### 1. Iso-acoustic Model Tests
+### 1. Gradient Comparation between AD & Central Difference
+A comparative analysis of gradient calculations obtained through AD and the central difference method.
+
+<div style="text-align: center;">
+<table>
+    <tr>
+        <th style="text-align: center;">Test Name</th>
+        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Acoustic</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 200px; height: auto;" />
+        </td>
+    </tr>
+</table>
+</div>
+
+### 2. Iso-acoustic Model Tests
 
 <div style="text-align: center;">
 <table>
@@ -203,7 +228,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 
 ****
 
-### 2. Iso-elastic & VTI-elastic Model Tests
+### 3. Iso-elastic & VTI-elastic Model Tests
 <div style="text-align: center;">
 <table>
     <tr>
@@ -282,7 +307,7 @@ To install the Automatic Differentiation-Based Full Waveform Inversion (ADFWI) f
 
 ****
 
-### 3. Misfits Tests
+### 4. Misfits Tests
 
 We assess the convexity of different objective functions by simulating seismic records using shifted wavelets. The following table summarizes the results and provides examples for further exploration.
 
@@ -487,7 +512,7 @@ The following misfit functions are still in beta version and are undergoing furt
 
 ***
 
-### 4. Optimizer Tests
+### 5. Optimizer Tests
 
 The results presented below specifically characterize the impact of using the `L2-norm objective function` in conjunction with the Marmousi2 model. It is important to note that the effects of different optimization algorithms may vary significantly when applied to other objective functions or models. Consequently, the findings should be interpreted within this specific context, and further investigations are recommended to explore the performance of these algorithms across a broader range of scenarios.
 
@@ -622,7 +647,7 @@ The results presented below specifically characterize the impact of using the `L
 </table>
 </div>
 
-### 5. Regularization Methods
+### 6. Regularization Methods
 
 <table style="width: 100%; table-layout: fixed;">
     <tr>
@@ -716,7 +741,75 @@ The results presented below specifically characterize the impact of using the `L
 </table>
 </div>
 
-### 6. Deep Image Prior (Earth Model Reparameterization)
+----
+
+### 7. Multi-Scale Strategy in FWI
+Multi-scale strategies play a critical role in FWI as they help to mitigate **non-linearity** issues and enhance convergence, especially for complex models. Multi-scale strategies are currently in development to further improve robustness and efficiency.
+
+<div style="text-align: center;">
+<table>
+    <tr>
+        <th style="text-align: center;">Test Name</th>
+        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop-multifreq/02_inversion.py">Multi-freq (2Hz,3Hz,5Hz)</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop-multifreq/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+            </details>
+        </td>
+    </tr>
+</table>
+</div>
+
+<div style="text-align: center;">
+<table style="width: 100%;">
+    <tr>
+        <th style="text-align: center;">Multi-Scale Name</th>
+        <th style="text-align: center;">Status</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Multi-Offsets</td>
+        <td style="text-align: center; vertical-align: middle;">🛠️</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="#">on-going</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                🖼️ Image under development
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Multi-scale in Time</td>
+        <td style="text-align: center; vertical-align: middle;">🛠️</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="#">on-going</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                🖼️ Image under development
+            </details>
+        </td>
+    </tr>
+</table>
+</div>
+
+----
+
+### 8. Deep Image Prior (Earth Model Reparameterization)
 
 <div style="text-align: center;">
 <table>
@@ -794,7 +887,7 @@ The results presented below specifically characterize the impact of using the `L
 </table>
 </div>
 
-### 7. Uncertainty Estimation Using Deep Neural Networks (DNNs)
+### 9. Uncertainty Estimation Using Deep Neural Networks (DNNs)
 
 We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, to perform uncertainty estimation. The variable `p` represents the dropout ratio applied during both training and inference to evaluate uncertainty.
 
@@ -814,31 +907,6 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 300px; height: auto;" />
-        </td>
-    </tr>
-</table>
-</div>
-
-
-### 8. Gradient Comparation between AD & Central Difference
-A comparative analysis of gradient calculations obtained through AD and the central difference method.
-
-<div style="text-align: center;">
-<table>
-    <tr>
-        <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
-        <th style="text-align: center;">Path</th>
-        <th style="text-align: center;">Figure</th>
-    </tr>
-    <tr>
-        <td style="text-align: center; vertical-align: middle;">Acoustic</td>
-        <td style="text-align: center; vertical-align: middle;">✅</td>
-        <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
-        </td>
-        <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 200px; height: auto;" />
         </td>
     </tr>
 </table>
@@ -971,7 +1039,7 @@ For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.c
 
 
 ```bibtex
-@software{LiuFeng,
+@software{ADFWI_LiuFeng_2024,
   author       = {Feng Liu, Haipeng Li, GuangYuan Zou and Junlun Li},
   title        = {ADFWI},
   month        = July,
