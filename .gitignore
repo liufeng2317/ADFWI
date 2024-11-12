@@ -25,3 +25,4 @@ examples/acoustic/03-optimizer-test/
 # examples/elastic/
 examples/gradient_checking/Marmousi2/data/inversion-AD
 examples/gradient_checking/Marmousi2/data/inversion-FD
+examples/multi-scale/Iso-acoustic-Marmousi2-multifreq

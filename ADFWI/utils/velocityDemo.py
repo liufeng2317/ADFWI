@@ -153,7 +153,7 @@ def get_smooth_marmousi_model(model, gaussian_kernel=10, mask_extra_detph=2, rcv
 
 
 
-def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=None):
+def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=None, mask_depth=10):
     """Generate a linear velocity model based on the input Marmousi model.
 
     Args:
@@ -174,7 +174,6 @@ def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=No
     vp = np.ones_like(vp_true)
     vs = np.ones_like(vs_true)
 
-    mask_depth = 10  # Depth below which linear variation is applied
     vp[:mask_depth, :] = vp_true[:mask_depth, :]
     vs[:mask_depth, :] = vs_true[:mask_depth, :]
     

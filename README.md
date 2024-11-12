@@ -108,18 +108,30 @@ A comparative analysis of gradient calculations obtained through AD and the cent
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
     <tr>
-        <td style="text-align: center; vertical-align: middle;">Acoustic</td>
+        <td style="text-align: center; vertical-align: middle;">Acoustic (vp)</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/gradient_checking/Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
+            <a href="./examples/gradient_checking/Acoustic-Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/gradient_checking/Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 200px; height: auto;" />
+            <img src="./examples/gradient_checking/Acoustic-Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">Elastic (vp/vs/rho)</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/gradient_checking/Elastic-Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vp_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vs_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_rho_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
         </td>
     </tr>
 </table>
@@ -131,7 +143,7 @@ A comparative analysis of gradient calculations obtained through AD and the cent
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Example's Path</th>
         <th style="text-align: center;">Example's Figure</th>
     </tr>
@@ -233,7 +245,7 @@ A comparative analysis of gradient calculations obtained through AD and the cent
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -357,7 +369,7 @@ It is important to note that we present the performance of various objective fun
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -536,7 +548,7 @@ The results presented below specifically characterize the impact of using the `L
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -669,7 +681,7 @@ The results presented below specifically characterize the impact of using the `L
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -750,7 +762,7 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -758,12 +770,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">Iso-elastic Marmousi2</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop-multifreq/02_inversion.py">Multi-freq (2Hz,3Hz,5Hz)</a>
+            <a href="./examples/multi-scale/Iso-elastic-Marmousi2-multifreq/02_inversion.py">Multi-freq (2Hz,3Hz,5Hz)</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop-multifreq/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+                <img src="./examples/multi-scale/Iso-elastic-Marmousi2-multifreq/data/inversion/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
             </details>
         </td>
     </tr>
@@ -815,7 +827,7 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -895,7 +907,7 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
 <table>
     <tr>
         <th style="text-align: center;">Test Name</th>
-        <th style="text-align: center;">Implemented</th>
+        <th style="text-align: center;">Status</th>
         <th style="text-align: center;">Path</th>
         <th style="text-align: center;">Figure</th>
     </tr>
@@ -1010,7 +1022,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 - <details>
     <summary><b>Real Data Testing</b></summary>
     <b>Objective</b>: Evaluate the performance and robustness of the developed methodologies using real-world datasets.  
-    <b>Explanation</b>: Conducting tests with actual data is crucial for validating the effectiveness of the implemented algorithms. This will involve the following steps:
+    <b>Explanation</b>: Conducting tests with actual data is crucial for validating the effectiveness of the Status algorithms. This will involve the following steps:
     
     1. <b>Dataset Selection</b>: Identify relevant real-world datasets that reflect the complexities of the target applications. These datasets should include diverse scenarios and noise characteristics typical in field data.
 
@@ -1018,7 +1030,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 
     3. <b>Implementation</b>: Utilize the developed algorithms on the selected datasets, monitoring their performance metrics such as accuracy, computational efficiency, and convergence behavior.
 
-    4. <b>Comparison</b>: Compare the results obtained from the implemented methods against established benchmarks or existing methodologies to assess improvements.
+    4. <b>Comparison</b>: Compare the results obtained from the Status methods against established benchmarks or existing methodologies to assess improvements.
 
     5. <b>Analysis</b>: Analyze the outcomes to identify strengths and weaknesses, and document any discrepancies or unexpected behaviors. This analysis will help refine the algorithms and inform future iterations.
 
