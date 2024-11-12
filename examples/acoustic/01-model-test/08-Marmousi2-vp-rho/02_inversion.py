@@ -25,8 +25,8 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(project_path,"waveform"))
     if not os.path.exists(os.path.join(project_path,"survey")):
         os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"inversion-0")):
-        os.makedirs(os.path.join(project_path,"inversion-0"))
+    if not os.path.exists(os.path.join(project_path,"inversion")):
+        os.makedirs(os.path.join(project_path,"inversion"))
 
     #------------------------------------------------------
     #                   Basic Parameters
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                         waveform_normalize=True, 
                         cache_result=True,  
                         save_fig_epoch=50,  
-                        save_fig_path=os.path.join(project_path, "inversion-0"))
+                        save_fig_path=os.path.join(project_path, "inversion"))
 
         # Run the forward modeling for the specified number of iterations.
         fwi.forward(iteration=iteration, batch_size=None, checkpoint_segments=2,start_iter=start_iter)
@@ -173,9 +173,9 @@ if __name__ == "__main__":
         iter_rho.extend(fwi.iter_rho)
         iter_loss.extend(fwi.iter_loss)
  
-    np.savez(os.path.join(project_path,"inversion-0/iter_vp.npz"),data=np.array(iter_vp))
-    np.savez(os.path.join(project_path,"inversion-0/iter_rho.npz"),data=np.array(iter_rho))
-    np.savez(os.path.join(project_path,"inversion-0/iter_loss.npz"),data=np.array(iter_loss))
+    np.savez(os.path.join(project_path,"inversion/iter_vp.npz"),data=np.array(iter_vp))
+    np.savez(os.path.join(project_path,"inversion/iter_rho.npz"),data=np.array(iter_rho))
+    np.savez(os.path.join(project_path,"inversion/iter_loss.npz"),data=np.array(iter_loss))
 
     #------------------------------------------------------
     #            Visualize the Inversion Results
@@ -183,12 +183,12 @@ if __name__ == "__main__":
     from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
     # misfit
-    plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,"inversion-0/misfit.png"),show=False)
+    plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,"inversion/misfit.png"),show=False)
     
     # inverted results
-    plot_initial_and_inverted(vp_init=vp_init,iter_vp=iter_vp,save_path=os.path.join(project_path,"inversion-0/inverted_vp.png"),show=False)
-    plot_initial_and_inverted(vp_init=rho_init,iter_vp=iter_rho,save_path=os.path.join(project_path,"inversion-0/inverted_rho.png"),show=False)
+    plot_initial_and_inverted(vp_init=vp_init,iter_vp=iter_vp,save_path=os.path.join(project_path,"inversion/inverted_vp.png"),show=False)
+    plot_initial_and_inverted(vp_init=rho_init,iter_vp=iter_rho,save_path=os.path.join(project_path,"inversion/inverted_rho.png"),show=False)
     
     # inversion animation
-    animate_inversion_process(iter_vp=iter_vp,vmin=vp_true.min(),vmax=vp_true.max(),save_path=os.path.join(project_path,"inversion-0/inversion_vp_process.gif"),fps=10)
-    animate_inversion_process(iter_vp=iter_rho,vmin=rho_true.min(),vmax=rho_true.max(),save_path=os.path.join(project_path,"inversion-0/inversion_rho_process.gif"),fps=10)
+    animate_inversion_process(iter_vp=iter_vp,vmin=vp_true.min(),vmax=vp_true.max(),save_path=os.path.join(project_path,"inversion/inversion_vp_process.gif"),fps=10)
+    animate_inversion_process(iter_vp=iter_rho,vmin=rho_true.min(),vmax=rho_true.max(),save_path=os.path.join(project_path,"inversion/inversion_rho_process.gif"),fps=10)
