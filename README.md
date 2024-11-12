@@ -119,7 +119,10 @@ A comparative analysis of gradient calculations obtained through AD and the cent
             <a href="./examples/gradient_checking/Acoustic-Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/gradient_checking/Acoustic-Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            <details>
+                <summary>Gradient Comparation</summary>
+                <img src="./examples/gradient_checking/Acoustic-Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            </details>
         </td>
     </tr>
     <tr>
@@ -129,9 +132,12 @@ A comparative analysis of gradient calculations obtained through AD and the cent
             <a href="./examples/gradient_checking/Elastic-Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vp_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
-            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vs_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
-            <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_rho_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            <details>
+                <summary>Gradient Comparation</summary>
+                <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vp_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+                <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_vs_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+                <img src="./examples/gradient_checking/Elastic-Marmousi2/data/Elastic_rho_grad.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
+            </details>
         </td>
     </tr>
 </table>
