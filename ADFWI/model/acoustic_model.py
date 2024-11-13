@@ -121,9 +121,13 @@ class AcousticModel(AbstractModel):
     def set_rho_using_empirical_function(self):
         """approximate rho via empirical relations with vp
         """
+        rho         = self.rho.cpu().detach().numpy()
         vp          = self.vp.cpu().detach().numpy()
-        rho         = np.power(vp, 0.25) * 310
-        rho         = numpy2tensor(rho,self.dtype).to(self.device)
+        rho_empirical  = np.power(vp, 0.25) * 310
+        if self.water_layer_mask is not None:
+            mask = self.water_layer_mask.cpu().detach().numpy()
+            rho_empirical[mask] = rho[mask]
+        rho         = numpy2tensor(rho_empirical,self.dtype).to(self.device)
         self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
         return
     
@@ -145,7 +149,7 @@ class AcousticModel(AbstractModel):
 
                 # Apply the water layer mask if it is not None, using in-place modification
                 if self.water_layer_mask is not None:
-                    m.data = torch.where(self.water_layer_mask, m_temp.data, m.data)
+                    m.data = torch.where(self.water_layer_mask.contiguous(), m_temp.data, m.data)
         return
         
     def forward(self) -> Tuple:

@@ -284,6 +284,7 @@ class AcousticFWI(torch.nn.Module):
         # epoch
         pbar_epoch = tqdm(range(start_iter,start_iter+iteration),position=0,leave=False,colour='green',ncols=80)
         self.true_epoch = 0
+        self.forw = None
         for i in pbar_epoch:
             def closure():
                 # batch (for the clouser we hold 1 batch)
@@ -298,17 +299,14 @@ class AcousticFWI(torch.nn.Module):
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                     rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                     forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
+                    
                     # forward wavefiled
                     if batch == 0:
-                        forw  = forward_wavefield_p.cpu().detach().numpy()
+                        self.forw  = forward_wavefield_p.cpu().detach().numpy()
                     else:
-                        forw += forward_wavefield_p.cpu().detach().numpy()
+                        self.forw += forward_wavefield_p.cpu().detach().numpy()
                     
                     # misfits
-                    if batch == 0:
-                        forw  = forward_wavefield_p.cpu().detach().numpy()
-                    else:
-                        forw += forward_wavefield_p.cpu().detach().numpy()
                     syn_p   = rcv_p
                     data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                     
@@ -325,13 +323,12 @@ class AcousticFWI(torch.nn.Module):
                     loss.backward()
                     if math.ceil(n_shots/batch_size) == 1:
                         pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
-                                            
+                self.true_epoch = self.true_epoch + 1
                 # gradient process
                 if self.model.get_requires_grad("vp"):
-                    self.process_gradient(self.model.vp, forw=forw, idx=0)
+                    self.process_gradient(self.model.vp, forw=self.forw, idx=0)
                 if self.model.get_requires_grad("rho"):
-                    self.process_gradient(self.model.rho, forw=forw, idx=1)
-                self.true_epoch = self.true_epoch + 1
+                    self.process_gradient(self.model.rho, forw=self.forw, idx=1)
                 return loss_batch
             
             loss_batch = self.optimizer.step(closure=closure)

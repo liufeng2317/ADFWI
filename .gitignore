@@ -21,7 +21,7 @@ examples/dip/06_pretrained_OpenFWINet/
 examples/dip/07_MLP/
 #examples/acoustic/01-model-test/
 examples/acoustic/04-regularization-techniques-test/
-examples/acoustic/03-optimizer-test/
+examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_LBFGS.ipynb
 # examples/elastic/
 examples/gradient_checking/Marmousi2/data/inversion-AD
 examples/gradient_checking/Marmousi2/data/inversion-FD

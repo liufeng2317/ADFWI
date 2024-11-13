@@ -119,10 +119,10 @@ A comparative analysis of gradient calculations obtained through AD and the cent
             <a href="./examples/gradient_checking/Acoustic-Marmousi2/03_1_compare_gradient.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <details>
-                <summary>Gradient Comparation</summary>
+            <!-- <details>
+                <summary>Gradient Comparation</summary> -->
                 <img src="./examples/gradient_checking/Acoustic-Marmousi2/data/Figure_S1_acoustic_Gradient_Cmp.png" alt="Marmousi2GradientCmp" style="max-width: 120px; height: auto; max-height: 120px;" />
-            </details>
+            <!-- </details> -->
         </td>
     </tr>
     <tr>
@@ -659,6 +659,30 @@ The results presented below specifically characterize the impact of using the `L
             <details>
                 <summary>Inversion Process</summary>
                 <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-RAdam/inversion_process.gif" alt="RAdam" style="max-width: 300px; height: auto;" />
+            </details>
+        </td>
+    </tr>
+</table>
+</div>
+
+<div style="text-align: center;">
+<table>
+    <tr>
+        <th style="text-align: center;">Test Name</th>
+        <th style="text-align: center;">Status</th>
+        <th style="text-align: center;">Path</th>
+        <th style="text-align: center;">Figure</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; vertical-align: middle;">L-BFGS</td>
+        <td style="text-align: center; vertical-align: middle;">✅</td>
+        <td style="text-align: center; vertical-align: middle;">
+            <a href="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_LBFGS.py">Example-LBFGS</a>
+        </td>
+        <td style="text-align: center; vertical-align: middle;">
+            <details>
+                <summary>Inversion Process</summary>
+                <img src="./examples/acoustic/03-optimizer-test/01-Marmousi2-Test/data/inversion-LBFGS/inversion_process.gif" alt="L-BFGS" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
