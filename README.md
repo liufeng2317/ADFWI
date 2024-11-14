@@ -182,7 +182,7 @@ A comparative analysis of gradient calculations obtained through AD and the cent
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/acoustic/01-model-test/08-Marmousi2-vp-rho/data/inversion-0/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;"/>
+                <img src="./examples/acoustic/01-model-test/08-Marmousi2-vp-rho/data/inversion/inversion_process.gif" alt="Anomaly" style="max-width: 300px; height: auto;"/>
             </details>
         </td>
     </tr>
