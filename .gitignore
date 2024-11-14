@@ -14,11 +14,13 @@ build
 dist
 MANIFEST.in
 examples/acoustic/02-misfit-functions-test/03-NewMisfit-Test
+examples/dip/01_Multi-CNN/
 examples/dip/03_ResNet/
 examples/dip/04_InversionNet/
 examples/dip/05_SparseShotsTests/
 examples/dip/06_pretrained_OpenFWINet/
-examples/dip/07_MLP/
+# examples/dip/07_MLP/
+examples/dip/08_ImplicitFunction/
 #examples/acoustic/01-model-test/
 examples/acoustic/04-regularization-techniques-test/
 examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_LBFGS.ipynb
@@ -26,3 +28,4 @@ examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_LBFGS.ipynb
 examples/gradient_checking/Marmousi2/data/inversion-AD
 examples/gradient_checking/Marmousi2/data/inversion-FD
 examples/multi-scale/Iso-acoustic-Marmousi2-multifreq
+mkdocs/

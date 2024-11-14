@@ -38,7 +38,8 @@ class DIP_AcousticModel(AbstractModel):
                 ox:float,oz:float,
                 nx:int  ,nz:int,
                 dx:float,dz:float,
-                DIP_model,
+                DIP_model                                       = None,
+                DIP_model_rho                                   = None,
                 vp_init:Optional[Union[np.array,Tensor]]        = None,     # model parameter
                 rho_init:Optional[Union[np.array,Tensor]]       = None,
                 vp_bound    : Optional[Tuple[float, float]]     = None,     # model parameter's boundary
@@ -55,10 +56,12 @@ class DIP_AcousticModel(AbstractModel):
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
         
-        self.DIP_model = DIP_model
+        self.DIP_model      = DIP_model
+        self.DIP_model_rho  = DIP_model_rho
         
         # initialize the model parameters
-        self.pars       = []
+        self.pars       = ["vp","rho"]
+            
         if vp_init is not None:
             self.vp_init    = numpy2tensor(vp_init,dtype=dtype).to(device)
         if rho_init is not None:
@@ -86,6 +89,65 @@ class DIP_AcousticModel(AbstractModel):
         # check the input model
         self._check_bounds()
         self.check_dims()
+    
+    def get_clone_data(self) -> Tuple:
+        """Return the data required for cloning the model
+
+        Returns
+        -------
+        args (Tuple)    : Arguments of the model
+        kwargs (Dict)   : Keyword arguments of the model
+        """
+        kwargs = {}
+        for par in self.pars:
+            kwargs[par] = self.get_model(par)
+            kwargs[par + "_bound"] = self.get_bound(par)
+            kwargs[par + "_grad"]  = self.get_requires_grad(par)
+
+        kwargs['ox']           = self.ox 
+        kwargs['oz']           = self.oz 
+        kwargs['dx']           = self.dx 
+        kwargs['dz']           = self.dz 
+        kwargs['nx']           = self.nx 
+        kwargs['nz']           = self.nz 
+        kwargs["free_surface"] = self.free_surface
+        kwargs["nabc"]         = self.nabc
+
+        return kwargs
+
+    def save(self, filename: str) -> None:
+        """Save the model object to a file
+
+        Parameters
+        ----------
+        filename (str) : File name of the model object to be saved
+        """
+        kwargs = self.get_clone_data()
+
+        # save the model to npz file
+        np.savez(filename, **kwargs)
+        return
+        
+    def get_requires_grad(self, par: str) -> bool:
+        """Return the gradient of the model
+
+        Parameters
+        ----------
+        par (str) : Model parameter name
+
+        Returns
+        -------
+        grad (bool) : Flag for gradient of the model
+        """
+
+        if par not in self.pars:
+            raise ValueError("Parameter {} not in model".format(par))
+        
+        if par == "vp":
+            return self.DIP_model is not None
+        
+        if par == "rho":
+            return self.DIP_model_rho is not None
 
     def get_model(self, par: str):
         if par not in ["vp","rho"]:
@@ -112,7 +174,7 @@ class DIP_AcousticModel(AbstractModel):
         -------
         repr (str) : Representation of the model object
         """
-        info = f"Elastic model with parameters {self.pars}:\n"
+        info = f"   Model with parameters {self.pars}:\n"
         info += f"  Model orig: ox = {self.ox:6.2f}, oz = {self.oz:6.2f} m\n"
         info += f"  Model grid: dx = {self.dx:6.2f}, dz = {self.dz:6.2f} m\n"
         info += f"  Model dims: nx = {self.nx:6d}, nz = {self.nz:6d}\n"
@@ -120,9 +182,11 @@ class DIP_AcousticModel(AbstractModel):
         info += f"  Free surface: {self.free_surface}\n"
         info += f"  Absorbing layers: {self.nabc}\n"
         info += f"  NN structure\n"
-        info += str(summary(self.DIP_model,device=self.device))
+        if self.DIP_model is not None:
+            info += str(summary(self.DIP_model,device=self.device))
+        if self.DIP_model_rho is not None:
+            info += str(summary(self.DIP_model_rho,device=self.device))
         return info
-    
     
     def set_rho_using_empirical_function(self):
         """approximate rho via empirical relations with vp
@@ -136,8 +200,12 @@ class DIP_AcousticModel(AbstractModel):
     def _parameterization(self,*args,**kw_args):
         """setting variable and gradients
         """
-        self.vp     = self.DIP_model(*args,**kw_args)
-        self.set_rho_using_empirical_function()
+        if self.DIP_model is not None:
+            self.vp     = self.DIP_model(*args,**kw_args)
+        if self.DIP_model_rho is not None:
+            self.rho    = self.DIP_model_rho(*args,**kw_args)
+        else:
+            self.set_rho_using_empirical_function()
         return
     
     def _plot_vp_rho(self,**kwargs):
@@ -157,12 +225,14 @@ class DIP_AcousticModel(AbstractModel):
     def forward(self,*args,**kwargs) -> Tuple:
         """Forward method of the elastic model class
         """
-        vp_last = self.vp.detach().clone()
-        self.vp = self.DIP_model(*args,**kwargs)
+        vp_last  = self.vp.detach().clone()
+        rho_last = self.rho.detach().clone()
+        self._parameterization()
+        
         if self.gradient_mask is not None:
             mask = self.gradient_mask == 0
             self.vp[mask] = vp_last[mask]
+            self.rho[mask] = rho_last[mask]
         self.constrain_range(self.vp,self.lower_bound["vp"],self.upper_bound["vp"])
-        self.set_rho_using_empirical_function()
         self.constrain_range(self.rho, self.lower_bound["rho"], self.upper_bound["rho"])
         return
