@@ -10,8 +10,7 @@ import torch
 from ADFWI.utils import numpy2tensor
 
 def thomsen_init(vp,vs,rho,eps,delta,gamma,device,dtype=torch.float32):
-    """
-
+    """Initialize the thomsen parameters
     """
     vp      = numpy2tensor(vp,dtype).to(device)
     vs      = numpy2tensor(vs,dtype).to(device)
@@ -156,7 +155,7 @@ def elastic_moduli_for_isotropic(CC):
 def elastic_moduli_for_TI(CC,anisotropic_type="VTI"):
     """ For Transverse isotropy case, only 5 independent components: C11,C13,C33,C44,C66 ,and C12=C11-2*C66
     Description
-    -------------
+    -------------VTI
         *********************************************************
         *   C11         C11-2C66    C13     0       0       0   *
         *   C11-2C66    C11         C13     0       0       0   *
@@ -164,6 +163,16 @@ def elastic_moduli_for_TI(CC,anisotropic_type="VTI"):
         *   0           0           0       C44     0       0   *
         *   0           0           0       0       C44     0   *
         *   0           0           0       0       0       C66 *
+        *********************************************************
+        
+    -------------HTI 
+        *********************************************************
+        *   C33         C13         C13      0       0       0   *
+        *   C13         C11         C12      0       0       0   *
+        *   C13         C12         C33      0       0       0   *
+        *   0           0           0        C66     0       0   *
+        *   0           0           0        0       C55     0   *
+        *   0           0           0        0       0       C55 *
         *********************************************************
     """
     [C11,C12,C13,C14,C15,C16,C22,C23,C24,C25,C26,C33,C34,C35,C36,C44,C45,C46,C55,C56,C66] = CC
@@ -173,10 +182,20 @@ def elastic_moduli_for_TI(CC,anisotropic_type="VTI"):
     C12 = (C11 - 2*C66).clone()
     # HTI Rotated by VTI anticlockwise (Y) pi/2
     if anisotropic_type.lower() in ["vti"]:
-        CC = [C11,C12,C13,C14,C15,C16,C22,C23,C24,C25,C26,C33,C34,C35,C36,C44,C45,C46,C55,C56,C66]
+        CC = [C11,C12,C13,C14,C15,C16,
+                  C22,C23,C24,C25,C26,
+                      C33,C34,C35,C36,
+                          C44,C45,C46,
+                              C55,C56,
+                                  C66]
         # [C11,C12,C13,C15,C22,C23,C33,C35,C44,C55,C66]
     elif anisotropic_type.lower() in ["hti"]:
-        CC = [C33,C13,C13,C14,C15,C16,C11,C12,C24,C25,C26,C11,C34,C35,C36,C66,C45,C46,C55,C56,C55]
+        CC = [C33,C13,C13,C14,C15,C16,
+                  C11,C12,C24,C25,C26,
+                      C11,C34,C35,C36,
+                          C66,C45,C46,
+                              C55,C56,
+                                  C55]
         # [C33,C13,C13,C15,C11,C12,C11,C35,C66,C55,C55]
     return CC
 

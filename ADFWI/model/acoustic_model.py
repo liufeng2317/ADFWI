@@ -45,12 +45,13 @@ class AcousticModel(AbstractModel):
                 rho_bound: Optional[Tuple[float, float]]         = None,
                 vp_grad:Optional[bool]                           = False,    # requires gradient or not
                 rho_grad:Optional[bool]                          = False,
+                auto_update_rho:Optional[bool]                   = True,
+                auto_update_vp :Optional[bool]                   = False,
+                water_layer_mask:Optional[Union[np.array,Tensor]]= None,
                 free_surface:Optional[bool]                      = False,
                 abc_type:Optional[str]                           = 'PML',
                 abc_jerjan_alpha:Optional[float]                 = 0.0053,
                 nabc:Optional[int]                               = 20,
-                auto_update_rho:Optional[bool]                   = True,
-                water_layer_mask:Optional[Union[np.array,Tensor]]= None,
                 device                                           = 'cpu',
                 dtype                                            = torch.float32
                 )->None:
@@ -81,6 +82,7 @@ class AcousticModel(AbstractModel):
         
         # update rho using the empirical function
         self.auto_update_rho = auto_update_rho
+        self.auto_update_vp  = auto_update_vp
         
         if water_layer_mask is not None:
             self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
@@ -130,6 +132,19 @@ class AcousticModel(AbstractModel):
         rho         = numpy2tensor(rho_empirical,self.dtype).to(self.device)
         self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
         return
+
+    def set_vp_using_empirical_function(self):
+        """approximate vp via empirical relations with rho
+        """
+        rho         = self.rho.cpu().detach().numpy()
+        vp          = self.vp.cpu().detach().numpy()
+        vp_empirical= np.power(rho / 310, 4)
+        if self.water_layer_mask is not None:
+            grad_mask = self.water_layer_mask.cpu().detach().numpy()
+            vp_empirical[grad_mask] = vp[grad_mask]
+        vp          = numpy2tensor(vp_empirical,self.dtype).to(self.device)
+        self.vp     = torch.nn.Parameter(vp , requires_grad=self.vp_grad)
+        return   
     
     def clip_params(self)->None:
         """Clip the model parameters to the given bounds
@@ -158,6 +173,9 @@ class AcousticModel(AbstractModel):
         # using the empirical function to setting rho
         if self.auto_update_rho and not self.rho_grad:
             self.set_rho_using_empirical_function()
+        
+        if self.auto_update_vp and not self.vp_grad:
+            self.set_vp_using_empirical_function()
             
         # Clip the model parameters
         self.clip_params()
