@@ -23,22 +23,23 @@ from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 from ADFWI.fwi.multiScaleProcessing import lpass
 
 class ElasticFWI(torch.nn.Module):
-    """Acoustic Full waveform inversion class
+    """Elastic Full waveform inversion class
     """
     def __init__(self,propagator:ElasticPropagator,model:AbstractModel,
-                 optimizer:torch.optim.Optimizer,scheduler:torch.optim.lr_scheduler,
                  loss_fn:Union[Misfit,torch.autograd.Function],
                  obs_data:SeismicData,
-                 gradient_processor: Union[GradProcessor,List[GradProcessor]] = None,                # vp/vs/rho epsilon/delta/gamma
-                 regularization_fn:Optional[Regularization]                   = None,
-                 regularization_weights_x:Optional[List[Union[float]]]        = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
-                 regularization_weights_z:Optional[List[Union[float]]]        = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
-                 waveform_normalize:Optional[bool]                            = True,
-                 cache_result:Optional[bool]                                  = True,
-                 cache_gradient:Optional[bool]                                = True,
-                 save_fig_epoch:Optional[int]                                 = -1,
-                 save_fig_path:Optional[str]                                  = "",
-                 inversion_component:Optional[np.array]                       = ["pressure"],
+                 optimizer:Union[torch.optim.Optimizer,List[torch.optim.Optimizer]]      = None,
+                 scheduler:torch.optim.lr_scheduler                                      = None,
+                 gradient_processor: Union[GradProcessor,List[GradProcessor]]            = None,                # vp/vs/rho epsilon/delta/gamma
+                 regularization_fn:Optional[Regularization]                              = None,
+                 regularization_weights_x:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
+                 regularization_weights_z:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
+                 waveform_normalize:Optional[bool]                                       = True,
+                 cache_result:Optional[bool]                                             = True,
+                 cache_gradient:Optional[bool]                                           = True,
+                 save_fig_epoch:Optional[int]                                            = -1,
+                 save_fig_path:Optional[str]                                             = "",
+                 inversion_component:Optional[np.array]                                  = ["pressure"],
                 ):
         """
         Parameters:
@@ -107,10 +108,11 @@ class ElasticFWI(torch.nn.Module):
         # Apply low-pass filter if cutoff frequency is provided
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
+        
         if isinstance(loss_fn, Misfit):
             return loss_fn.forward(synthetic_waveform, observed_waveform)
         else:
-            return loss_fn.apply(synthetic_waveform, observed_waveform)
+            return loss_fn(synthetic_waveform, observed_waveform)
     
     # regularization calculation
     def calculate_regularization_loss(self, model_param, weight_x, weight_z, regularization_fn):
@@ -309,9 +311,9 @@ class ElasticFWI(torch.nn.Module):
             pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
             for batch in pbar_batch:
                 # forward simulation
-                begin_index = 0  if batch==0 else batch*batch_size
-                end_index   = n_shots if batch==math.ceil(n_shots/batch_size)-1 else (batch+1)*batch_size
-                shot_index  = np.arange(begin_index,end_index)
+                begin_index     = 0  if batch==0 else batch*batch_size
+                end_index       = n_shots if batch==math.ceil(n_shots/batch_size)-1 else (batch+1)*batch_size
+                shot_index      = np.arange(begin_index,end_index)
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
                 forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]

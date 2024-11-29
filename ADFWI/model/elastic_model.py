@@ -447,10 +447,6 @@ class AnisotropicElasticModel(AbstractModel):
         self.CC = CC
         return 
     
-    def get_clone_data(self) -> Tuple:
-        kwargs = super().get_clone_data()
-        return kwargs
-    
     def _plot_vp_vs_rho(self,**kwargs):
         """plot velocity model
         """
