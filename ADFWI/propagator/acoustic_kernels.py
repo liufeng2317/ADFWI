@@ -162,7 +162,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         # Free surface for vertical velocity
         if free_surface:
             w[:, free_surface_start - 1, :] = w[:, free_surface_start, :]
-
+            
         # Output pressure seismogram
         rcv_p[:, it, :] = p[:, rcv_z, rcv_x]
         rcv_u[:, it, :] = u[:, rcv_z, rcv_x]
@@ -171,18 +171,22 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         # Accumulate forward wavefields
         forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        forward_wavefield_w = forward_wavefield_u + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+        forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+        
+        # if it % 100 == 0:
+        #     with torch.no_grad():
+        #         np.savez(f"/ailab/user/liufeng1/project/04_Inversion/ADFWI-github/examples/time-and-memory-tests/acoustic-marmousi2/data/inversion/wavefield/{it}.npz",data = p.cpu().detach().numpy()[:,nabc:nabc + nz, nabc:nabc + nx])
 
     return p, u, w, rcv_p, rcv_u, rcv_w, forward_wavefield_p, forward_wavefield_u, forward_wavefield_w
 
 
 def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
-                   nabc: int, free_surface: bool,                               # Model settings
-                   src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_v: torch.Tensor,     # Source
-                   rcv_x: torch.Tensor, rcv_z: torch.Tensor, rcv_n: int,                  # Receiver
-                   damp: torch.Tensor,                                              # PML
-                   v: torch.Tensor, rho: torch.Tensor,                                                    # Velocity model
-                   checkpoint_segments: int = 1,                                           # Finite Difference
+                   nabc: int, free_surface: bool,                                                   # Model settings
+                   src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_v: torch.Tensor,       # Source
+                   rcv_x: torch.Tensor, rcv_z: torch.Tensor, rcv_n: int,                            # Receiver
+                   damp: torch.Tensor,                                                              # PML
+                   v: torch.Tensor, rho: torch.Tensor,                                              # Velocity model
+                   checkpoint_segments: int = 1,                                                    # Finite Difference
                    device: torch.device = torch.device('cpu'), dtype: torch.dtype = torch.float32
                    ) -> Dict[str, torch.Tensor]:  # Changed return type to Dict for clarity
     """ Forward simulation of Acoustic Waveform Equation
@@ -275,7 +279,8 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                        rcv_x, rcv_z, rcv_n,
                        kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                        p, u, w,
-                       device, dtype, use_reentrant=True)
+                       device, dtype, 
+                       use_reentrant=True)
 
         # Save the waveform recorded on the receiver
         rcv_p[:, k:k + chunk.shape[-1]] = rcv_p_temp
@@ -284,8 +289,8 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
 
         # Accumulate the forward wavefield
         forward_wavefield_p = forward_wavefield_p + forward_wavefield_p_temp.detach()
-        forward_wavefield_u = forward_wavefield_p + forward_wavefield_u_temp.detach()
-        forward_wavefield_w = forward_wavefield_p + forward_wavefield_w_temp.detach()
+        forward_wavefield_u = forward_wavefield_u + forward_wavefield_u_temp.detach()
+        forward_wavefield_w = forward_wavefield_w + forward_wavefield_w_temp.detach()
             
         k = k + chunk.shape[-1]
     

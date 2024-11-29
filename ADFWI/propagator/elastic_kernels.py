@@ -91,53 +91,53 @@ def Dxfm_6(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tenso
 
 @torch.jit.script
 def Dzfm_6(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 3, :][:, :, jj] - a[:, ii - 2, :][:, :, jj])
 
 @torch.jit.script
 def Dxbm_6(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
             fdc[1] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj - 2]) + \
             fdc[2] * (a[:, ii, :][:, :, jj + 2] - a[:, ii, :][:, :, jj - 3])
 
 @torch.jit.script
 def Dzbm_6(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 1, :][:, :, jj] - a[:, ii - 2, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 3, :][:, :, jj])
 
 @torch.jit.script
 def Dxfm_8(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj]) + \
             fdc[1] * (a[:, ii, :][:, :, jj + 2] - a[:, ii, :][:, :, jj - 1]) + \
             fdc[2] * (a[:, ii, :][:, :, jj + 3] - a[:, ii, :][:, :, jj - 2]) + \
             fdc[3] * (a[:, ii, :][:, :, jj + 4] - a[:, ii, :][:, :, jj - 3])
 
 @torch.jit.script
 def Dzfm_8(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 3, :][:, :, jj] - a[:, ii - 2, :][:, :, jj]) + \
             fdc[3] * (a[:, ii + 4, :][:, :, jj] - a[:, ii - 3, :][:, :, jj])
 
 @torch.jit.script
 def Dxbm_8(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
             fdc[1] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj - 2]) + \
             fdc[2] * (a[:, ii, :][:, :, jj + 2] - a[:, ii, :][:, :, jj - 3]) + \
             fdc[3] * (a[:, ii, :][:, :, jj + 3] - a[:, ii, :][:, :, jj - 4])
 
 @torch.jit.script
 def Dzbm_8(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 1, :][:, :, jj] - a[:, ii - 2, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 3, :][:, :, jj]) + \
             fdc[3] * (a[:, ii + 3, :][:, :, jj] - a[:, ii - 4, :][:, :, jj])
 
 @torch.jit.script
 def Dxfm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj]) + \
             fdc[1] * (a[:, ii, :][:, :, jj + 2] - a[:, ii, :][:, :, jj - 1]) + \
             fdc[2] * (a[:, ii, :][:, :, jj + 3] - a[:, ii, :][:, :, jj - 2]) + \
             fdc[3] * (a[:, ii, :][:, :, jj + 4] - a[:, ii, :][:, :, jj - 3]) + \
@@ -145,7 +145,7 @@ def Dxfm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tens
 
 @torch.jit.script
 def Dzfm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii + 1, :][:, :, jj] - a[:, ii, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 3, :][:, :, jj] - a[:, ii - 2, :][:, :, jj]) + \
             fdc[3] * (a[:, ii + 4, :][:, :, jj] - a[:, ii - 3, :][:, :, jj]) + \
@@ -153,7 +153,7 @@ def Dzfm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tens
 
 @torch.jit.script
 def Dxbm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii, :][:, :, jj - 1]) + \
             fdc[1] * (a[:, ii, :][:, :, jj + 1] - a[:, ii, :][:, :, jj - 2]) + \
             fdc[2] * (a[:, ii, :][:, :, jj + 2] - a[:, ii, :][:, :, jj - 3]) + \
             fdc[3] * (a[:, ii, :][:, :, jj + 3] - a[:, ii, :][:, :, jj - 4]) + \
@@ -161,7 +161,7 @@ def Dxbm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tens
 
 @torch.jit.script
 def Dzbm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tensor) -> torch.Tensor:
-    return fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
+    return  fdc[0] * (a[:, ii, :][:, :, jj] - a[:, ii - 1, :][:, :, jj]) + \
             fdc[1] * (a[:, ii + 1, :][:, :, jj] - a[:, ii - 2, :][:, :, jj]) + \
             fdc[2] * (a[:, ii + 2, :][:, :, jj] - a[:, ii - 3, :][:, :, jj]) + \
             fdc[3] * (a[:, ii + 3, :][:, :, jj] - a[:, ii - 4, :][:, :, jj]) + \
@@ -287,9 +287,9 @@ def step_forward_PML_4order(M:int,
     nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
     
     # Clone tensors to avoid in-place modification
-    vx, vz, txx, tzz, txz = vx.clone(), vz.clone(), txx.clone(), tzz.clone(), txz.clone()
-    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone(), vz_x.clone(), txx_x.clone(), tzz_x.clone(), txz_x.clone()
-    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone(), vz_z.clone(), txx_z.clone(), tzz_z.clone(), txz_z.clone()
+    vx, vz, txx, tzz, txz           = vx.clone()    , vz.clone()    , txx.clone(), tzz.clone(), txz.clone()
+    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone()  , vz_x.clone()  , txx_x.clone(), tzz_x.clone(), txz_x.clone()
+    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone()  , vz_z.clone()  , txx_z.clone(), tzz_z.clone(), txz_z.clone()
 
     # Initialize recorded waveforms
     rcv_txx, rcv_tzz, rcv_txz, rcv_vx, rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
@@ -300,14 +300,14 @@ def step_forward_PML_4order(M:int,
     NN = M // 2
     fdc = DiffCoef(NN, 's')
     h = NN + 1
-    ii = torch.arange(NN, nz_pml - NN, dtype=torch.long, device=device)  # z-axis range
-    jj = torch.arange(NN, nx_pml - NN, dtype=torch.long, device=device)  # x-axis range
     i_start = NN 
-    i_end = nz_pml - NN - 1
+    i_end = nz_pml - NN
     j_start = NN 
-    j_end = nx_pml - NN - 1
-    idx_i = slice(i_start, i_end + 1)
-    idx_j = slice(j_start, j_end + 1)
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Damping factors for PML
     pmlxd = 1 + 0.5 * dt * bcx[idx_i, idx_j]
@@ -337,6 +337,7 @@ def step_forward_PML_4order(M:int,
     
     # moment tensor source implementation
     for t in range(nt):
+        
         # Compute stress components
         dxbm_vx = Dxbm(vx, fdc, ii, jj)
         dxbm_vz = Dxbm(vz, fdc, ii, jj)
@@ -359,8 +360,10 @@ def step_forward_PML_4order(M:int,
         if len(src_v.shape) == 1:
             txx_x[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
             txx_z[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
+            
             tzz_x[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
             tzz_z[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
+            
             txz_x[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
             txz_z[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
         else:
@@ -398,7 +401,7 @@ def step_forward_PML_4order(M:int,
         # Apply free surface boundary conditions for velocity
         if free_surface:
             vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
-            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 2] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 2] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 1] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
             vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
 
         # -----------------------------------------------------------
@@ -456,14 +459,14 @@ def step_forward_PML_6order(M:int,
     NN = M // 2
     fdc = DiffCoef(NN, 's')
     h = NN + 1
-    ii = torch.arange(NN, nz_pml - NN, dtype=torch.long, device=device)  # z-axis range
-    jj = torch.arange(NN, nx_pml - NN, dtype=torch.long, device=device)  # x-axis range
     i_start = NN 
-    i_end = nz_pml - NN - 1
+    i_end = nz_pml - NN
     j_start = NN 
-    j_end = nx_pml - NN - 1
-    idx_i = slice(i_start, i_end + 1)
-    idx_j = slice(j_start, j_end + 1)
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Damping factors for PML
     pmlxd = 1 + 0.5 * dt * bcx[idx_i, idx_j]
@@ -554,7 +557,7 @@ def step_forward_PML_6order(M:int,
         # Apply free surface boundary conditions for velocity
         if free_surface:
             vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
-            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 2] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 2] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 1] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
             vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
 
         # -----------------------------------------------------------
@@ -682,14 +685,14 @@ def step_forward_ABL_4order(M:int,
     NN = M // 2
     fdc = DiffCoef(NN, 's')
     h = NN + 1
-    ii = torch.arange(NN, nz_pml - NN, dtype=torch.long, device=device)  # z-axis range
-    jj = torch.arange(NN, nx_pml - NN, dtype=torch.long, device=device)  # x-axis range
     i_start = NN 
-    i_end = nz_pml - NN - 1
+    i_end = nz_pml - NN
     j_start = NN 
-    j_end = nx_pml - NN - 1
-    idx_i = slice(i_start, i_end + 1)
-    idx_j = slice(j_start, j_end + 1)
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Finite difference operators for different axes
     Dxfm = Dxfm_4
@@ -752,7 +755,7 @@ def step_forward_ABL_4order(M:int,
         # Apply free surface boundary conditions
         if free_surface:
             vz[:, h - 2, idx_j] = vz[:, h - 1, idx_j]
-            vx[:, h - 2, idx_j] = vz[:, h - 2, j_start + 1:j_end + 2] - vz[:, h - 2, idx_j] + vz[:, h - 1, j_start + 1:j_end + 2] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
+            vx[:, h - 2, idx_j] = vz[:, h - 2, j_start + 1:j_end + 1] - vz[:, h - 2, idx_j] + vz[:, h - 1, j_start + 1:j_end + 1] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
             vz[:, h - 3, idx_j] = vz[:, h - 2, idx_j]
 
         # Apply damping
@@ -817,14 +820,14 @@ def step_forward_ABL_6order(M:int,
     NN = M // 2
     fdc = DiffCoef(NN, 's')
     h = NN + 1
-    ii = torch.arange(NN, nz_pml - NN, dtype=torch.long, device=device)  # z-axis range
-    jj = torch.arange(NN, nx_pml - NN, dtype=torch.long, device=device)  # x-axis range
     i_start = NN 
-    i_end = nz_pml - NN - 1
+    i_end = nz_pml - NN
     j_start = NN 
-    j_end = nx_pml - NN - 1
-    idx_i = slice(i_start, i_end + 1)
-    idx_j = slice(j_start, j_end + 1)
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Finite difference operators for different axes
     Dxfm = Dxfm_6
@@ -887,7 +890,7 @@ def step_forward_ABL_6order(M:int,
         # Apply free surface boundary conditions
         if free_surface:
             vz[:, h - 2, idx_j] = vz[:, h - 1, idx_j]
-            vx[:, h - 2, idx_j] = vz[:, h - 2, j_start + 1:j_end + 2] - vz[:, h - 2, idx_j] + vz[:, h - 1, j_start + 1:j_end + 2] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
+            vx[:, h - 2, idx_j] = vz[:, h - 2, j_start + 1:j_end + 1] - vz[:, h - 2, idx_j] + vz[:, h - 1, j_start + 1:j_end + 1] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
             vz[:, h - 3, idx_j] = vz[:, h - 2, idx_j]
 
         # Apply damping
@@ -910,6 +913,7 @@ def step_forward_ABL_6order(M:int,
 
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
+
 
 ##########################################################################
 #                       forward Modeling    
@@ -989,7 +993,8 @@ def forward_kernel( nx:int,nz:int,dx:float,dz:float,nt:int,dt:float,
                                                                                 bx,bz,
                                                                                 txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,
                                                                                 vx_x,vx_z,vz_x,vz_z,vx,vz,
-                                                                                device,dtype)
+                                                                                device,dtype,
+                                                                                use_reentrant=True)
         else:
             txx,tzz,txz,vx,vz,\
             rcv_txx_temp,rcv_tzz_temp,rcv_txz_temp,rcv_vx_temp,rcv_vz_temp,\
@@ -1005,7 +1010,8 @@ def forward_kernel( nx:int,nz:int,dx:float,dz:float,nt:int,dt:float,
                                                                                 bx,bz,
                                                                                 txx,tzz,txz,
                                                                                 vx,vz,
-                                                                                device,dtype)
+                                                                                device,dtype,
+                                                                                use_reentrant=True)
         # save the waveform recorded on receiver
         rcv_txx[:,k:k+chunk.shape[-1]] = rcv_txx_temp
         rcv_tzz[:,k:k+chunk.shape[-1]] = rcv_tzz_temp
