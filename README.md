@@ -41,7 +41,7 @@
   - [7. Multi-Scale Strategy in FWI](#7-multi-scale-strategy-in-fwi)
   - [8. Deep Image Prior (Earth Model Reparameterization)](#8-deep-image-prior-earth-model-reparameterization)
   - [9. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#9-uncertainty-estimation-using-deep-neural-networks-dnns)
-- [📝 Features](#-features)
+- [📝 Special Features](#-special-features)
 - [⚖️ LICENSE](#️-license)
 - [🗓️ To-Do List](#️-to-do-list)
 - [🔰 Contact](#-contact)
@@ -49,11 +49,12 @@
 ---
 
 ## 👩‍💻 Introduction
-&emsp;&emsp;**ADFWI** is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated waveform. Utilizing automatic differentiation (AD), ADFWI **simplifies the derivation and implementation of Full Waveform Inversion (FWI)**, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and tilted transverse isotropy (TTI) models.
+&emsp;&emsp;**ADFWI** is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated waveform. Utilizing automatic differentiation (AD), ADFWI **simplifies the derivation and implementation of full waveform inversion (FWI)**, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and horizontal transverse isotropy (HTI) medias.
 
 &emsp;&emsp;In addition, **ADFWI** provides a comprehensive collection of **Objective functions**, **regularization techniques**, **optimization algorithms**, and **deep neural networks**. This rich set of tools facilitates researchers in conducting experiments and comparisons, enabling them to explore innovative approaches and refine their methodologies effectively.
 
 ![ADFWI](./docs/Md_img/Figure1-AISWIT-Workflow.png)
+![NNFWI](./docs/Md_img/Figure2_DIP_process.png)
 
 ---
 
@@ -62,13 +63,10 @@
 To install ADFWI, please follow these steps:
 
 1. **Ensure Prerequisites**  
-   make sure you have the following software installed on your system:  
-   - **Python 3.8+**: Download Python from the official website: [Python Downloads](https://www.python.org/downloads/).
-   - **pip** (Python package installer).
+   - **Python 3.8+**: [Python Downloads](https://www.python.org/downloads/).
 
-2. **Create a Virtual Environment (Optional but Recommended)**
-   It is recommended to create a virtual environment to manage your project dependencies. You can use either `venv` or `conda`. 
-   For example, using `conda`:
+2. **Create a Virtual Environment (Optional)**
+   It is recommended to create a virtual environment using `conda`:
    ```bash
    conda create --name adfwi-env python=3.8
    conda activate adfwi-env
@@ -90,13 +88,6 @@ To install ADFWI, please follow these steps:
   ```bash
     pip install ADFWI-Torch
   ```
-
-4. **Verify the Installation**
-  To ensure that ADFWI is installed correctly, run any examples located in the examples folder.
-
-5. **Troubleshooting**
-   If you encounter any issues during installation, please check the Issues section of the GitHub repository for potential solutions or to report a new issue.
-
 ---
 
 ## 👾 Examples
@@ -956,18 +947,7 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
 
 ---
 
-## 📝 Features
-- **Multi-Wave Equation**:
-  - Iso-Acoustic
-  - Iso-Elastic
-  - VTI-Elastic
-  - TTI-Elastic
-- **Various Objective Functions**
-
-- **Various Optimization Methods**
-
-- **Multiscale FWI inversion**
-    - multi-frequency
+## 📝 Special Features
 
 - **Deep Neural Network Integration**
   - **DNNs Reparameterization**: DNNs reparameterize the Earth model, introducing learnable regularization to improve the inversion process.
@@ -1074,7 +1054,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 
 Developed by **Feng Liu** at the University of Science and Technology of China (USTC) and Shanghai Jiao Tong University (SJTU).
 
-The related paper ***Full Waveform Inversion of (An)Isotropic Wave Physics in a Versatile Deep Learning Framework*** is currently in preparation.
+The related paper ***Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows*** is currently in preparation.
 
 For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.cn](mailto:liufeng2317@sjtu.edu.cn) or [liufeng2317@mail.ustc.edu.cn](mailto:liufeng2317@mail.ustc.edu.cn).
 
