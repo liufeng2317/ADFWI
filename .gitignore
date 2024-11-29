@@ -21,11 +21,14 @@ examples/dip/05_SparseShotsTests/
 examples/dip/06_pretrained_OpenFWINet/
 # examples/dip/07_MLP/
 examples/dip/08_ImplicitFunction/
-#examples/acoustic/01-model-test/
+examples/acoustic/01-model-test/
 examples/acoustic/04-regularization-techniques-test/
 examples/acoustic/03-optimizer-test/01-Marmousi2-Test/02_inversion_LBFGS.ipynb
-# examples/elastic/
+examples/dip/
 examples/gradient_checking/Marmousi2/data/inversion-AD
 examples/gradient_checking/Marmousi2/data/inversion-FD
 examples/multi-scale/Iso-acoustic-Marmousi2-multifreq
+examples/time-and-memory-tests
+examples/waveform_checking
 mkdocs/
+DeepWave/

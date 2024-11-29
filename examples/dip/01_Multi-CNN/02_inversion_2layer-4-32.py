@@ -186,7 +186,7 @@ if __name__ == "__main__":
     iter_loss   = fwi.iter_loss 
     np.savez(os.path.join(project_path,f"inversion-{layer_num}layer-4-32/iter_vp.npz"),data=np.array(iter_vp))
     np.savez(os.path.join(project_path,f"inversion-{layer_num}layer-4-32/iter_loss.npz"),data=np.array(iter_loss))
-    torch.save(model.DIP_model.state_dict(),os.path.join(project_path,f"inversion-{layer_num}layer-4-32/DIP_model.pt"))
+    torch.save(model.DIP_model_vp.state_dict(),os.path.join(project_path,f"inversion-{layer_num}layer-4-32/DIP_model.pt"))
     
     #------------------------------------------------------
     #            Visualize the Inversion Results

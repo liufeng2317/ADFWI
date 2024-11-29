@@ -26,7 +26,7 @@ def act(act_fun='LeakyReLU'):
     else:
         return act_fun()
 
-def conv(in_f, out_f, kernel_size=3, stride=1, bias=True, pad='same', downsample_mode='stride'):
+def conv(in_f, out_f, kernel_size=3, stride=1, bias=False, pad='same', downsample_mode='stride'):
     downsampler = None
     if stride != 1 and downsample_mode != 'stride':
         if downsample_mode == 'avg':
@@ -61,20 +61,32 @@ class ResidualSequential(nn.Module):
 
     def forward(self, x):
         out = self.model(x)
+        # Ensure consistent dimensions or handle mismatch explicitly in ResidualSequential
         if out.size(2) != x.size(2) or out.size(3) != x.size(3):
             x = F.interpolate(x, size=out.size()[2:], mode='bilinear', align_corners=False)
         return out + x
 
 class ResNet(nn.Module):
-    def __init__(self, model_shape, vmin=None, vmax=None, num_input_channels=1, num_output_channels=1, 
-                 num_blocks=8, num_channels=32, need_residual=True, act_fun='LeakyReLU', 
-                 need_sigmoid=True, norm_layer=nn.BatchNorm2d, pad='same', device="cpu"):
+    def __init__(self, model_shape,random_state_num=100, vmin=None, vmax=None, 
+                 num_input_channels=1, num_output_channels=1, num_blocks=8, num_channels=32, 
+                 need_residual=True, act_fun='LeakyReLU', norm_layer=nn.InstanceNorm2d, pad='same',
+                 device="cpu"):
         super(ResNet, self).__init__()
+        self.vmin = vmin
+        self.vmax = vmax
+        self.device = device
+        
+        # neural network blocks
+        self.FNN_in = nn.Sequential(
+            nn.Linear(in_features=random_state_num,out_features=model_shape[0] * model_shape[1],bias=False),
+            nn.Unflatten(0,(-1,num_input_channels, model_shape[0], model_shape[1])),
+            nn.LeakyReLU(0.1)
+        )
 
+        # residual blocks
         block_class = ResidualSequential if need_residual else nn.Sequential
-
         layers = [
-            conv(num_input_channels, num_channels, 3, stride=1, bias=True, pad=pad),
+            conv(num_input_channels, num_channels, 3, stride=1, bias=False, pad=pad),
             act(act_fun)
         ]
         
@@ -84,20 +96,20 @@ class ResNet(nn.Module):
         layers += [
             nn.Conv2d(num_channels, num_channels, 3, 1, 1),
             norm_layer(num_channels, affine=True),
-            conv(num_channels, num_output_channels, 3, 1, bias=True, pad=pad),
-            nn.LeakyReLU(0.1)
+            conv(num_channels, num_output_channels, 3, 1, bias=False, pad=pad),
+            act(act_fun)
         ]
         
         self.model = nn.Sequential(*layers)
-        self.device = device
-        self.vmin = vmin
-        self.vmax = vmax
         
         torch.manual_seed(1234)
-        self.random_latent_vector = torch.rand(1, 1, model_shape[0], model_shape[1], device=self.device)
+        # self.random_latent_vector = torch.rand(1, 1, model_shape[0], model_shape[1], device=self.device)
+        self.random_latent_vector = torch.rand(random_state_num, device=self.device)
 
     def forward(self):
-        out = self.model(self.random_latent_vector)
+        # Pass through the main model
+        latent_flat = self.FNN_in(self.random_latent_vector)
+        out = self.model(latent_flat)
         out = torch.squeeze(out)
         if self.vmin is not None and self.vmax is not None:
             out = ((self.vmax - self.vmin) * torch.tanh(out) + (self.vmax + self.vmin)) / 2

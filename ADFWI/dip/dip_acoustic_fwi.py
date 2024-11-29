@@ -25,17 +25,18 @@ class DIP_AcousticFWI(torch.nn.Module):
     """Acoustic Full waveform inversion class
     """
     def __init__(self,propagator:AcousticPropagator,model:AbstractModel,
-                 optimizer:torch.optim.Optimizer,scheduler:torch.optim.lr_scheduler,
                  loss_fn:Union[Misfit,torch.autograd.Function],
                  obs_data:SeismicData,
-                 gradient_processor: Union[GradProcessor,List[GradProcessor]] = None,
-                 regularization_fn:Optional[Regularization]                   = None, 
-                 regularization_weights_x:Optional[List[Union[float]]]        = [0,0], # vp/rho in x direction
-                 regularization_weights_z:Optional[List[Union[float]]]        = [0,0], # vp/rho in z direction
-                 waveform_normalize:Optional[bool]                            = True,
-                 cache_result:Optional[bool]                                  = True,
-                 save_fig_epoch:Optional[int]                                 = -1,
-                 save_fig_path:Optional[str]                                  = "",
+                 optimizer:Union[torch.optim.Optimizer,List[torch.optim.Optimizer]]      = None,
+                 scheduler:torch.optim.lr_scheduler                                      = None,
+                 gradient_processor: Union[GradProcessor,List[GradProcessor]]            = None,
+                 regularization_fn:Optional[Regularization]                              = None, 
+                 regularization_weights_x:Optional[List[Union[float]]]                   = [0,0], # vp/rho in x direction
+                 regularization_weights_z:Optional[List[Union[float]]]                   = [0,0], # vp/rho in z direction
+                 waveform_normalize:Optional[bool]                                       = True,
+                 cache_result:Optional[bool]                                             = True,
+                 save_fig_epoch:Optional[int]                                            = -1,
+                 save_fig_path:Optional[str]                                             = "",
                 ):
         """
         Parameters:
@@ -64,6 +65,13 @@ class DIP_AcousticFWI(torch.nn.Module):
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
         
+        # optimizer
+        if not isinstance(self.optimizer, list):
+            self.optimizer = [self.optimizer]
+        
+        if not isinstance(self.scheduler, list):
+            self.scheduler = [self.scheduler]
+
         # observed data
         self.waveform_normalize = waveform_normalize
         obs_p   = self.obs_data.data["p"]
@@ -174,8 +182,9 @@ class DIP_AcousticFWI(torch.nn.Module):
         # epoch
         pbar_epoch = tqdm(range(start_iter,start_iter+iteration),position=0,leave=False,colour='green',ncols=80)
         for i in pbar_epoch:
+            for opt in self.optimizer:
+                opt.zero_grad()
             # batch
-            self.optimizer.zero_grad()
             loss_batch = 0
             pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
             for batch in pbar_batch:
@@ -211,37 +220,34 @@ class DIP_AcousticFWI(torch.nn.Module):
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
             # gradient postprocess
-            def grad_post_process_vp(grads):
+            def grad_post_process(grads, parameter, forw=None, idx=None):
                 grads = grads.cpu().detach().numpy()
                 with torch.no_grad():
-                    vmax    = np.max(self.model.vp.cpu().detach().numpy())
+                    param = getattr(self.model, parameter).cpu().detach().numpy()
+                    vmax = np.max(param)
+                    # Apply gradient processor
                     if isinstance(self.gradient_processor, GradProcessor):
-                        grads   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax,grad=grads,forw=forw)
+                        grads = self.gradient_processor.forward(nz=self.propagator.model.nz, nx=self.propagator.model.nx, vmax=vmax, grad=grads, forw=forw)
                     else:
-                        grads = self.gradient_processor[0].forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
-                    grads   = numpy2tensor(grads,dtype=self.propagator.dtype).to(self.propagator.device)
+                        grads = self.gradient_processor[idx].forward(nz=self.propagator.model.nz, nx=self.propagator.model.nx, vmax=vmax, grad=grads, forw=forw)
+                    grads = numpy2tensor(grads, dtype=self.propagator.dtype).to(self.propagator.device)
                 return grads
             
-            def grad_post_process_rho(grads):
-                grads = grads.cpu().detach().numpy()
-                with torch.no_grad():
-                    vmax    = np.max(self.model.rho.cpu().detach().numpy())
-                    if isinstance(self.gradient_processor, GradProcessor):
-                        grads   = self.gradient_processor.forward(nz=self.model.nz,nx=self.model.nx,vmax=vmax,grad=grads,forw=forw)
-                    else:
-                        grads = self.gradient_processor[1].forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
-                    grads   = numpy2tensor(grads,dtype=self.propagator.dtype).to(self.propagator.device)
-                return grads
+            # Register hooks for each model parameter
+            if self.propagator.model.get_requires_grad("vp"):
+                self.propagator.model.vp.register_hook(lambda grad: grad_post_process(grad, "vp", forw=forw, idx=0))
+
+            if self.propagator.model.get_requires_grad("rho"):
+                self.propagator.model.rho.register_hook(lambda grad: grad_post_process(grad, "rho", forw=forw, idx=1))
+
+            for opt in self.optimizer:
+                opt.step()
             
-            if self.model.get_requires_grad("vp"):          
-                self.model.vp.register_hook(grad_post_process_vp)
-            if self.model.get_requires_grad("rho"):          
-                self.model.rho.register_hook(grad_post_process_rho)
+            for schdul in self.scheduler:
+                schdul.step()
             
-            self.optimizer.step()
-            self.scheduler.step()
-            
-            self.model.forward()
+            # constrain the model parameters
+            self.propagator.model.forward()
             
             # save the temp result
             if self.cache_result:
