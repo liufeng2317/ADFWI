@@ -6,7 +6,7 @@ matplotlib.use("agg")
 from scipy import integrate
 import sys
 import os
-sys.path.append("../../../")
+sys.path.append("../../../../")
 from ADFWI.propagator  import *
 from ADFWI.model       import *
 from ADFWI.view        import *
@@ -101,13 +101,14 @@ if __name__ == "__main__":
     # -----------------------------------
     #     velocity model for FWI
     # -----------------------------------
-    grad_mask = np.ones((vp_init.shape[0],vp_init.shape[1]))
-    grad_mask[:10,:] = 0
+    water_layer_mask = np.zeros((vp_init.shape[0],vp_init.shape[1]))
+    water_layer_mask[:10,:] = 1
     model = DIP_AcousticModel(ox,oz,nx,nz,dx,dz,
-                            DIP_model,
+                            DIP_model_vp=DIP_model,
+                            DIP_model_rho=None,
                             vp_init=vp_init,rho_init=rho_init,
-                            gradient_mask=grad_mask,
-                            gradient_mute=None,
+                            auto_update_rho=True,auto_update_vp=False,
+                            water_layer_mask=water_layer_mask,
                             free_surface=free_surface,
                             abc_type="PML",abc_jerjan_alpha=0.007,
                             nabc=nabc,

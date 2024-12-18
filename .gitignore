@@ -27,4 +27,4 @@ examples/dip/multi-parameters
 examples/dip/multiscale
 examples/dip/network_structure
 examples/dip/pretrained
-examples/dip/sparseShotTests
+examples/dip/sparseShotsTests
