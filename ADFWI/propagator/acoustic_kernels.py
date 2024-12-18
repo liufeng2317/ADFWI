@@ -173,10 +173,6 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         
-        # if it % 100 == 0:
-        #     with torch.no_grad():
-        #         np.savez(f"/ailab/user/liufeng1/project/04_Inversion/ADFWI-github/examples/time-and-memory-tests/acoustic-marmousi2/data/inversion/wavefield/{it}.npz",data = p.cpu().detach().numpy()[:,nabc:nabc + nz, nabc:nabc + nx])
-
     return p, u, w, rcv_p, rcv_u, rcv_w, forward_wavefield_p, forward_wavefield_u, forward_wavefield_w
 
 
@@ -280,7 +276,8 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                        kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                        p, u, w,
                        device, dtype, 
-                       use_reentrant=True)
+                       use_reentrant=True
+                       )
 
         # Save the waveform recorded on the receiver
         rcv_p[:, k:k + chunk.shape[-1]] = rcv_p_temp

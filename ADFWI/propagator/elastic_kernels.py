@@ -168,7 +168,6 @@ def Dzbm_10(a: torch.Tensor, fdc: torch.Tensor, ii: torch.Tensor, jj: torch.Tens
             fdc[4] * (a[:, ii + 4, :][:, :, jj] - a[:, ii - 5, :][:, :, jj])
 
 
-    
 ##########################################################################
 #                          FD padding Coefficient     
 ##########################################################################
@@ -215,7 +214,6 @@ def pad_torchSingle(data: torch.Tensor, pml: int, fs_offset: int, free_surface: 
 
     return cc
 
-
 ##########################################################################
 #                        step forward Modeling    
 ##########################################################################
@@ -232,8 +230,7 @@ def step_forward_PML_4order(M:int,
                 vx_x:Tensor,vx_z:Tensor,vz_x:Tensor,vz_z:Tensor,vx:Tensor,vz:Tensor,
                 device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
                 ):
-    """
-    Description:
+    """Description:
         Simulates the time-stepping of the wavefield in a 2D elastic medium using finite difference methods with Perfectly Matched Layer (PML) boundary conditions.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Grid arrangement%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %                                                                                           %
@@ -252,8 +249,6 @@ def step_forward_PML_4order(M:int,
             %                         \|/                                                               %
             %                                                                                           %
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Grid arrangement%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-
     Prameters:
     --------------
         - M (int): The finite difference order. Typically 4, 6, 8, or 10, determining the accuracy of spatial derivatives.
@@ -306,6 +301,8 @@ def step_forward_PML_4order(M:int,
     j_end = nx_pml - NN
     idx_i = slice(i_start, i_end)
     idx_j = slice(j_start, j_end)
+    idx_j_plus1  = slice(j_start+1,j_end+1)
+    idx_j_minus1 = slice(j_start-1,j_end-1)
     ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
     jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
@@ -324,7 +321,7 @@ def step_forward_PML_4order(M:int,
     # Source and receiver indices
     src_idx = list(range(src_n))
     rcv_idx = list(range(rcv_n))
-    half_MT = MT[src_idx] / 2  # Half of the moment tensor
+    half_MT = MT[src_idx] / 3  # Half of the moment tensor
     
     # Adjust offset for free surface condition
     offset = fs_offset if free_surface else fs_offset + nabc
@@ -360,10 +357,8 @@ def step_forward_PML_4order(M:int,
         if len(src_v.shape) == 1:
             txx_x[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
             txx_z[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
-            
             tzz_x[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
             tzz_z[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
-            
             txz_x[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
             txz_z[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
         else:
@@ -399,9 +394,14 @@ def step_forward_PML_4order(M:int,
         vz[:] = vz_x + vz_z
 
         # Apply free surface boundary conditions for velocity
+        # if free_surface:
+        #     vz[:, h-2, idx_j] = vz[:, h-1, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-1, idx_j] - vx[:, h-1, idx_j_minus1])
+        #     vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+        #     vz[:, h-3, idx_j] = vz[:, h-2, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-2, idx_j] - vx[:, h-2, idx_j_minus1])
+        
         if free_surface:
             vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
-            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 1] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
             vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
 
         # -----------------------------------------------------------
@@ -446,9 +446,9 @@ def step_forward_PML_6order(M:int,
     nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
     
     # Clone tensors to avoid in-place modification
-    vx, vz, txx, tzz, txz = vx.clone(), vz.clone(), txx.clone(), tzz.clone(), txz.clone()
-    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone(), vz_x.clone(), txx_x.clone(), tzz_x.clone(), txz_x.clone()
-    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone(), vz_z.clone(), txx_z.clone(), tzz_z.clone(), txz_z.clone()
+    vx, vz, txx, tzz, txz           = vx.clone()    , vz.clone()    , txx.clone(), tzz.clone(), txz.clone()
+    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone()  , vz_x.clone()  , txx_x.clone(), tzz_x.clone(), txz_x.clone()
+    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone()  , vz_z.clone()  , txx_z.clone(), tzz_z.clone(), txz_z.clone()
 
     # Initialize recorded waveforms
     rcv_txx, rcv_tzz, rcv_txz, rcv_vx, rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
@@ -465,6 +465,8 @@ def step_forward_PML_6order(M:int,
     j_end = nx_pml - NN
     idx_i = slice(i_start, i_end)
     idx_j = slice(j_start, j_end)
+    idx_j_plus1 = slice(j_start+1,j_end+1)
+    idx_j_minus1 = slice(j_start-1,j_end-1)
     ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
     jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
@@ -496,6 +498,7 @@ def step_forward_PML_6order(M:int,
     
     # moment tensor source implementation
     for t in range(nt):
+        
         # Compute stress components
         dxbm_vx = Dxbm(vx, fdc, ii, jj)
         dxbm_vz = Dxbm(vz, fdc, ii, jj)
@@ -555,9 +558,14 @@ def step_forward_PML_6order(M:int,
         vz[:] = vz_x + vz_z
 
         # Apply free surface boundary conditions for velocity
+        # if free_surface:
+        #     vz[:, h-2, idx_j] = vz[:, h-1, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-1, idx_j] - vx[:, h-1, idx_j_minus1])
+        #     vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+        #     vz[:, h-3, idx_j] = vz[:, h-2, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-2, idx_j] - vx[:, h-2, idx_j_minus1])
+        
         if free_surface:
             vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
-            vx[:, h-2, idx_j] = vz[:, h-2, j_start + 1:j_end + 1] - vz[:, h-2, idx_j] + vz[:, h-1, j_start + 1:j_end + 1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
             vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
 
         # -----------------------------------------------------------
@@ -575,7 +583,335 @@ def step_forward_PML_6order(M:int,
         forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
         forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
         forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        
+    return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
+            vx_x,vx_z,vz_x,vz_z,vx,vz,\
+            rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
+            forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
 
+@torch.jit.script
+def step_forward_PML_8order(M:int,
+                free_surface:bool,nx:int,nz:int,dx:float,dz:float,nabc:int,                 # basic settings
+                src_x:Tensor,src_z:Tensor,src_n:int,dt:float,src_v:Tensor,MT:Tensor,        # source
+                rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                        # receiver
+                bcx:Tensor,bcz:Tensor,                                                      # absobing bondary condition
+                lam:Tensor,lamu:Tensor,
+                C11:Tensor,C13:Tensor,C15:Tensor,C33:Tensor,C35:Tensor,C55:Tensor,          # elastic moduli parameters
+                bx:Tensor,bz:Tensor,                                                        
+                txx_x:Tensor,txx_z:Tensor,tzz_x:Tensor,tzz_z:Tensor,txz_x:Tensor,txz_z:Tensor,txx:Tensor,tzz:Tensor,txz:Tensor, # intermedia variable
+                vx_x:Tensor,vx_z:Tensor,vz_x:Tensor,vz_z:Tensor,vx:Tensor,vz:Tensor,
+                device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
+                ):
+    nt = src_v.shape[-1]    # Number of time steps
+    fs_offset = M // 2      # Finite difference stencil offset
+
+    # PML dimensions with free surface condition
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
+    
+    # Clone tensors to avoid in-place modification
+    vx, vz, txx, tzz, txz           = vx.clone()    , vz.clone()    , txx.clone(), tzz.clone(), txz.clone()
+    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone()  , vz_x.clone()  , txx_x.clone(), tzz_x.clone(), txz_x.clone()
+    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone()  , vz_z.clone()  , txx_z.clone(), tzz_z.clone(), txz_z.clone()
+
+    # Initialize recorded waveforms
+    rcv_txx, rcv_tzz, rcv_txz, rcv_vx, rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    forward_wavefield_txx, forward_wavefield_tzz, forward_wavefield_txz = torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vx, forward_wavefield_vz = torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device)
+    
+    # Finite difference order and indexing
+    NN = M // 2
+    fdc = DiffCoef(NN, 's')
+    h = NN + 1
+    i_start = NN 
+    i_end = nz_pml - NN
+    j_start = NN 
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    idx_j_plus1 = slice(j_start+1,j_end+1)
+    idx_j_minus1 = slice(j_start-1,j_end-1)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
+    
+    # Damping factors for PML
+    pmlxd = 1 + 0.5 * dt * bcx[idx_i, idx_j]
+    pmlxn = 1 - 0.5 * dt * bcx[idx_i, idx_j]
+    pmlzd = 1 + 0.5 * dt * bcz[idx_i, idx_j]
+    pmlzn = 1 - 0.5 * dt * bcz[idx_i, idx_j]
+    
+    # Precompute constants for the forward loop
+    dt_dx = dt / dx
+    dt_dz = dt / dz
+    pmlx_inv = 1.0 / pmlxd
+    pmlz_inv = 1.0 / pmlzd
+    
+    # Source and receiver indices
+    src_idx = list(range(src_n))
+    rcv_idx = list(range(rcv_n))
+    half_MT = MT[src_idx] / 2  # Half of the moment tensor
+    
+    # Adjust offset for free surface condition
+    offset = fs_offset if free_surface else fs_offset + nabc
+    
+    # Finite difference operators for different axes
+    Dxfm = Dxfm_8
+    Dzfm = Dzfm_8
+    Dxbm = Dxbm_8
+    Dzbm = Dzbm_8
+    
+    # moment tensor source implementation
+    for t in range(nt):
+        
+        # Compute stress components
+        dxbm_vx = Dxbm(vx, fdc, ii, jj)
+        dxbm_vz = Dxbm(vz, fdc, ii, jj)
+        dzbm_vx = Dzbm(vx, fdc, ii, jj)
+        dzbm_vz = Dzbm(vz, fdc, ii, jj)
+        dxfm_vx = Dxfm(vx, fdc, ii, jj)
+        dzfm_vx = Dzfm(vx, fdc, ii, jj)
+        dxfm_vz = Dxfm(vz, fdc, ii, jj)
+        dzfm_vz = Dzfm(vz, fdc, ii, jj)
+
+        # Update stress fields
+        txx_x[:, idx_i, idx_j] = (pmlxn * txx_x[:, idx_i, idx_j] + dt_dx * (C11[idx_i, idx_j] * dxbm_vx + C15[idx_i, idx_j] * dxbm_vz)) * pmlx_inv
+        txx_z[:, idx_i, idx_j] = (pmlzn * txx_z[:, idx_i, idx_j] + dt_dz * (C15[idx_i, idx_j] * dzbm_vx + C13[idx_i, idx_j] * dzbm_vz)) * pmlz_inv
+        tzz_x[:, idx_i, idx_j] = (pmlxn * tzz_x[:, idx_i, idx_j] + dt_dx * (C13[idx_i, idx_j] * dxbm_vx + C35[idx_i, idx_j] * dxbm_vz)) * pmlx_inv
+        tzz_z[:, idx_i, idx_j] = (pmlzn * tzz_z[:, idx_i, idx_j] + dt_dz * (C35[idx_i, idx_j] * dzbm_vx + C33[idx_i, idx_j] * dzbm_vz)) * pmlz_inv
+        txz_x[:, idx_i, idx_j] = (pmlxn * txz_x[:, idx_i, idx_j] + dt_dx * (C15[idx_i, idx_j] * dxfm_vx + C55[idx_i, idx_j] * dxfm_vz)) * pmlx_inv
+        txz_z[:, idx_i, idx_j] = (pmlzn * txz_z[:, idx_i, idx_j] + dt_dz * (C55[idx_i, idx_j] * dzfm_vx + C35[idx_i, idx_j] * dzfm_vz)) * pmlz_inv
+
+        # Add moment tensor source
+        if len(src_v.shape) == 1:
+            txx_x[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
+            txx_z[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
+            tzz_x[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
+            tzz_z[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
+            txz_x[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
+            txz_z[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
+        else:
+            txx_x[src_idx, src_z, src_x] += -half_MT[:, 0, 0] * src_v[src_idx, t]
+            txx_z[src_idx, src_z, src_x] += -half_MT[:, 0, 0] * src_v[src_idx, t]
+            tzz_x[src_idx, src_z, src_x] += -half_MT[:, 2, 2] * src_v[src_idx, t]
+            tzz_z[src_idx, src_z, src_x] += -half_MT[:, 2, 2] * src_v[src_idx, t]
+            txz_x[src_idx, src_z, src_x] += -half_MT[:, 0, 2] * src_v[src_idx, t]
+            txz_z[src_idx, src_z, src_x] += -half_MT[:, 0, 2] * src_v[src_idx, t]
+
+        # Combine x and z components of stress
+        txx[:] = txx_x + txx_z
+        tzz[:] = tzz_x + tzz_z
+        txz[:] = txz_x + txz_z
+
+        # Apply free surface boundary conditions
+        if free_surface:
+            tzz[:, h-1, :] = 0
+            tzz[:, h-2, :] = -tzz[:, h, :]
+            txz[:, h-2, :] = -txz[:, h-1, :]
+            txz[:, h-3, :] = -txz[:, h, :]
+
+        # Compute velocity components
+        dxfm_txx = Dxfm(txx, fdc, ii, jj)
+        dzbm_txz = Dzbm(txz, fdc, ii, jj)
+        dxbm_txz = Dxbm(txz, fdc, ii, jj)
+        dzfm_tzz = Dzfm(tzz, fdc, ii, jj)
+        vx_x[:, idx_i, idx_j] = (pmlxn * vx_x[:, idx_i, idx_j] + dt * bx[idx_i, idx_j] * dxfm_txx / dx) / pmlxd
+        vx_z[:, idx_i, idx_j] = (pmlzn * vx_z[:, idx_i, idx_j] + dt * bx[idx_i, idx_j] * dzbm_txz / dz) / pmlzd
+        vz_x[:, idx_i, idx_j] = (pmlxn * vz_x[:, idx_i, idx_j] + dt * bz[idx_i, idx_j] * dxbm_txz / dx) / pmlxd
+        vz_z[:, idx_i, idx_j] = (pmlzn * vz_z[:, idx_i, idx_j] + dt * bz[idx_i, idx_j] * dzfm_tzz / dz) / pmlzd
+        vx[:] = vx_x + vx_z
+        vz[:] = vz_x + vz_z
+
+        # Apply free surface boundary conditions for velocity
+        # if free_surface:
+        #     vz[:, h-2, idx_j] = vz[:, h-1, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-1, idx_j] - vx[:, h-1, idx_j_minus1])
+        #     vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+        #     vz[:, h-3, idx_j] = vz[:, h-2, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-2, idx_j] - vx[:, h-2, idx_j_minus1])
+        
+        if free_surface:
+            vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
+
+        # -----------------------------------------------------------
+        #                   Receiver Observation
+        # -----------------------------------------------------------
+        rcv_txx[:, t, rcv_idx] = txx[:, rcv_z, rcv_x]
+        rcv_tzz[:, t, rcv_idx] = tzz[:, rcv_z, rcv_x]
+        rcv_txz[:, t, rcv_idx] = txz[:, rcv_z, rcv_x]
+        rcv_vx[:, t, rcv_idx] = vx[:, rcv_z, rcv_x]
+        rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
+
+        # Store forward wavefields for visualization or further processing
+        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        
+    return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
+            vx_x,vx_z,vz_x,vz_z,vx,vz,\
+            rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
+            forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
+
+@torch.jit.script
+def step_forward_PML_10order(M:int,
+                free_surface:bool,nx:int,nz:int,dx:float,dz:float,nabc:int,                 # basic settings
+                src_x:Tensor,src_z:Tensor,src_n:int,dt:float,src_v:Tensor,MT:Tensor,        # source
+                rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                        # receiver
+                bcx:Tensor,bcz:Tensor,                                                      # absobing bondary condition
+                lam:Tensor,lamu:Tensor,
+                C11:Tensor,C13:Tensor,C15:Tensor,C33:Tensor,C35:Tensor,C55:Tensor,          # elastic moduli parameters
+                bx:Tensor,bz:Tensor,                                                        
+                txx_x:Tensor,txx_z:Tensor,tzz_x:Tensor,tzz_z:Tensor,txz_x:Tensor,txz_z:Tensor,txx:Tensor,tzz:Tensor,txz:Tensor, # intermedia variable
+                vx_x:Tensor,vx_z:Tensor,vz_x:Tensor,vz_z:Tensor,vx:Tensor,vz:Tensor,
+                device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
+                ):
+    nt = src_v.shape[-1]    # Number of time steps
+    fs_offset = M // 2      # Finite difference stencil offset
+
+    # PML dimensions with free surface condition
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
+    
+    # Clone tensors to avoid in-place modification
+    vx, vz, txx, tzz, txz           = vx.clone()    , vz.clone()    , txx.clone(), tzz.clone(), txz.clone()
+    vx_x, vz_x, txx_x, tzz_x, txz_x = vx_x.clone()  , vz_x.clone()  , txx_x.clone(), tzz_x.clone(), txz_x.clone()
+    vx_z, vz_z, txx_z, tzz_z, txz_z = vx_z.clone()  , vz_z.clone()  , txx_z.clone(), tzz_z.clone(), txz_z.clone()
+
+    # Initialize recorded waveforms
+    rcv_txx, rcv_tzz, rcv_txz, rcv_vx, rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device), torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    forward_wavefield_txx, forward_wavefield_tzz, forward_wavefield_txz = torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vx, forward_wavefield_vz = torch.zeros((nz, nx), dtype=dtype, device=device), torch.zeros((nz, nx), dtype=dtype, device=device)
+    
+    # Finite difference order and indexing
+    NN = M // 2
+    fdc = DiffCoef(NN, 's')
+    h = NN + 1
+    i_start = NN 
+    i_end = nz_pml - NN
+    j_start = NN 
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    idx_j_plus1 = slice(j_start+1,j_end+1)
+    idx_j_minus1 = slice(j_start-1,j_end-1)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
+    
+    # Damping factors for PML
+    pmlxd = 1 + 0.5 * dt * bcx[idx_i, idx_j]
+    pmlxn = 1 - 0.5 * dt * bcx[idx_i, idx_j]
+    pmlzd = 1 + 0.5 * dt * bcz[idx_i, idx_j]
+    pmlzn = 1 - 0.5 * dt * bcz[idx_i, idx_j]
+    
+    # Precompute constants for the forward loop
+    dt_dx = dt / dx
+    dt_dz = dt / dz
+    pmlx_inv = 1.0 / pmlxd
+    pmlz_inv = 1.0 / pmlzd
+    
+    # Source and receiver indices
+    src_idx = list(range(src_n))
+    rcv_idx = list(range(rcv_n))
+    half_MT = MT[src_idx] / 2  # Half of the moment tensor
+    
+    # Adjust offset for free surface condition
+    offset = fs_offset if free_surface else fs_offset + nabc
+    
+    # Finite difference operators for different axes
+    Dxfm = Dxfm_10
+    Dzfm = Dzfm_10
+    Dxbm = Dxbm_10
+    Dzbm = Dzbm_10
+    
+    # moment tensor source implementation
+    for t in range(nt):
+        
+        # Compute stress components
+        dxbm_vx = Dxbm(vx, fdc, ii, jj)
+        dxbm_vz = Dxbm(vz, fdc, ii, jj)
+        dzbm_vx = Dzbm(vx, fdc, ii, jj)
+        dzbm_vz = Dzbm(vz, fdc, ii, jj)
+        dxfm_vx = Dxfm(vx, fdc, ii, jj)
+        dzfm_vx = Dzfm(vx, fdc, ii, jj)
+        dxfm_vz = Dxfm(vz, fdc, ii, jj)
+        dzfm_vz = Dzfm(vz, fdc, ii, jj)
+
+        # Update stress fields
+        txx_x[:, idx_i, idx_j] = (pmlxn * txx_x[:, idx_i, idx_j] + dt_dx * (C11[idx_i, idx_j] * dxbm_vx + C15[idx_i, idx_j] * dxbm_vz)) * pmlx_inv
+        txx_z[:, idx_i, idx_j] = (pmlzn * txx_z[:, idx_i, idx_j] + dt_dz * (C15[idx_i, idx_j] * dzbm_vx + C13[idx_i, idx_j] * dzbm_vz)) * pmlz_inv
+        tzz_x[:, idx_i, idx_j] = (pmlxn * tzz_x[:, idx_i, idx_j] + dt_dx * (C13[idx_i, idx_j] * dxbm_vx + C35[idx_i, idx_j] * dxbm_vz)) * pmlx_inv
+        tzz_z[:, idx_i, idx_j] = (pmlzn * tzz_z[:, idx_i, idx_j] + dt_dz * (C35[idx_i, idx_j] * dzbm_vx + C33[idx_i, idx_j] * dzbm_vz)) * pmlz_inv
+        txz_x[:, idx_i, idx_j] = (pmlxn * txz_x[:, idx_i, idx_j] + dt_dx * (C15[idx_i, idx_j] * dxfm_vx + C55[idx_i, idx_j] * dxfm_vz)) * pmlx_inv
+        txz_z[:, idx_i, idx_j] = (pmlzn * txz_z[:, idx_i, idx_j] + dt_dz * (C55[idx_i, idx_j] * dzfm_vx + C35[idx_i, idx_j] * dzfm_vz)) * pmlz_inv
+
+        # Add moment tensor source
+        if len(src_v.shape) == 1:
+            txx_x[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
+            txx_z[src_idx, src_z, src_x] += -half_MT[0, 0] * src_v[t]
+            tzz_x[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
+            tzz_z[src_idx, src_z, src_x] += -half_MT[2, 2] * src_v[t]
+            txz_x[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
+            txz_z[src_idx, src_z, src_x] += -half_MT[0, 2] * src_v[t]
+        else:
+            txx_x[src_idx, src_z, src_x] += -half_MT[:, 0, 0] * src_v[src_idx, t]
+            txx_z[src_idx, src_z, src_x] += -half_MT[:, 0, 0] * src_v[src_idx, t]
+            tzz_x[src_idx, src_z, src_x] += -half_MT[:, 2, 2] * src_v[src_idx, t]
+            tzz_z[src_idx, src_z, src_x] += -half_MT[:, 2, 2] * src_v[src_idx, t]
+            txz_x[src_idx, src_z, src_x] += -half_MT[:, 0, 2] * src_v[src_idx, t]
+            txz_z[src_idx, src_z, src_x] += -half_MT[:, 0, 2] * src_v[src_idx, t]
+
+        # Combine x and z components of stress
+        txx[:] = txx_x + txx_z
+        tzz[:] = tzz_x + tzz_z
+        txz[:] = txz_x + txz_z
+
+        # Apply free surface boundary conditions
+        if free_surface:
+            tzz[:, h-1, :] = 0
+            tzz[:, h-2, :] = -tzz[:, h, :]
+            txz[:, h-2, :] = -txz[:, h-1, :]
+            txz[:, h-3, :] = -txz[:, h, :]
+
+        # Compute velocity components
+        dxfm_txx = Dxfm(txx, fdc, ii, jj)
+        dzbm_txz = Dzbm(txz, fdc, ii, jj)
+        dxbm_txz = Dxbm(txz, fdc, ii, jj)
+        dzfm_tzz = Dzfm(tzz, fdc, ii, jj)
+        vx_x[:, idx_i, idx_j] = (pmlxn * vx_x[:, idx_i, idx_j] + dt * bx[idx_i, idx_j] * dxfm_txx / dx) / pmlxd
+        vx_z[:, idx_i, idx_j] = (pmlzn * vx_z[:, idx_i, idx_j] + dt * bx[idx_i, idx_j] * dzbm_txz / dz) / pmlzd
+        vz_x[:, idx_i, idx_j] = (pmlxn * vz_x[:, idx_i, idx_j] + dt * bz[idx_i, idx_j] * dxbm_txz / dx) / pmlxd
+        vz_z[:, idx_i, idx_j] = (pmlzn * vz_z[:, idx_i, idx_j] + dt * bz[idx_i, idx_j] * dzfm_tzz / dz) / pmlzd
+        vx[:] = vx_x + vx_z
+        vz[:] = vz_x + vz_z
+
+        # Apply free surface boundary conditions for velocity
+        # if free_surface:
+        #     vz[:, h-2, idx_j] = vz[:, h-1, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-1, idx_j] - vx[:, h-1, idx_j_minus1])
+        #     vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+        #     vz[:, h-3, idx_j] = vz[:, h-2, idx_j]       + (lam[h-1, idx_j]/lamu[h-1, idx_j])*(vx[:, h-2, idx_j] - vx[:, h-2, idx_j_minus1])
+        
+        if free_surface:
+            vz[:, h-2, idx_j] = vz[:, h-1, idx_j]
+            vx[:, h-2, idx_j] = vz[:, h-2, idx_j_plus1] - vz[:, h-2, idx_j] + vz[:, h-1, idx_j_plus1] - vz[:, h-1, idx_j] + vx[:, h, idx_j]
+            vz[:, h-3, idx_j] = vz[:, h-2, idx_j]
+
+        # -----------------------------------------------------------
+        #                   Receiver Observation
+        # -----------------------------------------------------------
+        rcv_txx[:, t, rcv_idx] = txx[:, rcv_z, rcv_x]
+        rcv_tzz[:, t, rcv_idx] = tzz[:, rcv_z, rcv_x]
+        rcv_txz[:, t, rcv_idx] = txz[:, rcv_z, rcv_x]
+        rcv_vx[:, t, rcv_idx] = vx[:, rcv_z, rcv_x]
+        rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
+
+        # Store forward wavefields for visualization or further processing
+        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        
     return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
             rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
@@ -598,8 +934,7 @@ def step_forward_ABL_4order(M:int,
                 vx:Tensor,vz:Tensor,
                 device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
                 ):
-    """
-    Description:
+    """Description:
     --------------
         Perform a single time step in the simulation of wave propagation using a 4th order finite difference method.
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Grid arrangement%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -672,6 +1007,142 @@ def step_forward_ABL_4order(M:int,
     rcv_txx = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_tzz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_txz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_vx  = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_vz  = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+
+    forward_wavefield_txx = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_tzz = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_txz = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vx  = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vz  = torch.zeros((nz, nx), dtype=dtype, device=device)
+    
+    # Finite difference order and indexing
+    NN = M // 2
+    fdc = DiffCoef(NN, 's')
+    h       = NN + 1
+    i_start = NN 
+    i_end   = nz_pml - NN
+    j_start = NN 
+    j_end   = nx_pml - NN
+    idx_i   = slice(i_start, i_end)
+    idx_j   = slice(j_start, j_end)
+    idx_j_plus1 = slice(j_start+1,j_end+1)
+    idx_j_minus1 = slice(j_start-1,j_end-1)
+    ii      = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj      = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
+    
+    # Finite difference operators for different axes
+    Dxfm = Dxfm_4
+    Dzfm = Dzfm_4
+    Dxbm = Dxbm_4
+    Dzbm = Dzbm_4
+    
+    # Source and receiver indices
+    src_idx = list(range(src_n))
+    rcv_idx = list(range(rcv_n))
+    scaling_factor = -1 / 2
+    
+    # Adjust offset for free surface condition
+    offset = fs_offset if free_surface else fs_offset + nabc
+    
+    # moment tensor source implementation
+    for t in range(nt):
+        # Compute stress components
+        dxbm_vx = Dxbm(vx, fdc, ii, jj)
+        dxbm_vz = Dxbm(vz, fdc, ii, jj)
+        dzbm_vx = Dzbm(vx, fdc, ii, jj)
+        dzbm_vz = Dzbm(vz, fdc, ii, jj)
+        dxfm_vx = Dxfm(vx, fdc, ii, jj)
+        dzfm_vx = Dzfm(vx, fdc, ii, jj)
+        dxfm_vz = Dxfm(vz, fdc, ii, jj)
+        dzfm_vz = Dzfm(vz, fdc, ii, jj)
+        
+        txx[:, idx_i, idx_j] = txx[:, idx_i, idx_j] + dt*((C11[idx_i,idx_j]*dxbm_vx + C15[idx_i,idx_j]*dxbm_vz)/dx
+                                                        + (C15[idx_i,idx_j]*dzbm_vx + C13[idx_i,idx_j]*dzbm_vz)/dz)
+        tzz[:, idx_i, idx_j] = tzz[:, idx_i, idx_j] + dt*((C13[idx_i,idx_j]*dxbm_vx + C35[idx_i,idx_j]*dxbm_vz)/dx
+                                                        + (C35[idx_i,idx_j]*dzbm_vx + C33[idx_i,idx_j]*dzbm_vz)/dz)
+        txz[:, idx_i, idx_j] = txz[:, idx_i, idx_j] + dt*((C15[idx_i,idx_j]*dxfm_vx + C55[idx_i,idx_j]*dxfm_vz)/dx
+                                                        + (C55[idx_i,idx_j]*dzfm_vx + C35[idx_i,idx_j]*dzfm_vz)/dz)
+        
+        # Add source
+        if src_v.ndim == 1:
+            txx[src_idx, src_z, src_x] += scaling_factor * MT[0, 0] * src_v[t]
+            tzz[src_idx, src_z, src_x] += scaling_factor * MT[2, 2] * src_v[t]
+            txz[src_idx, src_z, src_x] += scaling_factor * MT[0, 2] * src_v[t]
+        else:
+            txx[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 0, 0] * src_v[src_idx, t]
+            tzz[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 2, 2] * src_v[src_idx, t]
+            txz[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 0, 2] * src_v[src_idx, t]
+
+        # topFs with the assumption of weak anisotropy near the surface
+        if free_surface:
+            tzz[:,h-1,:] = 0
+            tzz[:,h-2,:] = -tzz[:,h,:]
+            txz[:,h-2,:] = -txz[:,h-1,:]
+            txz[:,h-3,:] = -txz[:,h,:]
+        
+        # Update velocity components
+        dxfm_txx = Dxfm(txx, fdc, ii, jj)
+        dzbm_txz = Dzbm(txz, fdc, ii, jj)
+        dxbm_txz = Dxbm(txz, fdc, ii, jj)
+        dzfm_tzz = Dzfm(tzz, fdc, ii, jj)
+        vx[:, idx_i, idx_j] += dt * bx[idx_i, idx_j] * (dxfm_txx / dx + dzbm_txz / dz)
+        vz[:, idx_i, idx_j] += dt * bz[idx_i, idx_j] * (dxbm_txz / dx + dzfm_tzz / dz)
+
+        # Apply free surface boundary conditions
+        if free_surface:
+            vz[:, h - 2, idx_j] = vz[:, h - 1, idx_j]
+            vx[:, h - 2, idx_j] = vz[:, h - 2, idx_j_plus1] - vz[:, h - 2, idx_j] + vz[:, h - 1, idx_j_plus1] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
+            vz[:, h - 3, idx_j] = vz[:, h - 2, idx_j]
+
+        # Apply damping
+        vx *= damp
+        vz *= damp
+        
+        # Record receiver waveforms
+        rcv_txx[:, t, rcv_idx] = txx[:, rcv_z, rcv_x]
+        rcv_tzz[:, t, rcv_idx] = tzz[:, rcv_z, rcv_x]
+        rcv_txz[:, t, rcv_idx] = txz[:, rcv_z, rcv_x]
+        rcv_vx[:, t, rcv_idx] = vx[:, rcv_z, rcv_x]
+        rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
+        
+        # Store forward wavefields for visualization or further processing
+        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+
+    return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
+            forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
+
+@torch.jit.script
+def step_forward_ABL_6order(M:int,
+                free_surface:bool,nx:int,nz:int,dx:float,dz:float,nabc:int,                 # basic settings
+                src_x:Tensor,src_z:Tensor,src_n:int,dt:float,src_v:Tensor,MT:Tensor,        # source
+                rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                        # receiver
+                damp:Tensor,                                                                # absobing bondary condition
+                lam:Tensor,lamu:Tensor,
+                C11:Tensor,C13:Tensor,C15:Tensor,C33:Tensor,C35:Tensor,C55:Tensor,          # elastic moduli parameters
+                bx:Tensor,bz:Tensor,                                                        
+                txx:Tensor,tzz:Tensor,txz:Tensor,                                           # intermedia variable
+                vx:Tensor,vz:Tensor,
+                device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
+                ):
+    nt = src_v.shape[-1]    # Number of time steps
+    fs_offset = M // 2      # Finite difference stencil offset
+    
+    # Configure ABL dimensions based on boundary conditions
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
+    
+    # Clone tensors to avoid in-place modification
+    vx, vz, txx, tzz, txz = vx.clone(), vz.clone(), txx.clone(), tzz.clone(), txz.clone()
+    
+    # Initialize recorded waveforms
+    rcv_txx = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_tzz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_txz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_vx = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
 
@@ -695,15 +1166,15 @@ def step_forward_ABL_4order(M:int,
     jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Finite difference operators for different axes
-    Dxfm = Dxfm_4
-    Dzfm = Dzfm_4
-    Dxbm = Dxbm_4
-    Dzbm = Dzbm_4
+    Dxfm = Dxfm_6
+    Dzfm = Dzfm_6
+    Dxbm = Dxbm_6
+    Dzbm = Dzbm_6
     
     # Source and receiver indices
     src_idx = list(range(src_n))
     rcv_idx = list(range(rcv_n))
-    scaling_factor = -1 / 3
+    scaling_factor = -1 / 2
     
     # Adjust offset for free surface condition
     offset = fs_offset if free_surface else fs_offset + nabc
@@ -779,9 +1250,8 @@ def step_forward_ABL_4order(M:int,
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
 
-
 @torch.jit.script
-def step_forward_ABL_6order(M:int,
+def step_forward_ABL_8order(M:int,
                 free_surface:bool,nx:int,nz:int,dx:float,dz:float,nabc:int,                 # basic settings
                 src_x:Tensor,src_z:Tensor,src_n:int,dt:float,src_v:Tensor,MT:Tensor,        # source
                 rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                        # receiver
@@ -830,15 +1300,149 @@ def step_forward_ABL_6order(M:int,
     jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
     
     # Finite difference operators for different axes
-    Dxfm = Dxfm_6
-    Dzfm = Dzfm_6
-    Dxbm = Dxbm_6
-    Dzbm = Dzbm_6
+    Dxfm = Dxfm_8
+    Dzfm = Dzfm_8
+    Dxbm = Dxbm_8
+    Dzbm = Dzbm_8
     
     # Source and receiver indices
     src_idx = list(range(src_n))
     rcv_idx = list(range(rcv_n))
-    scaling_factor = -1 / 3
+    scaling_factor = -1 / 2
+    
+    # Adjust offset for free surface condition
+    offset = fs_offset if free_surface else fs_offset + nabc
+    
+    # moment tensor source implementation
+    for t in range(nt):
+        # Compute stress components
+        dxbm_vx = Dxbm(vx, fdc, ii, jj)
+        dxbm_vz = Dxbm(vz, fdc, ii, jj)
+        dzbm_vx = Dzbm(vx, fdc, ii, jj)
+        dzbm_vz = Dzbm(vz, fdc, ii, jj)
+        dxfm_vx = Dxfm(vx, fdc, ii, jj)
+        dzfm_vx = Dzfm(vx, fdc, ii, jj)
+        dxfm_vz = Dxfm(vz, fdc, ii, jj)
+        dzfm_vz = Dzfm(vz, fdc, ii, jj)
+        
+        txx[:, idx_i, idx_j] = txx[:, idx_i, idx_j] + dt*((C11[idx_i,idx_j]*dxbm_vx + C15[idx_i,idx_j]*dxbm_vz)/dx
+                                                        + (C15[idx_i,idx_j]*dzbm_vx + C13[idx_i,idx_j]*dzbm_vz)/dz)
+        tzz[:, idx_i, idx_j] = tzz[:, idx_i, idx_j] + dt*((C13[idx_i,idx_j]*dxbm_vx + C35[idx_i,idx_j]*dxbm_vz)/dx
+                                                        + (C35[idx_i,idx_j]*dzbm_vx + C33[idx_i,idx_j]*dzbm_vz)/dz)
+        txz[:, idx_i, idx_j] = txz[:, idx_i, idx_j] + dt*((C15[idx_i,idx_j]*dxfm_vx + C55[idx_i,idx_j]*dxfm_vz)/dx
+                                                        + (C55[idx_i,idx_j]*dzfm_vx + C35[idx_i,idx_j]*dzfm_vz)/dz)
+        
+        # Add source
+        if src_v.ndim == 1:
+            txx[src_idx, src_z, src_x] += scaling_factor * MT[0, 0] * src_v[t]
+            tzz[src_idx, src_z, src_x] += scaling_factor * MT[2, 2] * src_v[t]
+            txz[src_idx, src_z, src_x] += scaling_factor * MT[0, 2] * src_v[t]
+        else:
+            txx[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 0, 0] * src_v[src_idx, t]
+            tzz[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 2, 2] * src_v[src_idx, t]
+            txz[src_idx, src_z, src_x] += scaling_factor * MT[src_idx, 0, 2] * src_v[src_idx, t]
+
+        # topFs with the assumption of weak anisotropy near the surface
+        if free_surface:
+            tzz[:,h-1,:] = 0
+            tzz[:,h-2,:] = -tzz[:,h,:]
+            txz[:,h-2,:] = -txz[:,h-1,:]
+            txz[:,h-3,:] = -txz[:,h,:]
+        
+        # Update velocity components
+        dxfm_txx = Dxfm(txx, fdc, ii, jj)
+        dzbm_txz = Dzbm(txz, fdc, ii, jj)
+        dxbm_txz = Dxbm(txz, fdc, ii, jj)
+        dzfm_tzz = Dzfm(tzz, fdc, ii, jj)
+        vx[:, idx_i, idx_j] += dt * bx[idx_i, idx_j] * (dxfm_txx / dx + dzbm_txz / dz)
+        vz[:, idx_i, idx_j] += dt * bz[idx_i, idx_j] * (dxbm_txz / dx + dzfm_tzz / dz)
+
+        # Apply free surface boundary conditions
+        if free_surface:
+            vz[:, h - 2, idx_j] = vz[:, h - 1, idx_j]
+            vx[:, h - 2, idx_j] = vz[:, h - 2, j_start + 1:j_end + 1] - vz[:, h - 2, idx_j] + vz[:, h - 1, j_start + 1:j_end + 1] - vz[:, h - 1, idx_j] + vx[:, h, idx_j]
+            vz[:, h - 3, idx_j] = vz[:, h - 2, idx_j]
+
+        # Apply damping
+        vx *= damp
+        vz *= damp
+        
+        # Record receiver waveforms
+        rcv_txx[:, t, rcv_idx] = txx[:, rcv_z, rcv_x]
+        rcv_tzz[:, t, rcv_idx] = tzz[:, rcv_z, rcv_x]
+        rcv_txz[:, t, rcv_idx] = txz[:, rcv_z, rcv_x]
+        rcv_vx[:, t, rcv_idx] = vx[:, rcv_z, rcv_x]
+        rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
+        
+        # Store forward wavefields for visualization or further processing
+        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+
+    return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
+            forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
+
+@torch.jit.script
+def step_forward_ABL_10order(M:int,
+                free_surface:bool,nx:int,nz:int,dx:float,dz:float,nabc:int,                 # basic settings
+                src_x:Tensor,src_z:Tensor,src_n:int,dt:float,src_v:Tensor,MT:Tensor,        # source
+                rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                        # receiver
+                damp:Tensor,                                                                # absobing bondary condition
+                lam:Tensor,lamu:Tensor,
+                C11:Tensor,C13:Tensor,C15:Tensor,C33:Tensor,C35:Tensor,C55:Tensor,          # elastic moduli parameters
+                bx:Tensor,bz:Tensor,                                                        
+                txx:Tensor,tzz:Tensor,txz:Tensor,                                           # intermedia variable
+                vx:Tensor,vz:Tensor,
+                device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32
+                ):
+    nt = src_v.shape[-1]    # Number of time steps
+    fs_offset = M // 2      # Finite difference stencil offset
+    
+    # Configure ABL dimensions based on boundary conditions
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + (nabc + fs_offset if free_surface else 2 * nabc + fs_offset)
+    
+    # Clone tensors to avoid in-place modification
+    vx, vz, txx, tzz, txz = vx.clone(), vz.clone(), txx.clone(), tzz.clone(), txz.clone()
+    
+    # Initialize recorded waveforms
+    rcv_txx = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_tzz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_txz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_vx = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_vz = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+
+    forward_wavefield_txx = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_tzz = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_txz = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vx = torch.zeros((nz, nx), dtype=dtype, device=device)
+    forward_wavefield_vz = torch.zeros((nz, nx), dtype=dtype, device=device)
+    
+    # Finite difference order and indexing
+    NN = M // 2
+    fdc = DiffCoef(NN, 's')
+    h = NN + 1
+    i_start = NN 
+    i_end = nz_pml - NN
+    j_start = NN 
+    j_end = nx_pml - NN
+    idx_i = slice(i_start, i_end)
+    idx_j = slice(j_start, j_end)
+    ii = torch.arange(i_start, i_end, dtype=torch.long, device=device)  # z-axis range
+    jj = torch.arange(j_start, j_end, dtype=torch.long, device=device)  # x-axis range
+    
+    # Finite difference operators for different axes
+    Dxfm = Dxfm_10
+    Dzfm = Dzfm_10
+    Dxbm = Dxbm_10
+    Dzbm = Dzbm_10
+    
+    # Source and receiver indices
+    src_idx = list(range(src_n))
+    rcv_idx = list(range(rcv_n))
+    scaling_factor = -1 / 2
     
     # Adjust offset for free surface condition
     offset = fs_offset if free_surface else fs_offset + nabc
@@ -920,8 +1524,8 @@ def step_forward_ABL_6order(M:int,
 ##########################################################################
 def forward_kernel( nx:int,nz:int,dx:float,dz:float,nt:int,dt:float,
                     nabc:int,free_surface:bool,                                         # Model settings
-                    src_x:Tensor,src_z:Tensor,src_n:int,src_v:Tensor,MT:Tensor,     # Source
-                    rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                            # Receiver
+                    src_x:Tensor,src_z:Tensor,src_n:int,src_v:Tensor,MT:Tensor,         # Source
+                    rcv_x:Tensor,rcv_z:Tensor,rcv_n:int,                                # Receiver
                     abc_type:str,bcx:Tensor,bcz:Tensor,damp:Tensor,                     # PML/ABL
                     lamu:Tensor,lam:Tensor,bx:Tensor,bz:Tensor,                         # lame constant
                     CC:List[Tensor],                                                    # elastic moduli
@@ -982,7 +1586,7 @@ def forward_kernel( nx:int,nz:int,dx:float,dz:float,nt:int,dt:float,
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
             rcv_txx_temp,rcv_tzz_temp,rcv_txz_temp,rcv_vx_temp,rcv_vz_temp,\
             forward_wavefield_txx_temp,forward_wavefield_tzz_temp,forward_wavefield_txz_temp,forward_wavefield_vx_temp,forward_wavefield_vz_temp \
-                                                                            = checkpoint(step_forward_PML_4order if fd_order == 4 else step_forward_PML_6order,
+                                                                            = checkpoint(step_forward_PML_10order if fd_order == 10 else step_forward_PML_8order if fd_order == 8 else step_forward_PML_6order if fd_order == 6 else step_forward_PML_4order,
                                                                                 fd_order,
                                                                                 free_surface,nx,nz,dx,dz,nabc,
                                                                                 src_x,src_z,src_n,dt,chunk,MT,
@@ -999,7 +1603,7 @@ def forward_kernel( nx:int,nz:int,dx:float,dz:float,nt:int,dt:float,
             txx,tzz,txz,vx,vz,\
             rcv_txx_temp,rcv_tzz_temp,rcv_txz_temp,rcv_vx_temp,rcv_vz_temp,\
             forward_wavefield_txx_temp,forward_wavefield_tzz_temp,forward_wavefield_txz_temp,forward_wavefield_vx_temp,forward_wavefield_vz_temp \
-                                                                            = checkpoint(step_forward_ABL_4order if fd_order == 4 else step_forward_ABL_6order,
+                                                                            = checkpoint(step_forward_ABL_10order if fd_order == 10 else step_forward_ABL_8order if fd_order == 8 else step_forward_ABL_6order if fd_order == 6 else step_forward_ABL_4order,
                                                                                 fd_order,
                                                                                 free_surface,nx,nz,dx,dz,nabc,
                                                                                 src_x,src_z,src_n,dt,chunk,MT,
