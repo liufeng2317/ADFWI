@@ -124,9 +124,3 @@ class InvertedResidual(nn.Module):
             return x + self.conv(x)
         else:
             return self.conv(x)
-
-# # Example usage:
-# model_shape = (128, 128)
-# model = SimpleMobileNetV2(model_shape, inverted_residual_blocks=6, vmin=1.5, vmax=4.5, device="cpu")
-# output = model()
-# print(output.shape)

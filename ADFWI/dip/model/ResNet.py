@@ -44,13 +44,13 @@ def conv(in_f, out_f, kernel_size=3, stride=1, bias=False, pad='same', downsampl
         layers.append(downsampler)
     return nn.Sequential(*layers)
 
-def get_block(num_channels, norm_layer, act_fun):
+def get_block(num_channel, norm_layer, act_fun):
     layers = [
-        nn.Conv2d(num_channels, num_channels, 3, 1, 1, bias=False),
-        norm_layer(num_channels, affine=True),
+        nn.Conv2d(num_channel, num_channel, 3, 1, 1, bias=False),
+        norm_layer(num_channel, affine=True),
         act(act_fun),
-        nn.Conv2d(num_channels, num_channels, 3, 1, 1, bias=False),
-        norm_layer(num_channels, affine=True),
+        nn.Conv2d(num_channel, num_channel, 3, 1, 1, bias=False),
+        norm_layer(num_channel, affine=True),
     ]
     return nn.Sequential(*layers)
 
@@ -67,53 +67,61 @@ class ResidualSequential(nn.Module):
         return out + x
 
 class ResNet(nn.Module):
-    def __init__(self, model_shape,random_state_num=100, vmin=None, vmax=None, 
-                 num_input_channels=1, num_output_channels=1, num_blocks=8, num_channels=32, 
-                 need_residual=True, act_fun='LeakyReLU', norm_layer=nn.InstanceNorm2d, pad='same',
+    def __init__(self, model_shape,
+                 random_state_num=100, 
+                 vmin=None, vmax=None, 
+                 in_channels=1, out_channels=1, 
+                 num_blocks=8, num_channel=32, 
+                 need_residual=True, 
+                 act_fun='LeakyReLU', 
+                 norm_layer=nn.InstanceNorm2d, 
+                 pad='same',
+                 unit=1000,
                  device="cpu"):
         super(ResNet, self).__init__()
-        self.vmin = vmin
-        self.vmax = vmax
+        self.vmin   = vmin
+        self.vmax   = vmax
+        self.unit   = unit
         self.device = device
         
         # neural network blocks
         self.FNN_in = nn.Sequential(
-            nn.Linear(in_features=random_state_num,out_features=model_shape[0] * model_shape[1],bias=False),
-            nn.Unflatten(0,(-1,num_input_channels, model_shape[0], model_shape[1])),
+            nn.Linear(in_features=random_state_num, out_features=in_channels*model_shape[0] * model_shape[1], bias=False),
+            nn.Unflatten(0,(-1, in_channels, model_shape[0], model_shape[1])),
             nn.LeakyReLU(0.1)
         )
 
         # residual blocks
         block_class = ResidualSequential if need_residual else nn.Sequential
         layers = [
-            conv(num_input_channels, num_channels, 3, stride=1, bias=False, pad=pad),
+            conv(in_channels, num_channel, 3, stride=1, bias=False, pad=pad),
             act(act_fun)
         ]
         
         for _ in range(num_blocks):
-            layers.append(block_class(*get_block(num_channels, norm_layer, act_fun)))
+            layers.append(block_class(*get_block(num_channel, norm_layer, act_fun)))
         
         layers += [
-            nn.Conv2d(num_channels, num_channels, 3, 1, 1),
-            norm_layer(num_channels, affine=True),
-            conv(num_channels, num_output_channels, 3, 1, bias=False, pad=pad),
+            nn.Conv2d(num_channel, num_channel, 3, 1, 1),
+            norm_layer(num_channel, affine=True),
+            conv(num_channel, out_channels, 3, 1, bias=False, pad=pad),
             act(act_fun)
         ]
         
-        self.model = nn.Sequential(*layers)
+        self.res_model = nn.Sequential(*layers)
         
         torch.manual_seed(1234)
-        # self.random_latent_vector = torch.rand(1, 1, model_shape[0], model_shape[1], device=self.device)
         self.random_latent_vector = torch.rand(random_state_num, device=self.device)
 
     def forward(self):
         # Pass through the main model
-        latent_flat = self.FNN_in(self.random_latent_vector)
-        out = self.model(latent_flat)
+        out = self.FNN_in(self.random_latent_vector)
+        out = self.res_model(out)
         out = torch.squeeze(out)
         if self.vmin is not None and self.vmax is not None:
             out = ((self.vmax - self.vmin) * torch.tanh(out) + (self.vmax + self.vmin)) / 2
-        return out * 1000
+        out = torch.squeeze(out)*self.unit
+        return out
 
     def eval(self):
         self.model.eval()

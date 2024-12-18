@@ -3,7 +3,15 @@ from skimage.metrics import structural_similarity as ssim
 
 def MSE(true_v,inv_v):
     nz,nx = true_v.shape
-    return np.sum((true_v-inv_v)**2)/(nz*nx)
+    return np.sum((true_v-inv_v)**2)
+
+def RMSE(true_v,inv_v):
+    if len(true_v.shape) != len(inv_v.shape):
+        true_v = true_v[np.newaxis,:,:]
+        res = np.sqrt(np.sum((true_v-inv_v)**2,axis=(1,2)))
+        return res
+    else:
+        return np.sqrt(np.sum((true_v-inv_v)**2))
 
 def MAPE(true_v,inv_v):
     if len(true_v.shape) != len(inv_v.shape):

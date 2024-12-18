@@ -72,7 +72,8 @@ class AcousticFWI(torch.nn.Module):
         obs_p   = self.obs_data.data["p"]
         obs_p   = numpy2tensor(obs_p,self.dtype).to(self.device)
         if self.waveform_normalize:
-            obs_p = obs_p/(torch.max(torch.abs(obs_p),axis=1,keepdim=True).values)
+            # obs_p = obs_p/(torch.max(torch.abs(obs_p),axis=1,keepdim=True).values)
+            obs_p = self._normalize(obs_p)
         self.obs_p = obs_p
         
         # model boundary
@@ -106,13 +107,21 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_epoch = save_fig_epoch
         self.save_fig_path  = save_fig_path
     
+    def _normalize(self,data):
+        mask = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
+        max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values
+        max_val = max_val.masked_fill(mask, 1)
+        data = data/max_val
+        return data
+    
     # misfits calculation
     def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
         """
         Generalized function to calculate misfit loss for a given component.
         """
         if normalization:
-            synthetic_waveform = synthetic_waveform / (torch.max(torch.abs(synthetic_waveform), axis=1, keepdim=True).values)
+            # synthetic_waveform = synthetic_waveform / (torch.max(torch.abs(synthetic_waveform), axis=1, keepdim=True).values)
+            synthetic_waveform = self._normalize(synthetic_waveform)
         # Apply low-pass filter if cutoff frequency is provided
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))

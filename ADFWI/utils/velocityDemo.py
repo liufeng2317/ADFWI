@@ -554,3 +554,210 @@ def download_foothill(in_dir):
         os.system("wget {} -P {}".format("https://github.com/seisfwi/SWIT/blob/main/examples/case-07-foothill/model/Foothill_801_331_25m.dat", in_dir))
         os.system("wget {} -P {}".format("https://github.com/seisfwi/SWIT/blob/main/examples/case-07-foothill/model/Foothill_801_331_25m_smooth25.dat", in_dir))
     return
+
+############################################################
+#                   Valhall model
+############################################################
+def download_valhall(in_dir):
+    if not os.path.exists(in_dir):
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/vp_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/rho_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/delta_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/epsilon_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/vnmo_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/eta_true.bin", in_dir))
+        os.system("wget {} -P {}".format("https://www.geoazur.fr/WIND/pub/nfs/FWI-DATA/GEOMODELS/Valhall2D/psimage.sh", in_dir))
+    return
+
+def load_valhall_model(in_dir):
+    download_valhall(in_dir)
+    
+    def load_data(file_path):
+        dtype = dtype = np.float32
+        with open(file_path, 'rb') as f:
+            data = np.fromfile(f, dtype=dtype)
+        data = data.reshape(-1,209).T
+        return data[3:203,:640]
+    
+    vp_true_path = os.path.join(in_dir,"vp_true.bin")
+    rho_true_path = os.path.join(in_dir,"rho_true.bin")
+    
+    vp  = load_data(vp_true_path)
+    rho = load_data(rho_true_path)
+    dx = dz = 25
+    # get the velcoty and dencity
+    nx,ny = vp.shape
+    valhall_model = {}
+    valhall_model['vp']  = vp.T
+    valhall_model['rho'] = rho.T
+    valhall_model['dx'] = 25
+    valhall_model['dz'] = 25
+    valhall_model['x'] = np.arange(ny)*dx
+    valhall_model['z'] = np.arange(nx)*dz
+    return valhall_model
+
+def get_smooth_valhall_model(model, gaussian_kernel=10):
+    
+    # Create copies of the velocity and density models for smoothing
+    vp = model['vp'].copy()
+    rho = model['rho'].copy()
+    # Smooth the entire model
+    vp  = gaussian_filter(vp , [gaussian_kernel, gaussian_kernel], mode='reflect')
+    rho = gaussian_filter(rho, [gaussian_kernel, gaussian_kernel], mode='reflect')
+
+    # Create a new dictionary for the smoothed model data
+    new_model = {
+        'vp': vp,
+        'rho': rho,
+        'x': model['x'],
+        'z': model['z'],
+        'dx': model['dx'],
+        'dz': model['dz']
+    }
+    
+    return new_model
+
+############################################################
+#                   Hess model
+############################################################
+import gzip
+import shutil
+import segyio
+
+def download_hess(in_dir):
+    if not os.path.exists(in_dir):
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_c11.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_c13.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_c33.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_c44.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_crho.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_epsilon.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_delta.segy.gz", in_dir))
+        os.system("wget {} -P {}".format("https://s3.amazonaws.com/open.source.geoscience/open_data/hessvti/timodel_vp.segy.gz", in_dir))
+    return
+
+def load_hess_model(in_dir):
+    download_hess(in_dir)
+    
+    file_list = os.listdir(in_dir)
+    gz_file_list = []
+    for file in file_list:
+        if file.endswith(".gz"):
+            gz_file_list.append(file)
+    
+    for file in gz_file_list:
+        temp_file = file.replace(".gz","")
+        if not temp_file in file_list:
+            segy_gz_path = os.path.join(in_dir,file)
+            segy_path = os.path.join(in_dir,temp_file)
+            with gzip.open(segy_gz_path, 'rb') as read, open(segy_path, 'wb') as write:
+                shutil.copyfileobj(read, write)
+    
+    vp_path = os.path.join(in_dir,"timodel_vp.segy")
+    with segyio.open(vp_path,'r',ignore_geometry=True) as f:
+        vp = np.array([f.trace[i] for i in range(f.tracecount)]).T/3.33333333
+
+    rho_path = os.path.join(in_dir,"timodel_crho.segy")
+    with segyio.open(rho_path,'r',ignore_geometry=True) as f:
+        rho = np.array([f.trace[i] for i in range(f.tracecount)]).T
+
+    delta_path = os.path.join(in_dir,"timodel_delta.segy")
+    with segyio.open(delta_path,'r',ignore_geometry=True) as f:
+        delta = np.array([f.trace[i] for i in range(f.tracecount)]).T
+    
+    epsilon_path = os.path.join(in_dir,"timodel_epsilon.segy")
+    with segyio.open(epsilon_path,'r',ignore_geometry=True) as f:
+        epsilon = np.array([f.trace[i] for i in range(f.tracecount)]).T
+
+    dx = dz = 25
+    # get the velcoty and dencity
+    nz,nx = vp.shape
+    hess_model = {}
+    hess_model['vp']        = vp[:1500,:3600]
+    hess_model['rho']       = rho[:1500,:3600]*1000
+    hess_model['delta']     = delta[:1500,:3600]
+    hess_model['epsilon']   = epsilon[:1500,:3600]
+    hess_model['dx'] = 10
+    hess_model['dz'] = 10
+    hess_model['x'] = np.arange(nx)*dx
+    hess_model['z'] = np.arange(nz)*dz
+    return hess_model
+
+def get_smooth_hess_model(model, gaussian_kernel=10):
+    
+    # Create copies of the velocity and density models for smoothing
+    vp      = model['vp'].copy()
+    rho     = model['rho'].copy()
+    delta   = model['delta'].copy()
+    epsilon = model['epsilon'].copy()
+    
+    # Smooth the entire model
+    vp      = gaussian_filter(vp, [gaussian_kernel, gaussian_kernel], mode='reflect')
+    rho     = gaussian_filter(rho, [gaussian_kernel, gaussian_kernel], mode='reflect')
+    delta   = gaussian_filter(delta, [gaussian_kernel, gaussian_kernel], mode='reflect')
+    epsilon = gaussian_filter(epsilon, [gaussian_kernel, gaussian_kernel], mode='reflect')
+
+    # Create a new dictionary for the smoothed model data
+    new_model = {
+        'vp': vp,
+        'rho': rho,
+        'delta':delta,
+        'epsilon':epsilon,
+        'x': model['x'],
+        'z': model['z'],
+        'dx': model['dx'],
+        'dz': model['dz']
+    }
+    
+    return new_model
+
+from scipy.ndimage import gaussian_filter1d
+
+def get_linear_hess_model(model,smooth_kernel=50,idx=None):
+    """Generate a linear velocity model based on the input Marmousi model.
+
+    Args:
+        model (dict): The original Marmousi model containing velocity and density data.
+        vp_min (float, optional): Minimum value for the primary wave velocity.
+        vp_max (float, optional): Maximum value for the primary wave velocity.
+        vs_min (float, optional): Minimum value for the shear wave velocity.
+        vs_max (float, optional): Maximum value for the shear wave velocity.
+
+    Returns:
+        dict: A new model dictionary with linearly varying velocities and original density.
+    """
+    
+    vp_true  = np.array(model['vp'])
+    rho_true = np.array(model['rho'])
+    delta_true = np.array(model['delta'])
+    eps_true    = np.array(model['epsilon'])
+
+    if idx is None:
+        vp      = np.ones_like(vp_true)*np.mean(vp_true,axis=1).reshape(-1,1)
+        rho     = np.ones_like(rho_true)*np.mean(rho_true,axis=1).reshape(-1,1)
+        epsilon = np.ones_like(eps_true)*np.mean(eps_true,axis=1).reshape(-1,1)
+        delta   = np.ones_like(delta_true)*np.mean(delta_true,axis=1).reshape(-1,1)
+    else:
+        vp      = np.ones_like(vp_true)*vp_true[:,idx].reshape(-1,1)    
+        rho     = np.ones_like(rho_true)*rho_true[:,idx].reshape(-1,1)    
+        epsilon = np.ones_like(eps_true)*eps_true[:,idx].reshape(-1,1)    
+        delta   = np.ones_like(delta_true)*delta_true[:,idx].reshape(-1,1)    
+        
+    vp      = gaussian_filter1d(vp      , sigma=smooth_kernel, axis=0)
+    rho     = gaussian_filter1d(rho     , sigma=smooth_kernel, axis=0)
+    epsilon = gaussian_filter1d(epsilon , sigma=smooth_kernel, axis=0)
+    delta   = gaussian_filter1d(delta   , sigma=smooth_kernel, axis=0)
+    
+    # Create a new dictionary to hold the new model data
+    new_model = {
+        'vp': vp,
+        'rho': rho,
+        'delta':delta,
+        'epsilon':epsilon,
+        'x': model['x'],
+        'z': model['z'],
+        'dx': model['dx'],
+        'dz': model['dz']
+    }
+    
+    return new_model

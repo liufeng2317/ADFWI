@@ -71,15 +71,25 @@ class OutConv(nn.Module):
 
 # General UNet class for any number of layers
 class UNet(nn.Module):
-    def __init__(self, model_shape, n_layers, base_channel, vmin=None, vmax=None, in_channels=1, out_channels=1, bilinear=False, device="cpu"):
+    def __init__(self, model_shape, 
+                 n_layers, 
+                 base_channel, 
+                 vmin=None, 
+                 vmax=None, 
+                 in_channels=1, out_channels=1, 
+                 bilinear=False,
+                 unit = 1000, 
+                 device="cpu"
+                 ):
         super(UNet, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.bilinear = bilinear
+        self.in_channels    = in_channels
+        self.out_channels   = out_channels
+        self.bilinear       = bilinear
+        self.unit = unit
 
-        self.inc = DoubleConv(in_channels, base_channel)
-        self.downs = nn.ModuleList()
-        self.ups = nn.ModuleList()
+        self.inc    = DoubleConv(in_channels, base_channel)
+        self.downs  = nn.ModuleList()
+        self.ups    = nn.ModuleList()
 
         # Create down blocks
         channels = base_channel
@@ -119,5 +129,5 @@ class UNet(nn.Module):
         out = torch.squeeze(out)
         if self.vmin is not None and self.vmax is not None:
             out = ((self.vmax - self.vmin) * torch.tanh(out) + (self.vmax + self.vmin)) / 2
-        out = torch.squeeze(out) * 1000
+        out = torch.squeeze(out) * self.unit
         return out

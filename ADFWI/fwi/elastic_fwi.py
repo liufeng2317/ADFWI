@@ -131,7 +131,7 @@ class ElasticFWI(torch.nn.Module):
         return regularization_loss
     
     # gradient precondition
-    def process_gradient(self, parameter,forw,idx=None):
+    def process_gradient(self, parameter, forw, idx=None):
         with torch.no_grad():
             grads = parameter.grad.cpu().detach().numpy()
             vmax = np.max(parameter.cpu().detach().numpy())
@@ -143,6 +143,7 @@ class ElasticFWI(torch.nn.Module):
             # Convert grads back to tensor and assign
             grads_tensor = numpy2tensor(grads, dtype=self.propagator.dtype).to(self.propagator.device)
             parameter.grad = grads_tensor
+        return
 
     def save_vp_vs_rho_fig(self,epoch_id,vp,vs,rho):
         vp_bound    =  self.model.get_bound("vp")

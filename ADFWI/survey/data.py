@@ -98,6 +98,14 @@ class SeismicData():
         self.dt         = data['dt']
         return
     
+    def normalize_and_mask(self,array):
+        time_sum = np.sum(np.abs(array), axis=1, keepdims=True)
+        mask = time_sum == 0
+        max_val  = np.max(np.abs(array), axis=1, keepdims=True)
+        max_val = np.where(mask, 1, max_val)
+        array = array / max_val
+        return array
+    
     def parse_elastic_data(self,normalize=False):
         txx = self.data["txx"]
         tzz = self.data["tzz"]
@@ -106,10 +114,10 @@ class SeismicData():
         vz  = self.data["vz"]
         pressure = -(txx + tzz)
         if normalize:
-            pressure = pressure/np.max(np.abs(pressure),axis=1,keepdims=True)
-            txz      = txz/np.max(np.abs(txz),axis=1,keepdims=True)
-            vx       = vx/np.max(np.abs(vx),axis=1,keepdims=True)
-            vz       = vz/np.max(np.abs(vz),axis=1,keepdims=True)
+            pressure = self.normalize_and_mask(pressure)
+            txz      = self.normalize_and_mask(txz)
+            vx       = self.normalize_and_mask(vx)
+            vz       = self.normalize_and_mask(vz)
         return pressure,txz,vx,vz
 
     def parse_acoustic_data(self,normalize=False):
@@ -117,9 +125,10 @@ class SeismicData():
         u = self.data["u"]
         w = self.data["w"]
         if normalize:
-            pressure = pressure/np.max(np.abs(pressure),axis=1,keepdims=True)
-            u      = u/np.max(np.abs(u),axis=1,keepdims=True)
-            w      = w/np.max(np.abs(w),axis=1,keepdims=True)
+            pressure = self.normalize_and_mask(pressure)
+            u = self.normalize_and_mask(u)
+            w = self.normalize_and_mask(w)
+
         return pressure,u,w    
     
     def plot_waveform2D(self,i_shot,rcv_type="pressure",acoustic_or_elastic="acoustic",normalize=True,**kwargs):

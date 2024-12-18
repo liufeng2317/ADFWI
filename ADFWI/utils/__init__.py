@@ -13,4 +13,9 @@ from .velocityDemo import (build_layer_model,
                            resample_overthrust_model,
                            build_anomaly_background_model,
                            get_anomaly_model,
-                           get_linear_vel_model)
+                           get_linear_vel_model,
+                           load_valhall_model,
+                           get_smooth_valhall_model,
+                           load_hess_model,
+                           get_smooth_hess_model,
+                           get_linear_hess_model)

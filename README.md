@@ -39,7 +39,7 @@
   - [5. Optimizer Tests](#5-optimizer-tests)
   - [6. Regularization Methods](#6-regularization-methods)
   - [7. Multi-Scale Strategy in FWI](#7-multi-scale-strategy-in-fwi)
-  - [8. Deep Image Prior (Earth Model Reparameterization)](#8-deep-image-prior-earth-model-reparameterization)
+  - [8. Deep Reparameterization](#8-deep-reparameterization)
   - [9. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#9-uncertainty-estimation-using-deep-neural-networks-dnns)
 - [📝 Special Features](#-special-features)
 - [⚖️ LICENSE](#️-license)
@@ -842,7 +842,7 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
 
 ----
 
-### 8. Deep Image Prior (Earth Model Reparameterization)
+### 8. Deep Reparameterization
 
 <div style="text-align: center;">
 <table>
@@ -856,12 +856,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">no-regularization</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/01_Multi-CNN/02_inversion_no_regularization.py">no-regular</a>
+            <a href="./examples/dip/DIP-ADFWI/01_Multi-CNN/02_inversion_no_regularization.py">no-regular</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/dip/01_Multi-CNN/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
+                <img src="./examples/dip/DIP-ADFWI/01_Multi-CNN/data/inversion-no_regularization/inversion_process.gif" alt="no-regular" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -869,12 +869,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">2-Layer CNN</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/01_Multi-CNN/02_inversion_2layer-4-32.py">Example-2LayerCNN</a>
+            <a href="./examples/dip/DIP-ADFWI/01_Multi-CNN/02_inversion_2layer-4-32.py">Example-2LayerCNN</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/inversion_process.gif" alt="2LayerCNN" style="max-width: 300px; height: auto;" />
+                <img src="./examples/dip/DIP-ADFWI/01_Multi-CNN/data/inversion-2layer-4-32/inversion_process.gif" alt="2LayerCNN" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -882,12 +882,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">3-Layer CNN</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/01_Multi-CNN/02_inversion_3layer-16-32-16.py">Example-3LayerCNN</a>
+            <a href="./examples/dip/DIP-ADFWI/01_Multi-CNN/02_inversion_3layer-16-32-16.py">Example-3LayerCNN</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/dip/01_Multi-CNN/data/inversion-3layer-16-32-16/inversion_process.gif" alt="3LayerCNN" style="max-width: 300px; height: auto;" />
+                <img src="./examples/dip/DIP-ADFWI/01_Multi-CNN/data/inversion-3layer-16-32-16/inversion_process.gif" alt="3LayerCNN" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -895,12 +895,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">3-Layer Unet</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/02_Unet/02_inversion_3layer_64channels.py">Example-3LayerUNet</a>
+            <a href="./examples/dip/DIP-ADFWI/02_Unet/02_inversion_3layer_64channels.py">Example-3LayerUNet</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/dip/02_Unet/data/inversion-3layer-64channels/inversion_process.gif" alt="3LayerUNet" style="max-width: 300px; height: auto;" />
+                <img src="./examples/dip/DIP-ADFWI/02_Unet/data/inversion-3layer-64channels/inversion_process.gif" alt="3LayerUNet" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -908,12 +908,12 @@ Multi-scale strategies play a critical role in FWI as they help to mitigate **no
         <td style="text-align: center; vertical-align: middle;">4-Layer Unet</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/02_Unet/02_inversion_4layer_64channels.py">Example-4LayerUNet</a>
+            <a href="./examples/dip/DIP-ADFWI/02_Unet/02_inversion_4layer_64channels.py">Example-4LayerUNet</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/dip/02_Unet/data/inversion-4layer-64channels/inversion_process.gif" alt="4LayerUNet" style="max-width: 300px; height: auto;" />
+                <img src="./examples/dip/DIP-ADFWI/02_Unet/data/inversion-4layer-64channels/inversion_process.gif" alt="4LayerUNet" style="max-width: 300px; height: auto;" />
             </details>
         </td>
     </tr>
@@ -936,10 +936,10 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
         <td style="text-align: center; vertical-align: middle;">2LayerCNN-uncertainty</td>
         <td style="text-align: center; vertical-align: middle;">✅</td>
         <td style="text-align: center; vertical-align: middle;">
-            <a href="./examples/dip/01_Multi-CNN/04_uncertainty_assesment.ipynb">Codes</a>
+            <a href="./examples/dip/DIP-ADFWI/01_Multi-CNN/04_uncertainty_assesment.ipynb">Codes</a>
         </td>
         <td style="text-align: center; vertical-align: middle;">
-            <img src="./examples/dip/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 300px; height: auto;" />
+            <img src="./examples/dip/DIP-ADFWI/01_Multi-CNN/data/inversion-2layer-4-32/Uncertainty_evaluate.png" alt="2LayerCNN-uncertainty" style="max-width: 300px; height: auto;" />
         </td>
     </tr>
 </table>
