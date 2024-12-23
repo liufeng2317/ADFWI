@@ -17,22 +17,7 @@ import numpy as np
 from torchinfo import summary
 
 class DIP_AcousticModel(AbstractModel):
-    """Acoustic Velocity model with parameterization of vp and rho
-    Parameters:
-    --------------
-        ox (float),oz(float)        : Origin of the model in x- and z- direction (m)
-        nx (int),nz(int)            : NUmber of grid points in x- and z- direction (m)
-        dx (float),dz(float)        : Grid size in x- and z- direction (m)
-        vp_bound (tuple,Optional)   : Bounds for the P-wave velocity model, default None
-        rho_bound (tuple,Optional)  : Bounds for the density model, default None
-        vp_grad (bool,Optional)     : Flag for gradient of P-wave velocity model, default is False
-        rho_grad (bool,Optional)    : Flag for gradient of density, default is False
-        free_surface (bool,Optional): Flag for free surface, default is False
-        abc_type (str)              : the type of absorbing boundary conditoin : PML,jerjan and other
-        abc_jerjan_alpha (float)    : the attenuation factor for jerjan boundary condition
-        nabc (int)                  : Number of absorbing boundary cells, default is 20
-        device (str,Optional)       : The runing device
-        dtype (dtypes,Optional)     : The dtypes for pytorch variable, default is torch.float32
+    """Acoustic Velocity model with deep parameterization of vp or rho
     """
     def __init__(self,
                 ox:float,oz:float,
@@ -54,6 +39,28 @@ class DIP_AcousticModel(AbstractModel):
                 device                                           = 'cpu',
                 dtype                                            = torch.float32
                 )->None:
+        """
+        Parameters:
+        --------------
+        ox (float), oz (float)                               : Non use, the origin coordinates of the model in the x- and z- directions (in meters).
+        nx (int), nz (int)                                   : The number of grid points in the x- and z- directions.
+        dx (float), dz (float)                               : The grid spacing in the x- and z- directions (in meters).
+        DIP_model_vp                                         : reparameterized vp using a deep neural network, by default None
+        DIP_model_rho                                        : reparameterized rho using a deep neural network, by default None
+        vp_init                                              : the initial vp model
+        rho_init                                             : the initial rho model
+        vp_bound (Optional[Tuple[float, float]])             : The lower and upper bounds for the P-wave velocity model. Default is None.
+        rho_bound (Optional[Tuple[float, float]])            : The lower and upper bounds for the density model. Default is None.
+        auto_update_rho (Optional[bool])                     : Whether to automatically update the density model during inversion. Default is True.
+        auto_update_vp (Optional[bool])                      : Whether to automatically update the P-wave velocity model during inversion. Default is False.
+        water_layer_mask (Optional[Union[np.array, Tensor]]) : A mask for the water layer (not update), if applicable. Default is None.
+        free_surface (Optional[bool])                        : A flag to indicate the presence of a free surface in the model. Default is False.
+        abc_type (Optional[str])                             : The type of absorbing boundary condition used in the model. Options include 'PML' and 'Jerjan'. Default is 'PML'.
+        abc_jerjan_alpha (Optional[float])                   : The attenuation factor for the Jerjan boundary condition. Default is 0.0053.
+        nabc (Optional[int])                                 : The number of grid cells dedicated to the absorbing boundary, default is 20.
+        device (str)                                         : The device on which to run the model. Options are 'cpu' or 'cuda'. Default is 'cpu'.
+        dtype (torch.dtype)                                  : The data type for PyTorch tensors. Default is torch.float32.
+        """
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
         

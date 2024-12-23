@@ -41,15 +41,20 @@ class DIP_AcousticFWI(torch.nn.Module):
         """
         Parameters:
         --------------
-            propagator (Acoustic Propagator)                : the propagator for the isotropic elastic wave
-            model (Model)                                   : the velocity model class
-            optimizer (torch.optim.Optimizer)               : the pytorch optimizer
-            scheduler (torch.optim.scheduler)               : the pytorch learning rate decay scheduler
-            loss_fn   (Misfit or torch.autograd.Function)   : the misfit function
-            obs_data  (SeismicData)                         : the observed dataset
-            gradient_processor (GradProcessor)              : the gradient processor
-            waveform_normalize (bool)   : normalize the waveform or not, default True
-            cache_result (bool)         : save the temp result of the inversion or not
+        propagator (AcousticPropagator)                                : The propagator used for simulating acoustic wave propagation.
+        model (AbstractModel)                                          : The model class representing the velocity or acoustic property structure.
+        optimizer (torch.optim.Optimizer)                              : The optimizer used for parameter optimization (e.g., SGD, Adam).
+        scheduler (torch.optim.lr_scheduler)                           : The learning rate scheduler for adjusting the learning rate during training.
+        loss_fn (Union[Misfit, torch.autograd.Function])               : The loss function or misfit function used to compute the difference between predicted and observed data.
+        obs_data (SeismicData)                                         : The observed seismic data for comparison against the model predictions.
+        gradient_processor (Union[GradProcessor, List[GradProcessor]]) : The gradient processor or list of processors for handling gradients, applied to different parameters if specified.
+        regularization_fn (Optional[Regularization])                   : The regularization function for model parameters (e.g., for smoothing or penalty terms). Default is None.
+        regularization_weights_x (Optional[List[Union[float]]])        : Regularization weights for the x direction (e.g., vp/rho regularization). Default is [0, 0].
+        regularization_weights_z (Optional[List[Union[float]]])        : Regularization weights for the z direction (e.g., vp/rho regularization). Default is [0, 0].
+        waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
+        cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
+        save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
+        save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).
         """
         super().__init__()
         self.propagator                 = propagator
@@ -72,12 +77,20 @@ class DIP_AcousticFWI(torch.nn.Module):
         if not isinstance(self.scheduler, list):
             self.scheduler = [self.scheduler]
 
+        # receiver masks
+        receiver_masks = self.propagator.receiver_masks
+        if receiver_masks is None:
+            receiver_masks = np.ones((self.propagator.src_n,self.propagator.rcv_n))
+        receiver_masks = numpy2tensor(receiver_masks).to(self.device)
+        self.receiver_masks = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1)  # [shot, time, rcv]
+
         # observed data
         self.waveform_normalize = waveform_normalize
         obs_p   = self.obs_data.data["p"]
         obs_p   = numpy2tensor(obs_p,self.dtype).to(self.device)
+        obs_p   = obs_p*self.receiver_masks
         if self.waveform_normalize:
-            obs_p = obs_p/(torch.max(torch.abs(obs_p),axis=1,keepdim=True).values)
+            obs_p = self._normalize(obs_p)
         self.obs_p = obs_p
         
         # model boundary
@@ -106,13 +119,20 @@ class DIP_AcousticFWI(torch.nn.Module):
         self.save_fig_epoch = save_fig_epoch
         self.save_fig_path  = save_fig_path
 
+    def _normalize(self,data):
+        mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
+        max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values
+        max_val = max_val.masked_fill(mask, 1)
+        data = data/max_val
+        return data
+    
     # misfits calculation
     def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
         """
         Generalized function to calculate misfit loss for a given component.
         """
         if normalization:
-            synthetic_waveform = synthetic_waveform / (torch.max(torch.abs(synthetic_waveform), axis=1, keepdim=True).values)
+            synthetic_waveform = self._normalize(synthetic_waveform)
         # Apply low-pass filter if cutoff frequency is provided
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
@@ -170,10 +190,11 @@ class DIP_AcousticFWI(torch.nn.Module):
         """
         Parameters:
         ------------
-            iteration (int)             : the iteration number of inversion
-            fd_order (int)              : the order of finite difference
-            batch_size (int)            : the shots for each batch, default -1 means use all the shots
-            checkpoint_segments (int)   : seperate all the time seris into N segments for saving memory, default 1
+        iteration (int)                     : The maximum iteration number in the inversion process.
+        batch_size (Optional[int])          : The number of shots (data samples) in each batch. Default is None, meaning use all available shots.
+        checkpoint_segments (Optional[int]) : The number of segments into which the time series should be divided for memory efficiency. Default is 1, which means no segmentation.
+        start_iter (int)                    : The starting iteration for the optimization process (e.g., for optimizers like Adam/AdamW, and learning rate schedulers like step_lr). Default is 0.
+        cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
         n_shots = self.propagator.src_n
         if batch_size is None or batch_size > n_shots:
@@ -201,7 +222,9 @@ class DIP_AcousticFWI(torch.nn.Module):
                     forw  = forward_wavefield_p.cpu().detach().numpy()
                 else:
                     forw += forward_wavefield_p.cpu().detach().numpy()
-                syn_p   = rcv_p
+                
+                receiver_mask = self.receiver_masks[shot_index]
+                syn_p   = rcv_p*receiver_mask
                 data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 
                 # regularization
