@@ -33,11 +33,15 @@ class Misfit_waveform_L2(Misfit):
         Returns:
             Tensor: L2-norm misfit loss.
         '''
+        mask1    = torch.sum(torch.abs(obs),axis=1) == 0
+        mask2    = torch.sum(torch.abs(syn),axis=1) == 0
+        mask     = ~(mask1 * mask2)
+        
         # Calculate residuals by subtracting synthetic from observed data
         rsd = obs - syn
 
         # Compute the L2-norm loss as the square root of the sum of squared residuals, weighted by dt
         # Summation along axis=1 (channels) for each sample, then take square root and sum over all samples
-        loss = torch.sum(torch.sqrt(torch.sum(rsd * rsd * self.dt, axis=1)))
+        loss = torch.sum(torch.sqrt(torch.sum(rsd * rsd * self.dt, axis=1)[mask]))
         
         return loss

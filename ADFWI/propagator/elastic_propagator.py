@@ -95,6 +95,7 @@ class ElasticPropagator(torch.nn.Module):
         self.rcv_z          = numpy2tensor(self.rcv_loc[:,1],torch.long).to(self.device)
         self.rcv_n          = self.receiver.num
         
+        self.receiver_masks = self.survey.receiver_masks
         
     def boundary_condition(self):
         if self.abc_type == "PML":

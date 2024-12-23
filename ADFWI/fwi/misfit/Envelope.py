@@ -97,12 +97,17 @@ class Misfit_envelope(Misfit):
         Returns:
             Tensor: Envelope or phase difference loss.
         '''
+        mask1    = torch.sum(torch.abs(obs),axis=1) == 0
+        mask2    = torch.sum(torch.abs(syn),axis=1) == 0
+        mask     = ~(mask1 * mask2)
+        
         device = obs.device
         rsd = torch.zeros((obs.shape[0], obs.shape[2], obs.shape[1]), device=device)  # Residual storage
         
         for ishot in range(obs.shape[0]):
-            obs_shot = obs[ishot].T  # Transpose to [trace, time series]
-            syn_shot = syn[ishot].T
+            trace_idx = torch.argwhere(mask[ishot]).reshape(-1)
+            obs_shot = obs[ishot,:,trace_idx].squeeze().T  # Transpose to [trace, time series]
+            syn_shot = syn[ishot,:,trace_idx].squeeze().T
             
             # Hilbert transform to get analytic signal
             analytic_signal_obs = hilbert(obs_shot)
@@ -116,10 +121,10 @@ class Misfit_envelope(Misfit):
                 # Use instantaneous phase for misfit
                 phase_obs = unwrap(torch.angle(analytic_signal_obs))
                 phase_syn = unwrap(torch.angle(analytic_signal_syn))
-                rsd[ishot] = phase_obs - phase_syn
+                rsd[ishot,trace_idx,:] = (phase_obs - phase_syn).unsqueeze(0)
             else:
                 # Compute envelope difference with norm p
-                rsd[ishot] = envelopes_syn**self.p - envelopes_obs**self.p
+                rsd[ishot,trace_idx,:] = (envelopes_syn**self.p - envelopes_obs**self.p).unsqueeze(0)
 
         # Compute final loss based on the selected norm
         if self.norm == "L1":

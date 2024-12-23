@@ -33,34 +33,37 @@ class Misfit_global_correlation(Misfit):
         Returns:
             Tensor: Correlation-based misfit loss.
         """
-        # Compute norms
-        obs_norm = obs.norm(dim=1, keepdim=True)  # Shape: (N, 1, M)
-        syn_norm = syn.norm(dim=1, keepdim=True)  # Shape: (N, 1, M)
-
-        # Normalize the observed and synthetic waveforms
-        obs_normalized = obs / obs_norm
-        syn_normalized = syn / syn_norm
-
+        mask1    = torch.sum(torch.abs(obs),axis=1) == 0
+        mask2    = torch.sum(torch.abs(syn),axis=1) == 0
+        mask     = ~(mask1 * mask2)
+        
         # Initialize result tensor
-        rsd = torch.empty(obs.shape[0], obs.shape[2], device=obs.device)
+        rsd = torch.zeros((obs.shape[0], obs.shape[2]), device=obs.device)
 
         # Compute correlation for each trace
         for itrace in range(obs.shape[2]):
-            obs_trace = obs_normalized[:, :, itrace]  # Shape: (N, T)
-            syn_trace = syn_normalized[:, :, itrace]  # Shape: (N, T)
-
+            shot_idx  = torch.argwhere(mask[:,itrace])
+            obs_trace = obs[shot_idx, :, itrace].squeeze()  # Shape: (N, T)
+            syn_trace = syn[shot_idx, :, itrace].squeeze()  # Shape: (N, T)
+            
+            obs_trace_norm = obs_trace.norm(dim=1, keepdim=True)
+            syn_trace_norm = syn_trace.norm(dim=1, keepdim=True)
+            
+            obs_trace = obs_trace/obs_trace_norm
+            syn_trace = syn_trace/syn_trace_norm
+            
             # Calculate covariance and variances
-            cov = torch.mean(obs_trace * syn_trace, dim=1)  # Shape: (N,)
-            var_obs = torch.var(obs_trace, dim=1)  # Shape: (N,)
-            var_syn = torch.var(syn_trace, dim=1)  # Shape: (N,)
+            cov     = torch.mean(obs_trace * syn_trace, dim=1)  # Shape: (N,)
+            var_obs = torch.var(obs_trace, dim=1)               # Shape: (N,)
+            var_syn = torch.var(syn_trace, dim=1)               # Shape: (N,)
 
             # Avoid division by zero by masking
             corr = cov / (torch.sqrt(var_obs * var_syn) + 1e-8)  # Adding small value to avoid div by zero
 
             # Handle the case where both variances are zero
             corr[torch.isnan(corr)] = 0  # If both variances are zero, set correlation to zero
-
-            rsd[:, itrace] = -corr
+            
+            rsd[shot_idx, itrace] = -corr.reshape(-1,1)
         
         loss = torch.sum(rsd * self.dt)
         return loss

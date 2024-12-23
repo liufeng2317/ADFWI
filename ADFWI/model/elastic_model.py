@@ -21,26 +21,6 @@ from ADFWI.survey import Survey
 
 class IsotropicElasticModel(AbstractModel):
     """Isotropic Elastic Velocity model with parameterization of vp vs and rho
-    Parameters:
-    --------------
-        ox (float),oz(float)        : Origin of the model in x- and z- direction (m)
-        nx (int),nz(int)            : NUmber of grid points in x- and z- direction (m)
-        dx (float),dz(float)        : Grid size in x- and z- direction (m)
-        vp (array)                  : P-wave velocity model with shape (nz,nx)
-        vs (array)                  : S-wave velocity model with shape (nz,nx)
-        rho (array)                 : density model with shape (nz,nx)
-        vp_bound (tuple,Optional)   : Bounds for the P-wave velocity model, default None
-        vs_bound (tuple,Optional)   : Bounds for the S-wave velocity model, default None
-        rho_bound (tuple,Optional)  : Bounds for the density model, default None
-        vp_grad (bool,Optional)     : Flag for gradient of S-wave velocity model, default is False
-        vs_grad (bool,Optional)     : Flag for gradient of P-wave velocity model, default is False
-        rho_grad (bool,Optional)    : Flag for gradient of density, default is False
-        free_surface (bool,Optional): Flag for free surface, default is False
-        abc_type (str)              : the type of absorbing boundary conditoin : PML,jerjan and other
-        abc_jerjan_alpha (float)    : the attenuation factor for jerjan boundary condition
-        nabc (int)                  : Number of absorbing boundary cells, default is 20
-        device (str,Optional)       : The runing device
-        dtype (dtypes,Optional)     : The dtypes for pytorch variable, default is torch.float32
     """
     def __init__(self,
                 ox:float,oz:float,
@@ -65,6 +45,31 @@ class IsotropicElasticModel(AbstractModel):
                 device                                           = 'cpu',
                 dtype                                            = torch.float32
                 )->None:
+        """
+        Parameters:
+        --------------
+        ox (float), oz (float)                   : Non use, the origin coordinates of the model in the x- and z- directions (in meters).
+        nx (int), nz (int)                       : The number of grid points in the x- and z- directions.
+        dx (float), dz (float)                   : The grid spacing in the x- and z- directions (in meters).
+        vp (Optional[Union[np.array, Tensor]])   : P-wave velocity model with shape (nz, nx). Default is None.
+        vs (Optional[Union[np.array, Tensor]])   : S-wave velocity model with shape (nz, nx). Default is None.
+        rho (Optional[Union[np.array, Tensor]])  : Density model with shape (nz, nx). Default is None.
+        vp_bound (Optional[Tuple[float, float]]) : The lower and upper bounds for the P-wave velocity model. Default is None.
+        vs_bound (Optional[Tuple[float, float]]) : The lower and upper bounds for the S-wave velocity model. Default is None.
+        rho_bound (Optional[Tuple[float, float]]): The lower and upper bounds for the density model. Default is None.
+        vp_grad (Optional[bool])                 : A flag to indicate if the gradient of the P-wave velocity model is needed. Default is False.
+        vs_grad (Optional[bool])                 : A flag to indicate if the gradient of the S-wave velocity model is needed. Default is False.
+        rho_grad (Optional[bool])                : A flag to indicate if the gradient of the density model is needed. Default is False.
+        free_surface (Optional[bool])            : A flag to indicate the presence of a free surface in the model. Default is False.
+        abc_type (Optional[str])                 : The type of absorbing boundary condition used in the model. Options include 'PML', 'Jerjan', etc. Default is 'PML'.
+        abc_jerjan_alpha (Optional[float])       : The attenuation factor for the Jerjan boundary condition. Default is 0.0053.
+        nabc (Optional[int])                     : The number of grid cells dedicated to the absorbing boundary. Default is 20.
+        auto_update_rho (Optional[bool])         : Whether to automatically update the density model during inversion. Default is True.
+        auto_update_vp (Optional[bool])          : Whether to automatically update the P-wave velocity model during inversion. Default is False.
+        water_layer_mask (Optional[Union[np.array, Tensor]]) : A mask for the water layer (not update), if applicable. Default is None.
+        device (str)                             : The device on which to run the model. Options are 'cpu' or 'cuda'. Default is 'cpu'.
+        dtype (torch.dtype)                      : The data type for PyTorch tensors. Default is torch.float32.
+        """
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
 
@@ -270,37 +275,7 @@ class IsotropicElasticModel(AbstractModel):
     
     
 class AnisotropicElasticModel(AbstractModel):
-    """AnIsotropic Elastic Velocity model with parameterization of vp vs and rho
-    Parameters:
-    --------------
-        ox (float),oz(float)        : Origin of the model in x- and z- direction (m)
-        nx (int),nz(int)            : NUmber of grid points in x- and z- direction (m)
-        dx (float),dz(float)        : Grid size in x- and z- direction (m)
-        vp (array)                  : P-wave velocity model with shape (nz,nx)
-        vs (array)                  : S-wave velocity model with shape (nz,nx)
-        rho (array)                 : density model with shape (nz,nx)
-        eps (array)                 : anisotropic parameters: epsilon with shape (nz,nx)
-        gamma (array)               : anisotropic parameters: gamma with shape (nz,nx)
-        delta (array)               : anisotropic parameters: delta with shape (nz,nx)
-        vp_bound (tuple,Optional)   : Bounds for the P-wave velocity model, default None
-        vs_bound (tuple,Optional)   : Bounds for the S-wave velocity model, default None
-        rho_bound (tuple,Optional)  : Bounds for the density model, default None
-        eps_bound (tuple,Optional)  : Bounds for the eps model, default None
-        gamma_bound (tuple,Optional): Bounds for the gamma model, default None
-        delta_bound (tuple,Optional): Bounds for the delta model, default None
-        vp_grad (bool,Optional)     : Flag for gradient of S-wave velocity model, default is False
-        vs_grad (bool,Optional)     : Flag for gradient of P-wave velocity model, default is False
-        rho_bound (tuple,Optional)  : Bounds for the density model, default None
-        rho_grad (bool,Optional)    : Flag for gradient of density, default is False
-        eps_grad (bool,Optional)    : Flag for gradient of eps, default is False
-        gamma_grad (bool,Optional)  : Flag for gradient of gamma, default is False
-        delta_grad (bool,Optional)  : Flag for gradient of delta, default is False
-        free_surface (bool,Optional): Flag for free surface, default is False
-        abc_type (str)              : the type of absorbing boundary conditoin : PML,jerjan and other
-        abc_jerjan_alpha (float)    : the attenuation factor for jerjan boundary condition
-        nabc (int)                  : Number of absorbing boundary cells, default is 20
-        device (str,Optional)       : The runing device
-        dtype (dtypes,Optional)     : The dtypes for pytorch variable, default is torch.float32
+    """AnIsotropic Elastic Velocity model with parameterization of vp vs rho eps and delta. (VTI/HTI)
     """
     def __init__(self,
                 ox:float,oz:float,
@@ -335,6 +310,41 @@ class AnisotropicElasticModel(AbstractModel):
                 device                                      = 'cpu',
                 dtype                                       = torch.float32
                 )->None:
+        """
+        Parameters:
+        --------------
+        ox (float), oz (float)                      : Non use, the origin coordinates of the model in the x- and z- directions (meters).
+        nx (int), nz (int)                          : The number of grid points in the x- and z- directions.
+        dx (float), dz (float)                      : The grid spacing in the x- and z- directions (meters).
+        vp (Optional[Union[np.array, Tensor]])      : P-wave velocity model with shape (nz, nx). Default is None.
+        vs (Optional[Union[np.array, Tensor]])      : S-wave velocity model with shape (nz, nx). Default is None.
+        rho (Optional[Union[np.array, Tensor]])     : Density model with shape (nz, nx). Default is None.
+        eps (Optional[Union[np.array, Tensor]])     : Anisotropic parameter epsilon (vti/hti model), shape (nz, nx). Default is None.
+        gamma (Optional[Union[np.array, Tensor]])   : Anisotropic parameter gamma (vti/hti model), shape (nz, nx). Default is None.
+        delta (Optional[Union[np.array, Tensor]])   : Anisotropic parameter delta (vti/hti model), shape (nz, nx). Default is None.
+        vp_bound (Optional[Tuple[float, float]])    : The lower and upper bounds for the P-wave velocity model. Default is None.
+        vs_bound (Optional[Tuple[float, float]])    : The lower and upper bounds for the S-wave velocity model. Default is None.
+        rho_bound (Optional[Tuple[float, float]])   : The lower and upper bounds for the density model. Default is None.
+        eps_bound (Optional[Tuple[float, float]])   : The lower and upper bounds for epsilon. Default is None.
+        gamma_bound (Optional[Tuple[float, float]]) : The lower and upper bounds for gamma. Default is None.
+        delta_bound (Optional[Tuple[float, float]]) : The lower and upper bounds for delta. Default is None.
+        vp_grad (Optional[bool])                    : Whether to compute the gradient of P-wave velocity. Default is False.
+        vs_grad (Optional[bool])                    : Whether to compute the gradient of S-wave velocity. Default is False.
+        rho_grad (Optional[bool])                   : Whether to compute the gradient of the density model. Default is False.
+        eps_grad (Optional[bool])                   : Whether to compute the gradient of epsilon. Default is False.
+        gamma_grad (Optional[bool])                 : Whether to compute the gradient of gamma. Default is False.
+        delta_grad (Optional[bool])                 : Whether to compute the gradient of delta. Default is False.
+        free_surface (Optional[bool])               : Whether to include a free surface in the model. Default is False.
+        anisotropic_type (Optional[str])            : Type of anisotropic model ('vti', 'hti', etc.). Default is 'vti'.
+        abc_type (Optional[str])                    : Type of absorbing boundary condition ('PML', 'Jerjan', etc.). Default is 'PML'.
+        abc_jerjan_alpha (Optional[float])          : Attenuation factor for Jerjan boundary condition. Default is 0.0053.
+        nabc (Optional[int])                        : Number of absorbing boundary cells. Default is 20.
+        auto_update_rho (Optional[bool])            : Whether to auto-update the density model during inversion. Default is False.
+        auto_update_vp (Optional[bool])             : Whether to auto-update the P-wave velocity model during inversion. Default is False.
+        water_layer_mask (Optional[Union[np.array, Tensor]]) : Mask for the water layer (not update), if applicable. Default is None.
+        device (str)                                : Device for running the model ('cpu' or 'cuda'). Default is 'cpu'.
+        dtype (torch.dtype)                         : Data type for PyTorch tensors. Default is torch.float32.
+        """
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
 

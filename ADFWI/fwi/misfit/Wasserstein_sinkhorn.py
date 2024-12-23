@@ -36,14 +36,18 @@ class Misfit_wasserstein_sinkhorn(Misfit):
 
     def forward(self,obs,syn):
         device = obs.device
+        mask1    = torch.sum(torch.abs(obs),axis=1) == 0
+        mask2    = torch.sum(torch.abs(syn),axis=1) == 0
+        mask     = ~(mask1 * mask2)
         p=self.p
         blur=self.blur
         # define the misfit function
         rsd = torch.zeros((obs.shape[0],obs.shape[2])).to(device)
         for ishot in range(obs.shape[0]):
+            trace_idx = torch.argwhere(mask[ishot]).reshape(-1)
             misfit_fun = SamplesLoss(loss=self.loss_method,p=p,blur=blur,scaling=self.scaling)
-            obs_shot = obs[ishot,::self.sparse_sampling,:].T                  # [trace,amplitude]
-            syn_shot = syn[ishot,::self.sparse_sampling,:].T                  # [trace,amplitude]
+            obs_shot = obs[ishot,::self.sparse_sampling,trace_idx].squeeze().T                  # [trace,amplitude]
+            syn_shot = syn[ishot,::self.sparse_sampling,trace_idx].squeeze().T                  # [trace,amplitude]
             # concate the time list
             tlist = torch.from_numpy(np.arange(obs_shot.shape[1])*self.dt).to(device).reshape(1,-1)
             tlist = torch.ones_like(obs_shot)*tlist
@@ -51,6 +55,6 @@ class Misfit_wasserstein_sinkhorn(Misfit):
             syn_shot = torch.stack((tlist,syn_shot),dim=-1) # [trace,samples,tlist and amplitude]
             # sinkhorn divergence
             std = misfit_fun(obs_shot,syn_shot)
-            rsd[ishot] = std
+            rsd[ishot,trace_idx] = std.reshape(1,-1)
         loss = torch.sum(rsd*rsd*self.dt)
         return loss

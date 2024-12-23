@@ -36,7 +36,7 @@ class ElasticFWI(torch.nn.Module):
                  regularization_weights_z:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
                  waveform_normalize:Optional[bool]                                       = True,
                  cache_result:Optional[bool]                                             = True,
-                 cache_gradient:Optional[bool]                                           = True,
+                 cache_gradient:Optional[bool]                                           = False,
                  save_fig_epoch:Optional[int]                                            = -1,
                  save_fig_path:Optional[str]                                             = "",
                  inversion_component:Optional[np.array]                                  = ["pressure"],
@@ -44,15 +44,22 @@ class ElasticFWI(torch.nn.Module):
         """
         Parameters:
         --------------
-            propagator (Elastic Propagator)                 : the propagator for the isotropic elastic wave
-            model (Model)                                   : the velocity model class
-            optimizer (torch.optim.Optimizer)               : the pytorch optimizer
-            scheduler (torch.optim.scheduler)               : the pytorch learning rate decay scheduler
-            loss_fn   (Misfit or torch.autograd.Function)   : the misfit function
-            obs_data  (SeismicData)                         : the observed dataset
-            gradient_processor (GradProcessor)              : the gradient processor (Once you give only one parameter and no list, the processor will apply to all parameters)
-            waveform_normalize (bool)   : normalize the waveform or not, default True
-            cache_result (bool)         : save the temp result of the inversion or not
+        propagator (ElasticPropagator)                                          : The propagator used for simulating elastic wave propagation.
+        model (AbstractModel)                                                   : The model class representing the velocity structure.
+        loss_fn (Union[Misfit, torch.autograd.Function])                        : The loss function used to compute the misfit between observed and predicted data.
+        obs_data (SeismicData)                                                  : The observed seismic data.
+        optimizer (Union[torch.optim.Optimizer, List[torch.optim.Optimizer]])   : The optimizer or list of optimizers for model parameters. Default is None.
+        scheduler (Optional[torch.optim.lr_scheduler])                          : The learning rate scheduler for optimizing the model parameters. Default is None.
+        gradient_processor (Union[GradProcessor, List[GradProcessor]])          : Processor(s) for handling gradients (e.g., vp/vs/rho, epsilon/delta/gamma). Default is None.
+        regularization_fn (Optional[Regularization])                            : Regularization function(s) applied to parameters like vp/vs/rho/epsilon/delta/gamma. Default is None.
+        regularization_weights_x (Optional[List[Union[float]]])                 : Regularization weights for the x-axis. Default is [0, 0, 0, 0, 0, 0].
+        regularization_weights_z (Optional[List[Union[float]]])                 : Regularization weights for the z-axis. Default is [0, 0, 0, 0, 0, 0].
+        waveform_normalize (Optional[bool])                                     : Whether to normalize the waveforms during inversion. Default is True.
+        cache_result (Optional[bool])                                           : Whether to save intermediate results during the inversion. Default is True.
+        cache_gradient (Optional[bool])                                         : Whether to save model variations (not gradients) during inversion. Default is False.
+        save_fig_epoch (Optional[int])                                          : The interval (in epochs) at which to save the inversion result figure. Default is -1 (no figure saved).
+        save_fig_path (Optional[str])                                           : The path where to save the inversion result figure. Default is an empty string (no save path).
+        inversion_component (Optional[np.array])                                : The components of the inversion (e.g., ["pressure"]). Default is ["pressure"].
         """
         super().__init__()
         self.propagator                 = propagator
@@ -68,16 +75,23 @@ class ElasticFWI(torch.nn.Module):
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
         
+        # receiver masks
+        receiver_masks = self.propagator.receiver_masks
+        if receiver_masks is None:
+            receiver_masks = np.ones((self.propagator.src_n,self.propagator.rcv_n))
+        receiver_masks = numpy2tensor(receiver_masks).to(self.device)
+        self.receiver_masks = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1)  # [shot, time, rcv]
+
         # observed data
         self.waveform_normalize = waveform_normalize
         obs_p   = -(self.obs_data.data["txx"]+self.obs_data.data["tzz"])
-        obs_p   = numpy2tensor(obs_p,self.dtype).to(self.device)
-        obs_vx  = numpy2tensor(self.obs_data.data["vx"],self.dtype).to(self.device)
-        obs_vz  = numpy2tensor(self.obs_data.data["vz"],self.dtype).to(self.device)
+        obs_p   = (numpy2tensor(obs_p,self.dtype).to(self.device))*self.receiver_masks
+        obs_vx  = (numpy2tensor(self.obs_data.data["vx"],self.dtype).to(self.device))*self.receiver_masks
+        obs_vz  = (numpy2tensor(self.obs_data.data["vz"],self.dtype).to(self.device))*self.receiver_masks
         if self.waveform_normalize:
-            obs_p  =  obs_p/(torch.max(torch.abs(obs_p) ,axis=1,keepdim=True).values)
-            obs_vx = obs_vx/(torch.max(torch.abs(obs_vx),axis=1,keepdim=True).values)
-            obs_vz = obs_vz/(torch.max(torch.abs(obs_vz),axis=1,keepdim=True).values)
+            obs_p  = self._normalize(obs_p)
+            obs_vx = self._normalize(obs_vx)
+            obs_vz = self._normalize(obs_vz)
         self.obs_p = obs_p
         self.obs_vx = obs_vx
         self.obs_vz = obs_vz
@@ -97,6 +111,13 @@ class ElasticFWI(torch.nn.Module):
         
         # inversion component
         self.inversion_component = inversion_component
+    
+    def _normalize(self,data):
+        mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
+        max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values
+        max_val = max_val.masked_fill(mask, 1)
+        data = data/max_val
+        return data
     
     # misfits calculation
     def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
@@ -294,10 +315,12 @@ class ElasticFWI(torch.nn.Module):
         """
         Parameters:
         ------------
-            iteration (int)             : the iteration number of inversion
-            fd_order (int)              : the order of finite difference
-            batch_size (int)            : the shots for each batch, default -1 means use all the shots
-            checkpoint_segments (int)   : seperate all the time seris into N segments for saving memory, default 1
+        iteration (int)                     : The maximum iteration number in the inversion process.
+        fd_order (int)                      : The order of the finite difference scheme for wave propagation. Default is 4.
+        batch_size (Optional[int])          : The number of shots (data samples) in each batch. Default is None, meaning use all available shots.
+        checkpoint_segments (Optional[int]) : The number of segments into which the time series should be divided for memory efficiency. Default is 1, which means no segmentation.
+        start_iter (int)                    : The starting iteration for the optimization process (e.g., for optimizers like Adam/AdamW, and learning rate schedulers like step_lr). Default is 0.
+        cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
         n_shots = self.propagator.src_n
         if batch_size is None or batch_size > n_shots:
@@ -321,17 +344,21 @@ class ElasticFWI(torch.nn.Module):
                 
                 # misfits
                 loss_pressure, loss_vx, loss_vz = 0, 0, 0
+                receiver_mask = self.receiver_masks[shot_index]
                 if "pressure" in self.inversion_component:
                     if batch == 0:
                         forw  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
                     else:
                         forw += -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
                     syn_p = -(rcv_txx + rcv_tzz)
+                    syn_p = syn_p*receiver_mask
                     loss_pressure = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vx" in self.inversion_component:
                     forw = forward_wavefield_vx.cpu().detach().numpy()
+                    rcv_vx = rcv_vx*receiver_mask
                     loss_vx = self.calculate_loss(rcv_vx, self.obs_vx[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vz" in self.inversion_component:
+                    rcv_vz = rcv_vz*receiver_mask
                     forw = forward_wavefield_vz.cpu().detach().numpy()
                     loss_vz = self.calculate_loss(rcv_vz, self.obs_vz[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 data_loss = loss_pressure + loss_vx + loss_vz
