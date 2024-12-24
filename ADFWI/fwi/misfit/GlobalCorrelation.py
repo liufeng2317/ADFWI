@@ -43,9 +43,9 @@ class Misfit_global_correlation(Misfit):
         # Compute correlation for each trace
         for itrace in range(obs.shape[2]):
             shot_idx  = torch.argwhere(mask[:,itrace])
-            obs_trace = obs[shot_idx, :, itrace].squeeze()  # Shape: (N, T)
-            syn_trace = syn[shot_idx, :, itrace].squeeze()  # Shape: (N, T)
-            
+            obs_trace = obs[shot_idx, :, itrace].squeeze(axis=1)  # Shape: (N, T)
+            syn_trace = syn[shot_idx, :, itrace].squeeze(axis=1)  # Shape: (N, T)
+
             obs_trace_norm = obs_trace.norm(dim=1, keepdim=True)
             syn_trace_norm = syn_trace.norm(dim=1, keepdim=True)
             

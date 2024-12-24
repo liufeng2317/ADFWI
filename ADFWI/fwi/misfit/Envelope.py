@@ -106,8 +106,8 @@ class Misfit_envelope(Misfit):
         
         for ishot in range(obs.shape[0]):
             trace_idx = torch.argwhere(mask[ishot]).reshape(-1)
-            obs_shot = obs[ishot,:,trace_idx].squeeze().T  # Transpose to [trace, time series]
-            syn_shot = syn[ishot,:,trace_idx].squeeze().T
+            obs_shot = obs[ishot,:,trace_idx].squeeze(axis=0).T  # Transpose to [trace, time series]
+            syn_shot = syn[ishot,:,trace_idx].squeeze(axis=0).T
             
             # Hilbert transform to get analytic signal
             analytic_signal_obs = hilbert(obs_shot)

@@ -46,8 +46,8 @@ class Misfit_wasserstein_sinkhorn(Misfit):
         for ishot in range(obs.shape[0]):
             trace_idx = torch.argwhere(mask[ishot]).reshape(-1)
             misfit_fun = SamplesLoss(loss=self.loss_method,p=p,blur=blur,scaling=self.scaling)
-            obs_shot = obs[ishot,::self.sparse_sampling,trace_idx].squeeze().T                  # [trace,amplitude]
-            syn_shot = syn[ishot,::self.sparse_sampling,trace_idx].squeeze().T                  # [trace,amplitude]
+            obs_shot = obs[ishot,::self.sparse_sampling,trace_idx].squeeze(axis=0).T                  # [trace,amplitude]
+            syn_shot = syn[ishot,::self.sparse_sampling,trace_idx].squeeze(axis=0).T                  # [trace,amplitude]
             # concate the time list
             tlist = torch.from_numpy(np.arange(obs_shot.shape[1])*self.dt).to(device).reshape(1,-1)
             tlist = torch.ones_like(obs_shot)*tlist
