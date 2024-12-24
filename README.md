@@ -1052,20 +1052,25 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 ---
 ## 🔰 Contact
 
-Developed by **Feng Liu** at the University of Science and Technology of China (USTC) and Shanghai Jiao Tong University (SJTU).
-
-The related paper ***Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows*** is currently in preparation.
-
-For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.cn](mailto:liufeng2317@sjtu.edu.cn) or [liufeng2317@mail.ustc.edu.cn](mailto:liufeng2317@mail.ustc.edu.cn).
+This project was developed by **Feng Liu** at the University of Science and Technology of China (USTC) and Shanghai Jiao Tong University (SJTU). For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.cn](mailto:liufeng2317@sjtu.edu.cn) or [liufeng2317@mail.ustc.edu.cn](mailto:liufeng2317@mail.ustc.edu.cn).
 
 
+
+The related paper, [Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows](https://arxiv.org/abs/2412.00486), is available on Arxiv (https://arxiv.org/abs/2412.00486). If you find ADFWI useful, please consider citing the following reference:
+```
+Liu, F., Li, H., Zou, G., & Li, J.. Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows[J]. arXiv preprint arXiv:2412.00486, 2024.
+```
+
+or/and the software
 
 ```bibtex
 @software{ADFWI_LiuFeng_2024,
   author       = {Feng Liu, Haipeng Li, GuangYuan Zou and Junlun Li},
   title        = {ADFWI},
-  month        = July,
+  month        = dec,
   year         = 2024,
-  version      = {v1.0},
+  version      = {v1.1.2},
+  doi          = {10.5281/zenodo.14261243},
+  url          = {https://doi.org/10.5281/zenodo.14261243},
 }
 ```
