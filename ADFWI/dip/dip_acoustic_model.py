@@ -25,6 +25,7 @@ class DIP_AcousticModel(AbstractModel):
                 dx:float,dz:float,
                 DIP_model_vp                                     = None,     # deep image prior models
                 DIP_model_rho                                    = None,
+                reparameterization_strategy                      = "vel",       # vel/vel_diff
                 vp_init:Optional[Union[np.array,Tensor]]         = None,     # initial model parameter
                 rho_init:Optional[Union[np.array,Tensor]]        = None,
                 vp_bound    : Optional[Tuple[float, float]]      = None,     # model parameter's boundary
@@ -47,8 +48,9 @@ class DIP_AcousticModel(AbstractModel):
         dx (float), dz (float)                               : The grid spacing in the x- and z- directions (in meters).
         DIP_model_vp                                         : reparameterized vp using a deep neural network, by default None
         DIP_model_rho                                        : reparameterized rho using a deep neural network, by default None
-        vp_init                                              : the initial vp model
-        rho_init                                             : the initial rho model
+        reparameterization_strategy (str)                    : reparameterization strategy (vel for generating velocity model and vel_diff for generating velocity variation)
+        vp_init                                              : the initial vp model (must when use the vel_diff strategy)
+        rho_init                                             : the initial rho model (must when use the vel_diff strategy)
         vp_bound (Optional[Tuple[float, float]])             : The lower and upper bounds for the P-wave velocity model. Default is None.
         rho_bound (Optional[Tuple[float, float]])            : The lower and upper bounds for the density model. Default is None.
         auto_update_rho (Optional[bool])                     : Whether to automatically update the density model during inversion. Default is True.
@@ -63,6 +65,7 @@ class DIP_AcousticModel(AbstractModel):
         """
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
+        self.reparameterization_strategy = reparameterization_strategy
         
         # update rho/vp using the empirical function
         self.auto_update_rho = auto_update_rho
@@ -80,13 +83,10 @@ class DIP_AcousticModel(AbstractModel):
         
         # initialize the model parameters
         self.pars       = ["vp","rho"]
-            
-        if vp_init is not None:
-            self.vp_init    = numpy2tensor(vp_init,dtype=dtype).to(device)
-        if rho_init is not None:
-            self.rho_init   = numpy2tensor(rho_init,dtype=dtype).to(device)
-        self.vp             = torch.zeros((nz,nx),dtype=dtype).to(device) if  vp_init is None else self.vp_init.clone()
-        self.rho            = torch.zeros((nz,nx),dtype=dtype).to(device) if rho_init is None else self.rho_init.clone()
+        self.vp_init    = torch.zeros((nz,nx),dtype=dtype).to(device) if  vp_init is None else numpy2tensor(vp_init,dtype=dtype).to(device)
+        self.rho_init   = torch.zeros((nz,nx),dtype=dtype).to(device) if rho_init is None else numpy2tensor(rho_init,dtype=dtype).to(device)
+        self.vp         = self.vp_init.clone()
+        self.rho        = self.rho_init.clone()
         self._parameterization()
         
 
@@ -186,12 +186,18 @@ class DIP_AcousticModel(AbstractModel):
         """setting variable and gradients
         """
         if self.DIP_model_vp is not None:
-            self.vp     = self.DIP_model_vp(*args,**kw_args)
+            if self.reparameterization_strategy == "vel":
+                self.vp     = self.DIP_model_vp(*args,**kw_args)
+            elif self.reparameterization_strategy == "vel_diff":
+                self.vp     = self.vp_init + self.DIP_model_vp(*args,**kw_args)
         elif self.auto_update_vp:
             self.set_vp_using_empirical_function()
             
         if self.DIP_model_rho is not None:
-            self.rho    = self.DIP_model_rho(*args,**kw_args)
+            if self.reparameterization_strategy == "vel":
+                self.rho    = self.DIP_model_rho(*args,**kw_args)
+            elif self.reparameterization_strategy == "vel_diff":
+                self.rho    = self.rho_init + self.DIP_model_rho(*args,**kw_args)
         elif self.auto_update_rho:
             self.set_rho_using_empirical_function()
         return
