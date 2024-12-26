@@ -167,8 +167,8 @@ def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=No
         dict: A new model dictionary with linearly varying velocities and original density.
     """
     
-    vp_true = np.array(model['vp']).T
-    vs_true = np.array(model['vs']).T
+    vp_true  = np.array(model['vp']).T
+    vs_true  = np.array(model['vs']).T
     rho_true = np.array(model['rho']).T
     nz, nx = vp_true.shape
     vp = np.ones_like(vp_true)
