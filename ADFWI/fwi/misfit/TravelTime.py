@@ -4,7 +4,8 @@
 * Date: 2024-04-20 09:32:43
 * LastEditors: LiuFeng
 * LastEditTime: 2024-05-15 19:30:38
-* Description: 
+* Description: Thanks to Dr. Deng Bao for modifying this objective function
+* Bao Deng (University of Science and Technology of China)
 * Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
 '''
 
@@ -42,24 +43,17 @@ analysis. The following are key considerations and methods used in this approach
 This code is designed to test the performance of a differentiable approximation for traveltime misfit calculation, though improvements may be needed after further testing and evaluation.
 """
 
-def cross_correlation(wave1, wave2, padding):
-    """Calculate the cross-correlation between two waveforms."""
+def calculate_time_shift(wave1,wave2,beta=100):
+    """Calculate the travel time difference based on cross-correlation."""
     cross_corr = F.conv1d(
         wave1.view(1, 1, -1),
         wave2.view(1, 1, -1),
-        padding=padding
-    ).squeeze().abs()
-    center_idx = padding
-    cross_corr = cross_corr[center_idx : center_idx + wave1.size(-1)]
-    return cross_corr
-
-def trvaletime_difference(cross_corr, beta=100):
-    """Calculate the travel time difference based on cross-correlation."""
-    *_, n = cross_corr.shape
-    input = F.softmax(beta * cross_corr, dim=-1)            # Fix variable reference
-    indices = torch.linspace(0, 1, n, device=input.device)  # Move to the right device
-    tt_loss = torch.sum(n * input * indices, dim=-1)
-    return tt_loss 
+        padding=wave1.numel()-1
+    ).view(-1)
+    weights = F.softmax(beta*cross_corr,dim=0)
+    tt_lags = torch.arange(-wave1.numel() + 1, wave1.numel(), device=wave1.device, dtype=torch.float32)
+    time_shift = torch.sum(weights*tt_lags)
+    return time_shift
 
 class Misfit_traveltime(Misfit):
     '''Waveform L2-norm difference misfit (Tarantola, 1984)
@@ -87,13 +81,32 @@ class Misfit_traveltime(Misfit):
         rsd = torch.zeros((srcn, rcvn), device=device)  # Reset residual tensor
         for ishot in range(srcn):
             for ircv in range(rcvn):
-                cross_corr = cross_correlation(obs[ishot, :, ircv], syn[ishot, :, ircv], padding=padding)
-                tt_loss = trvaletime_difference(cross_corr=cross_corr, beta=self.beta)*self.dt
+                # cross_corr = cross_correlation(obs[ishot, :, ircv], syn[ishot, :, ircv], padding=padding)
+                # tt_loss = trvaletime_difference(cross_corr=cross_corr, beta=self.beta)*self.dt
+                tt_loss = calculate_time_shift(obs[ishot,:,ircv],syn[ishot,:,ircv],beta=self.beta)*self.dt
                 rsd[ishot, ircv] = torch.abs(tt_loss)
         
         loss = torch.sum(rsd)  # Compute the total loss
         return loss
-        
+
+# def cross_correlation(wave1, wave2, padding):
+#     """Calculate the cross-correlation between two waveforms."""
+#     cross_corr = F.conv1d(
+#         wave1.view(1, 1, -1),
+#         wave2.view(1, 1, -1),
+#         padding=padding
+#     ).squeeze().abs()
+#     center_idx = padding
+#     cross_corr = cross_corr[center_idx : center_idx + wave1.size(-1)]
+#     return cross_corr
+
+# def trvaletime_difference(cross_corr, beta=100):
+#     """Calculate the travel time difference based on cross-correlation."""
+#     *_, n = cross_corr.shape
+#     input = F.softmax(beta * cross_corr, dim=-1)            # Fix variable reference
+#     indices = torch.linspace(0, 1, n, device=input.device)  # Move to the right device
+#     tt_loss = torch.sum(n * input * indices, dim=-1)
+#     return tt_loss 
 
 # class Misfit_traveltime(torch.autograd.Function):
 #     """Implementation of the cross-correlation misfit function

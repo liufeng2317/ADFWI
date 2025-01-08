@@ -6,6 +6,7 @@ from .velocityDemo import (build_layer_model,
                            get_smooth_layer_model,
                            load_marmousi_model,
                            get_linear_vel_model,
+                           get_linear_marmousi2_model,
                            resample_marmousi_model,
                            get_smooth_marmousi_model,
                            load_overthrust_model,
@@ -19,3 +20,5 @@ from .velocityDemo import (build_layer_model,
                            load_hess_model,
                            get_smooth_hess_model,
                            get_linear_hess_model)
+
+from .frequency_domin_process import *

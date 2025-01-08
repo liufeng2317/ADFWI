@@ -951,19 +951,19 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
 
 - **Deep Neural Network Integration**
   - **DNNs Reparameterization**: DNNs reparameterize the Earth model, introducing learnable regularization to improve the inversion process.
-  - **Dropout**: Applied to assess inversion uncertainty by randomly dropping units during training, providing a measure of model robustness.
-  - **Multiphysics Joint Inversion (on-going)**: Neural networks are used to fuse data from different physical fields, enabling joint inversion for a more comprehensive and accurate Earth model.
+  - **Uncertainty estimation using Dropout**: Applied to assess inversion uncertainty by randomly dropping units of neural network.
+  - **Multiphysics Joint Inversion (on-going)**: Neural networks are used to fuse data from different physical fields, enabling joint inversion for a more comprehensive and accurate Earth model (**new research is comming soon**).
 
 - **Resource Management**
-  - **Mini-batch**: multi-shot data can be large due to different source positions and time steps. Splitting it into mini-batches prevents loading the entire dataset into memory at once.
-  - **Checkpointing**: a **key** memory-saving technique, particularly for backpropagation in FWI. Instead of storing all intermediate results, only a few checkpoints are saved. During backpropagation, missing steps are recomputed, reducing memory usage at the cost of extra computation.
+  - **Mini-batch**: Splitting datasets into mini-batches prevents loading the entire into memory at once.
+  - **Checkpointing**: Instead of storing all intermediate results, only a few checkpoints are saved. During backpropagation, missing steps are recomputed, reducing memory usage at the cost of extra computation. ==We emphasise that this approach does not significantly reduce the inversion efficiency while drastically reducing the memory usage.==
   - **boundary saving (on-going)**: methods are being developed to efficiently reduce memory usage by saving only the wavefield boundaries during forward propagation instead of the entire wavefield, allowing for their later use in backpropagation.
 
 - **Acceleration Methods**
-  - **GPU Acceleration**: Utilizes the parallel processing power of GPUs to significantly speed up computations, especially for large-scale simulations like FWI.
+  - **matrix operation**: Incorporates shots as extra dimensions into the matrix operation of forward modling, e.g. `[t,wavefiled] -> [shot, t, wavefield]`.
+  - **GPU Acceleration**
   - **JIT(Just-in-Time)**: Speeds up code execution by compiling Python code into optimized machine code at runtime, improving performance without modifying the original codebase.
-  - **Reconstruction Using Lower-Level Language (C++) (on-going)**: Involves rewriting performance-critical components in C++ to leverage lower-level optimizations, resulting in faster execution times and improved overall efficiency.
-
+  - **Reconstruction Using Lower-Level Language (C++) (on-going)**
 
 - **Robustness and Portability**
   - Each of the method has proposed a code for testing.
@@ -1002,7 +1002,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 - <details>
-    <summary><b>Resource Optimization for Memory Efficiency</b></summary>
+    <summary><b><del>Resource Optimization for Memory Efficiency (2024/12)</del></b></summary>
     <b>Objective</b>: Reduce memory consumption for improved resource utilization.  
 
     <b>Explanation</b>: The current computational framework may encounter memory bottlenecks, especially when processing large datasets. Optimizing memory usage by identifying redundant storage, streamlining data structures, and using efficient algorithms will help in scaling up the computations while maintaining or even enhancing performance. This task is critical for expanding the capacity of the system to handle larger and more complex datasets.
@@ -1023,7 +1023,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 - <details>
-    <summary><b>Multi-Scale Inversion Strategies (done!)</b></summary>
+    <summary><b><del>Multi-Scale Inversion Strategies (2024/11)</del></b></summary>
     <b>Objective</b>: Introduce multi-scale approaches for improved inversion accuracy. 
 
     <b>Explanation</b>: Multi-scale inversion involves processing data at various scales to capture both large-scale trends and small-scale features effectively. Implementing this strategy will enhance the robustness of the inversion process, allowing for better resolution of subsurface structures. Techniques such as hierarchical modeling and wavelet analysis may be considered to achieve this goal, thus improving the overall quality of the inversion results.

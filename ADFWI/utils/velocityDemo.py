@@ -14,6 +14,7 @@ import os
 import obspy
 from scipy.interpolate import interp2d
 from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter1d
 
 
 ############################################################
@@ -203,6 +204,56 @@ def get_linear_vel_model(model, vp_min=None, vp_max=None, vs_min=None, vs_max=No
     
     return new_model
 
+
+def get_linear_marmousi2_model(model,smooth_kernel=10,idx=None,mask_depth=10):
+    """Generate a linear velocity model based on the input Marmousi model.
+
+    Args:
+        model (dict): The original Marmousi model containing velocity and density data.
+        vp_min (float, optional): Minimum value for the primary wave velocity.
+        vp_max (float, optional): Maximum value for the primary wave velocity.
+        vs_min (float, optional): Minimum value for the shear wave velocity.
+        vs_max (float, optional): Maximum value for the shear wave velocity.
+
+    Returns:
+        dict: A new model dictionary with linearly varying velocities and original density.
+    """
+    
+    vp_true  = np.array(model['vp']).T
+    vs_true  = np.array(model['vs']).T
+    rho_true = np.array(model['rho']).T
+    nz, nx = vp_true.shape
+    vp = np.ones_like(vp_true)
+    vs = np.ones_like(vs_true)
+
+    vp[:mask_depth, :] = vp_true[:mask_depth, :]
+    vs[:mask_depth, :] = vs_true[:mask_depth, :]
+    
+    if idx is None:
+        vp      = np.ones_like(vp_true)*np.mean(vp_true,axis=1).reshape(-1,1)
+        vs      = np.ones_like(vp_true)*np.mean(vs_true,axis=1).reshape(-1,1)
+        rho     = np.ones_like(rho_true)*np.mean(rho_true,axis=1).reshape(-1,1)
+    else:
+        vp      = np.ones_like(vp_true)*vp_true[:,idx].reshape(-1,1)    
+        vs      = np.ones_like(vs_true)*vs_true[:,idx].reshape(-1,1)    
+        rho     = np.ones_like(rho_true)*rho_true[:,idx].reshape(-1,1)      
+        
+    vp      = gaussian_filter1d(vp      , sigma=smooth_kernel, axis=0)
+    vs      = gaussian_filter1d(vs      , sigma=smooth_kernel, axis=0)
+    rho     = gaussian_filter1d(rho     , sigma=smooth_kernel, axis=0)
+    
+    # Create a new dictionary to hold the new model data
+    new_model = {
+        'vp': vp.T,
+        'vs': vs.T,
+        'rho': rho.T,
+        'x': model['x'],
+        'y': model['y'],
+        'dx': model['dx'],
+        'dy': model['dy']
+    }
+    
+    return new_model
 
 ############################################################
 #                   Layer Model
@@ -711,7 +762,6 @@ def get_smooth_hess_model(model, gaussian_kernel=10):
     
     return new_model
 
-from scipy.ndimage import gaussian_filter1d
 
 def get_linear_hess_model(model,smooth_kernel=50,idx=None):
     """Generate a linear velocity model based on the input Marmousi model.

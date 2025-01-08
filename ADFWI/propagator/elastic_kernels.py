@@ -414,11 +414,11 @@ def step_forward_PML_4order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
 
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
 
     return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
@@ -578,11 +578,11 @@ def step_forward_PML_6order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
 
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
         
     return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
@@ -742,11 +742,11 @@ def step_forward_PML_8order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
 
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
         
     return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
@@ -906,11 +906,11 @@ def step_forward_PML_10order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
 
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
         
     return txx_x,txx_z,tzz_x,tzz_z,txz_x,txz_z,txx,tzz,txz,\
             vx_x,vx_z,vz_x,vz_z,vx,vz,\
@@ -1107,11 +1107,11 @@ def step_forward_ABL_4order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
         
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
 
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
@@ -1241,11 +1241,11 @@ def step_forward_ABL_6order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
         
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
 
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
@@ -1375,11 +1375,11 @@ def step_forward_ABL_8order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
         
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
 
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz
@@ -1509,11 +1509,11 @@ def step_forward_ABL_10order(M:int,
         rcv_vz[:, t, rcv_idx] = vz[:, rcv_z, rcv_x]
         
         # Store forward wavefields for visualization or further processing
-        forward_wavefield_txx = torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_tzz = torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_txz = torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vx = torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
-        forward_wavefield_vz = torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txx += torch.sum(txx * txx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_tzz += torch.sum(tzz * tzz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_txz += torch.sum(txz * txz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vx += torch.sum(vx * vx, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
+        forward_wavefield_vz += torch.sum(vz * vz, dim=0)[offset:offset + nz, nabc:nabc + nx].detach()
 
     return txx,tzz,txz,vx,vz,rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz,\
             forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz

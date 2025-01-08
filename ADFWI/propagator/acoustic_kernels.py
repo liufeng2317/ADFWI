@@ -110,6 +110,8 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
     forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
     forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
 
+    wavefields = []
+    
     for it in range(nt):
         # Update pressure
         p[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] = (
@@ -173,6 +175,12 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         
+        # if you want to save the wavefield, you need to comments the @torch.jit.script
+    #     if it % 10 == 0:
+    #         wavefields.append(p[:,nabc:nabc + nz, nabc:nabc + nx].cpu().detach().numpy())
+    # wavefields = np.array(wavefields)
+    # np.savez(f"/ailab/user/liufeng1/project/04_Inversion/ADFWI-github/examples/acoustic/01-model-test/01-Marmousi2/data/wavefield/wavefields.npz",data=wavefields)
+    
     return p, u, w, rcv_p, rcv_u, rcv_w, forward_wavefield_p, forward_wavefield_u, forward_wavefield_w
 
 
