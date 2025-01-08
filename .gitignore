@@ -20,7 +20,7 @@ examples/gradient_checking
 examples/multi-scale
 examples/pip_usage
 examples/waveform_checking
-examples/time-and-memory-test
+examples/time-and-memory-tests
 examples/datasets
 examples/dip/convergence
 examples/dip/multi-parameters
