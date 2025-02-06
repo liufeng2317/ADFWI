@@ -55,6 +55,42 @@ class Source(object):
             info += f"  empty\n"
         return info
     
+    def add_encoded_sources(self,
+            src_x       : np.array,
+            src_z       : np.array,
+            src_wavelet : np.ndarray, #3D: [encode_n,[src_n,t]]
+            src_type    : Optional[str]='mt',
+            src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
+        ) -> None:
+        """source encoded
+        """
+        if src_x.shape != src_z.shape:
+            raise ValueError(
+                "Source location along x and z direction must have the same shape"
+            )
+        if src_type.lower() not in ["mt"]:
+            raise ValueError(
+                "Source type must be either mt"
+            )
+        if src_wavelet.shape[-1] != self.nt:
+            raise ValueError(
+                "Source wavelet must have the same length as the number of time samples"
+            )
+        if src_mt.shape != (3, 3):
+            raise ValueError("Moment tensor must be a 3x3 matrix")
+
+        if src_type.lower() == "mt" and src_mt is None:
+            raise ValueError("Moment tensor must be provided for mt source")
+        src_n = len(src_x)
+        # add source
+        self.loc_x.extend(numpy2list(src_x))
+        self.loc_z.extend(numpy2list(src_z))
+        self.type.extend([src_type]*src_n)
+        self.wavelet.extend(src_wavelet)
+        self.moment_tensor.extend(np.ones((src_n,3,3))*src_mt)
+        self.num += src_n
+        return
+    
     def add_sources(self,
             src_x       : np.array,
             src_z       : np.array,
@@ -125,9 +161,17 @@ class Source(object):
     def get_loc(self):
         """Return the source location
         """
-        src_x = list2numpy(self.loc_x).reshape(-1,1)
-        src_z = list2numpy(self.loc_z).reshape(-1,1)
-        src_loc = np.hstack((src_x,src_z))
+        src_x = list2numpy(self.loc_x)
+        src_z = list2numpy(self.loc_z)
+        if len(list2numpy(self.loc_x).shape) == 1:
+            src_x   = src_x.reshape(-1,1)
+            src_z   = src_z.reshape(-1, 1)
+            src_loc = np.hstack((src_x,src_z))
+        else:
+            
+            src_loc = np.concatenate((src_x[..., np.newaxis], 
+                                      src_z[..., np.newaxis]), 
+                                      axis=-1)  # Add new axis and concatenate
         self.loc = src_loc.copy()
         return src_loc 
     
@@ -152,7 +196,12 @@ class Source(object):
             type = list2numpy(list(set(self.type)))
         return type
     
-    def plot_wavelet(self,index=0,**kwargs):
+    def plot_wavelet(self,index=0,src_idx=None,**kwargs):
         tlist = self.t
-        wavelet = self.get_wavelet()[index]
+        wavelet = self.get_wavelet()
+        # for encoded source
+        if len(wavelet.shape) == 3:
+            wavelet = wavelet[index][src_idx]
+        else:
+            wavelet = wavelet[index]
         plot_wavelet(tlist,wavelet,**kwargs)

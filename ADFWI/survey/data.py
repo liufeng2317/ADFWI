@@ -35,6 +35,7 @@ class SeismicData():
         
         # data
         self.data = None
+        self.data_masks = None
         
     def __repr__(self):
         """ Print the survey information
