@@ -582,9 +582,9 @@ def load_overthrust_initial_model(in_dir):
     overthrust_model['z'] = np.arange(nx)*data_d[1]
     return overthrust_model
 
-def resample_overthrust_model(model):
+def resample_overthrust_model(model,subsampling=2):
     vp = model["vp"]
-    vp_range = vp[50:450,:200][::2,::2]
+    vp_range = vp[50:450,:200][::subsampling,::subsampling]
     rho_range = pow(vp_range,0.25)*310
     nx,ny = vp_range.shape
     overthrust_model = {}
