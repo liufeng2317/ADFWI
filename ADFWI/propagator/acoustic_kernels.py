@@ -130,9 +130,16 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         )
 
         # Add source
-        src_update = dt * (src_v[it] if len(src_v.shape) == 1 else src_v[:, it])
-        p[torch.arange(src_n), src_z, src_x] = p[torch.arange(src_n), src_z, src_x] + src_update
-
+        # single source
+        if src_z.dim() == 1:
+            src_update = dt * (src_v[it] if len(src_v.shape) == 1 else src_v[:, it])
+            p[torch.arange(src_n), src_z, src_x] = p[torch.arange(src_n), src_z, src_x] + src_update
+        else:
+        # encoded source
+            for i in range(src_n):
+                src_update = dt * (src_v[i,it] if len(src_v.shape) == 2 else src_v[i,:, it])
+                p[i,src_z[i],src_x[i]] = p[i,src_z[i],src_x[i]] + src_update
+        
         # Free surface handling
         if free_surface:
             p[:, free_surface_start - 1, :] = -p[:, free_surface_start + 1, :]
@@ -175,7 +182,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         
-        # if you want to save the wavefield, you need to comments the @torch.jit.script
+    # if you want to save the wavefield, you need to comments the @torch.jit.script
     #     if it % 10 == 0:
     #         wavefields.append(p[:,nabc:nabc + nz, nabc:nabc + nx].cpu().detach().numpy())
     # wavefields = np.array(wavefields)
