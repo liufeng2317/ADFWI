@@ -957,11 +957,12 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
 - **Resource Management**
   - **Mini-batch**: Splitting datasets into mini-batches prevents loading the entire into memory at once.
   - **Checkpointing**: Instead of storing all intermediate results, only a few checkpoints are saved. During backpropagation, missing steps are recomputed, reducing memory usage at the cost of extra computation. ==We emphasise that this approach does not significantly reduce the inversion efficiency while drastically reducing the memory usage.==
+  - Multi-Source encoding: a technique in FWI that combines multiple seismic sources into a single simulation to improve computational efficiency. 
   - **boundary saving (on-going)**: methods are being developed to efficiently reduce memory usage by saving only the wavefield boundaries during forward propagation instead of the entire wavefield, allowing for their later use in backpropagation.
 
 - **Acceleration Methods**
   - **matrix operation**: Incorporates shots as extra dimensions into the matrix operation of forward modling, e.g. `[t,wavefiled] -> [shot, t, wavefield]`.
-  - **GPU Acceleration**
+  - **GPU Acceleration**: Multi-GPU version is comming soon.
   - **JIT(Just-in-Time)**: Speeds up code execution by compiling Python code into optimized machine code at runtime, improving performance without modifying the original codebase.
   - **Reconstruction Using Lower-Level Language (C++) (on-going)**
 
@@ -1009,7 +1010,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 - <details>
-    <summary><b>Custom Input Data Management System</b></summary>
+    <summary><b><del>Custom Input Data Management System (2025/1)</del></b></summary>
     <b>Objective</b>: Develop a tailored system for managing input data effectively.  
     
     <b>Explanation</b>: A customized data management framework is needed to better organize, preprocess, and handle input data efficiently. This may involve designing workflows for data formatting, conversion, and pre-processing steps, ensuring the consistency and integrity of input data. Such a system will provide flexibility in managing various input types and scales, and it will be crucial for maintaining control over data quality throughout the project lifecycle.
@@ -1030,8 +1031,8 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 - <details>
-    <summary><b>Real Data Testing</b></summary>
-    <b>Objective</b>: Evaluate the performance and robustness of the developed methodologies using real-world datasets.  
+    <summary><b><del>Real Data Testing (2D acoustic land datasets, 2025/1)</del></b></summary>
+    <b>Objective</b>: Evaluate the performance and robustness of the developed methodologies using real-world datasets. (we have varified this framework with a 2D land datasets)  
     <b>Explanation</b>: Conducting tests with actual data is crucial for validating the effectiveness of the Status algorithms. This will involve the following steps:
     
     1. <b>Dataset Selection</b>: Identify relevant real-world datasets that reflect the complexities of the target applications. These datasets should include diverse scenarios and noise characteristics typical in field data.
