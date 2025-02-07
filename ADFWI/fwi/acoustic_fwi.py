@@ -95,9 +95,9 @@ class AcousticFWI(torch.nn.Module):
         obs_p   = numpy2tensor(obs_p,self.dtype).to(self.device)
         if self.propagator.receiver_masks_obs: # mark the observed data need to be masked or not
             obs_p   = obs_p*self.receiver_masks_3D
-        self.data_masks = numpy2tensor(self.obs_data.data_masks).to(self.device) # some of the data are unuseful
-        if self.data_masks is not None:
-            self.obs_p = obs_p*self.data_masks
+        self.data_masks = numpy2tensor(self.obs_data.data_masks).to(self.device) if self.obs_data.data_masks is not None else None
+        if self.data_masks is not None: # some of the data are unuseful
+            obs_p = obs_p*self.data_masks
         self.obs_p = obs_p
         
         # model boundary

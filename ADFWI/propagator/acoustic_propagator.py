@@ -83,8 +83,8 @@ class AcousticPropagator(torch.nn.Module):
         # ---------------------------------------------------------------
         self.source         = self.survey.source
         self.src_loc        = self.source.get_loc()
-        self.src_x          = numpy2tensor(self.src_loc[:,0],torch.long).to(self.device)
-        self.src_z          = numpy2tensor(self.src_loc[:,1],torch.long).to(self.device)
+        self.src_x          = numpy2tensor(self.src_loc[...,0],torch.long).to(self.device)
+        self.src_z          = numpy2tensor(self.src_loc[...,1],torch.long).to(self.device)
         self.src_n          = self.source.num
         self.wavelet        = numpy2tensor(self.source.get_wavelet(),self.dtype).to(self.device)
         self.moment_tensor  = numpy2tensor(self.source.get_moment_tensor(),self.dtype).to(self.device)
@@ -98,8 +98,8 @@ class AcousticPropagator(torch.nn.Module):
         self.rcv_z          = numpy2tensor(self.rcv_loc[:,1],torch.long).to(self.device)
         self.rcv_n          = self.receiver.num
         
-        self.receiver_masks = self.survey.receiver_masks
-        
+        self.receiver_masks     = self.survey.receiver_masks
+        self.receiver_masks_obs = self.survey.receiver_masks_obs
         
     def boundary_condition(self, vmax=None):
         """Set boundary conditions based on the specified ABC type."""

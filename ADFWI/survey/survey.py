@@ -43,10 +43,13 @@ class Survey(object):
     gpu_num : int, optional
         Maximum number of GPU cards, if cuda, by default 1
     """
-    def __init__(self,source:Source,receiver:Receiver,receiver_masks=None) -> None:
+    def __init__(self,source:Source,receiver:Receiver,receiver_masks=None,receiver_masks_obs=True) -> None:
         self.source         = source
         self.receiver       = receiver
-        self.receiver_masks  = None
+        # receive mask  -> mask some of the receiver are useful while other are not
+        self.receiver_masks = None
+        # receiver_masks_obs -> mark if the obs waveform need to be masked or not
+        self.receiver_masks_obs = receiver_masks_obs
         if receiver_masks is not None:
             self.set_receiver_masks(receiver_masks)
     
