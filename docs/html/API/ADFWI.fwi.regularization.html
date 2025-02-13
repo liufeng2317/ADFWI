@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.fwi.regularization &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.survey" href="ADFWI.survey.html" />
+    <link rel="prev" title="ADFWI.fwi.misfit" href="ADFWI.fwi.misfit.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.misfit.html">ADFWI.fwi.misfit</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ADFWI.fwi.regularization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.regularization.base">ADFWI.fwi.regularization.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.regularization.tikhonov_1order">ADFWI.fwi.regularization.tikhonov_1order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.regularization.tikhonov_2order">ADFWI.fwi.regularization.tikhonov_2order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.regularization.tv_1order">ADFWI.fwi.regularization.tv_1order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.regularization.tv_2order">ADFWI.fwi.regularization.tv_2order</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.acoustic_fwi">ADFWI.fwi.acoustic_fwi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.elastic_fwi">ADFWI.fwi.elastic_fwi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.multiScaleProcessing">ADFWI.fwi.multiScaleProcessing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+      <li class="breadcrumb-item active">ADFWI.fwi.regularization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.fwi.regularization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-fwi-regularization">
+<h1>ADFWI.fwi.regularization<a class="headerlink" href="#adfwi-fwi-regularization" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.fwi.regularization.base">
+<span id="adfwi-fwi-regularization-base"></span><h2>ADFWI.fwi.regularization.base<a class="headerlink" href="#module-ADFWI.fwi.regularization.base" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.base.Regularization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.base.</span></span><span class="sig-name descname"><span class="pre">Regularization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/base.html#Regularization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.base.Regularization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class for applying regularization on a grid with grid spacing in the x and z directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m).</p></li>
+<li><p><strong>alphax</strong> (<em>float</em>) – The regularization factor in the x-direction.</p></li>
+<li><p><strong>alphaz</strong> (<em>float</em>) – The regularization factor in the z-direction.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The update step for alphax and alphaz. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – The update step decay factor. Default is 1.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – The device to use (‘cpu’ or ‘cuda’). Default is ‘cpu’.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type for the tensors. Default is <cite>torch.float32</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.base.Regularization.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/base.html#Regularization.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.base.Regularization.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Abstract method to compute the forward pass for regularization.</p>
+<p>This method must be implemented in subclasses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The regularized output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.base.regular_StepLR">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.base.</span></span><span class="sig-name descname"><span class="pre">regular_StepLR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/base.html#regular_StepLR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.base.regular_StepLR" title="Permalink to this definition"></a></dt>
+<dd><p>Regular learning rate scheduler using exponential decay.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iter</strong> (<em>int</em>) – The current iteration.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em>) – The step size for updating the learning rate.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – The initial learning rate.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – The decay factor for the learning rate. Default is 0.8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated learning rate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.regularization.tikhonov_1order">
+<span id="adfwi-fwi-regularization-tikhonov-1order"></span><h2>ADFWI.fwi.regularization.tikhonov_1order<a class="headerlink" href="#module-ADFWI.fwi.regularization.tikhonov_1order" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tikhonov_1order.Tikhonov_1order">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.tikhonov_1order.</span></span><span class="sig-name descname"><span class="pre">Tikhonov_1order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tikhonov_1order.html#Tikhonov_1order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tikhonov_1order.Tikhonov_1order" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.regularization.base.Regularization" title="ADFWI.fwi.regularization.base.Regularization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Regularization</span></code></a></p>
+<p>1-Order Tikhonov Regularization.</p>
+<p>The regularization function is defined as:
+[
+lpha_x | L_1 m_x |_p + lpha_z | L_1 m_z |_p
+]
+Where ( L_1 ) is the finite difference operator for the grid and ( m_x ), ( m_z ) are the model components in the horizontal and vertical directions, respectively.</p>
+<p class="rubric">References</p>
+<p>Du, Z., et al., 2021. A high-order total-variation regularisation method for full-waveform inversion.
+<em>Journal of Geophysics and Engineering</em>, 18, 241–252. doi:10.1093/jge/gxab010</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m).</p></li>
+<li><p><strong>alphax</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the x-direction. Default is 0.</p></li>
+<li><p><strong>alphaz</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the z-direction. Default is 0.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Step size for updating the regularization parameters. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Decay factor for regularization parameter updates. Default is 1.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device to use for computation (‘cpu’ or ‘cuda’). Default is ‘cpu’.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type of the tensors. Default is <cite>torch.float32</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tikhonov_1order.Tikhonov_1order.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tikhonov_1order.html#Tikhonov_1order.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tikhonov_1order.Tikhonov_1order.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the regularized misfit for the given model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>torch.Tensor</em>) – The model tensor to apply regularization on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The regularized misfit value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.regularization.tikhonov_2order">
+<span id="adfwi-fwi-regularization-tikhonov-2order"></span><h2>ADFWI.fwi.regularization.tikhonov_2order<a class="headerlink" href="#module-ADFWI.fwi.regularization.tikhonov_2order" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tikhonov_2order.Tikhonov_2order">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.tikhonov_2order.</span></span><span class="sig-name descname"><span class="pre">Tikhonov_2order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tikhonov_2order.html#Tikhonov_2order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tikhonov_2order.Tikhonov_2order" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.regularization.base.Regularization" title="ADFWI.fwi.regularization.base.Regularization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Regularization</span></code></a></p>
+<p>2nd-Order Tikhonov Regularization.</p>
+<p>The regularization function is defined as:
+[
+| lpha_x L_2 m_x + lpha_z L_2 m_z |_2
+]
+Where ( L_2 ) is the second-order finite difference operator for the grid, and ( m_x ), ( m_z ) are the model components in the horizontal and vertical directions, respectively.</p>
+<p class="rubric">References</p>
+<p>Du, Z., et al., 2021. A high-order total-variation regularisation method for full-waveform inversion.
+<em>Journal of Geophysics and Engineering</em>, 18, 241–252. doi:10.1093/jge/gxab010</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m).</p></li>
+<li><p><strong>alphax</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the x-direction. Default is 0.</p></li>
+<li><p><strong>alphaz</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the z-direction. Default is 0.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Step size for updating the regularization parameters. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Decay factor for regularization parameter updates. Default is 1.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device to use for computation (‘cpu’ or ‘cuda’). Default is ‘cpu’.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type of the tensors. Default is <cite>torch.float32</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tikhonov_2order.Tikhonov_2order.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tikhonov_2order.html#Tikhonov_2order.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tikhonov_2order.Tikhonov_2order.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the regularized misfit for the given model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>torch.Tensor</em>) – The model tensor to apply regularization on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The regularized misfit value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.regularization.tv_1order">
+<span id="adfwi-fwi-regularization-tv-1order"></span><h2>ADFWI.fwi.regularization.tv_1order<a class="headerlink" href="#module-ADFWI.fwi.regularization.tv_1order" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tv_1order.TV_1order">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.tv_1order.</span></span><span class="sig-name descname"><span class="pre">TV_1order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tv_1order.html#TV_1order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tv_1order.TV_1order" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.regularization.base.Regularization" title="ADFWI.fwi.regularization.base.Regularization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Regularization</span></code></a></p>
+<p>1st-Order Total Variation Regularization.</p>
+<p>The regularization function is defined as:
+[
+lpha_x | L_1 m_x |_p + lpha_z | L_1 m_z |_p
+]
+Where ( L_1 ) is the first-order finite difference operator for the grid, and ( m_x ), ( m_z ) are the model components in the horizontal and vertical directions, respectively.</p>
+<p class="rubric">References</p>
+<p>Du, Z., et al., 2021. A high-order total-variation regularisation method for full-waveform inversion.
+<em>Journal of Geophysics and Engineering</em>, 18, 241–252. doi:10.1093/jge/gxab010</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m).</p></li>
+<li><p><strong>alphax</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the x-direction. Default is 0.</p></li>
+<li><p><strong>alphaz</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the z-direction. Default is 0.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Step size for updating the regularization parameters. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Decay factor for regularization parameter updates. Default is 1.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device to use for computation (‘cpu’ or ‘cuda’). Default is ‘cpu’.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type of the tensors. Default is <cite>torch.float32</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tv_1order.TV_1order.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tv_1order.html#TV_1order.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tv_1order.TV_1order.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the regularized misfit for the given model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>torch.Tensor</em>) – The model tensor to apply regularization on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The regularized misfit value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.regularization.tv_2order">
+<span id="adfwi-fwi-regularization-tv-2order"></span><h2>ADFWI.fwi.regularization.tv_2order<a class="headerlink" href="#module-ADFWI.fwi.regularization.tv_2order" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tv_2order.TV_2order">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.regularization.tv_2order.</span></span><span class="sig-name descname"><span class="pre">TV_2order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tv_2order.html#TV_2order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tv_2order.TV_2order" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.regularization.base.Regularization" title="ADFWI.fwi.regularization.base.Regularization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Regularization</span></code></a></p>
+<p>2nd-Order Total Variation Regularization.</p>
+<p>The regularization function is defined as:
+[
+lpha_x | L_1 m_x |_2 + lpha_z | L_1 m_z |_2
+]
+Where ( L_1 ) is the second-order finite difference operator for the grid, and ( m_x ), ( m_z ) are the model components in the horizontal and vertical directions, respectively.</p>
+<p class="rubric">References</p>
+<p>Du, Z., et al., 2021. A high-order total-variation regularisation method for full-waveform inversion.
+<em>Journal of Geophysics and Engineering</em>, 18, 241–252. doi:10.1093/jge/gxab010</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m).</p></li>
+<li><p><strong>alphax</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the x-direction. Default is 0.</p></li>
+<li><p><strong>alphaz</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization factor for the z-direction. Default is 0.</p></li>
+<li><p><strong>step_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Step size for updating the regularization parameters. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Decay factor for regularization parameter updates. Default is 1.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device to use for computation (‘cpu’ or ‘cuda’). Default is ‘cpu’.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type of the tensors. Default is <cite>torch.float32</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.regularization.tv_2order.TV_2order.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/regularization/tv_2order.html#TV_2order.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.regularization.tv_2order.TV_2order.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the regularized misfit for the given model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>torch.Tensor</em>) – The model tensor to apply regularization on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The regularized misfit value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.fwi.misfit.html" class="btn btn-neutral float-left" title="ADFWI.fwi.misfit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.survey.html" class="btn btn-neutral float-right" title="ADFWI.survey" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.model &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.fwi" href="ADFWI.fwi.html" />
+    <link rel="prev" title="ADFWI.propagator" href="ADFWI.propagator.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADFWI.model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.model.base">ADFWI.model.base</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.base.AbstractModel"><code class="docutils literal notranslate"><span class="pre">AbstractModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.model.acoustic_model">ADFWI.model.acoustic_model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.acoustic_model.AcousticModel"><code class="docutils literal notranslate"><span class="pre">AcousticModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.model.elastic_model">ADFWI.model.elastic_model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.elastic_model.AnisotropicElasticModel"><code class="docutils literal notranslate"><span class="pre">AnisotropicElasticModel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.elastic_model.IsotropicElasticModel"><code class="docutils literal notranslate"><span class="pre">IsotropicElasticModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.model.parameters">ADFWI.model.parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.elastic_moduli_for_TI"><code class="docutils literal notranslate"><span class="pre">elastic_moduli_for_TI()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.elastic_moduli_for_isotropic"><code class="docutils literal notranslate"><span class="pre">elastic_moduli_for_isotropic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.elastic_moduli_init"><code class="docutils literal notranslate"><span class="pre">elastic_moduli_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.elastic_moduli_to_thomsen"><code class="docutils literal notranslate"><span class="pre">elastic_moduli_to_thomsen()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.parameter_staggered_grid"><code class="docutils literal notranslate"><span class="pre">parameter_staggered_grid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.thomsen_init"><code class="docutils literal notranslate"><span class="pre">thomsen_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.thomsen_to_elastic_moduli"><code class="docutils literal notranslate"><span class="pre">thomsen_to_elastic_moduli()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.model.parameters.vs_vp_to_Lame"><code class="docutils literal notranslate"><span class="pre">vs_vp_to_Lame()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+      <li class="breadcrumb-item active">ADFWI.model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-model">
+<h1>ADFWI.model<a class="headerlink" href="#adfwi-model" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.model.base">
+<span id="adfwi-model-base"></span><h2>ADFWI.model.base<a class="headerlink" href="#module-ADFWI.model.base" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.model.base.</span></span><span class="sig-name descname"><span class="pre">AbstractModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'PML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_jerjan_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0053</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nabc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Abstract model class for FWI models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ox</strong> (<em>float</em>) – Origin of the model in x-direction (m)</p></li>
+<li><p><strong>oz</strong> (<em>float</em>) – Origin of the model in z-direction (m)</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in x-direction (m)</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in z-direction (m)</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in x-direction</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in z-direction</p></li>
+<li><p><strong>free_surface</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for free surface, default is False</p></li>
+<li><p><strong>abc_type</strong> (<em>str</em><em>, </em><em>optional</em>) – The type of absorbing boundary condition: PML, Jerjan, and other</p></li>
+<li><p><strong>abc_jerjan_alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – The attenuation factor for Jerjan boundary condition</p></li>
+<li><p><strong>nabc</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of absorbing boundary cells, default is 20</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – The running device</p></li>
+<li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>optional</em>) – The dtypes for PyTorch variable, default is torch.float32</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.check_dims">
+<span class="sig-name descname"><span class="pre">check_dims</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.check_dims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.check_dims" title="Permalink to this definition"></a></dt>
+<dd><p>Check the provided model dimensions are legal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.clip_params">
+<span class="sig-name descname"><span class="pre">clip_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.clip_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.clip_params" title="Permalink to this definition"></a></dt>
+<dd><p>Clip the model parameters to the given bounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.constrain_range">
+<span class="sig-name descname"><span class="pre">constrain_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.constrain_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.constrain_range" title="Permalink to this definition"></a></dt>
+<dd><p>Constrain the value to the range [min_value, max_value] by using the torch.clamp function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward method of the model class that outputs the elastic parameters of lambda, mu, and buoyancy required for the wave equation propagator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.get_bound">
+<span class="sig-name descname"><span class="pre">get_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.get_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.get_bound" title="Permalink to this definition"></a></dt>
+<dd><p>Return the bound of the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.get_clone_data">
+<span class="sig-name descname"><span class="pre">get_clone_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.get_clone_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.get_clone_data" title="Permalink to this definition"></a></dt>
+<dd><p>Return the data required for cloning the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.get_grad">
+<span class="sig-name descname"><span class="pre">get_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.get_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.get_grad" title="Permalink to this definition"></a></dt>
+<dd><p>Return the gradient of the model as numpy array</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.get_model">
+<span class="sig-name descname"><span class="pre">get_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.get_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.get_model" title="Permalink to this definition"></a></dt>
+<dd><p>Return the model as numpy array</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.get_requires_grad">
+<span class="sig-name descname"><span class="pre">get_requires_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.get_requires_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.get_requires_grad" title="Permalink to this definition"></a></dt>
+<dd><p>Return the gradient of the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.save" title="Permalink to this definition"></a></dt>
+<dd><p>Save the model object to a file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.set_model">
+<span class="sig-name descname"><span class="pre">set_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/base.html#AbstractModel.set_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.base.AbstractModel.set_model" title="Permalink to this definition"></a></dt>
+<dd><p>Set the model as nn.Parameter</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.model.base.AbstractModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.model.base.AbstractModel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.model.acoustic_model">
+<span id="adfwi-model-acoustic-model"></span><h2>ADFWI.model.acoustic_model<a class="headerlink" href="#module-ADFWI.model.acoustic_model" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.model.acoustic_model.</span></span><span class="sig-name descname"><span class="pre">AcousticModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">water_layer_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'PML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_jerjan_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0053</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nabc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.model.base.AbstractModel" title="ADFWI.model.base.AbstractModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModel</span></code></a></p>
+<p>Acoustic Velocity model with parameterization of vp and rho.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ox</strong> (<em>float</em>) – Not used. The origin coordinates of the model in the x-direction (meters).</p></li>
+<li><p><strong>oz</strong> (<em>float</em>) – Not used. The origin coordinates of the model in the z-direction (meters).</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Not used. The number of grid points in the x-direction.</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Not used. The number of grid points in the z-direction.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – The grid spacing in the x-direction (meters).</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – The grid spacing in the z-direction (meters).</p></li>
+<li><p><strong>vp</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – P-wave velocity model with shape (nz, nx).</p></li>
+<li><p><strong>rho</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – Density model with shape (nz, nx).</p></li>
+<li><p><strong>vp_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – The lower and upper bounds for the P-wave velocity model.</p></li>
+<li><p><strong>rho_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – The lower and upper bounds for the density model.</p></li>
+<li><p><strong>vp_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>default=False</em>) – Indicates whether the gradient of the P-wave velocity model is required.</p></li>
+<li><p><strong>rho_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>default=False</em>) – Indicates whether the gradient of the density model is required.</p></li>
+<li><p><strong>auto_update_rho</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>default=True</em>) – Whether to automatically update the density model during inversion.</p></li>
+<li><p><strong>auto_update_vp</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>default=False</em>) – Whether to automatically update the P-wave velocity model during inversion.</p></li>
+<li><p><strong>water_layer_mask</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>default=None</em>) – A mask for the water layer (not updated), if applicable.</p></li>
+<li><p><strong>free_surface</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>default=False</em>) – Indicates whether a free surface is present in the model.</p></li>
+<li><p><strong>abc_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>default='PML'</em>) – The type of absorbing boundary condition used in the model. Options: ‘PML’ or ‘Jerjan’.</p></li>
+<li><p><strong>abc_jerjan_alpha</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em><em>, </em><em>default=0.0053</em>) – The attenuation factor for the Jerjan boundary condition.</p></li>
+<li><p><strong>nabc</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em><em>, </em><em>default=20</em>) – The number of grid cells dedicated to the absorbing boundary.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>default='cpu'</em>) – The device on which to run the model (‘cpu’ or ‘cuda’).</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>default=torch.float32</em>) – The data type for PyTorch tensors.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.clip_params">
+<span class="sig-name descname"><span class="pre">clip_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel.clip_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.clip_params" title="Permalink to this definition"></a></dt>
+<dd><p>Clip the model parameters to the given bounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward method of the elastic model class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.get_clone_data">
+<span class="sig-name descname"><span class="pre">get_clone_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel.get_clone_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.get_clone_data" title="Permalink to this definition"></a></dt>
+<dd><p>clone the class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.set_rho_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_rho_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel.set_rho_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.set_rho_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate rho via empirical relations with vp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.set_vp_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_vp_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/acoustic_model.html#AcousticModel.set_vp_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.set_vp_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate vp via empirical relations with rho</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.model.acoustic_model.AcousticModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.model.acoustic_model.AcousticModel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.model.elastic_model">
+<span id="adfwi-model-elastic-model"></span><h2>ADFWI.model.elastic_model<a class="headerlink" href="#module-ADFWI.model.elastic_model" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.model.elastic_model.</span></span><span class="sig-name descname"><span class="pre">AnisotropicElasticModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anisotropic_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'vti'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'PML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_jerjan_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0053</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nabc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">water_layer_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#AnisotropicElasticModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.model.base.AbstractModel" title="ADFWI.model.base.AbstractModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModel</span></code></a></p>
+<dl class="simple">
+<dt>This model defines an anisotropic elastic velocity model for VTI (Vertical Transverse Isotropy) or HTI (Horizontal Transverse Isotropy) using the primary parameters:</dt><dd><ol class="arabic simple">
+<li><p>P-wave velocity (vp)</p></li>
+<li><p>S-wave velocity (vs)</p></li>
+<li><p>Density (rho)</p></li>
+<li><p>Anisotropic parameters epsilon (eps), gamma, and delta</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ox</strong> (<em>float</em>) – Origin of the model in the x-direction (m)</p></li>
+<li><p><strong>oz</strong> (<em>float</em>) – Origin of the model in the z-direction (m)</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the x-direction</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the z-direction</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in the x-direction (m)</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in the z-direction (m)</p></li>
+<li><p><strong>vp</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – P-wave velocity model with shape (nz, nx), default is None</p></li>
+<li><p><strong>vs</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – S-wave velocity model with shape (nz, nx), default is None</p></li>
+<li><p><strong>rho</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Density model with shape (nz, nx), default is None</p></li>
+<li><p><strong>eps</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Anisotropic parameter epsilon for VTI/HTI model, default is None</p></li>
+<li><p><strong>gamma</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Anisotropic parameter gamma for VTI/HTI model, default is None</p></li>
+<li><p><strong>delta</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Anisotropic parameter delta for VTI/HTI model, default is None</p></li>
+<li><p><strong>vp_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for the P-wave velocity model, default is None</p></li>
+<li><p><strong>vs_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for the S-wave velocity model, default is None</p></li>
+<li><p><strong>rho_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for the density model, default is None</p></li>
+<li><p><strong>eps_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for epsilon, default is None</p></li>
+<li><p><strong>gamma_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for gamma, default is None</p></li>
+<li><p><strong>delta_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Lower and upper bounds for delta, default is None</p></li>
+<li><p><strong>vp_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of the P-wave velocity model, default is False</p></li>
+<li><p><strong>vs_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of the S-wave velocity model, default is False</p></li>
+<li><p><strong>rho_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of the density model, default is False</p></li>
+<li><p><strong>eps_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of epsilon, default is False</p></li>
+<li><p><strong>gamma_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of gamma, default is False</p></li>
+<li><p><strong>delta_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to compute the gradient of delta, default is False</p></li>
+<li><p><strong>free_surface</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Flag to include a free surface, default is False</p></li>
+<li><p><strong>anisotropic_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Type of anisotropic model (‘vti’, ‘hti’, etc.), default is ‘vti’</p></li>
+<li><p><strong>abc_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Type of absorbing boundary condition, options include ‘PML’, ‘Jerjan’, etc., default is ‘PML’</p></li>
+<li><p><strong>abc_jerjan_alpha</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – Attenuation factor for Jerjan boundary condition, default is 0.0053</p></li>
+<li><p><strong>nabc</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – Number of absorbing boundary cells, default is 20</p></li>
+<li><p><strong>auto_update_rho</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Whether to automatically update the density model during inversion, default is False</p></li>
+<li><p><strong>auto_update_vp</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Whether to automatically update the P-wave velocity model during inversion, default is False</p></li>
+<li><p><strong>water_layer_mask</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Mask for the water layer (not updated), if applicable, default is None</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device for running the model (‘cpu’ or ‘cuda’), default is ‘cpu’</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – Data type for PyTorch tensors, default is torch.float32</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel.clip_params">
+<span class="sig-name descname"><span class="pre">clip_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#AnisotropicElasticModel.clip_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel.clip_params" title="Permalink to this definition"></a></dt>
+<dd><p>Clip the model parameters to the given bounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#AnisotropicElasticModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward method of the elastic model class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel.set_rho_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_rho_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#AnisotropicElasticModel.set_rho_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel.set_rho_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate rho via empirical relations with vp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel.set_vp_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_vp_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#AnisotropicElasticModel.set_vp_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel.set_vp_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate vp via empirical relations with vs</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.AnisotropicElasticModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.model.elastic_model.AnisotropicElasticModel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.model.elastic_model.</span></span><span class="sig-name descname"><span class="pre">IsotropicElasticModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'PML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abc_jerjan_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0053</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nabc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_update_vp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">water_layer_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.model.base.AbstractModel" title="ADFWI.model.base.AbstractModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModel</span></code></a></p>
+<p>Isotropic Elastic Velocity model with parameterization of vp, vs, and rho.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ox</strong> (<em>float</em>) – Origin of the model in x-direction (m)</p></li>
+<li><p><strong>oz</strong> (<em>float</em>) – Origin of the model in z-direction (m)</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in x-direction</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in z-direction</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Grid size in x-direction (m)</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Grid size in z-direction (m)</p></li>
+<li><p><strong>vp</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – P-wave velocity model with shape (nz, nx), default is None</p></li>
+<li><p><strong>vs</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – S-wave velocity model with shape (nz, nx), default is None</p></li>
+<li><p><strong>rho</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Density model with shape (nz, nx), default is None</p></li>
+<li><p><strong>vp_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The lower and upper bounds for the P-wave velocity model, default is None</p></li>
+<li><p><strong>vs_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The lower and upper bounds for the S-wave velocity model, default is None</p></li>
+<li><p><strong>rho_bound</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The lower and upper bounds for the density model, default is None</p></li>
+<li><p><strong>vp_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – A flag to indicate if the gradient of the P-wave velocity model is needed, default is False</p></li>
+<li><p><strong>vs_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – A flag to indicate if the gradient of the S-wave velocity model is needed, default is False</p></li>
+<li><p><strong>rho_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – A flag to indicate if the gradient of the density model is needed, default is False</p></li>
+<li><p><strong>free_surface</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – A flag to indicate the presence of a free surface in the model, default is False</p></li>
+<li><p><strong>abc_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of absorbing boundary condition used in the model, options include ‘PML’, ‘Jerjan’, etc., default is ‘PML’</p></li>
+<li><p><strong>abc_jerjan_alpha</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The attenuation factor for the Jerjan boundary condition, default is 0.0053</p></li>
+<li><p><strong>nabc</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The number of grid cells dedicated to the absorbing boundary, default is 20</p></li>
+<li><p><strong>auto_update_rho</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Whether to automatically update the density model during inversion, default is True</p></li>
+<li><p><strong>auto_update_vp</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em><em>, </em><em>optional</em>) – Whether to automatically update the P-wave velocity model during inversion, default is False</p></li>
+<li><p><strong>water_layer_mask</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>np.array</em><em>, </em><em>Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – A mask for the water layer (not updated), if applicable, default is None</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – The device on which to run the model, options are ‘cpu’ or ‘cuda’, default is ‘cpu’</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type for PyTorch tensors, default is torch.float32</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.clip_params">
+<span class="sig-name descname"><span class="pre">clip_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel.clip_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.clip_params" title="Permalink to this definition"></a></dt>
+<dd><p>Clip the model parameters to the given bounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward method of the elastic model class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.get_clone_data">
+<span class="sig-name descname"><span class="pre">get_clone_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel.get_clone_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.get_clone_data" title="Permalink to this definition"></a></dt>
+<dd><p>Return the data required for cloning the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.set_rho_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_rho_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel.set_rho_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.set_rho_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate rho via empirical relations with vp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.set_vp_using_empirical_function">
+<span class="sig-name descname"><span class="pre">set_vp_using_empirical_function</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/elastic_model.html#IsotropicElasticModel.set_vp_using_empirical_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.set_vp_using_empirical_function" title="Permalink to this definition"></a></dt>
+<dd><p>approximate vp via empirical relations with vs</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.model.elastic_model.IsotropicElasticModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.model.elastic_model.IsotropicElasticModel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.model.parameters">
+<span id="adfwi-model-parameters"></span><h2>ADFWI.model.parameters<a class="headerlink" href="#module-ADFWI.model.parameters" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.elastic_moduli_for_TI">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">elastic_moduli_for_TI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anisotropic_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VTI'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#elastic_moduli_for_TI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.elastic_moduli_for_TI" title="Permalink to this definition"></a></dt>
+<dd><p>For Transverse isotropy case, only 5 independent components: C11, C13, C33, C44, C66, and C12 = C11 - 2*C66.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>CC</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List containing the 21 elastic moduli parameters: [C11, C12, C13, …, C66].</p></li>
+<li><p><strong>anisotropic_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of anisotropy. Can be ‘VTI’ for vertical transverse isotropy (default) or ‘HTI’ for horizontal transverse isotropy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>CC</strong> – Modified list of elastic moduli with the corresponding anisotropic structure applied, depending on <cite>anisotropic_type</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.elastic_moduli_for_isotropic">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">elastic_moduli_for_isotropic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CC</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#elastic_moduli_for_isotropic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.elastic_moduli_for_isotropic" title="Permalink to this definition"></a></dt>
+<dd><p>For isotropy case, only 2 independent components. The matrix of elastic moduli is simplified as:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>CC</strong> (<em>list</em><em> of </em><em>torch.Tensor</em>) – List containing the 21 elastic moduli parameters: [C11, C12, C13, …, C66].</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>CC</strong> – Modified list of elastic moduli with the isotropic assumption applied.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.elastic_moduli_init">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">elastic_moduli_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#elastic_moduli_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.elastic_moduli_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the 21 independent elastic parameters for a full anisotropic medium. The function initializes the following 21 independent elastic parameters for a full anisotropic medium.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nz</strong> (<em>int</em>) – The number of grid points in the z-direction.</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – The number of grid points in the x-direction.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – The device to place the tensors on (‘cpu’ or ‘cuda’).</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – The data type of the tensors. Default is torch.float32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list containing the 21 independent elastic parameters, each as a tensor. The parameters are in the following order: [C11, C12, C13, C14, C15, C16, C22, C23, C24, C25, C26, C33, C34, C35, C36, C44, C45, C46, C55, C56, C66].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.elastic_moduli_to_thomsen">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">elastic_moduli_to_thomsen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C13</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C33</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C66</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#elastic_moduli_to_thomsen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.elastic_moduli_to_thomsen" title="Permalink to this definition"></a></dt>
+<dd><p>Transform Elastic Moduli to Thomsen parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>C11</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C11.</p></li>
+<li><p><strong>C13</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C13.</p></li>
+<li><p><strong>C33</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C33.</p></li>
+<li><p><strong>C44</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C44.</p></li>
+<li><p><strong>C66</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C66.</p></li>
+<li><p><strong>rho</strong> (<em>torch.Tensor</em>) – Density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>alpha_thomsen</strong> (<em>torch.Tensor</em>) – P-wave velocity (vp).</p></li>
+<li><p><strong>beta_thomsen</strong> (<em>torch.Tensor</em>) – S-wave velocity (vs).</p></li>
+<li><p><strong>eps_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (eps).</p></li>
+<li><p><strong>delta_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (delta).</p></li>
+<li><p><strong>gamma_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (gamma).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.parameter_staggered_grid">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">parameter_staggered_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C55</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C66</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#parameter_staggered_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.parameter_staggered_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Staggered mesh settings for model parameters.</p>
+<p>This function calculates the staggered grid values for different model parameters:
+shear modulus (mu), buoyancy (b), and elastic moduli (C44, C55, C66) based on
+the grid size (nx, nz) and applies an averaging method for staggered grids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> (<em>torch.Tensor</em>) – Shear modulus, also known as Lame constant.</p></li>
+<li><p><strong>b</strong> (<em>torch.Tensor</em>) – Buoyancy, the inverse of density.</p></li>
+<li><p><strong>C44</strong> (<em>torch.Tensor</em>) – Elastic modulus C44, describing shear waves.</p></li>
+<li><p><strong>C55</strong> (<em>torch.Tensor</em>) – Elastic modulus C55, another shear modulus term.</p></li>
+<li><p><strong>C66</strong> (<em>torch.Tensor</em>) – Elastic modulus C66, also related to shear waves.</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points in the X direction (horizontal axis).</p></li>
+<li><p><strong>nz</strong> (<em>int</em>) – Number of grid points in the Z direction (vertical axis).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>bx</strong> (<em>torch.Tensor</em>) – Staggered grid for buoyancy (b) in the X-axis.</p></li>
+<li><p><strong>bz</strong> (<em>torch.Tensor</em>) – Staggered grid for buoyancy (b) in the Z-axis.</p></li>
+<li><p><strong>muxz</strong> (<em>torch.Tensor</em>) – Staggered grid for shear modulus (mu).</p></li>
+<li><p><strong>C44</strong> (<em>torch.Tensor</em>) – Staggered grid for C44 (shear modulus term).</p></li>
+<li><p><strong>C55</strong> (<em>torch.Tensor</em>) – Staggered grid for C55 (shear modulus term).</p></li>
+<li><p><strong>C66</strong> (<em>torch.Tensor</em>) – Staggered grid for C66 (shear modulus term).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.thomsen_init">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">thomsen_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#thomsen_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.thomsen_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the Thomsen parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp</strong> (<em>array_like</em>) – P-wave velocity model.</p></li>
+<li><p><strong>vs</strong> (<em>array_like</em>) – S-wave velocity model.</p></li>
+<li><p><strong>rho</strong> (<em>array_like</em>) – Density model.</p></li>
+<li><p><strong>eps</strong> (<em>array_like</em>) – Anisotropic parameter epsilon.</p></li>
+<li><p><strong>delta</strong> (<em>array_like</em>) – Anisotropic parameter delta.</p></li>
+<li><p><strong>gamma</strong> (<em>array_like</em>) – Anisotropic parameter gamma.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – The device to place the tensors on (‘cpu’ or ‘cuda’).</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em><em>, </em><em>optional</em>) – Data type of the tensors, default is torch.float32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>vp</strong> (<em>torch.Tensor</em>) – P-wave velocity as a tensor.</p></li>
+<li><p><strong>vs</strong> (<em>torch.Tensor</em>) – S-wave velocity as a tensor.</p></li>
+<li><p><strong>rho</strong> (<em>torch.Tensor</em>) – Density as a tensor.</p></li>
+<li><p><strong>eps</strong> (<em>torch.Tensor</em>) – Anisotropic epsilon parameter as a tensor.</p></li>
+<li><p><strong>delta</strong> (<em>torch.Tensor</em>) – Anisotropic delta parameter as a tensor.</p></li>
+<li><p><strong>gamma</strong> (<em>torch.Tensor</em>) – Anisotropic gamma parameter as a tensor.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.thomsen_to_elastic_moduli">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">thomsen_to_elastic_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha_thomsen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_thomsen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps_thomsen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_thomsen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_thomsen</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#thomsen_to_elastic_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.thomsen_to_elastic_moduli" title="Permalink to this definition"></a></dt>
+<dd><p>Transform Thomsen parameters to Elastic Moduli for Transverse Isotropy. For Transverse isotropy case, only 5 independent components are used: C11, C13, C33, C44, C66. Additionally, C12 is calculated as C11 - 2*C66.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha_thomsen</strong> (<em>torch.Tensor</em>) – P-wave velocity (vp).</p></li>
+<li><p><strong>beta_thomsen</strong> (<em>torch.Tensor</em>) – S-wave velocity (vs).</p></li>
+<li><p><strong>rho</strong> (<em>torch.Tensor</em>) – Density.</p></li>
+<li><p><strong>eps_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (eps).</p></li>
+<li><p><strong>delta_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (delta).</p></li>
+<li><p><strong>gamma_thomsen</strong> (<em>torch.Tensor</em>) – Anisotropy parameter (gamma).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>C11</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C11.</p></li>
+<li><p><strong>C13</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C13.</p></li>
+<li><p><strong>C33</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C33.</p></li>
+<li><p><strong>C44</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C44.</p></li>
+<li><p><strong>C66</strong> (<em>torch.Tensor</em>) – Elastic Moduli, C66.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.model.parameters.vs_vp_to_Lame">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.model.parameters.</span></span><span class="sig-name descname"><span class="pre">vs_vp_to_Lame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/model/parameters.html#vs_vp_to_Lame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.model.parameters.vs_vp_to_Lame" title="Permalink to this definition"></a></dt>
+<dd><p>Transform P-wave and S-wave velocities along with density to the Lame constants.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp</strong> (<em>torch.Tensor</em>) – P-wave velocity along the respective axis.</p></li>
+<li><p><strong>vs</strong> (<em>torch.Tensor</em>) – S-wave velocity along the respective axis.</p></li>
+<li><p><strong>rho</strong> (<em>torch.Tensor</em>) – Density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>mu</strong> (<em>torch.Tensor</em>) – Lame constant (shear modulus).</p></li>
+<li><p><strong>lamu</strong> (<em>torch.Tensor</em>) – Lame constant (lambda).</p></li>
+<li><p><strong>lam</strong> (<em>torch.Tensor</em>) – Lambda constant (lambda - 2 * mu).</p></li>
+<li><p><strong>b</strong> (<em>torch.Tensor</em>) – Buoyancy, which is the inverse of density (1 / rho).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.propagator.html" class="btn btn-neutral float-left" title="ADFWI.propagator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.fwi.html" class="btn btn-neutral float-right" title="ADFWI.fwi" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

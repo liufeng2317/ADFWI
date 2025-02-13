@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.fwi.misfit.Normalized_Integration_method &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ADFWI.fwi.misfit.Normalized_Integration_method</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ADFWI.fwi.misfit.Normalized_Integration_method</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="kn">import</span> <span class="n">Function</span>
+
+<div class="viewcode-block" id="transform"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.transform">[docs]</a><span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">trans_type</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply a transformation to make f and g non-negative.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : Tensor</span>
+<span class="sd">        Seismic data, shape [num_time_steps, num_shots*num_receivers_per_shot].</span>
+<span class="sd">    g : Tensor</span>
+<span class="sd">        Seismic data, shape [num_time_steps, num_shots*num_receivers_per_shot].</span>
+<span class="sd">    trans_type : str</span>
+<span class="sd">        Transformation type (&#39;linear&#39;, &#39;abs&#39;, &#39;square&#39;, &#39;exp&#39;, &#39;softplus&#39;).</span>
+<span class="sd">    theta : float</span>
+<span class="sd">        Scalar parameter for transformation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mu : Tensor</span>
+<span class="sd">        Transformed f.</span>
+<span class="sd">    nu : Tensor</span>
+<span class="sd">        Transformed g.</span>
+<span class="sd">    d : Tensor</span>
+<span class="sd">        Derivative of transformed f for potential use in gradient-based methods.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Initialize the offset constant</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">device</span>
+    <span class="k">if</span> <span class="n">trans_type</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+        <span class="c1"># Linear transformation with offset</span>
+        <span class="n">min_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">g</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="o">-</span><span class="n">min_value</span> <span class="k">if</span> <span class="n">min_value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">theta</span>  <span class="c1"># Scale by theta for flexibility</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">trans_type</span> <span class="o">==</span> <span class="s1">&#39;abs&#39;</span><span class="p">:</span>
+        <span class="c1"># Absolute value transformation</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">trans_type</span> <span class="o">==</span> <span class="s1">&#39;square&#39;</span><span class="p">:</span>
+        <span class="c1"># Squaring transformation</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">f</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">g</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f</span>
+    <span class="k">elif</span> <span class="n">trans_type</span> <span class="o">==</span> <span class="s1">&#39;exp&#39;</span><span class="p">:</span>
+        <span class="c1"># Exponential transformation, scaled by theta</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">g</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">mu</span>
+    <span class="k">elif</span> <span class="n">trans_type</span> <span class="o">==</span> <span class="s1">&#39;softplus&#39;</span><span class="p">:</span>
+        <span class="c1"># Softplus transformation for smooth non-negativity</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">g</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">/</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">theta</span> <span class="o">*</span> <span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-18</span><span class="p">)</span>  <span class="c1"># Avoid division by zero</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="c1"># Ensure positive values for mu and nu by adding a small constant</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="mf">1e-18</span>
+    <span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="mf">1e-18</span>
+    <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="trace_sum_normalize"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.trace_sum_normalize">[docs]</a><span class="k">def</span> <span class="nf">trace_sum_normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">time_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize each trace by its sum along the specified dimension.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Tensor</span>
+<span class="sd">        Input tensor.</span>
+<span class="sd">    time_dim : int, optional</span>
+<span class="sd">        Dimension for time steps (default is 0).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor</span>
+<span class="sd">        Normalized tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">time_dim</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-18</span><span class="p">)</span>  <span class="c1"># Avoid division by zero</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="trace_max_normalize"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.trace_max_normalize">[docs]</a><span class="k">def</span> <span class="nf">trace_max_normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">time_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize each trace by its maximum value along the specified dimension.</span>
+<span class="sd">    The value of each trace will be in the range [-1, 1] after the processing.</span>
+<span class="sd">    Note that the channel should be 1.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Tensor</span>
+<span class="sd">        Input tensor.</span>
+<span class="sd">    time_dim : int, optional</span>
+<span class="sd">        Dimension for time steps (default is 0).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor</span>
+<span class="sd">        Normalized tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x_max</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">abs</span><span class="p">(),</span> <span class="n">dim</span><span class="o">=</span><span class="n">time_dim</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x_max</span> <span class="o">+</span> <span class="mf">1e-18</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="Misfit_NIM"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM">[docs]</a><span class="k">class</span> <span class="nc">Misfit_NIM</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalized Integration Method (NIM), computes misfit between cumulative distributions of transformed signals.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    p : int, optional</span>
+<span class="sd">        Norm degree, default is 2.</span>
+<span class="sd">    trans_type : str, optional</span>
+<span class="sd">        Type of non-negative transform, default is &#39;linear&#39;.</span>
+<span class="sd">    theta : float, optional</span>
+<span class="sd">        Parameter for non-negative transform, default is 1.</span>
+<span class="sd">    dt : float, optional</span>
+<span class="sd">        Time sampling interval.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    NIM is equivalent to the Wasserstein-1 distance when p=1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">trans_type</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Misfit_NIM class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trans_type</span> <span class="o">=</span> <span class="n">trans_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span>
+    
+<div class="viewcode-block" id="Misfit_NIM.forward"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.forward">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">syn</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">trans_type</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward pass to compute the misfit between transformed synthetic and observed signals.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        syn : Tensor</span>
+<span class="sd">            Synthetic signal data.</span>
+<span class="sd">        obs : Tensor</span>
+<span class="sd">            Observed signal data.</span>
+<span class="sd">        p : int, optional</span>
+<span class="sd">            Norm degree, default is 2.</span>
+<span class="sd">        trans_type : str, optional</span>
+<span class="sd">            Type of non-negative transform, default is &#39;linear&#39;.</span>
+<span class="sd">        theta : float, optional</span>
+<span class="sd">            Parameter for non-negative transform, default is 1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Tensor</span>
+<span class="sd">            Computed misfit value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Norm degree must be &gt;= 1&quot;</span>
+        <span class="k">assert</span> <span class="n">syn</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;Shape mismatch between synthetic and observed data&quot;</span>
+        
+        <span class="c1"># Flatten the input tensors for transformation (shape: [num_shots, num_time_steps * num_receivers])</span>
+        <span class="n">num_shots</span><span class="p">,</span> <span class="n">num_time_steps</span><span class="p">,</span> <span class="n">num_receivers</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="c1"># [num_shots, num_time_steps, num_receivers] --&gt; [num_shots, num_receivers, num_time_steps]</span>
+        <span class="n">syn_transposed</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">obs_transposed</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> 
+
+        <span class="c1"># Reshape input tensors for transformation</span>
+        <span class="n">syn_flat</span> <span class="o">=</span> <span class="n">syn_transposed</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_time_steps</span><span class="p">,</span> <span class="n">num_shots</span> <span class="o">*</span> <span class="n">num_receivers</span><span class="p">)</span>
+        <span class="n">obs_flat</span> <span class="o">=</span> <span class="n">obs_transposed</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_time_steps</span><span class="p">,</span> <span class="n">num_shots</span> <span class="o">*</span> <span class="n">num_receivers</span><span class="p">)</span>
+        
+        <span class="c1"># Transform signals to ensure non-negativity</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">syn_flat</span><span class="p">,</span> <span class="n">obs_flat</span><span class="p">,</span> <span class="n">trans_type</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+        
+        <span class="c1"># Normalize each trace by its sum</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">trace_sum_normalize</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">time_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">trace_sum_normalize</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">time_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Compute cumulative sums over the time dimension</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Keep the cumulative sum along the flattened time dimension</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Keep the cumulative sum along the flattened time dimension</span>
+        
+        <span class="c1"># Save the necessary tensors for backward computation</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">F</span> <span class="o">-</span> <span class="n">G</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span>  <span class="n">d</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">num_shots</span> <span class="o">=</span> <span class="n">num_shots</span>  <span class="c1"># Save as an attribute</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">num_time_steps</span> <span class="o">=</span> <span class="n">num_time_steps</span>  <span class="c1"># Save as an attribute</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">num_receivers</span> <span class="o">=</span> <span class="n">num_receivers</span>  <span class="c1"># Save as an attribute</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">F</span> <span class="o">-</span> <span class="n">G</span><span class="p">)</span> <span class="o">**</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="Misfit_NIM.backward"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.backward">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Backward pass to compute the gradients of the misfit with respect to the inputs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grad_output : Tensor</span>
+<span class="sd">            The gradient of the loss with respect to the output.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Tuple</span>
+<span class="sd">            Gradients of the inputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">residual</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">saved_tensors</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">p</span>
+        <span class="n">num_shots</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">num_shots</span>
+        <span class="n">num_time_steps</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">num_time_steps</span>
+        <span class="n">num_receivers</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">num_receivers</span>
+        
+        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Check if p is 1</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">residual</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">d</span>     
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_time_steps</span><span class="p">,</span> <span class="n">num_shots</span><span class="p">,</span> <span class="n">num_receivers</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">df</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,652 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Optimization Methods &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Regularization Methods" href="../regularization_methods/regularization.html" />
+    <link rel="prev" title="Objective Functions" href="../objective_functions/objective_functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../automatic_differentiation/automatic_differentiation.html">Automatic Differentiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wave_equation/wave_equations.html">Wave Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../objective_functions/objective_functions.html">Objective Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Optimization Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#first-order-optimization-methods">1. First-Order Optimization Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#gradient-descent-gd">1.1 Gradient Descent (GD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stochastic-gradient-descent-sgd">1.2 Stochastic Gradient Descent (SGD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#average-stochastic-gradient-descent-asgd">1.3 Average Stochastic Gradient Descent (ASGD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#adaptive-gradient-optimization">2. Adaptive Gradient Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#adaptive-gradient-algorithm-adagrad">2.1 Adaptive Gradient Algorithm (Adagrad)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#root-mean-square-propagation-rmsprop">2.2 Root Mean Square Propagation (RMSProp)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adaptive-moment-estimation-adam">2.3 Adaptive Moment Estimation (Adam)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adam-with-weight-decay-adamw">2.4 Adam with Weight Decay (AdamW)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nesterov-accelerated-adam-nadam">2.5 Nesterov-accelerated Adam (NAdam)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rectified-adam-radam">2.6 Rectified Adam (RAdam)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#second-order-optimization-methods">3. Second-Order Optimization Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#quasi-newton-methods-l-bfgs">3.1 Quasi-Newton Methods: L-BFGS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#newton-s-method">3.2 Newton’s Method</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../regularization_methods/regularization.html">Regularization Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deep_reparameterization/deep_reparameterization.html">Deep Reparameterization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Optimization Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/Tutorial/optimization_methods/optimizer.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="optimization-methods">
+<h1>Optimization Methods<a class="headerlink" href="#optimization-methods" title="Permalink to this heading"></a></h1>
+<section id="first-order-optimization-methods">
+<h2>1. First-Order Optimization Methods<a class="headerlink" href="#first-order-optimization-methods" title="Permalink to this heading"></a></h2>
+<section id="gradient-descent-gd">
+<h3>1.1 Gradient Descent (GD)<a class="headerlink" href="#gradient-descent-gd" title="Permalink to this heading"></a></h3>
+<section id="introduction">
+<h4>(1) Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h4>
+<p>Gradient Descent (GD) is one of the most fundamental optimization algorithms used to minimize a differentiable objective function. The algorithm iteratively updates the model parameters in the direction of the negative gradient of the function. By moving in the steepest descent direction, GD seeks to converge to the minimum of the objective function. This approach is commonly employed in tasks such as linear regression, logistic regression, and deep learning. Depending on the method of computing the gradients, GD can be classified into three types: Batch Gradient Descent, Stochastic Gradient Descent (SGD), and Mini-batch Gradient Descent.</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(g_t\)</span> represents the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span> at time step <span class="math notranslate nohighlight">\(t-1\)</span>.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by subtracting the gradient <span class="math notranslate nohighlight">\(g_t\)</span> scaled by the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>, which controls the step size in the optimization process.</p>
+</li>
+</ol>
+</section>
+<section id="pros-and-cons">
+<h4>(2) Pros and Cons<a class="headerlink" href="#pros-and-cons" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Simplicity:</strong> GD is straightforward to implement and understand. It is based on well-established principles from calculus and linear algebra.</p></li>
+<li><p><strong>Theoretical Guarantees:</strong> In convex optimization problems, GD guarantees convergence to the global minimum, provided the learning rate is appropriately chosen.</p></li>
+<li><p><strong>Wide Applicability:</strong> GD is broadly applicable across machine learning models, including linear regression, logistic regression, and neural networks.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Sensitive to Learning Rate:</strong> If the learning rate <span class="math notranslate nohighlight">\(\eta\)</span> is too large, the algorithm may overshoot the minimum, while a very small <span class="math notranslate nohighlight">\(\eta\)</span> could lead to slow convergence or getting stuck in local minima.</p></li>
+<li><p><strong>Convergence Speed:</strong> For large-scale datasets, GD can be slow because it computes the gradient using the entire dataset for each update (Batch Gradient Descent), which is computationally expensive.</p></li>
+<li><p><strong>Local Minima and Saddle Points:</strong> In non-convex problems, such as neural networks, GD can converge to local minima or saddle points depending on the initial parameter values, which may not correspond to the global minimum.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="stochastic-gradient-descent-sgd">
+<h3>1.2 Stochastic Gradient Descent (SGD)<a class="headerlink" href="#stochastic-gradient-descent-sgd" title="Permalink to this heading"></a></h3>
+<section id="id1">
+<h4>(1) Introduction<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<p>Stochastic Gradient Descent (SGD) is a variant of Gradient Descent where the model parameters are updated using the gradient computed from a single data point (or a small batch) at each iteration, rather than using the entire dataset. This allows the algorithm to perform updates more frequently, making it computationally more efficient for large datasets. Although the updates are noisy due to the use of single data points, SGD often converges faster than Batch Gradient Descent, especially in large-scale problems.</p>
+<p>In the context of FWI, each data corresponds to a source (shot), and the gradient is computed based on the mismatch between the observed and predicted wavefields at each receiver location.</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1}; \text{s}_i)\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(g_t\)</span> represents the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span>, computed from a single shot <span class="math notranslate nohighlight">\((\text{s}_i)\)</span> at iteration <span class="math notranslate nohighlight">\(t\)</span>. The data here refers to the wavefield measurements at the receiver positions corresponding to each shot.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> (typically a velocity model or other subsurface properties) are updated by subtracting the gradient <span class="math notranslate nohighlight">\(g_t\)</span> scaled by the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>, which controls the step size in the direction of the negative gradient.</p>
+</li>
+</ol>
+</section>
+<section id="id2">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Faster Updates:</strong> Since the gradient is calculated from a single shot-receiver pair, SGD allows for faster updates, making it suitable for large-scale FWI tasks.</p></li>
+<li><p><strong>Memory Efficiency:</strong> SGD processes one shot-receiver pair at a time, which is more memory-efficient compared to Batch Gradient Descent, especially when dealing with large datasets.</p></li>
+<li><p><strong>Potential for Better Generalization:</strong> The noisy updates from SGD can help avoid local minima or saddle points, potentially leading to better generalization and more robust models.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Noisy Updates:</strong> The updates are noisy due to the use of a single shot-receiver pair, which can cause fluctuations in the convergence path and make the training process less stable.</p></li>
+<li><p><strong>Convergence to Local Minima:</strong> Similar to Batch Gradient Descent, SGD can still converge to a local minimum or a saddle point, especially in the highly non-linear objective function of FWI.</p></li>
+<li><p><strong>Tuning Learning Rate:</strong> As with Batch Gradient Descent, the learning rate <span class="math notranslate nohighlight">\(\eta\)</span> needs to be carefully tuned. A too-high learning rate can cause divergence, while a too-low learning rate can lead to slow convergence.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="average-stochastic-gradient-descent-asgd">
+<h3>1.3 Average Stochastic Gradient Descent (ASGD)<a class="headerlink" href="#average-stochastic-gradient-descent-asgd" title="Permalink to this heading"></a></h3>
+<section id="id3">
+<h4>(1) Introduction<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
+<p>Average Stochastic Gradient Descent (ASGD) is a variant of Stochastic Gradient Descent (SGD) that addresses the noisy updates by averaging the parameters over time. In standard SGD, the model parameters are updated with each gradient step based on a single data samples (or a small batch), leading to noisy and potentially unstable updates. ASGD improves upon this by maintaining an average of the parameters throughout the optimization process, which helps reduce the variance in the updates and leads to more stable convergence.</p>
+<p>In Full Waveform Inversion (FWI), the gradients are still computed from single (or mini-batch) shot pairs, but the model parameters are averaged over multiple iterations, which helps in preventing overfitting and improving generalization.</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1}; \text{s}_i)\]</div>
+<p>The gradient <span class="math notranslate nohighlight">\(g_t\)</span> is computed based on the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span>, which is typically the misfit between observed and predicted wavefields at a particular shot <span class="math notranslate nohighlight">\((\text{s}_i)\)</span> at iteration <span class="math notranslate nohighlight">\(t\)</span>.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by subtracting the gradient <span class="math notranslate nohighlight">\(g_t\)</span> scaled by the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>.</p>
+</li>
+<li><p><strong>Parameter Averaging:</strong></p>
+<div class="math notranslate nohighlight">
+\[\hat{\mathbf{m}} = \frac{1}{T} \sum_{t=1}^T \mathbf{m}_t\]</div>
+<p>After <span class="math notranslate nohighlight">\(T\)</span> iterations, the final parameters <span class="math notranslate nohighlight">\(\hat{\mathbf{m}}\)</span> are computed as the average of the parameters across all iterations. This averaging helps smooth the updates and stabilize convergence.</p>
+</li>
+</ol>
+</section>
+<section id="id4">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Reduced Variance in Updates:</strong> By averaging the parameters over time, ASGD reduces the noisy updates typically seen in SGD, leading to smoother and more stable convergence.</p></li>
+<li><p><strong>Improved Generalization:</strong> The averaging of parameters helps prevent overfitting, leading to better generalization on unseen data, which is particularly useful in FWI where the model may be highly sensitive to noise.</p></li>
+<li><p><strong>Faster Convergence:</strong> The averaging process can speed up convergence by mitigating the effect of noisy gradients, especially in the early stages of optimization.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Slower Convergence in Later Stages:</strong> While the averaging helps in early stages, it can slow down convergence towards the end of the training, as the parameters might become too smooth to make significant progress.</p></li>
+<li><p><strong>Requires More Memory:</strong> Storing the history of parameter updates to compute the average can require more memory, especially when working with large models or datasets.</p></li>
+<li><p><strong>Tuning Averaging Window:</strong> The parameter averaging process introduces an additional hyperparameter, which may need to be tuned to find the optimal trade-off between stability and speed.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="adaptive-gradient-optimization">
+<h2>2. Adaptive Gradient Optimization<a class="headerlink" href="#adaptive-gradient-optimization" title="Permalink to this heading"></a></h2>
+<section id="adaptive-gradient-algorithm-adagrad">
+<h3>2.1 Adaptive Gradient Algorithm (Adagrad)<a class="headerlink" href="#adaptive-gradient-algorithm-adagrad" title="Permalink to this heading"></a></h3>
+<section id="id5">
+<h4>(1) Introduction<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<p>The Adaptive Gradient Algorithm (Adagrad) optimizer adjusts the learning rate for each parameter by accumulating the sum of the squared gradients over time (Duchi et al., 2011). This allows the optimizer to scale the learning rate for each parameter individually, giving larger updates to parameters with smaller gradients and smaller updates to parameters with larger gradients. This makes Adagrad especially effective for sparse data and problems where different parameters have widely varying gradients.</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>where <span class="math notranslate nohighlight">\(g_t\)</span> represents the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span> at time step <span class="math notranslate nohighlight">\(t-1\)</span>.</p>
+</li>
+<li><p><strong>Accumulation of Squared Gradients:</strong></p>
+<div class="math notranslate nohighlight">
+\[G_t = G_{t-1} + g_t^2\]</div>
+<p>This equation accumulates the sum of the squared gradients for the model parameters up to time step <span class="math notranslate nohighlight">\(t\)</span>, where <span class="math notranslate nohighlight">\(G_t\)</span> stores the historical gradient information.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \frac{\eta}{\sqrt{G_t + \epsilon}} g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by scaling the gradient <span class="math notranslate nohighlight">\(g_t\)</span> with the inverse square root of the accumulated gradient sum <span class="math notranslate nohighlight">\(G_t\)</span>, and normalizing it with the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>. The small constant <span class="math notranslate nohighlight">\(\epsilon\)</span> is added for numerical stability to prevent division by zero.</p>
+</li>
+</ol>
+</section>
+<section id="id6">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Per-Parameter Learning Rate:</strong> Adagrad adjusts the learning rate for each parameter individually, making it effective for sparse gradients or data with varying magnitudes of gradients.</p></li>
+<li><p><strong>Good for Sparse Data:</strong> Adagrad is especially useful when working with sparse data (e.g., in natural language processing or recommendation systems), where many parameters receive small gradients.</p></li>
+<li><p><strong>No Need for Learning Rate Scheduling:</strong> Since the learning rate is adapted during the training process, it can eliminate the need for manually tuning the learning rate schedule.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Learning Rate Shrinking:</strong> The accumulation of squared gradients results in a monotonically decreasing learning rate, which may cause the algorithm to stop updating parameters too early, particularly for parameters with smaller gradients.</p></li>
+<li><p><strong>Inefficiency in Long-Term Training:</strong> Over time, the accumulated gradient sum <span class="math notranslate nohighlight">\(G_t\)</span> can grow too large, which leads to overly small updates in the later stages of training, potentially slowing down convergence.</p></li>
+<li><p><strong>Sensitive to Hyperparameters:</strong> Although Adagrad reduces the need for learning rate tuning, the choice of initial learning rate <span class="math notranslate nohighlight">\(\eta\)</span> still requires careful consideration.</p></li>
+</ul>
+</section>
+<section id="reference">
+<h4>(3) Reference<a class="headerlink" href="#reference" title="Permalink to this heading"></a></h4>
+<p>[1] Duchi J, Hazan E, Singer Y. Adaptive subgradient methods for online learning and stochastic optimization[J]. Journal of machine learning research, 2011, 12(7).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="root-mean-square-propagation-rmsprop">
+<h3>2.2 Root Mean Square Propagation (RMSProp)<a class="headerlink" href="#root-mean-square-propagation-rmsprop" title="Permalink to this heading"></a></h3>
+<section id="id7">
+<h4>(1) Introduction<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h4>
+<p>The Root Mean Square Propagation (RMSProp) optimizer is designed to adjust the learning rate based on the moving average of the squared gradients. This helps in adapting the learning rate to the scale of the gradients and stabilizes the optimization process, especially in the case of non-stationary objectives. RMSProp is widely used in deep learning for optimizing complex models and has been shown to outperform traditional gradient descent methods in certain scenarios (Graves, 2014).</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>where <span class="math notranslate nohighlight">\(g_t\)</span> represents the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span> at time step <span class="math notranslate nohighlight">\(t-1\)</span>.</p>
+</li>
+<li><p><strong>Exponential Moving Average of Squared Gradients:</strong></p>
+<div class="math notranslate nohighlight">
+\[E[g_t^2] = \gamma E[g_{t-1}^2] + (1 - \gamma) g_t^2\]</div>
+<p>This equation computes the exponentially weighted moving average of the squared gradients. The decay rate <span class="math notranslate nohighlight">\(\gamma\)</span> controls the influence of previous gradients. A higher <span class="math notranslate nohighlight">\(\gamma\)</span> gives more weight to past gradients, while a lower <span class="math notranslate nohighlight">\(\gamma\)</span> places more emphasis on recent gradients.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \frac{\eta}{\sqrt{E[g_t^2] + \epsilon}} g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by adjusting the gradient <span class="math notranslate nohighlight">\(g_t\)</span> scaled by the learning rate <span class="math notranslate nohighlight">\(\eta\)</span> and normalized by the moving average of squared gradients. The small constant <span class="math notranslate nohighlight">\(\epsilon\)</span> is added to avoid division by zero and ensure numerical stability.</p>
+</li>
+</ol>
+</section>
+<section id="id8">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Adaptive Learning Rate:</strong> RMSProp adapts the learning rate for each parameter, which can help with convergence in non-stationary problems where gradients can vary in scale.</p></li>
+<li><p><strong>Stable and Efficient:</strong> By using the moving average of squared gradients, RMSProp avoids the issue of large gradient updates, leading to more stable training.</p></li>
+<li><p><strong>Efficient for Online Learning:</strong> It is particularly effective in cases where the dataset is very large or when training involves streaming data, as it updates based on recent gradients without storing large amounts of past data.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Sensitive to Hyperparameters:</strong> The choice of the decay rate <span class="math notranslate nohighlight">\(\gamma\)</span> and the learning rate <span class="math notranslate nohighlight">\(\eta\)</span> can significantly affect performance. Tuning these hyperparameters may require careful experimentation.</p></li>
+<li><p><strong>Not Ideal for Highly Noisy Gradients:</strong> In some cases, RMSProp may over-smooth the updates, especially if <span class="math notranslate nohighlight">\(\gamma\)</span> is set too high, leading to slower convergence in noisy environments.</p></li>
+<li><p><strong>Can Get Stuck in Local Minima:</strong> Like other gradient-based methods, RMSProp may still suffer from getting stuck in local minima, though this is a general issue with many first-order optimization methods.</p></li>
+</ul>
+</section>
+<section id="id9">
+<h4>(3) Reference<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h4>
+<p>[1] Graves A, Jaitly N. Towards end-to-end speech recognition with recurrent neural networks[C]//International conference on machine learning. PMLR, 2014: 1764-1772.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="adaptive-moment-estimation-adam">
+<h3>2.3 Adaptive Moment Estimation (Adam)<a class="headerlink" href="#adaptive-moment-estimation-adam" title="Permalink to this heading"></a></h3>
+<section id="id10">
+<h4>(1) Introduction<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h4>
+<p>The Adaptive Moment Estimation (Adam) optimizer combines the advantages of both the Adaptive Gradient Algorithm (Adagrad) and Root Mean Square Propagation (RMSProp) by maintaining both the first moment (mean) and the second moment (uncentered variance) of the gradients. This allows Adam to adaptively adjust the learning rates for each parameter, improving performance and convergence speed. Adam has become one of the most popular optimizers in deep learning due to its efficiency and good generalization performance (Kingma &amp; Ba, 2017).</p>
+<ol class="arabic">
+<li><p><strong>First Moment Estimate (Momentum):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_1 v_{t-1} + (1 - \beta_1) g_t\]</div>
+<p>The first moment estimate <span class="math notranslate nohighlight">\(v_t\)</span> is the exponential moving average of the gradients <span class="math notranslate nohighlight">\(g_t\)</span>. The decay rate <span class="math notranslate nohighlight">\(\beta_1\)</span> controls the weight of past gradients in this moving average. Larger <span class="math notranslate nohighlight">\(\beta_1\)</span> values give more weight to historical gradients, which introduces momentum to the optimization process.</p>
+</li>
+<li><p><strong>Second Moment Estimate (Variance):</strong></p>
+<div class="math notranslate nohighlight">
+\[s_t = \beta_2 s_{t-1} + (1 - \beta_2) g_t^2\]</div>
+<p>The second moment estimate <span class="math notranslate nohighlight">\(s_t\)</span> is the exponential moving average of the squared gradients. The decay rate <span class="math notranslate nohighlight">\(\beta_2\)</span> controls the influence of past squared gradients, helping to scale the learning rate based on the variance of the gradients.</p>
+</li>
+<li><p><strong>Bias-Corrected First and Second Moments:</strong></p>
+<div class="math notranslate nohighlight">
+\[\hat{v}_t = \frac{v_t}{1 - \beta_1^t}, \quad \hat{s}_t = \frac{s_t}{1 - \beta_2^t}\]</div>
+<p>These are bias-corrected versions of <span class="math notranslate nohighlight">\(v_t\)</span> and <span class="math notranslate nohighlight">\(s_t\)</span>, which help to counteract the initial bias towards zero, especially in the early stages of training.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta \frac{\hat{v}_t}{\sqrt{\hat{s}_t} + \epsilon}\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated using the bias-corrected first and second moment estimates. The learning rate <span class="math notranslate nohighlight">\(\eta\)</span> is scaled by the ratio of the first moment estimate <span class="math notranslate nohighlight">\(\hat{v}_t\)</span> and the square root of the second moment estimate <span class="math notranslate nohighlight">\(\hat{s}_t\)</span>, with the small constant <span class="math notranslate nohighlight">\(\epsilon\)</span> added for numerical stability.</p>
+</li>
+</ol>
+</section>
+<section id="id11">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Adaptive Learning Rates:</strong> Adam computes individual adaptive learning rates for each parameter, which helps to optimize complex models and handle problems with different gradient magnitudes across parameters.</p></li>
+<li><p><strong>Momentum and Variance Adaptation:</strong> By incorporating both the first and second moments of the gradients, Adam can converge faster and more reliably than other optimizers like SGD or Adagrad, particularly in cases where gradients are sparse or noisy.</p></li>
+<li><p><strong>Bias Correction:</strong> The bias-corrected moments help to overcome the problem of having overly small gradient estimates in the early stages of training, improving the stability and performance of the optimizer.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Sensitive to Hyperparameters:</strong> The decay rates <span class="math notranslate nohighlight">\(\beta_1\)</span> and <span class="math notranslate nohighlight">\(\beta_2\)</span> and the learning rate <span class="math notranslate nohighlight">\(\eta\)</span> require tuning, and improper values can degrade performance.</p></li>
+<li><p><strong>Memory Overhead:</strong> Adam maintains both first and second moment estimates for each parameter, which increases memory consumption compared to simpler optimizers like SGD.</p></li>
+<li><p><strong>Potential Overfitting:</strong> In some cases, the adaptive learning rates might lead to overfitting, especially with very large models or small datasets, as Adam may fit too closely to the training data.</p></li>
+</ul>
+</section>
+<section id="id12">
+<h4>(3) Reference<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h4>
+<p>[1] Kingma D P. Adam: A method for stochastic optimization[J]. arXiv preprint arXiv:1412.6980, 2014.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="adam-with-weight-decay-adamw">
+<h3>2.4 Adam with Weight Decay (AdamW)<a class="headerlink" href="#adam-with-weight-decay-adamw" title="Permalink to this heading"></a></h3>
+<section id="id13">
+<h4>(1) Introduction<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h4>
+<p>Adam with Weight Decay (AdamW) is a variant of the Adam optimizer that incorporates weight decay regularization directly into the parameter update rule. This modification helps to prevent overfitting by penalizing large weights, which is especially useful when training large models on complex datasets. The weight decay term <span class="math notranslate nohighlight">\(\lambda\)</span> decays the model parameters in each update, and this decouples the weight decay from the gradient-based optimization process, leading to better performance in many scenarios (Loshchilov &amp; Hutter, 2019).</p>
+<ol class="arabic">
+<li><p><strong>First Moment Estimate (Momentum):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_1 v_{t-1} + (1 - \beta_1) g_t\]</div>
+<p>The first moment estimate <span class="math notranslate nohighlight">\(v_t\)</span> is the exponential moving average of the gradients <span class="math notranslate nohighlight">\(g_t\)</span>. The decay rate <span class="math notranslate nohighlight">\(\beta_1\)</span> determines the influence of past gradients on the current gradient estimate.</p>
+</li>
+<li><p><strong>Second Moment Estimate (Variance):</strong></p>
+<div class="math notranslate nohighlight">
+\[s_t = \beta_2 s_{t-1} + (1 - \beta_2) g_t^2\]</div>
+<p>The second moment estimate <span class="math notranslate nohighlight">\(s_t\)</span> is the exponential moving average of the squared gradients, with the decay rate <span class="math notranslate nohighlight">\(\beta_2\)</span> controlling the weighting of past squared gradients.</p>
+</li>
+<li><p><strong>Bias-Corrected First and Second Moments:</strong></p>
+<div class="math notranslate nohighlight">
+\[\hat{v}_t = \frac{v_t}{1 - \beta_1^t}, \quad \hat{s}_t = \frac{s_t}{1 - \beta_2^t}\]</div>
+<p>These are the bias-corrected versions of <span class="math notranslate nohighlight">\(v_t\)</span> and <span class="math notranslate nohighlight">\(s_t\)</span>, compensating for their initial values being too small, especially in the early stages of training.</p>
+</li>
+<li><p><strong>Parameter Update Rule with Weight Decay:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta \frac{\hat{v}_t}{\sqrt{\hat{s}_t} + \epsilon} + \lambda \eta \mathbf{m}_{t-1}\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by scaling the bias-corrected first and second moment estimates, and the weight decay term <span class="math notranslate nohighlight">\(\lambda \eta \mathbf{m}_{t-1}\)</span> adds a regularization penalty to prevent overfitting. Here, <span class="math notranslate nohighlight">\(\lambda\)</span> is the weight decay coefficient, and <span class="math notranslate nohighlight">\(\epsilon\)</span> ensures numerical stability.</p>
+</li>
+</ol>
+</section>
+<section id="id14">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Improved Regularization:</strong> AdamW decouples weight decay from the gradient-based updates, allowing for better control of regularization. This leads to more effective regularization compared to traditional methods that apply weight decay to the gradients.</p></li>
+<li><p><strong>Effective for Large Models:</strong> The incorporation of weight decay into AdamW helps to prevent overfitting, making it especially useful for training large models on high-dimensional data.</p></li>
+<li><p><strong>Better Convergence:</strong> By decoupling the weight decay from the optimization process, AdamW can improve convergence rates and avoid the issues associated with traditional weight decay methods.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Sensitive to Hyperparameters:</strong> As with Adam, the hyperparameters <span class="math notranslate nohighlight">\(\beta_1\)</span>, <span class="math notranslate nohighlight">\(\beta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta\)</span> need to be carefully tuned to achieve optimal performance. Additionally, the weight decay coefficient <span class="math notranslate nohighlight">\(\lambda\)</span> must also be selected appropriately.</p></li>
+<li><p><strong>Increased Memory Usage:</strong> Like Adam, AdamW requires storing both first and second moment estimates for each parameter, which increases memory usage compared to simpler optimizers like SGD.</p></li>
+<li><p><strong>Potential Over-regularization:</strong> If <span class="math notranslate nohighlight">\(\lambda\)</span> is set too high, it may lead to underfitting, where the model is overly regularized and unable to learn the underlying patterns in the data.</p></li>
+</ul>
+</section>
+<section id="id15">
+<h4>(3) Reference<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h4>
+<p>[1] Loshchilov I. Decoupled weight decay regularization[J]. arXiv preprint arXiv:1711.05101, 2017.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="nesterov-accelerated-adam-nadam">
+<h3>2.5 Nesterov-accelerated Adam (NAdam)<a class="headerlink" href="#nesterov-accelerated-adam-nadam" title="Permalink to this heading"></a></h3>
+<section id="id16">
+<h4>(1) Introduction<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h4>
+<p>Nesterov-accelerated Adam (NAdam) combines the benefits of the Adam optimizer with Nesterov’s accelerated gradient (NAG) momentum, which helps improve the convergence speed by anticipating the future gradient direction. This is particularly useful when dealing with complex, high-dimensional optimization problems. NAdam computes the gradient with respect to the “lookahead” gradient, enabling faster and more accurate convergence than Adam, especially in situations where the learning rate needs to be adjusted dynamically (Dozat, 2016).</p>
+<ol class="arabic">
+<li><p><strong>First Moment Estimate (Momentum):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_1 v_{t-1} + (1 - \beta_1) g_t\]</div>
+<p>The first moment estimate <span class="math notranslate nohighlight">\(v_t\)</span> is the exponential moving average of the gradients <span class="math notranslate nohighlight">\(g_t\)</span>. The decay rate <span class="math notranslate nohighlight">\(\beta_1\)</span> determines how much weight is given to previous gradients in the momentum update.</p>
+</li>
+<li><p><strong>Second Moment Estimate (Variance):</strong></p>
+<div class="math notranslate nohighlight">
+\[s_t = \beta_2 s_{t-1} + (1 - \beta_2) g_t^2\]</div>
+<p>The second moment estimate <span class="math notranslate nohighlight">\(s_t\)</span> is the exponential moving average of the squared gradients, with the decay rate <span class="math notranslate nohighlight">\(\beta_2\)</span> controlling the influence of past squared gradients.</p>
+</li>
+<li><p><strong>Bias-Corrected First and Second Moments:</strong></p>
+<div class="math notranslate nohighlight">
+\[\hat{v}_t = \frac{v_t}{1 - \beta_1^t}, \quad \hat{s}_t = \frac{s_t}{1 - \beta_2^t}\]</div>
+<p>These are the bias-corrected versions of <span class="math notranslate nohighlight">\(v_t\)</span> and <span class="math notranslate nohighlight">\(s_t\)</span>, compensating for their initial small values, particularly at the start of training.</p>
+</li>
+<li><p><strong>Nesterov-accelerated Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \frac{\eta}{\sqrt{\hat{s}_t} + \epsilon} \left( \beta_1 \hat{v}_t + \frac{1 - \beta_1}{1 - \beta_1^t} g_t \right)\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated using the combination of the bias-corrected momentum estimate <span class="math notranslate nohighlight">\(\hat{v}_t\)</span> and the adjusted gradient <span class="math notranslate nohighlight">\(g_t\)</span>, which is scaled by the lookahead term <span class="math notranslate nohighlight">\(\frac{1 - \beta_1}{1 - \beta_1^t}\)</span>. This update rule applies the Nesterov momentum by taking a “lookahead” at the future gradient direction before updating the parameters.</p>
+</li>
+</ol>
+</section>
+<section id="id17">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Improved Convergence:</strong> The Nesterov momentum provides an “anticipation” of the future gradients, which helps the optimizer to converge faster than regular Adam, especially when training on large and complex datasets.</p></li>
+<li><p><strong>Momentum with a Lookahead:</strong> By adding the Nesterov term, NAdam incorporates a more informed gradient update, which can improve the stability and efficiency of the optimization process.</p></li>
+<li><p><strong>Combines Strengths of Momentum and Adam:</strong> NAdam effectively combines the adaptive learning rates of Adam with the faster convergence properties of Nesterov’s momentum, making it a powerful optimization choice for deep learning tasks.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Computational Overhead:</strong> The additional lookahead gradient computation introduces extra overhead compared to standard Adam, which may increase the training time, particularly for very large models.</p></li>
+<li><p><strong>Sensitive to Hyperparameters:</strong> The effectiveness of NAdam is still dependent on proper tuning of the hyperparameters, including the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>, decay rates <span class="math notranslate nohighlight">\(\beta_1\)</span> and <span class="math notranslate nohighlight">\(\beta_2\)</span>, and the small constant <span class="math notranslate nohighlight">\(\epsilon\)</span>.</p></li>
+<li><p><strong>May Not Always Improve Over Adam:</strong> In some cases, particularly when the problem is not sensitive to momentum or the learning rate is well-tuned, NAdam may not provide significant improvements over Adam.</p></li>
+</ul>
+</section>
+<section id="id18">
+<h4>(3) Reference<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h4>
+<p>[1] Dozat T. Incorporating nesterov momentum into adam[J]. 2016.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="rectified-adam-radam">
+<h3>2.6 Rectified Adam (RAdam)<a class="headerlink" href="#rectified-adam-radam" title="Permalink to this heading"></a></h3>
+<section id="id19">
+<h4>(1) Introduction<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h4>
+<p>Rectified Adam (RAdam) introduces a rectification mechanism to the Adam optimizer in order to stabilize the variance of adaptive learning rates, particularly in the early stages of optimization. RAdam adjusts the learning rates during the initial steps, preventing the instability commonly observed with adaptive optimizers when training deep neural networks. By adding a correction term, it helps avoid the “early stage instability” that can arise when the first and second moment estimates are biased at the beginning of training (L. Liu et al., 2019).</p>
+<ol class="arabic">
+<li><p><strong>First Moment Estimate (Momentum):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_1 v_{t-1} + (1 - \beta_1) g_t\]</div>
+<p>The first moment estimate <span class="math notranslate nohighlight">\(v_t\)</span> is the exponential moving average of the gradients <span class="math notranslate nohighlight">\(g_t\)</span>, where <span class="math notranslate nohighlight">\(\beta_1\)</span> controls the influence of past gradients on the momentum update.</p>
+</li>
+<li><p><strong>Second Moment Estimate (Variance):</strong></p>
+<div class="math notranslate nohighlight">
+\[s_t = \beta_2 s_{t-1} + (1 - \beta_2) g_t^2\]</div>
+<p>The second moment estimate <span class="math notranslate nohighlight">\(s_t\)</span> is the exponential moving average of the squared gradients, with <span class="math notranslate nohighlight">\(\beta_2\)</span> determining the influence of past squared gradients.</p>
+</li>
+<li><p><strong>Bias-Corrected First and Second Moments:</strong></p>
+<div class="math notranslate nohighlight">
+\[\hat{v}_t = \frac{v_t}{1 - \beta_1^t}, \quad \hat{s}_t = \frac{s_t}{1 - \beta_2^t}\]</div>
+<p>The bias-corrected first and second moment estimates, <span class="math notranslate nohighlight">\(\hat{v}_t\)</span> and <span class="math notranslate nohighlight">\(\hat{s}_t\)</span>, compensate for their initial bias during the early training stages.</p>
+</li>
+<li><p><strong>Rectification Mechanism (for Early Stages):</strong></p>
+<div class="math notranslate nohighlight">
+\[\rho_\infty = \frac{2}{1 - \beta_2} - 1, \quad \rho_t = \rho_\infty - \frac{2t\beta_2^t}{1 - \beta_2^t}\]</div>
+<p>The parameter <span class="math notranslate nohighlight">\(\rho_\infty\)</span> represents the asymptotic value of the variance ratio, and <span class="math notranslate nohighlight">\(\rho_t\)</span> adjusts for the changes in <span class="math notranslate nohighlight">\(\rho_\infty\)</span> during the optimization process. This correction is introduced to stabilize the learning rates in the initial steps.</p>
+</li>
+<li><p><strong>Rectification Factor:</strong></p>
+<div class="math notranslate nohighlight">
+\[r_t = \sqrt{\frac{(\rho_t - 4)(\rho_t - 2)\rho_\infty}{(\rho_\infty - 4)(\rho_\infty - 2)\rho_t}}\]</div>
+<p>The rectification factor <span class="math notranslate nohighlight">\(r_t\)</span> helps stabilize the variance of the adaptive learning rates by adjusting for the bias in the second moment estimate, especially in the early stages of training.</p>
+</li>
+<li><p><strong>Parameter Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \eta \frac{\hat{v}_t}{\sqrt{\hat{s}_t} + \epsilon} r_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated using the bias-corrected first moment estimate <span class="math notranslate nohighlight">\(\hat{v}_t\)</span>, the bias-corrected second moment estimate <span class="math notranslate nohighlight">\(\hat{s}_t\)</span>, and the rectification factor <span class="math notranslate nohighlight">\(r_t\)</span>, which improves stability in the early stages of training.</p>
+</li>
+</ol>
+</section>
+<section id="id20">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Stabilized Early Training:</strong> RAdam mitigates the instability issues during the early phases of training by using a rectification mechanism, ensuring smoother convergence in the initial iterations.</p></li>
+<li><p><strong>Improved Performance in Early Stages:</strong> The adjustment of the learning rate during the early stages of training allows RAdam to benefit from faster convergence, especially when compared to Adam, which may experience instability when the moment estimates are biased.</p></li>
+<li><p><strong>Adaptive Learning Rates with Stability:</strong> RAdam combines the benefits of adaptive learning rates, as in Adam, with an additional mechanism that stabilizes them in the beginning stages of training.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Complexity in Calculation:</strong> The rectification factor adds additional complexity to the calculations compared to standard Adam, potentially introducing slight overhead in terms of computation.</p></li>
+<li><p><strong>Hyperparameter Sensitivity:</strong> Like other adaptive optimizers, RAdam still requires careful tuning of hyperparameters such as the learning rate <span class="math notranslate nohighlight">\(\eta\)</span>, the decay rates <span class="math notranslate nohighlight">\(\beta_1\)</span> and <span class="math notranslate nohighlight">\(\beta_2\)</span>, and the small constant <span class="math notranslate nohighlight">\(\epsilon\)</span>.</p></li>
+<li><p><strong>Limited Improvement in Some Cases:</strong> In scenarios where the optimizer already converges smoothly, such as in well-conditioned problems, the benefits of RAdam over Adam may be marginal.</p></li>
+</ul>
+</section>
+<section id="id21">
+<h4>(3) Reference<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h4>
+<p>[1] Liu L, Jiang H, He P, et al. On the variance of the adaptive learning rate and beyond[J]. arXiv preprint arXiv:1908.03265, 2019.</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="second-order-optimization-methods">
+<h2>3. Second-Order Optimization Methods<a class="headerlink" href="#second-order-optimization-methods" title="Permalink to this heading"></a></h2>
+<section id="quasi-newton-methods-l-bfgs">
+<h3>3.1 Quasi-Newton Methods: L-BFGS<a class="headerlink" href="#quasi-newton-methods-l-bfgs" title="Permalink to this heading"></a></h3>
+<section id="id22">
+<h4>(1) Introduction<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h4>
+<p>The Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) algorithm is a popular quasi-Newton optimization method. It is a variant of the BFGS (Broyden–Fletcher–Goldfarb–Shanno) algorithm that uses limited memory to compute an approximation of the inverse Hessian matrix. L-BFGS is an iterative algorithm used for large-scale optimization problems where storing the full Hessian matrix is computationally expensive. By using only a small number of vectors to approximate the Hessian, L-BFGS is much more memory efficient while retaining the advantages of Newton-type methods. It is widely used in machine learning tasks where high-dimensional optimization is required, such as training neural networks or solving large linear systems.</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>where <span class="math notranslate nohighlight">\(g_t\)</span> represents the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span> at time step <span class="math notranslate nohighlight">\(t-1\)</span>.</p>
+</li>
+<li><p><strong>Update Rule with Quasi-Newton Approximation:</strong>
+The L-BFGS algorithm computes an approximation to the inverse Hessian matrix using previous gradients and parameter updates:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - \alpha_t H_t g_t\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\alpha_t\)</span> is a step size determined by a line search, and <span class="math notranslate nohighlight">\(H_t\)</span> is the approximation to the inverse Hessian matrix at time step <span class="math notranslate nohighlight">\(t\)</span>, which is updated using the following formulas based on the gradient and parameter updates:</p>
+<div class="math notranslate nohighlight">
+\[y_t = g_t - g_{t-1}, \quad s_t = \mathbf{m}_t - \mathbf{m}_{t-1}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y_t\)</span> is the difference in gradients, and <span class="math notranslate nohighlight">\(s_t\)</span> is the difference in the parameters.</p>
+<p>The update rule for the inverse Hessian approximation in L-BFGS uses a recursive formula:</p>
+<div class="math notranslate nohighlight">
+\[H_t = H_{t-1} + \frac{y_t y_t^T}{y_t^T s_t} - \frac{H_{t-1} s_t s_t^T H_{t-1}}{s_t^T H_{t-1} s_t}\]</div>
+</li>
+</ol>
+</section>
+<section id="id23">
+<h4>(2) Pros and Cons<a class="headerlink" href="#id23" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Memory Efficiency:</strong> L-BFGS uses only a small number of vectors (instead of the full Hessian matrix), making it much more memory efficient compared to other Newton-type methods like BFGS.</p></li>
+<li><p><strong>Fast Convergence:</strong> It typically converges faster than gradient-based methods like Gradient Descent due to the use of second-order approximations (approximating the Hessian matrix).</p></li>
+<li><p><strong>Applicability to Large-Scale Problems:</strong> L-BFGS is well-suited for large-scale problems where computing and storing the full Hessian matrix is impractical.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Computational Overhead:</strong> Although it is more memory-efficient, L-BFGS can still be computationally expensive for very large datasets due to the need for computing gradients and maintaining the history of parameter updates.</p></li>
+<li><p><strong>Requires Line Search:</strong> The effectiveness of the method depends on performing a line search to determine the optimal step size <span class="math notranslate nohighlight">\(\alpha_t\)</span>. The line search can be costly, especially for high-dimensional problems.</p></li>
+<li><p><strong>Sensitive to Hyperparameters:</strong> Like many optimization methods, L-BFGS can be sensitive to the choice of hyperparameters, such as the initial step size and the number of stored vectors for approximating the Hessian.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="newton-s-method">
+<h3>3.2 Newton’s Method<a class="headerlink" href="#newton-s-method" title="Permalink to this heading"></a></h3>
+<section id="id24">
+<h4>(1) Introduction<a class="headerlink" href="#id24" title="Permalink to this heading"></a></h4>
+<p>Newton’s Method is an optimization algorithm that uses second-order derivatives to find the local minimum (or maximum) of a function. Unlike gradient descent methods, which use first-order derivatives (gradients), Newton’s method utilizes the Hessian matrix, which contains second-order derivatives. This allows for faster convergence, especially when the function is well-behaved (i.e., the objective function is convex and the Hessian is positive definite).</p>
+<p>In the context of optimization, the update rule in Newton’s Method is:</p>
+<ol class="arabic">
+<li><p><strong>Gradient Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[g_t = \nabla_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>where <span class="math notranslate nohighlight">\( g_t \)</span> is the gradient of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> at time step <span class="math notranslate nohighlight">\( t-1 \)</span>, with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span>.</p>
+</li>
+<li><p><strong>Hessian Matrix Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[H_t = \nabla^2_{\mathbf{m}} \mathcal{J}(\mathbf{m}_{t-1})\]</div>
+<p>where <span class="math notranslate nohighlight">\( H_t \)</span> is the Hessian matrix, which represents the second-order derivatives of the objective function <span class="math notranslate nohighlight">\(\mathcal{J}\)</span> with respect to the model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_{t-1}\)</span>.</p>
+</li>
+<li><p><strong>Update Rule:</strong></p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}_t = \mathbf{m}_{t-1} - H_t^{-1} g_t\]</div>
+<p>The model parameters <span class="math notranslate nohighlight">\(\mathbf{m}_t\)</span> are updated by subtracting the product of the inverse of the Hessian matrix and the gradient <span class="math notranslate nohighlight">\( g_t \)</span>.</p>
+</li>
+</ol>
+</section>
+<section id="computational-inefficiency">
+<h4>(2) Computational Inefficiency<a class="headerlink" href="#computational-inefficiency" title="Permalink to this heading"></a></h4>
+<p>Although Newton’s method can converge faster compared to first-order methods like gradient descent due to its use of second-order information, it suffers from significant computational inefficiency, especially when dealing with large-scale problems. This inefficiency arises from the following factors:</p>
+<ul class="simple">
+<li><p><strong>Hessian Calculation:</strong> Computing the full Hessian matrix <span class="math notranslate nohighlight">\( H_t \)</span> is computationally expensive, as it requires calculating the second-order partial derivatives of the objective function. For high-dimensional problems, this becomes a bottleneck.</p></li>
+<li><p><strong>Matrix Inversion:</strong> Inverting the Hessian matrix <span class="math notranslate nohighlight">\( H_t \)</span> at each iteration requires <span class="math notranslate nohighlight">\( O(d^3) \)</span> operations, where <span class="math notranslate nohighlight">\( d \)</span> is the number of model parameters. This can be prohibitively slow for large-scale problems, particularly in the context of Full Waveform Inversion (FWI) where the number of model parameters can be very large.</p></li>
+</ul>
+</section>
+<section id="adfwi-framework-consideration">
+<h4>(3) ADFWI Framework Consideration<a class="headerlink" href="#adfwi-framework-consideration" title="Permalink to this heading"></a></h4>
+<p>Due to the high computational cost associated with both Hessian matrix computation and inversion, <strong>Newton’s method is not implemented in the ADFWI framework</strong>. While the method theoretically provides faster convergence, the computational overhead makes it unsuitable for real-time or large-scale inversion problems in the ADFWI framework. Instead, more efficient optimization methods, such as L-BFGS or gradient-based methods with adaptive learning rates (like Adam), are preferred to achieve a balance between computational efficiency and convergence speed.</p>
+</section>
+<section id="id25">
+<h4>(4) Pros and Cons<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h4>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Faster Convergence:</strong> When the objective function is smooth and the Hessian is positive definite, Newton’s method can converge in fewer iterations compared to first-order methods like gradient descent.</p></li>
+<li><p><strong>Second-order Information:</strong> By using second-order derivatives, Newton’s method can account for the curvature of the objective function, making it more robust to ill-conditioned optimization problems.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>High Computational Cost:</strong> The most significant disadvantage of Newton’s method is the cost of calculating and inverting the Hessian matrix, which makes it computationally expensive for high-dimensional problems.</p></li>
+<li><p><strong>Memory Usage:</strong> Storing the Hessian matrix requires significant memory, making it impractical for large-scale problems where the number of parameters is very high.</p></li>
+<li><p><strong>Complexity in Implementation:</strong> Implementing Newton’s method requires computing second-order derivatives, which can be difficult and computationally expensive in practice, especially in complex models such as those used in FWI.</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../objective_functions/objective_functions.html" class="btn btn-neutral float-left" title="Objective Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../regularization_methods/regularization.html" class="btn btn-neutral float-right" title="Regularization Methods" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
