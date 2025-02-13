@@ -268,7 +268,7 @@ A comparative analysis of gradient calculations obtained through AD and the cent
         <td style="text-align: center; vertical-align: middle;">
             <details>
                 <summary>Inversion Process</summary>
-                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop/data/inversion_tv2/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
+                <img src="./examples/elastic/Iso-elastic-Marmousi2-shotTop-recTop/data-Smooth-3Hz/inversion_tv2/inversion_process.gif" alt="Marmousi2" style="max-height: 600px; width: auto; " />
             </details>
         </td>
     </tr>
