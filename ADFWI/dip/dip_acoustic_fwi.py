@@ -12,19 +12,23 @@ import math
 import torch
 import numpy as np
 from tqdm import tqdm
-from ADFWI.model       import AbstractModel
-from ADFWI.propagator  import AcousticPropagator,GradProcessor
-from ADFWI.survey      import SeismicData
-from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
-from ADFWI.fwi.regularization import Regularization
-from ADFWI.utils       import numpy2tensor
-from ADFWI.view        import plot_model
+from ADFWI.model                    import AbstractModel
+from ADFWI.propagator               import AcousticPropagator,GradProcessor
+from ADFWI.survey                   import SeismicData
+from ADFWI.fwi.misfit               import Misfit,Misfit_NIM
+from ADFWI.fwi.regularization       import Regularization
+from ADFWI.utils                    import numpy2tensor
+from ADFWI.view                     import plot_model
 from ADFWI.fwi.multiScaleProcessing import lpass
+
+from ADFWI.utils.first_arrivel_picking import apply_mute
+from ADFWI.utils.offset_mute import mute_offset
 
 class DIP_AcousticFWI(torch.nn.Module):
     """Acoustic Full waveform inversion class
     """
-    def __init__(self,propagator:AcousticPropagator,model:AbstractModel,
+    def __init__(self,
+                 propagator:AcousticPropagator,model:AbstractModel,
                  loss_fn:Union[Misfit,torch.autograd.Function],
                  obs_data:SeismicData,
                  optimizer:Union[torch.optim.Optimizer,List[torch.optim.Optimizer]]      = None,
@@ -34,6 +38,8 @@ class DIP_AcousticFWI(torch.nn.Module):
                  regularization_weights_x:Optional[List[Union[float]]]                   = [0,0], # vp/rho in x direction
                  regularization_weights_z:Optional[List[Union[float]]]                   = [0,0], # vp/rho in z direction
                  waveform_normalize:Optional[bool]                                       = True,
+                 waveform_mute_late_window:Optional[float]                               = None,
+                 waveform_mute_offset:Optional[float]                                    = None,
                  cache_result:Optional[bool]                                             = True,
                  save_fig_epoch:Optional[int]                                            = -1,
                  save_fig_path:Optional[str]                                             = "",
@@ -77,20 +83,27 @@ class DIP_AcousticFWI(torch.nn.Module):
         if not isinstance(self.scheduler, list):
             self.scheduler = [self.scheduler]
 
-        # receiver masks
+        # Real-Case settings: for trace missing, partial data missing
         receiver_masks = self.propagator.receiver_masks
         if receiver_masks is None:
-            receiver_masks = np.ones((self.propagator.src_n,self.propagator.rcv_n))
-        receiver_masks = numpy2tensor(receiver_masks).to(self.device)
-        self.receiver_masks = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1)  # [shot, time, rcv]
-
+            receiver_masks  = np.ones((self.propagator.src_n,self.propagator.rcv_n))
+        receiver_masks      = numpy2tensor(receiver_masks)
+        self.receiver_masks_2D = receiver_masks # [shot, rcv]
+        self.receiver_masks_3D = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1).to(self.device)  # [shot, time, rcv]
+        
+        # Real-Case settings: mute late window (by first arrival picking) & mute offset
+        self.waveform_normalize         = waveform_normalize
+        self.waveform_mute_late_window  = waveform_mute_late_window 
+        self.waveform_mute_offset       = waveform_mute_offset
+        
         # observed data
-        self.waveform_normalize = waveform_normalize
         obs_p   = self.obs_data.data["p"]
         obs_p   = numpy2tensor(obs_p,self.dtype).to(self.device)
-        obs_p   = obs_p*self.receiver_masks
-        if self.waveform_normalize:
-            obs_p = self._normalize(obs_p)
+        if self.propagator.receiver_masks_obs: # mark the observed data need to be masked or not
+            obs_p   = obs_p*self.receiver_masks_3D
+        self.data_masks = numpy2tensor(self.obs_data.data_masks).to(self.device) if self.obs_data.data_masks is not None else None
+        if self.data_masks is not None: # some of the data are unuseful
+            obs_p = obs_p*self.data_masks
         self.obs_p = obs_p
         
         # model boundary
@@ -127,15 +140,43 @@ class DIP_AcousticFWI(torch.nn.Module):
         return data
     
     # misfits calculation
-    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
+    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None,shot_index=None):
         """
         Generalized function to calculate misfit loss for a given component.
+        Real-Data Processing
+            (1) first arrival picking
+            (2) mute data by first arrival & giving window
+            (3) mute data by offset
+            (4) low-pass filter
+            (5) data normalize
         """
-        if normalization:
-            synthetic_waveform = self._normalize(synthetic_waveform)
+        # mute data by offset
+        if self.waveform_mute_offset is not None:
+            receiver_mask_2D = self.receiver_masks_2D[shot_index].cpu() # [shot, rcv]
+            src_x            = self.propagator.src_x.cpu()[shot_index]
+            rcv_x_list       = self.propagator.rcv_x.cpu()
+            rcv_x = torch.zeros(synthetic_waveform.shape[0],synthetic_waveform.shape[-1])
+            for i in range(synthetic_waveform.shape[0]):
+                rcv_x[i] = rcv_x_list[np.argwhere(receiver_mask_2D[i]).tolist()].squeeze()   
+            synthetic_waveform = mute_offset(rcv_x,src_x,self.propagator.dx,synthetic_waveform,self.waveform_mute_offset)
+            observed_waveform  = mute_offset(rcv_x,src_x,self.propagator.dx,observed_waveform,self.waveform_mute_offset)
+        
+        # mute data by first arrival & late window
+        if self.waveform_mute_late_window is not None:
+            synthetic_waveform_temp = synthetic_waveform.clone()
+            observed_waveform_temp  = observed_waveform.clone()
+            for i in range(synthetic_waveform.shape[0]):
+                synthetic_waveform[i] = apply_mute(self.waveform_mute_late_window, synthetic_waveform_temp[i], self.propagator.dt)
+                observed_waveform[i]  = apply_mute(self.waveform_mute_late_window, observed_waveform_temp[i], self.propagator.dt)
+        
         # Apply low-pass filter if cutoff frequency is provided
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
+        
+        if normalization:
+            synthetic_waveform = self._normalize(synthetic_waveform)
+            observed_waveform  = self._normalize(observed_waveform)
+        
         if isinstance(loss_fn, Misfit):
             return loss_fn.forward(synthetic_waveform, observed_waveform)
         elif isinstance(loss_fn,Misfit_NIM):
@@ -216,16 +257,24 @@ class DIP_AcousticFWI(torch.nn.Module):
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                 forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
-
-                # misfits
                 if batch == 0:
                     forw  = forward_wavefield_p.cpu().detach().numpy()
                 else:
                     forw += forward_wavefield_p.cpu().detach().numpy()
                 
-                receiver_mask = self.receiver_masks[shot_index]
-                syn_p   = rcv_p*receiver_mask
-                data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
+                # misfit
+                if rcv_p.shape == self.obs_p[shot_index].shape: # observed and synthetic data with the same shape (partial-data missing)
+                    receiver_mask_3D = self.receiver_masks_3D[shot_index] # [shot, time, rcv]
+                    syn_p = rcv_p*receiver_mask_3D 
+                else: # observed and synthetic data with the different shape (trace missing)
+                    receiver_mask_2D = self.receiver_masks_2D[shot_index] # [shot, rcv]
+                    syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
+                    for k in range(rcv_p.shape[0]):
+                        syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
+                if self.data_masks is not None:
+                    data_mask = self.data_masks[shot_index]
+                    syn_p = syn_p * data_mask
+                data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt,shot_index)
                 
                 # regularization
                 if self.regularization_fn is not None:

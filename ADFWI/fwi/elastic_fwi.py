@@ -21,6 +21,9 @@ from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
 from ADFWI.fwi.multiScaleProcessing import lpass
+from ADFWI.utils.first_arrivel_picking import apply_mute
+from ADFWI.utils.offset_mute import mute_offset
+from ADFWI.fwi.multiScaleProcessing import lpass
 
 class ElasticFWI(torch.nn.Module):
     """Elastic Full waveform inversion class
@@ -35,6 +38,8 @@ class ElasticFWI(torch.nn.Module):
                  regularization_weights_x:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
                  regularization_weights_z:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
                  waveform_normalize:Optional[bool]                                       = True,
+                 waveform_mute_late_window:Optional[float]                               = None,
+                 waveform_mute_offset:Optional[float]                                    = None,
                  cache_result:Optional[bool]                                             = True,
                  cache_gradient:Optional[bool]                                           = False,
                  save_fig_epoch:Optional[int]                                            = -1,
@@ -75,23 +80,33 @@ class ElasticFWI(torch.nn.Module):
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
         
-        # receiver masks
+        # Real-Case settings: for trace missing, partial data missing
         receiver_masks = self.propagator.receiver_masks
         if receiver_masks is None:
-            receiver_masks = np.ones((self.propagator.src_n,self.propagator.rcv_n))
-        receiver_masks = numpy2tensor(receiver_masks).to(self.device)
-        self.receiver_masks = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1)  # [shot, time, rcv]
-
+            receiver_masks  = np.ones((self.propagator.src_n,self.propagator.rcv_n))
+        receiver_masks      = numpy2tensor(receiver_masks)
+        self.receiver_masks_2D = receiver_masks # [shot, rcv]
+        self.receiver_masks_3D = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1).to(self.device)  # [shot, time, rcv]
+        
+        # Real-Case settings: mute late window (by first arrival picking) & mute offset
+        self.waveform_normalize         = waveform_normalize
+        self.waveform_mute_late_window  = waveform_mute_late_window 
+        self.waveform_mute_offset       = waveform_mute_offset
+        
         # observed data
-        self.waveform_normalize = waveform_normalize
         obs_p   = -(self.obs_data.data["txx"]+self.obs_data.data["tzz"])
-        obs_p   = (numpy2tensor(obs_p,self.dtype).to(self.device))*self.receiver_masks
-        obs_vx  = (numpy2tensor(self.obs_data.data["vx"],self.dtype).to(self.device))*self.receiver_masks
-        obs_vz  = (numpy2tensor(self.obs_data.data["vz"],self.dtype).to(self.device))*self.receiver_masks
-        if self.waveform_normalize:
-            obs_p  = self._normalize(obs_p)
-            obs_vx = self._normalize(obs_vx)
-            obs_vz = self._normalize(obs_vz)
+        obs_p   = (numpy2tensor(obs_p,self.dtype).to(self.device))
+        obs_vx  = (numpy2tensor(self.obs_data.data["vx"],self.dtype).to(self.device))
+        obs_vz  = (numpy2tensor(self.obs_data.data["vz"],self.dtype).to(self.device))
+        if self.propagator.receiver_masks_obs: # mark the observed data need to be masked or not (trace)
+            obs_p   = obs_p*self.receiver_masks_3D
+            obs_vx  = obs_vx*self.receiver_masks_3D
+            obs_vz  = obs_vz*self.receiver_masks_3D
+        self.data_masks = numpy2tensor(self.obs_data.data_masks).to(self.device) if self.obs_data.data_masks is not None else None
+        if self.data_masks is not None: # some of the data are unuseful (data)
+            obs_p = obs_p*self.data_masks
+            obs_vx = obs_vx*self.data_masks
+            obs_vz = obs_vz*self.data_masks
         self.obs_p = obs_p
         self.obs_vx = obs_vx
         self.obs_vz = obs_vz
@@ -120,15 +135,36 @@ class ElasticFWI(torch.nn.Module):
         return data
     
     # misfits calculation
-    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None):
+    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None, shot_index=None):
         """
         Generalized function to calculate misfit loss for a given component.
         """
-        if normalization:
-            synthetic_waveform = synthetic_waveform / (torch.max(torch.abs(synthetic_waveform), axis=1, keepdim=True).values)
+        # mute data by offset
+        if self.waveform_mute_offset is not None:
+            receiver_mask_2D = self.receiver_masks_2D[shot_index].cpu() # [shot, rcv]
+            src_x            = self.propagator.src_x.cpu()[shot_index]
+            rcv_x_list       = self.propagator.rcv_x.cpu()
+            rcv_x = torch.zeros(synthetic_waveform.shape[0],synthetic_waveform.shape[-1])
+            for i in range(synthetic_waveform.shape[0]):
+                rcv_x[i] = rcv_x_list[np.argwhere(receiver_mask_2D[i]).tolist()].squeeze()   
+            synthetic_waveform = mute_offset(rcv_x,src_x,self.propagator.dx,synthetic_waveform,self.waveform_mute_offset)
+            observed_waveform  = mute_offset(rcv_x,src_x,self.propagator.dx,observed_waveform,self.waveform_mute_offset)
+        
+        # mute data by first arrival & late window
+        if self.waveform_mute_late_window is not None:
+            synthetic_waveform_temp = synthetic_waveform.clone()
+            observed_waveform_temp  = observed_waveform.clone()
+            for i in range(synthetic_waveform.shape[0]):
+                synthetic_waveform[i] = apply_mute(self.waveform_mute_late_window, synthetic_waveform_temp[i], self.propagator.dt)
+                observed_waveform[i]  = apply_mute(self.waveform_mute_late_window, observed_waveform_temp[i], self.propagator.dt)
+        
         # Apply low-pass filter if cutoff frequency is provided
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
+        
+        if normalization:
+            observed_waveform  = self._normalize(observed_waveform)
+            synthetic_waveform = self._normalize(synthetic_waveform)
         
         if isinstance(loss_fn, Misfit):
             return loss_fn.forward(synthetic_waveform, observed_waveform)
@@ -304,6 +340,23 @@ class ElasticFWI(torch.nn.Module):
                     self.save_gradient_fig(epoch_id, temp_grad, model_type=f"grad_{name}")
         return
     
+    def real_case_data_selecting(self,rcv_p,shot_index):
+        # observed and synthetic data with the same shape (observed and synthetic data keep all the trace)
+        if rcv_p.shape == self.obs_p[shot_index].shape:
+            receiver_mask_3D = self.receiver_masks_3D[shot_index] # [shot, time, rcv]
+            syn_p = rcv_p*receiver_mask_3D 
+        # observed and synthetic data with the different shape (observed data only keep the usefule trace)
+        else:
+            receiver_mask_2D = self.receiver_masks_2D[shot_index] # [shot, rcv]
+            syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
+            for k in range(rcv_p.shape[0]):
+                syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
+        # some of the data are unuseful
+        if self.data_masks is not None:
+            data_mask = self.data_masks[shot_index]
+            syn_p = syn_p * data_mask
+        return syn_p
+    
     def forward(self,
                 iteration:int,
                 fd_order:int                        = 4,
@@ -341,25 +394,32 @@ class ElasticFWI(torch.nn.Module):
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
                 forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]
-                
+                if batch == 0:
+                    if "pressure" in self.inversion_component:
+                        forw_p  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
+                    if "vx" in self.inversion_component:
+                        forw_vx = forward_wavefield_vx.cpu().detach().numpy()
+                    if "vz" in self.inversion_component:
+                        forw_vz = forward_wavefield_vz.cpu().detach().numpy()
+                else:
+                    if "pressure" in self.inversion_component:
+                        forw_p  += -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
+                    if "vx" in self.inversion_component:
+                        forw_vx += forward_wavefield_vx.cpu().detach().numpy()
+                    if "vz" in self.inversion_component:
+                        forw_vz += forward_wavefield_vz.cpu().detach().numpy()
+
                 # misfits
                 loss_pressure, loss_vx, loss_vz = 0, 0, 0
-                receiver_mask = self.receiver_masks[shot_index]
                 if "pressure" in self.inversion_component:
-                    if batch == 0:
-                        forw  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
-                    else:
-                        forw += -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
                     syn_p = -(rcv_txx + rcv_tzz)
-                    syn_p = syn_p*receiver_mask
+                    syn_p = self.real_case_data_selecting(syn_p,shot_index)
                     loss_pressure = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vx" in self.inversion_component:
-                    forw = forward_wavefield_vx.cpu().detach().numpy()
-                    rcv_vx = rcv_vx*receiver_mask
+                    rcv_vx = self.real_case_data_selecting(rcv_vx,shot_index)
                     loss_vx = self.calculate_loss(rcv_vx, self.obs_vx[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 if "vz" in self.inversion_component:
-                    rcv_vz = rcv_vz*receiver_mask
-                    forw = forward_wavefield_vz.cpu().detach().numpy()
+                    rcv_vz = self.real_case_data_selecting(rcv_vz,shot_index)
                     loss_vz = self.calculate_loss(rcv_vz, self.obs_vz[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
                 data_loss = loss_pressure + loss_vx + loss_vz
                 
@@ -370,14 +430,14 @@ class ElasticFWI(torch.nn.Module):
                     regularization_loss_vs  = self.calculate_regularization_loss(self.model.vs , self.regularization_weights_x[1], self.regularization_weights_z[1], self.regularization_fn)
                     regularization_loss_rho = self.calculate_regularization_loss(self.model.rho, self.regularization_weights_x[2], self.regularization_weights_z[2], self.regularization_fn)
                     # For anisotropic model parameters
-                    regularization_loss_eps = regularization_loss_delta = regularization_loss_gamma = torch.tensor(0.0, device=self.device)
+                    regularization_loss_eps,regularization_loss_delta,regularization_loss_gamma = torch.tensor(0.0, device=self.device),torch.tensor(0.0, device=self.device),torch.tensor(0.0, device=self.device)
                     if isinstance(self.model, AnisotropicElasticModel):
                         regularization_loss_eps   = self.calculate_regularization_loss(self.model.eps  , self.regularization_weights_x[3], self.regularization_weights_z[3], self.regularization_fn)
                         regularization_loss_delta = self.calculate_regularization_loss(self.model.delta, self.regularization_weights_x[4], self.regularization_weights_z[4], self.regularization_fn)
                         regularization_loss_gamma = self.calculate_regularization_loss(self.model.gamma, self.regularization_weights_x[5], self.regularization_weights_z[5], self.regularization_fn)
                     # Summing all regularization losses
                     regularization_loss = (regularization_loss_vp + regularization_loss_vs + regularization_loss_rho +
-                                        regularization_loss_eps + regularization_loss_delta + regularization_loss_gamma)
+                                           regularization_loss_eps + regularization_loss_delta + regularization_loss_gamma)
                     # Adding regularization loss to total loss
                     loss_epoch += data_loss.item() + regularization_loss.item()
                     loss = data_loss + regularization_loss
@@ -390,16 +450,16 @@ class ElasticFWI(torch.nn.Module):
             
             # gradient process
             if self.model.get_requires_grad("vp"):
-                self.process_gradient(self.model.vp, forw=forw, idx=0)
+                self.process_gradient(self.model.vp,  forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=0)
             if self.model.get_requires_grad("vs"):
-                self.process_gradient(self.model.vs, forw=forw, idx=1)
+                self.process_gradient(self.model.vs,  forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=1)
             if self.model.get_requires_grad("rho"):
-                self.process_gradient(self.model.rho, forw=forw, idx=2)
+                self.process_gradient(self.model.rho, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=2)
             if isinstance(self.model, AnisotropicElasticModel):
                 if self.model.get_requires_grad("eps"):
-                    self.process_gradient(self.model.eps, forw=forw, idx=3)
+                    self.process_gradient(self.model.eps, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=3)
                 if self.model.get_requires_grad("delta"):
-                    self.process_gradient(self.model.delta, forw=forw, idx=4)
+                    self.process_gradient(self.model.delta, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=4)
 
             # update model parameters
             self.optimizer.step()
