@@ -20,9 +20,9 @@ from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
+
 from ADFWI.utils.first_arrivel_picking import apply_mute
 from ADFWI.utils.offset_mute import mute_offset
-
 from ADFWI.fwi.multiScaleProcessing import lpass
     
 
@@ -46,6 +46,10 @@ class AcousticFWI(torch.nn.Module):
                  save_fig_path:Optional[str]                                  = "",
                 ):
         """
+        Description:
+        --------------
+        Acoustic Full Waveform Inversion Class
+        
         Parameters:
         --------------
         propagator (AcousticPropagator)                                : The propagator used for simulating acoustic wave propagation.
@@ -59,6 +63,8 @@ class AcousticFWI(torch.nn.Module):
         regularization_weights_x (Optional[List[Union[float]]])        : Regularization weights for the x direction (e.g., vp/rho regularization). Default is [0, 0].
         regularization_weights_z (Optional[List[Union[float]]])        : Regularization weights for the z direction (e.g., vp/rho regularization). Default is [0, 0].
         waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
+        waveform_mute_late_window:Optional[float]                      : Clipping data after picking the first arrival with the given window size.
+        waveform_mute_offset:Optional[float]                           : Clipping data larger than the given offset threshold.
         cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
         save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).

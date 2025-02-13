@@ -3,6 +3,7 @@
 *.out
 *.sh
 __pycache__/
+docs/CodeBooks/
 log/
 backup/
 Backup/
@@ -28,3 +29,6 @@ examples/dip/multiscale
 examples/dip/network_structure
 examples/dip/pretrained
 examples/dip/sparseShotsTests
+examples/dip/
+examples/acoustic/Article-Adding-Test
+examples/real-case-study

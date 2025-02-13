@@ -18,7 +18,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
-    project_path = "./data/"
+    project_path = "./data-Smooth-3Hz/"
     if not os.path.exists(os.path.join(project_path,"model")):
         os.makedirs(os.path.join(project_path,"model"))
     if not os.path.exists(os.path.join(project_path,"waveform")):
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     d_obs.load(os.path.join(project_path,"waveform/obs_data.npz"))
     print(d_obs.__repr__())
     
-    from ADFWI.fwi.misfit import Misfit_waveform_L2
+    from ADFWI.fwi.misfit import Misfit_global_correlation
     from ADFWI.fwi.regularization import regularization_TV_2order
     iteration = 300
     
@@ -133,14 +133,15 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
 
     # Setup misfit function
-    loss_fn = Misfit_waveform_L2(dt=dt)
-    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=1,device=device,dtype=dtype)
+    loss_fn = Misfit_global_correlation(dt=1)
+    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
 
     # gradient processor
     grad_mask = np.ones_like(vp_init)
     grad_mask[:10] = 0
     gradient_processor_vp = GradProcessor(grad_mask=grad_mask,forw_illumination=False)
     gradient_processor_vs = GradProcessor(grad_mask=grad_mask,forw_illumination=False,grad_mute=10,grad_smooth=2,marine_or_land='marine')
+    #gradient_processor_vs = GradProcessor(grad_mask=grad_mask,forw_illumination=False)
     gradient_processor = [gradient_processor_vp,gradient_processor_vs]
 
     fwi = ElasticFWI(propagator=F,
@@ -149,8 +150,8 @@ if __name__ == "__main__":
                     scheduler=scheduler,
                     loss_fn=loss_fn,
                     regularization_fn=regularization_fn,
-                    regularization_weights_x=[1e-6,1e-5,0,0,0,0],
-                    regularization_weights_z=[1e-6,1e-5,0,0,0,0],
+                    regularization_weights_x=[1e-6,1e-6,0,0,0,0],
+                    regularization_weights_z=[1e-6,1e-6,0,0,0,0],
                     obs_data=d_obs,
                     gradient_processor=gradient_processor,
                     waveform_normalize=True,
