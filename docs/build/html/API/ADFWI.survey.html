@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.survey &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.dip" href="ADFWI.dip.html" />
+    <link rel="prev" title="ADFWI.fwi.regularization" href="ADFWI.fwi.regularization.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADFWI.survey</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.survey.source">ADFWI.survey.source</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.survey.source.Source"><code class="docutils literal notranslate"><span class="pre">Source</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.survey.receiver">ADFWI.survey.receiver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.survey.receiver.Receiver"><code class="docutils literal notranslate"><span class="pre">Receiver</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.survey.data">ADFWI.survey.data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.survey.data.SeismicData"><code class="docutils literal notranslate"><span class="pre">SeismicData</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.survey.survey">ADFWI.survey.survey</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.survey.survey.Survey"><code class="docutils literal notranslate"><span class="pre">Survey</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+      <li class="breadcrumb-item active">ADFWI.survey</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.survey.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-survey">
+<h1>ADFWI.survey<a class="headerlink" href="#adfwi-survey" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.survey.source">
+<span id="adfwi-survey-source"></span><h2>ADFWI.survey.source<a class="headerlink" href="#module-ADFWI.survey.source" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.survey.source.</span></span><span class="sig-name descname"><span class="pre">Source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Seismic Source class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.add_encoded_sources">
+<span class="sig-name descname"><span class="pre">add_encoded_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_wavelet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_mt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">array([[1,</span> <span class="pre">0,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]])</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.add_encoded_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.add_encoded_sources" title="Permalink to this definition"></a></dt>
+<dd><p>source encoded</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.add_source">
+<span class="sig-name descname"><span class="pre">add_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_wavelet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_mt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">array([[1,</span> <span class="pre">0,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]])</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.add_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.add_source" title="Permalink to this definition"></a></dt>
+<dd><p>Append single source</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.add_sources">
+<span class="sig-name descname"><span class="pre">add_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_wavelet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_mt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">array([[1,</span> <span class="pre">0,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">0],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]])</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.add_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.add_sources" title="Permalink to this definition"></a></dt>
+<dd><p>add multiple sources with same wavelet</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.get_loc">
+<span class="sig-name descname"><span class="pre">get_loc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.get_loc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.get_loc" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source location</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.get_moment_tensor">
+<span class="sig-name descname"><span class="pre">get_moment_tensor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.get_moment_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.get_moment_tensor" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source wavelets</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.get_type">
+<span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.get_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.get_type" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.get_wavelet">
+<span class="sig-name descname"><span class="pre">get_wavelet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.get_wavelet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.get_wavelet" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source wavelets</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.source.Source.plot_wavelet">
+<span class="sig-name descname"><span class="pre">plot_wavelet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/source.html#Source.plot_wavelet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.source.Source.plot_wavelet" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.survey.receiver">
+<span id="adfwi-survey-receiver"></span><h2>ADFWI.survey.receiver<a class="headerlink" href="#module-ADFWI.survey.receiver" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.survey.receiver.Receiver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.survey.receiver.</span></span><span class="sig-name descname"><span class="pre">Receiver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/receiver.html#Receiver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.receiver.Receiver" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Seismic Receiver class for handling receiver locations and seismic data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>(</strong><strong>int</strong><strong>)</strong> (<em>nt</em>) – </p></li>
+<li><p><strong>(</strong><strong>float</strong><strong>)</strong> (<em>dt</em>) – </p></li>
+<li><p><strong>Notes</strong> – </p></li>
+<li><p><strong>-------------</strong> – </p></li>
+<li><p><strong>(</strong><strong>i.e.</strong> (<em>3. The receiver locations are assumed to be the same for all shots</em>) – </p></li>
+<li><p><strong>0</strong><strong>)</strong><strong>.</strong> (<em>t =</em>) – </p></li>
+<li><p><strong>method.</strong> (<em>2. The receiver locations are added using the add_receiver</em>) – </p></li>
+<li><p><strong>(</strong><strong>i.e.</strong> – </p></li>
+<li><p><strong>shape</strong> (<em>the receiver positions are not shot-dependent</em><em>)</em><em>. This assumption is based on the efficiency</em><em> of </em><em>handling regular data</em><em> (</em><em>with</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.receiver.Receiver.add_receiver">
+<span class="sig-name descname"><span class="pre">add_receiver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcv_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/receiver.html#Receiver.add_receiver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.receiver.Receiver.add_receiver" title="Permalink to this definition"></a></dt>
+<dd><p>Append single receiver</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.receiver.Receiver.add_receivers">
+<span class="sig-name descname"><span class="pre">add_receivers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcv_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/receiver.html#Receiver.add_receivers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.receiver.Receiver.add_receivers" title="Permalink to this definition"></a></dt>
+<dd><p>add multiple receiver with same type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.receiver.Receiver.get_loc">
+<span class="sig-name descname"><span class="pre">get_loc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/receiver.html#Receiver.get_loc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.receiver.Receiver.get_loc" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source location</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.receiver.Receiver.get_type">
+<span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/receiver.html#Receiver.get_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.receiver.Receiver.get_type" title="Permalink to this definition"></a></dt>
+<dd><p>Return the source type</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.survey.data">
+<span id="adfwi-survey-data"></span><h2>ADFWI.survey.data<a class="headerlink" href="#module-ADFWI.survey.data" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.survey.data.</span></span><span class="sig-name descname"><span class="pre">SeismicData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">survey</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ADFWI.survey.survey.Survey" title="ADFWI.survey.survey.Survey"><span class="pre">Survey</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to handle and process seismic data collected during a survey.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>survey</strong> (<a class="reference internal" href="#ADFWI.survey.survey.Survey" title="ADFWI.survey.survey.Survey"><em>Survey</em></a>) – The Survey object containing information about sources and receivers.</p></li>
+<li><p><strong>src_num</strong> (<em>int</em>) – Number of sources in the survey.</p></li>
+<li><p><strong>rcv_num</strong> (<em>int</em>) – Number of receivers in the survey.</p></li>
+<li><p><strong>src_loc</strong> (<em>np.ndarray</em>) – Locations of the sources.</p></li>
+<li><p><strong>rcv_loc</strong> (<em>np.ndarray</em>) – Locations of the receivers.</p></li>
+<li><p><strong>src_type</strong> (<em>str</em>) – Type of sources (e.g., ‘point’, ‘line’).</p></li>
+<li><p><strong>rcv_type</strong> (<em>str</em>) – Type of receivers (e.g., ‘pressure’).</p></li>
+<li><p><strong>nt</strong> (<em>int</em>) – Number of time samples.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Time step size.</p></li>
+<li><p><strong>t</strong> (<em>np.ndarray</em>) – Array of time steps.</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – Seismic data (pressure, velocity, etc.).</p></li>
+<li><p><strong>data_masks</strong> (<em>dict</em>) – Masks for the seismic data.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load the shot gather data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.normalize_and_mask">
+<span class="sig-name descname"><span class="pre">normalize_and_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.normalize_and_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.normalize_and_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Normalize the seismic data array by dividing by its maximum value along the time axis, and create a mask for invalid data (time sum == 0).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.parse_acoustic_data">
+<span class="sig-name descname"><span class="pre">parse_acoustic_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.parse_acoustic_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.parse_acoustic_data" title="Permalink to this definition"></a></dt>
+<dd><p>Parse acoustic data (pressure and velocity components) from the seismic data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.parse_elastic_data">
+<span class="sig-name descname"><span class="pre">parse_elastic_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.parse_elastic_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.parse_elastic_data" title="Permalink to this definition"></a></dt>
+<dd><p>Parse elastic data (stress and velocity components) from the seismic data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.plot_waveform2D">
+<span class="sig-name descname"><span class="pre">plot_waveform2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pressure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acoustic_or_elastic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'acoustic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.plot_waveform2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.plot_waveform2D" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.plot_waveform_trace">
+<span class="sig-name descname"><span class="pre">plot_waveform_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pressure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acoustic_or_elastic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'acoustic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.plot_waveform_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.plot_waveform_trace" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.plot_waveform_wiggle">
+<span class="sig-name descname"><span class="pre">plot_waveform_wiggle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pressure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acoustic_or_elastic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'acoustic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.plot_waveform_wiggle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.plot_waveform_wiggle" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.record_data">
+<span class="sig-name descname"><span class="pre">record_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.record_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.record_data" title="Permalink to this definition"></a></dt>
+<dd><p>Add the shot gather data to the class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.data.SeismicData.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/data.html#SeismicData.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.data.SeismicData.save" title="Permalink to this definition"></a></dt>
+<dd><p>Save the seismic data to a .npz file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.survey.survey">
+<span id="adfwi-survey-survey"></span><h2>ADFWI.survey.survey<a class="headerlink" href="#module-ADFWI.survey.survey" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.survey.survey.Survey">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.survey.survey.</span></span><span class="sig-name descname"><span class="pre">Survey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ADFWI.survey.source.Source" title="ADFWI.survey.source.Source"><span class="pre">Source</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ADFWI.survey.receiver.Receiver" title="ADFWI.survey.receiver.Receiver"><span class="pre">Receiver</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver_masks_obs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/survey/survey.html#Survey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.survey.Survey" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Survey class describes the seismic acquisition geometry (2D). Assumes that all sources share the same receivers, time samples, and time interval.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="#ADFWI.survey.source.Source" title="ADFWI.survey.source.Source"><em>Source</em></a>) – Source object containing the source information.</p></li>
+<li><p><strong>receiver</strong> (<a class="reference internal" href="#ADFWI.survey.receiver.Receiver" title="ADFWI.survey.receiver.Receiver"><em>Receiver</em></a>) – Receiver object containing the receiver information.</p></li>
+<li><p><strong>receiver_masks</strong> (<em>numpy.ndarray</em><em>, </em><em>optional</em>) – The index of useful receivers at each shot, of shape [shot number, receiver number].
+By default, None. This parameter is useful for designing special observation systems
+where only certain receivers are active (e.g., line one-side).</p></li>
+<li><p><strong>receiver_masks_obs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Indicates whether the observation waveforms need to be masked or not.
+By default, True.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.survey.Survey.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/survey.html#Survey.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.survey.Survey.plot" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the entire survey including all sources and receivers with associated model data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.survey.Survey.plot_single_shot">
+<span class="sig-name descname"><span class="pre">plot_single_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/survey.html#Survey.plot_single_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.survey.Survey.plot_single_shot" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a single shot’s survey with associated model data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.survey.survey.Survey.set_receiver_masks">
+<span class="sig-name descname"><span class="pre">set_receiver_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">receiver_masks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ADFWI/survey/survey.html#Survey.set_receiver_masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.survey.survey.Survey.set_receiver_masks" title="Permalink to this definition"></a></dt>
+<dd><p>Set the receiver masks for the survey. Masks specify which receivers are useful for each shot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>receiver_masks</strong> (<em>numpy.ndarray</em>) – The receiver mask array with shape [number of shots, number of receivers].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.fwi.regularization.html" class="btn btn-neutral float-left" title="ADFWI.fwi.regularization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.dip.html" class="btn btn-neutral float-right" title="ADFWI.dip" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

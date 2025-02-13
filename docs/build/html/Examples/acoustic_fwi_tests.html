@@ -1,0 +1,595 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acoustic FWI Tests &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Isotropic Elastic FWI Tests" href="elastic_fwi_tests.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="examples.html#basic-examples">Basic Examples</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Acoustic FWI Tests</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#acoustic-forward-modeling">1. Acoustic Forward Modeling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#acoustic-inversion">2. Acoustic Inversion</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="elastic_fwi_tests.html">Isotropic Elastic FWI Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#advanced-examples">Advanced Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Acoustic FWI Tests</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Examples/acoustic_fwi_tests.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="acoustic-fwi-tests">
+<h1>Acoustic FWI Tests<a class="headerlink" href="#acoustic-fwi-tests" title="Permalink to this heading"></a></h1>
+<section id="acoustic-forward-modeling">
+<h2>1. Acoustic Forward Modeling<a class="headerlink" href="#acoustic-forward-modeling" title="Permalink to this heading"></a></h2>
+<section id="packages-import">
+<h3>1.1 Packages Import<a class="headerlink" href="#packages-import" title="Permalink to this heading"></a></h3>
+<p>We begin by importing the libraries that provide functionality for numerical operations, plotting, and file management:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">ADFWI.propagator</span>  <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.model</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.view</span>        <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.utils</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.survey</span>      <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>Next, we set up the project path and ensure the necessary directories are created to store results from the modeling and inversion process:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">project_path</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span> <span class="c1"># Path to save intermediate results</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;model&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;model&quot;</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;waveform&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;waveform&quot;</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;survey&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;survey&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="basic-parameters-definition">
+<h3>1.2 Basic Parameters Definition<a class="headerlink" href="#basic-parameters-definition" title="Permalink to this heading"></a></h3>
+<p>Next to define key parameters for the simulation, including grid resolution, time steps, and wave source characteristics.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda:0&quot;</span>         <span class="c1"># Specify the GPU device</span>
+<span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span>     <span class="c1"># Set data type to 32-bit floating point</span>
+<span class="n">ox</span><span class="p">,</span> <span class="n">oz</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>             <span class="c1"># Origin coordinates for x and z directions</span>
+<span class="n">nz</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">200</span>          <span class="c1"># Grid dimensions in z and x directions</span>
+<span class="n">dx</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">40</span>           <span class="c1"># Grid spacing in x and z directions</span>
+<span class="n">nt</span><span class="p">,</span> <span class="n">dt</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span> <span class="mf">0.003</span>      <span class="c1"># Time steps and time interval</span>
+<span class="n">nabc</span> <span class="o">=</span> <span class="mi">30</span>                 <span class="c1"># Thickness of the absorbing boundary layer</span>
+<span class="n">f0</span> <span class="o">=</span> <span class="mi">5</span>                    <span class="c1"># Initial frequency in Hz</span>
+<span class="n">free_surface</span> <span class="o">=</span> <span class="kc">True</span>       <span class="c1"># Enable free surface boundary condition</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">device</span></code></strong>: Specifies which device (<code class="docutils literal notranslate"><span class="pre">CPU</span></code> or <code class="docutils literal notranslate"><span class="pre">GPU</span></code>) will be used for the computation.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">dtype</span></code></strong>: The data type for the tensors (e.g. <code class="docutils literal notranslate"><span class="pre">torch.float32</span></code>)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ox,</span> <span class="pre">oz</span></code></strong>: The origin of the grid in both the x and z directions.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">nz,</span> <span class="pre">nx</span></code></strong>: The number of grid points in the vertical (z) and horizontal (x) directions.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">dx,</span> <span class="pre">dz</span></code></strong>: The grid spacing in the x and z directions. (<strong>Note: <code class="docutils literal notranslate"><span class="pre">dx</span></code> = <code class="docutils literal notranslate"><span class="pre">dz</span></code> in the acoustic case</strong>)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">nt,</span> <span class="pre">dt</span></code></strong>: The number of time steps (<code class="docutils literal notranslate"><span class="pre">nt</span></code>) and the time interval between each step (<code class="docutils literal notranslate"><span class="pre">dt</span></code>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">nabc</span></code></strong>: The thickness of the absorbing boundary layer in the model.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">f0</span></code></strong>: The initial frequency of the source wave.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">free_surface</span></code></strong>: A boolean flag indicating whether a free surface boundary condition is applied.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="velocity-model-definition">
+<h3>1.3 Velocity Model Definition<a class="headerlink" href="#velocity-model-definition" title="Permalink to this heading"></a></h3>
+<p>In this section, we load and prepare a predefined velocity model (e.g., Marmousi2 model) using the <code class="docutils literal notranslate"><span class="pre">ADFWI.model.AcousticModel</span></code> class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the Marmousi model dataset</span>
+<span class="n">marmousi_model</span> <span class="o">=</span> <span class="n">load_marmousi_model</span><span class="p">(</span><span class="n">in_dir</span><span class="o">=</span><span class="s2">&quot;./examples/datasets/marmousi2_source&quot;</span><span class="p">)</span>
+<span class="c1"># Resample the Marmousi model for the defined coordinates</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">5000</span> <span class="o">+</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dz</span> <span class="o">*</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+<span class="n">vel_model</span> <span class="o">=</span> <span class="n">resample_marmousi_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">marmousi_model</span><span class="p">)</span>
+<span class="c1"># Extract and transpose the primary wave velocity (vp)</span>
+<span class="n">vp</span> <span class="o">=</span> <span class="n">vel_model</span><span class="p">[</span><span class="s1">&#39;vp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="c1"># Calculate density (rho) based on velocity</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">*</span> <span class="mi">310</span>
+<span class="c1"># Initialize the AcousticModel with parameters and properties</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AcousticModel</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span> <span class="n">oz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dz</span><span class="p">,</span>
+                      <span class="n">vp</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span>
+                      <span class="n">vp_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">rho_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">free_surface</span><span class="o">=</span><span class="n">free_surface</span><span class="p">,</span>
+                      <span class="n">abc_type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">,</span>
+                      <span class="n">nabc</span><span class="o">=</span><span class="n">nabc</span><span class="p">,</span>
+                      <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+                      <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After initializing the model, it is saved for future use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save the model to a file</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;model/true_model.npz&quot;</span><span class="p">))</span>
+<span class="c1"># Print the model representation</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+<span class="c1"># Plot the primary wave velocity (vp) and density (rho) of the model</span>
+<span class="n">model</span><span class="o">.</span><span class="n">_plot_vp_rho</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span><span class="n">cbar_pad_fraction</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This model setup uses the Marmousi2 dataset, resamples it to match the grid, computes the density, and saves the model for subsequent simulations.</p>
+<p><strong>Note: We provide utility functions to automatically download and load several predefined models. These models can be loaded using functions from <code class="docutils literal notranslate"><span class="pre">ADFWI.utils.velocityDemo</span></code>, including</strong>:</p>
+<ul class="simple">
+<li><p><strong>Layer model</strong></p></li>
+<li><p><strong>Anomaly model</strong></p></li>
+<li><p><strong>Marmousi2 model</strong></p></li>
+<li><p><strong>Overthrust model</strong></p></li>
+<li><p><strong>Foothill model</strong></p></li>
+<li><p><strong>Hess model</strong></p></li>
+<li><p><strong>Valhall model</strong></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="observed-system-definition">
+<h3>1.4 Observed System Definition<a class="headerlink" href="#observed-system-definition" title="Permalink to this heading"></a></h3>
+<p><strong>The observed system is defined using grid points (not physical distances) where the sources and receivers are located.</strong> This section also sets up the seismic wave sources and receivers and creates a <strong>Survey</strong> object that connects both for simulation.</p>
+<section id="seismic-source-definition">
+<h4>(1) Seismic Source Definition:<a class="headerlink" href="#seismic-source-definition" title="Permalink to this heading"></a></h4>
+<p>We define the positions of the seismic sources and generate the corresponding wavelets. Sources are added using a Source object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define source positions in the model</span>
+<span class="n">src_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>  <span class="c1"># Z-coordinates for sources</span>
+<span class="n">src_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>  <span class="c1"># X-coordinates for sources</span>
+
+<span class="c1"># Generate wavelet for the source</span>
+<span class="n">src_t</span><span class="p">,</span> <span class="n">src_v</span> <span class="o">=</span> <span class="n">wavelet</span><span class="p">(</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">amp0</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Create time and wavelet amplitude</span>
+<span class="n">src_v</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">src_v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Integrate wavelet to get velocity</span>
+
+<span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="n">nt</span><span class="o">=</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">f0</span><span class="o">=</span><span class="n">f0</span><span class="p">)</span>  <span class="c1"># Initialize source object</span>
+
+<span class="c1"># Method 1: Add multiple sources at once (commented out)</span>
+<span class="c1"># source.add_sources(src_x=src_x, src_z=src_z, src_wavelet=src_v, src_type=&#39;mt&#39;, src_mt=np.array([[1,0,0],[0,1,0],[0,0,1]]))</span>
+
+<span class="c1"># Method 2: Loop through each source position to add them individually</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_x</span><span class="p">)):</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">add_source</span><span class="p">(</span><span class="n">src_x</span><span class="o">=</span><span class="n">src_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">src_z</span><span class="o">=</span><span class="n">src_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">src_wavelet</span><span class="o">=</span><span class="n">src_v</span><span class="p">,</span> <span class="n">src_type</span><span class="o">=</span><span class="s2">&quot;mt&quot;</span><span class="p">,</span> <span class="n">src_mt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]))</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src_x</span></code> and <code class="docutils literal notranslate"><span class="pre">src_z</span></code>: Define the source positions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wavelet()</span></code>: Creates the seismic wavelet.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">integrate.cumtrapz()</span></code>: Converts the amplitude wavelet into velocity by integrating it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source.add_source()</span></code>: Adds each source to the model.</p></li>
+</ul>
+<p>We plot the wavelet used in the sources for visualization</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot the wavelet used in the source</span>
+<span class="n">source</span><span class="o">.</span><span class="n">plot_wavelet</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;survey/wavelets.png&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Note: Note: For the acoustic model, the moment source is not used.</strong></p></li>
+</ul>
+</section>
+<section id="seismic-receiver-definition">
+<h4>(2) Seismic Receiver Definition:<a class="headerlink" href="#seismic-receiver-definition" title="Permalink to this heading"></a></h4>
+<p>Next, we define the receiver positions and initialize the Receiver object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define receiver positions in the model</span>
+<span class="n">rcv_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>  <span class="c1"># Z-coordinates for receivers</span>
+<span class="n">rcv_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>  <span class="c1"># X-coordinates for receivers</span>
+
+<span class="n">receiver</span> <span class="o">=</span> <span class="n">Receiver</span><span class="p">(</span><span class="n">nt</span><span class="o">=</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>  <span class="c1"># Initialize receiver object</span>
+
+<span class="c1"># Method 1: Add all receivers at once (commented out)</span>
+<span class="c1"># receiver.add_receivers(rcv_x=rcv_x, rcv_z=rcv_z, rcv_type=&#39;pr&#39;)</span>
+
+<span class="c1"># Method 2: Loop through each receiver position to add them individually</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rcv_x</span><span class="p">)):</span>
+    <span class="n">receiver</span><span class="o">.</span><span class="n">add_receiver</span><span class="p">(</span><span class="n">rcv_x</span><span class="o">=</span><span class="n">rcv_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rcv_z</span><span class="o">=</span><span class="n">rcv_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rcv_type</span><span class="o">=</span><span class="s2">&quot;pr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The receivers are placed at specific grid points (along the x-axis), ready to record the seismic waves generated by the sources.</p>
+<ul class="simple">
+<li><p><strong>Note: The receiver type is currently not in use, but it will be utilized in future updates.</strong></p></li>
+</ul>
+</section>
+<section id="creating-the-survey-object">
+<h4>(3) Creating the Survey Object:<a class="headerlink" href="#creating-the-survey-object" title="Permalink to this heading"></a></h4>
+<p>Finally, the <strong>Survey</strong> object is created by associating the sources and receivers. We can print a summary of the <strong>Survey</strong> object and plot it to verify its configuration</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a survey object using the defined source and receiver</span>
+<span class="n">survey</span> <span class="o">=</span> <span class="n">Survey</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">receiver</span><span class="o">=</span><span class="n">receiver</span><span class="p">)</span>
+
+<span class="c1"># Print a representation of the survey object to check its configuration</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">survey</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+
+<span class="c1"># Plot the survey configuration over the velocity model</span>
+<span class="n">survey</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vp</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="define-the-propagator-forward-modeling">
+<h3>1.5 Define the Propagator &amp; Forward Modeling<a class="headerlink" href="#define-the-propagator-forward-modeling" title="Permalink to this heading"></a></h3>
+<p>In this step, we initialize the wave propagator and perform the forward modeling to simulate the wave propagation through the defined model. The propagator takes into account the velocity model, survey setup (source and receiver positions), and relevant physical properties for the acoustic waves.</p>
+<section id="initialize-the-wave-propagator">
+<h4>(1) Initialize the Wave Propagator<a class="headerlink" href="#initialize-the-wave-propagator" title="Permalink to this heading"></a></h4>
+<p>We start by initializing the <code class="docutils literal notranslate"><span class="pre">AcousticPropagator</span></code>, which is responsible for simulating wave propagation using the provided model and survey configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the wave propagator using the specified model and survey configuration</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">AcousticPropagator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">survey</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">model</span></code> contains the velocity and density information, while <code class="docutils literal notranslate"><span class="pre">survey</span></code> holds the source and receiver positions. The <code class="docutils literal notranslate"><span class="pre">device</span></code> specifies the hardware (e.g., GPU or CPU) for running the simulation.</p>
+</section>
+<section id="forward-propagation">
+<h4>(2) Forward Propagation<a class="headerlink" href="#forward-propagation" title="Permalink to this heading"></a></h4>
+<p>Next, we perform the forward propagation to simulate how the acoustic waves travel through the model and record the waveforms. The <code class="docutils literal notranslate"><span class="pre">forward()</span></code> method of the propagator performs the simulation and returns the recorded wavefields:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Perform the forward propagation to record waveforms</span>
+<span class="n">record_waveform</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">forward</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">record_waveform</span></code> object contains the recorded data during the forward propagation. We extract the relevant wavefields from the recorded data, which include:</p>
+<ul class="simple">
+<li><p><strong>Pressure wavefield (<code class="docutils literal notranslate"><span class="pre">p</span></code>)</strong>: The primary quantity of interest in many seismic applications.</p></li>
+<li><p><strong>Particle velocity in the x-direction (<code class="docutils literal notranslate"><span class="pre">u</span></code>)</strong>: The component of particle motion in the horizontal direction.</p></li>
+<li><p><strong>Particle velocity in the z-direction (<code class="docutils literal notranslate"><span class="pre">w</span></code>)</strong>: The component of particle motion in the vertical direction.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract recorded pressure wavefield and particle velocities</span>
+<span class="n">rcv_p</span> <span class="o">=</span> <span class="n">record_waveform</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">]</span>  <span class="c1"># Recorded pressure wavefield</span>
+<span class="n">rcv_u</span> <span class="o">=</span> <span class="n">record_waveform</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span>  <span class="c1"># Recorded particle velocity in x-direction</span>
+<span class="n">rcv_w</span> <span class="o">=</span> <span class="n">record_waveform</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>  <span class="c1"># Recorded particle velocity in z-direction</span>
+</pre></div>
+</div>
+<p>Additionally, we can extract the forward wavefields, which represent the evolution of wavefields during propagation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract accumulated forward wavefields for analysis</span>
+<span class="n">forward_wavefield_p</span> <span class="o">=</span> <span class="n">record_waveform</span><span class="p">[</span><span class="s2">&quot;forward_wavefield_p&quot;</span><span class="p">]</span>  <span class="c1"># Accumulated forward pressure wavefield</span>
+<span class="n">forward_wavefield_u</span> <span class="o">=</span> <span class="n">record_waveform</span><span class="p">[</span><span class="s2">&quot;forward_wavefield_u&quot;</span><span class="p">]</span>  <span class="c1"># Accumulated forward particle velocity wavefield in x</span>
+<span class="n">forward_wavefield_w</span> <span class="o">=</span> <span class="n">record_wavefield</span><span class="p">[</span><span class="s2">&quot;forward_wavefield_w&quot;</span><span class="p">]</span>  <span class="c1"># Accumulated forward particle velocity wavefield in z</span>
+</pre></div>
+</div>
+</section>
+<section id="save-the-modeling-results">
+<h4>(3) Save the Modeling Results<a class="headerlink" href="#save-the-modeling-results" title="Permalink to this heading"></a></h4>
+<p>Finally, we save the recorded waveforms to disk for later use, such as inversion or analysis. We create a <code class="docutils literal notranslate"><span class="pre">SeismicData</span></code> object to store the observed data from the survey and record the waveforms into it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a SeismicData object to store observed data from the survey</span>
+<span class="n">d_obs</span> <span class="o">=</span> <span class="n">SeismicData</span><span class="p">(</span><span class="n">survey</span><span class="p">)</span>
+
+<span class="c1"># Record the waveform data into the SeismicData object</span>
+<span class="n">d_obs</span><span class="o">.</span><span class="n">record_data</span><span class="p">(</span><span class="n">record_waveform</span><span class="p">)</span>
+
+<span class="c1"># Save the recorded data to a specified file</span>
+<span class="n">d_obs</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;waveform/obs_data.npz&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This step ensures that all the forward modeling results are safely stored and ready for further analysis or inversion tasks.</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="acoustic-inversion">
+<h2>2. Acoustic Inversion<a class="headerlink" href="#acoustic-inversion" title="Permalink to this heading"></a></h2>
+<section id="id1">
+<h3>2.1 Packages Import<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>The imported packages are same to the forward modeling</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;../../../../&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ADFWI.propagator</span>  <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.model</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.view</span>        <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.utils</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.survey</span>      <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ADFWI.fwi</span>         <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">project_path</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;model&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;model&quot;</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;waveform&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;waveform&quot;</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;survey&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;survey&quot;</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;inversion&quot;</span><span class="p">)):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span><span class="s2">&quot;inversion&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h3>2.2 Basic Parameters Definition<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p>The Basic parameters is the same to the forward modeling</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda:0&quot;</span>         <span class="c1"># Specify the GPU device</span>
+<span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span>     <span class="c1"># Set data type to 32-bit floating point</span>
+<span class="n">ox</span><span class="p">,</span> <span class="n">oz</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>             <span class="c1"># Origin coordinates for x and z directions</span>
+<span class="n">nz</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">200</span>          <span class="c1"># Grid dimensions in z and x directions</span>
+<span class="n">dx</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">40</span>           <span class="c1"># Grid spacing in x and z directions</span>
+<span class="n">nt</span><span class="p">,</span> <span class="n">dt</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span> <span class="mf">0.003</span>      <span class="c1"># Time steps and time interval</span>
+<span class="n">nabc</span> <span class="o">=</span> <span class="mi">30</span>                 <span class="c1"># Thickness of the absorbing boundary layer</span>
+<span class="n">f0</span> <span class="o">=</span> <span class="mi">5</span>                    <span class="c1"># Initial frequency in Hz</span>
+<span class="n">free_surface</span> <span class="o">=</span> <span class="kc">True</span>       <span class="c1"># Enable free surface boundary condition</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id3">
+<h3>2.3 Velocity Model Definition<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<p>For inversion, you need to define the intiial velocity model. In this case, we use the smoothed true model as the initial model.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the Marmousi model dataset from the specified directory.</span>
+<span class="n">marmousi_model</span> <span class="o">=</span> <span class="n">load_marmousi_model</span><span class="p">(</span><span class="n">in_dir</span><span class="o">=</span><span class="s2">&quot;./examples/datasets/marmousi2_source&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create coordinate arrays for x and z based on the grid size.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">5000</span> <span class="o">+</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dz</span> <span class="o">*</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+<span class="n">true_model</span>   <span class="o">=</span> <span class="n">resample_marmousi_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">marmousi_model</span><span class="p">)</span>
+
+<span class="c1"># Initialize primary wave velocity (vp) and density (rho) for the model.</span>
+<span class="n">smooth_model</span> <span class="o">=</span> <span class="n">get_smooth_marmousi_model</span><span class="p">(</span><span class="n">true_model</span><span class="p">,</span> <span class="n">gaussian_kernel</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">mask_extra_detph</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">vp_init</span> <span class="o">=</span> <span class="n">smooth_model</span><span class="p">[</span><span class="s1">&#39;vp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># Transpose to match dimensions</span>
+<span class="n">rho_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">vp_init</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">*</span> <span class="mi">310</span>  <span class="c1"># Calculate density based on vp</span>
+
+<span class="c1"># Extract true model properties for comparison.</span>
+<span class="n">vp_true</span> <span class="o">=</span> <span class="n">true_model</span><span class="p">[</span><span class="s1">&#39;vp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># Transpose for consistency</span>
+<span class="n">rho_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">vp_true</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">*</span> <span class="mi">310</span>  <span class="c1"># Calculate true density</span>
+</pre></div>
+</div>
+<p>An <code class="docutils literal notranslate"><span class="pre">AcousticModel</span></code> is initialized with the given parameters. It’s important to note that the key parameter <code class="docutils literal notranslate"><span class="pre">vp_grad=True</span></code> indicates that the inversion process will update the velocity model (<code class="docutils literal notranslate"><span class="pre">vp</span></code>). This parameter is crucial in full waveform inversion (FWI) since it allows the model to learn and adjust the velocity profile (<code class="docutils literal notranslate"><span class="pre">vp</span></code>) during the inversion. On the other hand,  <code class="docutils literal notranslate"><span class="pre">rho_grad=False</span></code> ensures that the density model (<code class="docutils literal notranslate"><span class="pre">rho</span></code>) remains fixed during the inversion, and is not updated by the optimization process.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">AcousticModel</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span><span class="n">oz</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">dx</span><span class="p">,</span><span class="n">dz</span><span class="p">,</span>
+                    <span class="n">vp_init</span><span class="p">,</span><span class="n">rho_init</span><span class="p">,</span>
+                    <span class="n">vp_bound</span><span class="o">=</span><span class="p">[</span><span class="n">vp_true</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">vp_true</span><span class="o">.</span><span class="n">max</span><span class="p">()],</span>
+                    <span class="n">vp_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rho_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">free_surface</span><span class="o">=</span><span class="n">free_surface</span><span class="p">,</span>
+                    <span class="n">abc_type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">,</span><span class="n">abc_jerjan_alpha</span><span class="o">=</span><span class="mf">0.007</span><span class="p">,</span>
+                    <span class="n">nabc</span><span class="o">=</span><span class="n">nabc</span><span class="p">,</span>
+                    <span class="n">auto_update_rho</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+<span class="c1"># Save the initialized model to a file for later use.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;model/init_model.npz&quot;</span><span class="p">))</span>
+
+<span class="c1"># Print the model&#39;s representation for verification.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">_plot_vp_rho</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span><span class="n">cbar_pad_fraction</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h3>2.4 Observed System Definition<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<p>The definition of observed system is tha same to the forward modeling process.</p>
+<p><strong>Source</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define source positions in the model</span>
+<span class="n">src_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>  <span class="c1"># Z-coordinates for sources</span>
+<span class="n">src_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>  <span class="c1"># X-coordinates for sources</span>
+<span class="c1"># Generate wavelet for the source</span>
+<span class="n">src_t</span><span class="p">,</span> <span class="n">src_v</span> <span class="o">=</span> <span class="n">wavelet</span><span class="p">(</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">amp0</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Create time and wavelet amplitude</span>
+<span class="n">src_v</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">src_v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Integrate wavelet to get velocity</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="n">nt</span><span class="o">=</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">f0</span><span class="o">=</span><span class="n">f0</span><span class="p">)</span>  <span class="c1"># Initialize source object</span>
+<span class="c1"># Method 1: Add multiple sources at once (commented out)</span>
+<span class="c1"># source.add_sources(src_x=src_x, src_z=src_z, src_wavelet=src_v, src_type=&#39;mt&#39;, src_mt=np.array([[1,0,0],[0,1,0],[0,0,1]]))</span>
+<span class="c1"># Method 2: Loop through each source position to add them individually</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_x</span><span class="p">)):</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">add_source</span><span class="p">(</span><span class="n">src_x</span><span class="o">=</span><span class="n">src_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">src_z</span><span class="o">=</span><span class="n">src_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">src_wavelet</span><span class="o">=</span><span class="n">src_v</span><span class="p">,</span> <span class="n">src_type</span><span class="o">=</span><span class="s2">&quot;mt&quot;</span><span class="p">,</span> <span class="n">src_mt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]))</span>
+<span class="c1"># Plot the wavelet used in the source</span>
+<span class="n">source</span><span class="o">.</span><span class="n">plot_wavelet</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;survey/wavelets.png&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Receiver</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define receiver positions in the model</span>
+<span class="n">rcv_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>  <span class="c1"># Z-coordinates for receivers</span>
+<span class="n">rcv_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>  <span class="c1"># X-coordinates for receivers</span>
+
+<span class="n">receiver</span> <span class="o">=</span> <span class="n">Receiver</span><span class="p">(</span><span class="n">nt</span><span class="o">=</span><span class="n">nt</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>  <span class="c1"># Initialize receiver object</span>
+
+<span class="c1"># Method 1: Add all receivers at once (commented out)</span>
+<span class="c1"># receiver.add_receivers(rcv_x=rcv_x, rcv_z=rcv_z, rcv_type=&#39;pr&#39;)</span>
+
+<span class="c1"># Method 2: Loop through each receiver position to add them individually</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rcv_x</span><span class="p">)):</span>
+    <span class="n">receiver</span><span class="o">.</span><span class="n">add_receiver</span><span class="p">(</span><span class="n">rcv_x</span><span class="o">=</span><span class="n">rcv_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rcv_z</span><span class="o">=</span><span class="n">rcv_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rcv_type</span><span class="o">=</span><span class="s2">&quot;pr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Survey</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a survey object using the defined source and receiver</span>
+<span class="n">survey</span> <span class="o">=</span> <span class="n">Survey</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">receiver</span><span class="o">=</span><span class="n">receiver</span><span class="p">)</span>
+
+<span class="c1"># Print a representation of the survey object to check its configuration</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">survey</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="define-the-propagator-inversion">
+<h3>2.5 Define the Propagator &amp; Inversion<a class="headerlink" href="#define-the-propagator-inversion" title="Permalink to this heading"></a></h3>
+<p>In this step, we set up the forward propagation and inversion process to simulate how the acoustic waves travel through the model, record the waveforms, and then use these recorded waveforms for inversion.</p>
+<section id="id5">
+<h4>(1) Forward Propagation<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<p>To simulate the acoustic wave propagation, we initialize the wave propagator using the previously defined model and survey configuration. The propagator will compute how waves travel through the model and interact with the boundaries.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the wave propagator using the specified model and survey configuration</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">AcousticPropagator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">survey</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="inversion-setup">
+<h4>(2) Inversion setup<a class="headerlink" href="#inversion-setup" title="Permalink to this heading"></a></h4>
+<p>For inversion, a series of functions and configurations need to be defined, including misfit functions, optimization functions, and gradient processing. These components guide the inversion process, helping the model update the velocity profile based on the observed data.</p>
+<section id="a-misfit-function">
+<h5>a. Misfit Function<a class="headerlink" href="#a-misfit-function" title="Permalink to this heading"></a></h5>
+<p>The misfit function is used to quantify the difference between the observed and predicted data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the L2 misfit function for waveform inversion.</span>
+<span class="kn">from</span> <span class="nn">ADFWI.fwi.misfit</span> <span class="kn">import</span> <span class="n">Misfit_waveform_L2</span><span class="p">,</span> <span class="n">Misfit_global_correlation</span>
+
+<span class="c1"># Configure the loss function (misfit) for the inversion.</span>
+<span class="n">loss_fn</span> <span class="o">=</span> <span class="n">Misfit_waveform_L2</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># Alternatively, you can use global correlation as a misfit function.</span>
+<span class="c1"># loss_fn = Misfit_global_correlation(dt=1)</span>
+</pre></div>
+</div>
+</section>
+<section id="b-optimizer">
+<h5>b. Optimizer<a class="headerlink" href="#b-optimizer" title="Permalink to this heading"></a></h5>
+<p>An optimizer is required to adjust the model parameters (<code class="docutils literal notranslate"><span class="pre">vp</span></code> in this case) during the inversion. We use the Adam optimizer for its efficiency in handling large parameter spaces and its adaptive learning rate. The learning rate is set initially to 10 but will be adjusted later through the scheduler.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the optimizer (Adam) for model parameters with a learning rate.</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="c-learning-rate-scheduler">
+<h5>c. Learning Rate Scheduler<a class="headerlink" href="#c-learning-rate-scheduler" title="Permalink to this heading"></a></h5>
+<p>A scheduler is used to modify the learning rate during the training process. Here, a StepLR scheduler is employed, which reduces the learning rate by a factor of 0.75 every 200 steps to help refine the model as it converges.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up a learning rate scheduler to adjust the learning rate over time.</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">last_epoch</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="d-gradient-processing">
+<h5>d. Gradient Processing<a class="headerlink" href="#d-gradient-processing" title="Permalink to this heading"></a></h5>
+<p>Gradient processing involves manipulating the gradients during the backpropagation step. In this case, a gradient mask is applied to the velocity model (<code class="docutils literal notranslate"><span class="pre">vp</span></code>), more operation can be found at <code class="docutils literal notranslate"><span class="pre">ADFWI.propagator.gradient_process.GradProcessor</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grad_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vp_init</span><span class="p">)</span>
+<span class="n">grad_mask</span><span class="p">[:</span><span class="mi">12</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">gradient_processor</span> <span class="o">=</span> <span class="n">GradProcessor</span><span class="p">(</span><span class="n">grad_mask</span><span class="o">=</span><span class="n">grad_mask</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="e-load-observed-data">
+<h5>e. Load Observed Data<a class="headerlink" href="#e-load-observed-data" title="Permalink to this heading"></a></h5>
+<p>We load the observed data (measured waveforms) that the model will compare against during the inversion. The data is loaded into a <code class="docutils literal notranslate"><span class="pre">SeismicData</span></code> object, which holds the observed waveforms and makes them available for the inversion process.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create an instance of SeismicData using the survey object.</span>
+<span class="n">d_obs</span> <span class="o">=</span> <span class="n">SeismicData</span><span class="p">(</span><span class="n">survey</span><span class="p">)</span>
+<span class="n">d_obs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;waveform/obs_data.npz&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">d_obs</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="acoustic-full-waveform-inversion-loop">
+<h4>(3) Acoustic Full Waveform Inversion Loop<a class="headerlink" href="#acoustic-full-waveform-inversion-loop" title="Permalink to this heading"></a></h4>
+<p>Once all the necessary components are defined, we initialize the <code class="docutils literal notranslate"><span class="pre">AcousticFWI</span></code> object, which orchestrates the full waveform inversion process. This object takes in the propagator, model, optimizer, loss function, observed data, gradient processor, and other settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the acoustic full waveform inversion (FWI) object.</span>
+<span class="n">fwi</span> <span class="o">=</span> <span class="n">AcousticFWI</span><span class="p">(</span><span class="n">propagator</span><span class="o">=</span><span class="n">F</span><span class="p">,</span>
+                  <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                  <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+                  <span class="n">scheduler</span><span class="o">=</span><span class="n">scheduler</span><span class="p">,</span>
+                  <span class="n">loss_fn</span><span class="o">=</span><span class="n">loss_fn</span><span class="p">,</span>
+                  <span class="n">obs_data</span><span class="o">=</span><span class="n">d_obs</span><span class="p">,</span>
+                  <span class="n">gradient_processor</span><span class="o">=</span><span class="n">gradient_processor</span><span class="p">,</span>
+                  <span class="n">waveform_normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                  <span class="n">cache_result</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  
+                  <span class="n">save_fig_epoch</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>  
+                  <span class="n">save_fig_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;inversion&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The inversion process is initiated by running the forward method of the FWI object. This method takes several parameters such as the number of iterations, batch size and checkpoints. Notably, the <strong>batch size</strong> and <strong>checkpoitns</strong> are used for balancing the inversion efficiency and memory usage.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">iteration</span> <span class="o">=</span> <span class="mi">300</span>
+<span class="c1"># Run the forward modeling for the specified number of iterations.</span>
+<span class="n">fwi</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">iteration</span><span class="o">=</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">checkpoint_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Retrieve the inversion results: updated velocity and loss values.</span>
+<span class="n">iter_vp</span> <span class="o">=</span> <span class="n">fwi</span><span class="o">.</span><span class="n">iter_vp</span>
+<span class="n">iter_rho</span> <span class="o">=</span> <span class="n">fwi</span><span class="o">.</span><span class="n">iter_rho</span>
+<span class="n">iter_loss</span> <span class="o">=</span> <span class="n">fwi</span><span class="o">.</span><span class="n">iter_loss</span>
+
+<span class="c1"># Save the iteration results to files for later analysis.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;inversion/iter_vp.npz&quot;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">iter_vp</span><span class="p">))</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;inversion/iter_loss.npz&quot;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">iter_loss</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="elastic_fwi_tests.html" class="btn btn-neutral float-right" title="Isotropic Elastic FWI Tests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

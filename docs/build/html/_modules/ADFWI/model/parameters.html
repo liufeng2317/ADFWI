@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.model.parameters &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ADFWI.model.parameters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ADFWI.model.parameters</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">ADFWI.utils</span> <span class="kn">import</span> <span class="n">numpy2tensor</span>
+
+<div class="viewcode-block" id="thomsen_init"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.thomsen_init">[docs]</a><span class="k">def</span> <span class="nf">thomsen_init</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the Thomsen parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vp : array_like</span>
+<span class="sd">        P-wave velocity model.</span>
+<span class="sd">    vs : array_like</span>
+<span class="sd">        S-wave velocity model.</span>
+<span class="sd">    rho : array_like</span>
+<span class="sd">        Density model.</span>
+<span class="sd">    eps : array_like</span>
+<span class="sd">        Anisotropic parameter epsilon.</span>
+<span class="sd">    delta : array_like</span>
+<span class="sd">        Anisotropic parameter delta.</span>
+<span class="sd">    gamma : array_like</span>
+<span class="sd">        Anisotropic parameter gamma.</span>
+<span class="sd">    device : str</span>
+<span class="sd">        The device to place the tensors on (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    dtype : torch.dtype, optional</span>
+<span class="sd">        Data type of the tensors, default is torch.float32.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    vp : torch.Tensor</span>
+<span class="sd">        P-wave velocity as a tensor.</span>
+<span class="sd">    vs : torch.Tensor</span>
+<span class="sd">        S-wave velocity as a tensor.</span>
+<span class="sd">    rho : torch.Tensor</span>
+<span class="sd">        Density as a tensor.</span>
+<span class="sd">    eps : torch.Tensor</span>
+<span class="sd">        Anisotropic epsilon parameter as a tensor.</span>
+<span class="sd">    delta : torch.Tensor</span>
+<span class="sd">        Anisotropic delta parameter as a tensor.</span>
+<span class="sd">    gamma : torch.Tensor</span>
+<span class="sd">        Anisotropic gamma parameter as a tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vp</span>      <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">vs</span>      <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">rho</span>     <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">eps</span>     <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">delta</span>   <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">gamma</span>   <span class="o">=</span> <span class="n">numpy2tensor</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vp</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">gamma</span></div>
+
+
+<div class="viewcode-block" id="elastic_moduli_init"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.elastic_moduli_init">[docs]</a><span class="k">def</span> <span class="nf">elastic_moduli_init</span><span class="p">(</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the 21 independent elastic parameters for a full anisotropic medium. The function initializes the following 21 independent elastic parameters for a full anisotropic medium.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nz : int</span>
+<span class="sd">        The number of grid points in the z-direction.</span>
+<span class="sd">    nx : int</span>
+<span class="sd">        The number of grid points in the x-direction.</span>
+<span class="sd">    device : str</span>
+<span class="sd">        The device to place the tensors on (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    dtype : torch.dtype, optional</span>
+<span class="sd">        The data type of the tensors. Default is torch.float32.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of torch.Tensor</span>
+<span class="sd">        A list containing the 21 independent elastic parameters, each as a tensor. The parameters are in the following order: [C11, C12, C13, C14, C15, C16, C22, C23, C24, C25, C26, C33, C34, C35, C36, C44, C45, C46, C55, C56, C66].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># The 21 independent elastic parameters for full anisotropic models</span>
+    <span class="n">C11</span><span class="p">,</span><span class="n">C12</span><span class="p">,</span><span class="n">C13</span><span class="p">,</span><span class="n">C14</span><span class="p">,</span><span class="n">C15</span><span class="p">,</span><span class="n">C16</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">C22</span><span class="p">,</span><span class="n">C23</span><span class="p">,</span><span class="n">C24</span><span class="p">,</span><span class="n">C25</span><span class="p">,</span><span class="n">C26</span>     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">C33</span><span class="p">,</span><span class="n">C34</span><span class="p">,</span><span class="n">C35</span><span class="p">,</span><span class="n">C36</span>         <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">C44</span><span class="p">,</span><span class="n">C45</span><span class="p">,</span><span class="n">C46</span>             <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">C55</span><span class="p">,</span><span class="n">C56</span>                 <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">C66</span>                     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="n">CC</span> <span class="o">=</span> <span class="p">[</span><span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span> <span class="n">C22</span><span class="p">,</span> <span class="n">C23</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span> 
+          <span class="n">C33</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span> <span class="n">C66</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">CC</span></div>
+
+
+<div class="viewcode-block" id="vs_vp_to_Lame"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.vs_vp_to_Lame">[docs]</a><span class="k">def</span> <span class="nf">vs_vp_to_Lame</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform P-wave and S-wave velocities along with density to the Lame constants.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vp : torch.Tensor</span>
+<span class="sd">        P-wave velocity along the respective axis.</span>
+<span class="sd">    vs : torch.Tensor</span>
+<span class="sd">        S-wave velocity along the respective axis.</span>
+<span class="sd">    rho : torch.Tensor</span>
+<span class="sd">        Density.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mu : torch.Tensor</span>
+<span class="sd">        Lame constant (shear modulus).</span>
+<span class="sd">    lamu : torch.Tensor</span>
+<span class="sd">        Lame constant (lambda).</span>
+<span class="sd">    lam : torch.Tensor</span>
+<span class="sd">        Lambda constant (lambda - 2 * mu).</span>
+<span class="sd">    b : torch.Tensor</span>
+<span class="sd">        Buoyancy, which is the inverse of density (1 / rho).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mu</span>   <span class="o">=</span> <span class="n">vs</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span>
+    <span class="n">lamu</span> <span class="o">=</span> <span class="n">vp</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span>
+    <span class="n">lam</span>  <span class="o">=</span> <span class="n">lamu</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span>
+    <span class="n">b</span>    <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">rho</span>
+    <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">lamu</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">b</span></div>
+
+
+<div class="viewcode-block" id="thomsen_to_elastic_moduli"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.thomsen_to_elastic_moduli">[docs]</a><span class="k">def</span> <span class="nf">thomsen_to_elastic_moduli</span><span class="p">(</span><span class="n">alpha_thomsen</span><span class="p">,</span> <span class="n">beta_thomsen</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">eps_thomsen</span><span class="p">,</span> <span class="n">delta_thomsen</span><span class="p">,</span> <span class="n">gamma_thomsen</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform Thomsen parameters to Elastic Moduli for Transverse Isotropy. For Transverse isotropy case, only 5 independent components are used: C11, C13, C33, C44, C66. Additionally, C12 is calculated as C11 - 2*C66.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    alpha_thomsen : torch.Tensor</span>
+<span class="sd">        P-wave velocity (vp).</span>
+<span class="sd">    beta_thomsen : torch.Tensor</span>
+<span class="sd">        S-wave velocity (vs).</span>
+<span class="sd">    rho : torch.Tensor</span>
+<span class="sd">        Density.</span>
+<span class="sd">    eps_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (eps).</span>
+<span class="sd">    delta_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (delta).</span>
+<span class="sd">    gamma_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (gamma).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    C11 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C11.</span>
+<span class="sd">    C13 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C13.</span>
+<span class="sd">    C33 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C33.</span>
+<span class="sd">    C44 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C44.</span>
+<span class="sd">    C66 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C66.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">C33</span> <span class="o">=</span> <span class="n">alpha_thomsen</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span>
+    <span class="n">C44</span> <span class="o">=</span> <span class="n">beta_thomsen</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span>
+    <span class="n">C11</span> <span class="o">=</span> <span class="n">C33</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">eps_thomsen</span><span class="p">)</span>
+    <span class="n">C66</span> <span class="o">=</span> <span class="n">C44</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma_thomsen</span><span class="p">)</span>
+    <span class="n">C13</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">C33</span> <span class="o">*</span> <span class="p">(</span><span class="n">C33</span> <span class="o">-</span> <span class="n">C44</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta_thomsen</span> <span class="o">+</span> <span class="p">(</span><span class="n">C33</span> <span class="o">-</span> <span class="n">C44</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">C44</span>
+    <span class="k">return</span> <span class="n">C11</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C33</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C66</span></div>
+
+<div class="viewcode-block" id="elastic_moduli_to_thomsen"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.elastic_moduli_to_thomsen">[docs]</a><span class="k">def</span> <span class="nf">elastic_moduli_to_thomsen</span><span class="p">(</span><span class="n">C11</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C33</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C66</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform Elastic Moduli to Thomsen parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    C11 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C11.</span>
+<span class="sd">    C13 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C13.</span>
+<span class="sd">    C33 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C33.</span>
+<span class="sd">    C44 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C44.</span>
+<span class="sd">    C66 : torch.Tensor</span>
+<span class="sd">        Elastic Moduli, C66.</span>
+<span class="sd">    rho : torch.Tensor</span>
+<span class="sd">        Density.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    alpha_thomsen : torch.Tensor</span>
+<span class="sd">        P-wave velocity (vp).</span>
+<span class="sd">    beta_thomsen : torch.Tensor</span>
+<span class="sd">        S-wave velocity (vs).</span>
+<span class="sd">    eps_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (eps).</span>
+<span class="sd">    delta_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (delta).</span>
+<span class="sd">    gamma_thomsen : torch.Tensor</span>
+<span class="sd">        Anisotropy parameter (gamma).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">alpha_thomsen</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">C33</span> <span class="o">/</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="n">beta_thomsen</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">C44</span> <span class="o">/</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="n">eps_thomsen</span> <span class="o">=</span> <span class="p">(</span><span class="n">C11</span> <span class="o">-</span> <span class="n">C33</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">C33</span><span class="p">)</span>
+    <span class="n">gamma_thomsen</span> <span class="o">=</span> <span class="p">(</span><span class="n">C66</span> <span class="o">-</span> <span class="n">C44</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">C44</span><span class="p">)</span>
+    <span class="n">delta_thomsen</span> <span class="o">=</span> <span class="p">((</span><span class="n">C13</span> <span class="o">+</span> <span class="n">C44</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">C33</span> <span class="o">-</span> <span class="n">C44</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">C33</span> <span class="o">*</span> <span class="p">(</span><span class="n">C33</span> <span class="o">-</span> <span class="n">C44</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">alpha_thomsen</span><span class="p">,</span> <span class="n">beta_thomsen</span><span class="p">,</span> <span class="n">eps_thomsen</span><span class="p">,</span> <span class="n">delta_thomsen</span><span class="p">,</span> <span class="n">gamma_thomsen</span></div>
+
+<div class="viewcode-block" id="elastic_moduli_for_isotropic"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.elastic_moduli_for_isotropic">[docs]</a><span class="k">def</span> <span class="nf">elastic_moduli_for_isotropic</span><span class="p">(</span><span class="n">CC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For isotropy case, only 2 independent components. The matrix of elastic moduli is simplified as:</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    CC : list of torch.Tensor</span>
+<span class="sd">        List containing the 21 elastic moduli parameters: [C11, C12, C13, ..., C66].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    CC : list of torch.Tensor</span>
+<span class="sd">        Modified list of elastic moduli with the isotropic assumption applied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">[</span><span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span> <span class="n">C22</span><span class="p">,</span> <span class="n">C23</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span> <span class="n">C33</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span> <span class="n">C66</span><span class="p">]</span> <span class="o">=</span> <span class="n">CC</span>
+    <span class="n">C22</span> <span class="o">=</span> <span class="n">C11</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C55</span> <span class="o">=</span> <span class="n">C44</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C23</span> <span class="o">=</span> <span class="n">C13</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C12</span> <span class="o">=</span> <span class="p">(</span><span class="n">C11</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">C66</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">CC</span> <span class="o">=</span> <span class="p">[</span><span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span> <span class="n">C22</span><span class="p">,</span> <span class="n">C23</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span> <span class="n">C33</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span> <span class="n">C66</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">CC</span></div>
+
+<div class="viewcode-block" id="elastic_moduli_for_TI"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.elastic_moduli_for_TI">[docs]</a><span class="k">def</span> <span class="nf">elastic_moduli_for_TI</span><span class="p">(</span><span class="n">CC</span><span class="p">,</span> <span class="n">anisotropic_type</span><span class="o">=</span><span class="s2">&quot;VTI&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For Transverse isotropy case, only 5 independent components: C11, C13, C33, C44, C66, and C12 = C11 - 2*C66.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    CC : list of torch.Tensor</span>
+<span class="sd">        List containing the 21 elastic moduli parameters: [C11, C12, C13, ..., C66].</span>
+
+<span class="sd">    anisotropic_type : str, optional</span>
+<span class="sd">        Type of anisotropy. Can be &#39;VTI&#39; for vertical transverse isotropy (default) or &#39;HTI&#39; for horizontal transverse isotropy.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    CC : list of torch.Tensor</span>
+<span class="sd">        Modified list of elastic moduli with the corresponding anisotropic structure applied, depending on `anisotropic_type`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">[</span><span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span> <span class="n">C22</span><span class="p">,</span> <span class="n">C23</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span> <span class="n">C33</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span> <span class="n">C66</span><span class="p">]</span> <span class="o">=</span> <span class="n">CC</span>
+    <span class="n">C22</span> <span class="o">=</span> <span class="n">C11</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C55</span> <span class="o">=</span> <span class="n">C44</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C23</span> <span class="o">=</span> <span class="n">C13</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">C12</span> <span class="o">=</span> <span class="p">(</span><span class="n">C11</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">C66</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">anisotropic_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;vti&quot;</span><span class="p">]:</span>
+        <span class="n">CC</span> <span class="o">=</span> <span class="p">[</span><span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span>
+              <span class="n">C22</span><span class="p">,</span> <span class="n">C23</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span>
+              <span class="n">C33</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span>
+              <span class="n">C44</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span>
+              <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span>
+              <span class="n">C66</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">anisotropic_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;hti&quot;</span><span class="p">]:</span>
+        <span class="n">CC</span> <span class="o">=</span> <span class="p">[</span><span class="n">C33</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C13</span><span class="p">,</span> <span class="n">C14</span><span class="p">,</span> <span class="n">C15</span><span class="p">,</span> <span class="n">C16</span><span class="p">,</span>
+              <span class="n">C11</span><span class="p">,</span> <span class="n">C12</span><span class="p">,</span> <span class="n">C24</span><span class="p">,</span> <span class="n">C25</span><span class="p">,</span> <span class="n">C26</span><span class="p">,</span>
+              <span class="n">C11</span><span class="p">,</span> <span class="n">C34</span><span class="p">,</span> <span class="n">C35</span><span class="p">,</span> <span class="n">C36</span><span class="p">,</span>
+              <span class="n">C66</span><span class="p">,</span> <span class="n">C45</span><span class="p">,</span> <span class="n">C46</span><span class="p">,</span>
+              <span class="n">C55</span><span class="p">,</span> <span class="n">C56</span><span class="p">,</span>
+              <span class="n">C55</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">CC</span></div>
+
+
+<div class="viewcode-block" id="parameter_staggered_grid"><a class="viewcode-back" href="../../../API/ADFWI.model.html#ADFWI.model.parameters.parameter_staggered_grid">[docs]</a><span class="k">def</span> <span class="nf">parameter_staggered_grid</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C66</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Staggered mesh settings for model parameters.</span>
+
+<span class="sd">    This function calculates the staggered grid values for different model parameters:</span>
+<span class="sd">    shear modulus (mu), buoyancy (b), and elastic moduli (C44, C55, C66) based on </span>
+<span class="sd">    the grid size (nx, nz) and applies an averaging method for staggered grids.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mu : torch.Tensor</span>
+<span class="sd">        Shear modulus, also known as Lame constant.</span>
+<span class="sd">    </span>
+<span class="sd">    b : torch.Tensor</span>
+<span class="sd">        Buoyancy, the inverse of density.</span>
+<span class="sd">    </span>
+<span class="sd">    C44 : torch.Tensor</span>
+<span class="sd">        Elastic modulus C44, describing shear waves.</span>
+<span class="sd">    </span>
+<span class="sd">    C55 : torch.Tensor</span>
+<span class="sd">        Elastic modulus C55, another shear modulus term.</span>
+<span class="sd">    </span>
+<span class="sd">    C66 : torch.Tensor</span>
+<span class="sd">        Elastic modulus C66, also related to shear waves.</span>
+<span class="sd">    </span>
+<span class="sd">    nx : int</span>
+<span class="sd">        Number of grid points in the X direction (horizontal axis).</span>
+<span class="sd">    </span>
+<span class="sd">    nz : int</span>
+<span class="sd">        Number of grid points in the Z direction (vertical axis).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bx : torch.Tensor</span>
+<span class="sd">        Staggered grid for buoyancy (b) in the X-axis.</span>
+<span class="sd">    </span>
+<span class="sd">    bz : torch.Tensor</span>
+<span class="sd">        Staggered grid for buoyancy (b) in the Z-axis.</span>
+<span class="sd">    </span>
+<span class="sd">    muxz : torch.Tensor</span>
+<span class="sd">        Staggered grid for shear modulus (mu).</span>
+<span class="sd">    </span>
+<span class="sd">    C44 : torch.Tensor</span>
+<span class="sd">        Staggered grid for C44 (shear modulus term).</span>
+<span class="sd">    </span>
+<span class="sd">    C55 : torch.Tensor</span>
+<span class="sd">        Staggered grid for C55 (shear modulus term).</span>
+<span class="sd">    </span>
+<span class="sd">    C66 : torch.Tensor</span>
+<span class="sd">        Staggered grid for C66 (shear modulus term).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bx</span>   <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="p">])</span>
+    <span class="n">bz</span>   <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="p">:])</span>
+
+    <span class="n">muxz</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="p">(</span><span class="n">mu</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">mu</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">mu</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">+</span>
+                  <span class="n">mu</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">mu</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">])</span>
+
+    <span class="n">C44</span>  <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="p">(</span><span class="n">C44</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C44</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C44</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">+</span>
+                  <span class="n">C44</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C44</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">])</span>
+
+    <span class="n">C55</span>  <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="p">(</span><span class="n">C55</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C55</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C55</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">+</span>
+                  <span class="n">C55</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C55</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">])</span>
+
+    <span class="n">C66</span>  <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="p">(</span><span class="n">C66</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C66</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C66</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">+</span>
+                  <span class="n">C66</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">C66</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">nz</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">bx</span><span class="p">,</span> <span class="n">bz</span><span class="p">,</span> <span class="n">muxz</span><span class="p">,</span> <span class="n">C44</span><span class="p">,</span> <span class="n">C55</span><span class="p">,</span> <span class="n">C66</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

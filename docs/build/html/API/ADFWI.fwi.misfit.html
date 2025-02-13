@@ -1,0 +1,863 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.fwi.misfit &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.fwi.regularization" href="ADFWI.fwi.regularization.html" />
+    <link rel="prev" title="ADFWI.fwi" href="ADFWI.fwi.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ADFWI.fwi.misfit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.base">ADFWI.fwi.misfit.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.L1">ADFWI.fwi.misfit.L1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.L2">ADFWI.fwi.misfit.L2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.SmoothL1">ADFWI.fwi.misfit.SmoothL1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.Envelope">ADFWI.fwi.misfit.Envelope</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.GlobalCorrelation">ADFWI.fwi.misfit.GlobalCorrelation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.StudentT">ADFWI.fwi.misfit.StudentT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.SoftDTW">ADFWI.fwi.misfit.SoftDTW</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.Wasserstein_sinkhorn">ADFWI.fwi.misfit.Wasserstein_sinkhorn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.Normalized_Integration_method">ADFWI.fwi.misfit.Normalized_Integration_method</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.Weci">ADFWI.fwi.misfit.Weci</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.Weighted_L1_L2">ADFWI.fwi.misfit.Weighted_L1_L2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.fwi.misfit.WDGC">ADFWI.fwi.misfit.WDGC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.regularization.html">ADFWI.fwi.regularization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.acoustic_fwi">ADFWI.fwi.acoustic_fwi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.elastic_fwi">ADFWI.fwi.elastic_fwi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.multiScaleProcessing">ADFWI.fwi.multiScaleProcessing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+      <li class="breadcrumb-item active">ADFWI.fwi.misfit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.fwi.misfit.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-fwi-misfit">
+<h1>ADFWI.fwi.misfit<a class="headerlink" href="#adfwi-fwi-misfit" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.fwi.misfit.base">
+<span id="adfwi-fwi-misfit-base"></span><h2>ADFWI.fwi.misfit.base<a class="headerlink" href="#module-ADFWI.fwi.misfit.base" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.base.Misfit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.base.</span></span><span class="sig-name descname"><span class="pre">Misfit</span></span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/base.html#Misfit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.base.Misfit" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract base class for Misfit functions.</p>
+<p>This class serves as a template for creating specific misfit functions used in inversion problems.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.base.Misfit.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/base.html#Misfit.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.base.Misfit.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Abstract method for computing the forward misfit.</p>
+<p>This method must be implemented by subclasses to compute the forward misfit based on specific data and models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>result</strong> – The computed misfit value.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.L1">
+<span id="adfwi-fwi-misfit-l1"></span><h2>ADFWI.fwi.misfit.L1<a class="headerlink" href="#module-ADFWI.fwi.misfit.L1" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.L1.Misfit_waveform_L1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.L1.</span></span><span class="sig-name descname"><span class="pre">Misfit_waveform_L1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/L1.html#Misfit_waveform_L1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.L1.Misfit_waveform_L1" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Waveform L1-norm difference misfit (Tarantola, 1984).</p>
+<p>This class computes the L1-norm misfit between the observed and synthetic waveforms.
+The L1-norm is calculated as the sum of the absolute differences between corresponding
+points in the observed and synthetic waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval (default is 1).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.L1.Misfit_waveform_L1.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/L1.html#Misfit_waveform_L1.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.L1.Misfit_waveform_L1.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the L1-norm waveform misfit between observed and synthetic data.</p>
+<p>The L1-norm is computed as the sum of absolute residuals, weighted by the time sampling interval <cite>dt</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform, typically with shape (batch, channels, time).</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform, typically with shape (batch, channels, time).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The L1-norm misfit loss between the observed and synthetic waveforms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.L2">
+<span id="adfwi-fwi-misfit-l2"></span><h2>ADFWI.fwi.misfit.L2<a class="headerlink" href="#module-ADFWI.fwi.misfit.L2" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.L2.Misfit_waveform_L2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.L2.</span></span><span class="sig-name descname"><span class="pre">Misfit_waveform_L2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/L2.html#Misfit_waveform_L2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.L2.Misfit_waveform_L2" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Waveform L2-norm difference misfit (Tarantola, 1984).</p>
+<p>This class computes the L2-norm misfit between the observed and synthetic waveforms.
+The L2-norm is calculated as the square root of the sum of squared residuals between
+corresponding points in the observed and synthetic waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval (default is 1).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.L2.Misfit_waveform_L2.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/L2.html#Misfit_waveform_L2.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.L2.Misfit_waveform_L2.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the L2-norm waveform misfit between observed and synthetic data.</p>
+<p>The L2-norm is computed as the square root of the sum of squared residuals, weighted
+by the time sampling interval <cite>dt</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform, typically with shape (batch, channels, time).</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform, typically with shape (batch, channels, time).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The L2-norm misfit loss between the observed and synthetic waveforms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.SmoothL1">
+<span id="adfwi-fwi-misfit-smoothl1"></span><h2>ADFWI.fwi.misfit.SmoothL1<a class="headerlink" href="#module-ADFWI.fwi.misfit.SmoothL1" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.SmoothL1.Misfit_waveform_smoothL1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.SmoothL1.</span></span><span class="sig-name descname"><span class="pre">Misfit_waveform_smoothL1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/SmoothL1.html#Misfit_waveform_smoothL1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.SmoothL1.Misfit_waveform_smoothL1" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Smoothed L1 misfit function (Ross Girshick, 2015, International conference on computer vision)
+<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html">https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html</a></p>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
+<p>dt (float): Time interval between samples, default is 1.</p>
+</section>
+<section id="methods">
+<h3>Methods:<a class="headerlink" href="#methods" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>forward(obs, syn):</dt><dd><p>Computes the smoothed L1 loss between observed and synthetic waveforms.</p>
+</dd>
+</dl>
+</section>
+<section id="args">
+<h3>Args:<a class="headerlink" href="#args" title="Permalink to this heading"></a></h3>
+<p>obs (Tensor): The observed waveform of shape [num_time_steps, num_shots*num_receivers_per_shot].
+syn (Tensor): The synthetic waveform of shape [num_time_steps, num_shots*num_receivers_per_shot].</p>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h3>
+<p>Tensor: The computed smoothed L1 loss value.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.SmoothL1.Misfit_waveform_smoothL1.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/SmoothL1.html#Misfit_waveform_smoothL1.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.SmoothL1.Misfit_waveform_smoothL1.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the smoothed L1 loss between the observed and synthetic waveforms.</p>
+<section id="id1">
+<h4>Args:<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<p>obs (Tensor): The observed waveform.
+syn (Tensor): The synthetic waveform.</p>
+</section>
+<section id="id2">
+<h4>Returns:<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<p>Tensor: The computed smoothed L1 loss.</p>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.Envelope">
+<span id="adfwi-fwi-misfit-envelope"></span><h2>ADFWI.fwi.misfit.Envelope<a class="headerlink" href="#module-ADFWI.fwi.misfit.Envelope" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Envelope.Misfit_envelope">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Envelope.</span></span><span class="sig-name descname"><span class="pre">Misfit_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instaneous_phase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'L2'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Envelope.html#Misfit_envelope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Envelope.Misfit_envelope" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Compute the envelope misfit for initial velocity model estimation.</p>
+<p>This class computes the misfit between observed and synthetic waveforms based on their envelope or instantaneous phase.
+It is used for estimating the initial velocity model in seismic inversion.</p>
+<p class="rubric">References</p>
+<p>Wu et al., 2014; Yuan et al., 2015</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval (default is 1).</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Norm order for envelope difference (default is 1.5).</p></li>
+<li><p><strong>instaneous_phase</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use instantaneous phase for misfit (default is False).</p></li>
+<li><p><strong>norm</strong> (<em>str</em><em>, </em><em>optional</em>) – Norm type (“L1” or “L2”) for final loss calculation (default is “L2”).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Envelope.Misfit_envelope.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Envelope.html#Misfit_envelope.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Envelope.Misfit_envelope.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the misfit between observed and synthetic waveforms.</p>
+<p>This function calculates the misfit between the observed and synthetic waveforms either using their envelopes
+or instantaneous phases, depending on the chosen option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – Observed waveform [batch, trace, time].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – Synthetic waveform [batch, trace, time].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Envelope or phase difference loss computed between the observed and synthetic waveforms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.GlobalCorrelation">
+<span id="adfwi-fwi-misfit-globalcorrelation"></span><h2>ADFWI.fwi.misfit.GlobalCorrelation<a class="headerlink" href="#module-ADFWI.fwi.misfit.GlobalCorrelation" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.GlobalCorrelation.Misfit_global_correlation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.GlobalCorrelation.</span></span><span class="sig-name descname"><span class="pre">Misfit_global_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/GlobalCorrelation.html#Misfit_global_correlation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.GlobalCorrelation.Misfit_global_correlation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Global correlation misfit function.</p>
+<p>This class computes the global correlation misfit between observed and synthetic waveforms,
+focusing on their correlation structure across traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval (default is 1).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.GlobalCorrelation.Misfit_global_correlation.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/GlobalCorrelation.html#Misfit_global_correlation.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.GlobalCorrelation.Misfit_global_correlation.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the global correlation misfit between observed and synthetic waveforms.</p>
+<p>This function calculates the correlation between each pair of observed and synthetic waveforms
+across all traces and computes the global misfit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – Observed waveform with shape (batch, channels, traces).</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – Synthetic waveform with shape (batch, channels, traces).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Correlation-based misfit loss computed between the observed and synthetic waveforms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.StudentT">
+<span id="adfwi-fwi-misfit-studentt"></span><h2>ADFWI.fwi.misfit.StudentT<a class="headerlink" href="#module-ADFWI.fwi.misfit.StudentT" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.StudentT.Misfit_waveform_studentT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.StudentT.</span></span><span class="sig-name descname"><span class="pre">Misfit_waveform_studentT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/StudentT.html#Misfit_waveform_studentT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.StudentT.Misfit_waveform_studentT" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Student T Loss (Alvaro et al., 2023; Guo et al., 2023) for waveform misfit calculation.</p>
+<p>This loss function uses the Student’s T-distribution to provide robustness against outliers
+in the waveform difference.</p>
+<section id="references">
+<h3>References:<a class="headerlink" href="#references" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Alvaro et al., 2023. “Robust Loss Functions for Seismic Inversion”. (<a class="reference external" href="https://arxiv.org/pdf/2306.00753.pdf">https://arxiv.org/pdf/2306.00753.pdf</a>)</p></li>
+<li><p>Guo et al., 2023. “Seismic Inversion with Student’s T Loss Function”. (<a class="reference external" href="https://watermark.silverchair.com/gxac096.pdf">https://watermark.silverchair.com/gxac096.pdf</a>)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param s<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of degrees of freedom (usually 1 or 2). Default is 1.</p>
+</dd>
+<dt class="field-even">type s<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, optional</p>
+</dd>
+<dt class="field-odd">param sigma<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The scale parameter controlling the spread of the distribution. Default is 1.</p>
+</dd>
+<dt class="field-even">type sigma<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, optional</p>
+</dd>
+<dt class="field-odd">param dt<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Time interval between samples. Default is 1.</p>
+</dd>
+<dt class="field-even">type dt<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, optional</p>
+</dd>
+<dt class="field-odd">param obs<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p>
+</dd>
+<dt class="field-even">type obs<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+<dt class="field-odd">param syn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p>
+</dd>
+<dt class="field-even">type syn<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed robust T loss.</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.StudentT.Misfit_waveform_studentT.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/StudentT.html#Misfit_waveform_studentT.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.StudentT.Misfit_waveform_studentT.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the robust T loss between the observed and synthetic waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed robust T loss.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.SoftDTW">
+<span id="adfwi-fwi-misfit-softdtw"></span><h2>ADFWI.fwi.misfit.SoftDTW<a class="headerlink" href="#module-ADFWI.fwi.misfit.SoftDTW" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.SoftDTW.Misfit_sdtw">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.SoftDTW.</span></span><span class="sig-name descname"><span class="pre">Misfit_sdtw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse_sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/SoftDTW.html#Misfit_sdtw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.SoftDTW.Misfit_sdtw" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Soft-DTW misfit function, calculates the soft Dynamic Time Warping (DTW) divergence.</p>
+<section id="origin">
+<h3>Origin:<a class="headerlink" href="#origin" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://github.com/toinsson/pysdtw">https://github.com/toinsson/pysdtw</a></p>
+</section>
+<section id="soft-dtw-divergence">
+<h3>Soft-DTW divergence:<a class="headerlink" href="#soft-dtw-divergence" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://tslearn.readthedocs.io/en/stable/gen_modules/metrics/tslearn.metrics.SoftDTWLossPyTorch.html">https://tslearn.readthedocs.io/en/stable/gen_modules/metrics/tslearn.metrics.SoftDTWLossPyTorch.html</a>
+Mathieu Blondel, Arthur Mensch &amp; Jean-Philippe Vert. “Differentiable divergences between time series,”
+International Conference on Artificial Intelligence and Statistics, 2021.</p>
+<dl class="field-list simple">
+<dt class="field-odd">param gamma<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Regularization parameter. It should be strictly positive. Lower values lead to less smoothing (closer to true DTW). Default is 1.</p>
+</dd>
+<dt class="field-even">type gamma<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, optional</p>
+</dd>
+<dt class="field-odd">param sparse_sampling<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Down-sampling the signal for accelerating inversion. Default is 1 (no down-sampling).</p>
+</dd>
+<dt class="field-even">type sparse_sampling<span class="colon">:</span></dt>
+<dd class="field-even"><p>int, optional</p>
+</dd>
+<dt class="field-odd">param dt<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Time interval between samples. Default is 1.</p>
+</dd>
+<dt class="field-even">type dt<span class="colon">:</span></dt>
+<dd class="field-even"><p>float, optional</p>
+</dd>
+<dt class="field-odd">param obs<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p>
+</dd>
+<dt class="field-even">type obs<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+<dt class="field-odd">param syn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p>
+</dd>
+<dt class="field-even">type syn<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed soft-DTW loss.</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.SoftDTW.Misfit_sdtw.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/SoftDTW.html#Misfit_sdtw.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.SoftDTW.Misfit_sdtw.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the soft-DTW divergence between the observed and synthetic waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed soft-DTW loss.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.Wasserstein_sinkhorn">
+<span id="adfwi-fwi-misfit-wasserstein-sinkhorn"></span><h2>ADFWI.fwi.misfit.Wasserstein_sinkhorn<a class="headerlink" href="#module-ADFWI.fwi.misfit.Wasserstein_sinkhorn" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Wasserstein_sinkhorn.Misfit_wasserstein_sinkhorn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Wasserstein_sinkhorn.</span></span><span class="sig-name descname"><span class="pre">Misfit_wasserstein_sinkhorn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blur</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse_sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sinkhorn'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Wasserstein_sinkhorn.html#Misfit_wasserstein_sinkhorn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Wasserstein_sinkhorn.Misfit_wasserstein_sinkhorn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Compute the Wasserstein Sinkhorn misfit for observed and synthetic waveforms.</p>
+<p>This class computes the misfit between observed and synthetic waveforms using the Sinkhorn approximation
+of the Wasserstein distance. It is used to measure the similarity between time-series signals with regularization.</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/dfdazac/wassdistance">https://github.com/dfdazac/wassdistance</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel-operations.io/geomloss/_auto_examples/comparisons/plot_gradient_flows_1D.html">https://www.kernel-operations.io/geomloss/_auto_examples/comparisons/plot_gradient_flows_1D.html</a></p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval (default is 1).</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Order of the Wasserstein distance (default is 2).</p></li>
+<li><p><strong>blur</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization parameter for Sinkhorn divergence (default is 1).</p></li>
+<li><p><strong>scaling</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factor for the loss function (default is 0.5).</p></li>
+<li><p><strong>sparse_sampling</strong> (<em>int</em><em>, </em><em>optional</em>) – Down-sampling factor for accelerating inversion (default is 1).</p></li>
+<li><p><strong>loss_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method used for Sinkhorn loss calculation. Options are ‘sinkhorn’ or ‘exact’ (default is ‘sinkhorn’).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Wasserstein_sinkhorn.Misfit_wasserstein_sinkhorn.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Wasserstein_sinkhorn.html#Misfit_wasserstein_sinkhorn.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Wasserstein_sinkhorn.Misfit_wasserstein_sinkhorn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the Wasserstein Sinkhorn loss between observed and synthetic waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed Wasserstein Sinkhorn loss.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.Normalized_Integration_method">
+<span id="adfwi-fwi-misfit-normalized-integration-method"></span><h2>ADFWI.fwi.misfit.Normalized_Integration_method<a class="headerlink" href="#module-ADFWI.fwi.misfit.Normalized_Integration_method" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Normalized_Integration_method.</span></span><span class="sig-name descname"><span class="pre">Misfit_NIM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#Misfit_NIM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></p>
+<p>Normalized Integration Method (NIM), computes misfit between cumulative distributions of transformed signals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>int</em><em>, </em><em>optional</em>) – Norm degree, default is 2.</p></li>
+<li><p><strong>trans_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of non-negative transform, default is ‘linear’.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Parameter for non-negative transform, default is 1.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>NIM is equivalent to the Wasserstein-1 distance when p=1.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.backward">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#Misfit_NIM.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.backward" title="Permalink to this definition"></a></dt>
+<dd><p>Backward pass to compute the gradients of the misfit with respect to the inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>grad_output</strong> (<em>Tensor</em>) – The gradient of the loss with respect to the output.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gradients of the inputs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.forward">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#Misfit_NIM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.Misfit_NIM.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass to compute the misfit between transformed synthetic and observed signals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>syn</strong> (<em>Tensor</em>) – Synthetic signal data.</p></li>
+<li><p><strong>obs</strong> (<em>Tensor</em>) – Observed signal data.</p></li>
+<li><p><strong>p</strong> (<em>int</em><em>, </em><em>optional</em>) – Norm degree, default is 2.</p></li>
+<li><p><strong>trans_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of non-negative transform, default is ‘linear’.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Parameter for non-negative transform, default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Computed misfit value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.trace_max_normalize">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Normalized_Integration_method.</span></span><span class="sig-name descname"><span class="pre">trace_max_normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#trace_max_normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.trace_max_normalize" title="Permalink to this definition"></a></dt>
+<dd><p>Normalize each trace by its maximum value along the specified dimension.
+The value of each trace will be in the range [-1, 1] after the processing.
+Note that the channel should be 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Tensor</em>) – Input tensor.</p></li>
+<li><p><strong>time_dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Dimension for time steps (default is 0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized tensor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.trace_sum_normalize">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Normalized_Integration_method.</span></span><span class="sig-name descname"><span class="pre">trace_sum_normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#trace_sum_normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.trace_sum_normalize" title="Permalink to this definition"></a></dt>
+<dd><p>Normalize each trace by its sum along the specified dimension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Tensor</em>) – Input tensor.</p></li>
+<li><p><strong>time_dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Dimension for time steps (default is 0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized tensor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Normalized_Integration_method.transform">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Normalized_Integration_method.</span></span><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Normalized_Integration_method.html#transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Normalized_Integration_method.transform" title="Permalink to this definition"></a></dt>
+<dd><p>Apply a transformation to make f and g non-negative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>Tensor</em>) – Seismic data, shape [num_time_steps, num_shots*num_receivers_per_shot].</p></li>
+<li><p><strong>g</strong> (<em>Tensor</em>) – Seismic data, shape [num_time_steps, num_shots*num_receivers_per_shot].</p></li>
+<li><p><strong>trans_type</strong> (<em>str</em>) – Transformation type (‘linear’, ‘abs’, ‘square’, ‘exp’, ‘softplus’).</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Scalar parameter for transformation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>mu</strong> (<em>Tensor</em>) – Transformed f.</p></li>
+<li><p><strong>nu</strong> (<em>Tensor</em>) – Transformed g.</p></li>
+<li><p><strong>d</strong> (<em>Tensor</em>) – Derivative of transformed f for potential use in gradient-based methods.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.Weci">
+<span id="adfwi-fwi-misfit-weci"></span><h2>ADFWI.fwi.misfit.Weci<a class="headerlink" href="#module-ADFWI.fwi.misfit.Weci" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Weci.Misfit_weighted_ECI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Weci.</span></span><span class="sig-name descname"><span class="pre">Misfit_weighted_ECI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instaneous_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Weci.html#Misfit_weighted_ECI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Weci.Misfit_weighted_ECI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Weighted envelope misfit and global correlation misfit (Song Chao et al., 2023, IEEE TGRS)</p>
+<p>This class computes the weighted combination of the envelope misfit and global correlation misfit functions,
+where the weight is updated iteratively during optimization. The weight increases as the number of iterations progresses,
+allowing the inversion to progressively shift focus from the global correlation misfit to the envelope misfit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_iter</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of iterations for the weight update. Default is 1000.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time interval between samples. Default is 1.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – The norm order for the envelope difference. Default is 1.5.</p></li>
+<li><p><strong>instaneous_phase</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use instantaneous phase for misfit instead of amplitude. Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed weighted loss, combining envelope and global correlation misfits.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Weci.Misfit_weighted_ECI.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Weci.html#Misfit_weighted_ECI.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Weci.Misfit_weighted_ECI.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the weighted misfit between the observed and synthetic waveforms.</p>
+<p>The weight is updated in each iteration based on the progress of the optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed weighted loss, combining envelope and global correlation misfits.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.Weighted_L1_L2">
+<span id="adfwi-fwi-misfit-weighted-l1-l2"></span><h2>ADFWI.fwi.misfit.Weighted_L1_L2<a class="headerlink" href="#module-ADFWI.fwi.misfit.Weighted_L1_L2" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Weighted_L1_L2.Misfit_weighted_L1_and_L2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.Weighted_L1_L2.</span></span><span class="sig-name descname"><span class="pre">Misfit_weighted_L1_and_L2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Weighted_L1_L2.html#Misfit_weighted_L1_and_L2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Weighted_L1_L2.Misfit_weighted_L1_and_L2" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Weighted combination of L1 and L2 waveform misfit functions.</p>
+<p>This class combines the L1 and L2 misfit functions in a weighted manner, with the weight dynamically updated
+throughout the optimization process based on the current iteration.</p>
+<p>Some details can be found in:
+<a class="reference external" href="http://www.sce.carleton.ca/faculty/adler/talks/2013/rahmati-CMBES2013-weighted-L1-L2-pres.pdf">http://www.sce.carleton.ca/faculty/adler/talks/2013/rahmati-CMBES2013-weighted-L1-L2-pres.pdf</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time sampling interval. Default is 1.</p></li>
+<li><p><strong>max_iter</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of iterations for weight update. Default is 1000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The weighted misfit loss between the observed and synthetic waveforms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.Weighted_L1_L2.Misfit_weighted_L1_and_L2.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/Weighted_L1_L2.html#Misfit_weighted_L1_and_L2.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.Weighted_L1_L2.Misfit_weighted_L1_and_L2.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the weighted misfit between the observed and synthetic waveforms.</p>
+<p>The weight between L1 and L2 is dynamically updated during the optimization process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed weighted loss combining L1 and L2 misfits.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.fwi.misfit.WDGC">
+<span id="adfwi-fwi-misfit-wdgc"></span><h2>ADFWI.fwi.misfit.WDGC<a class="headerlink" href="#module-ADFWI.fwi.misfit.WDGC" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.WDGC.Misfit_weighted_DTW_GC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.fwi.misfit.WDGC.</span></span><span class="sig-name descname"><span class="pre">Misfit_weighted_DTW_GC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse_sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/WDGC.html#Misfit_weighted_DTW_GC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.WDGC.Misfit_weighted_DTW_GC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ADFWI.fwi.misfit.base.Misfit" title="ADFWI.fwi.misfit.base.Misfit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Misfit</span></code></a></p>
+<p>Weighted soft-DTW and global correlation misfit (Song Chao et al., 2023, IEEE TGRS)</p>
+<p>This class computes the weighted combination of the soft-DTW and global correlation misfit functions,
+where the weight is updated iteratively during optimization. The weight increases as the number of iterations progresses,
+allowing the inversion to progressively shift focus from the global correlation misfit to the soft-DTW misfit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_iter</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of iterations for the weight update. Default is 1000.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Regularization parameter for soft-DTW. It should be strictly positive. Lower values lead to less smoothing (closer to true DTW).
+Default is 1.</p></li>
+<li><p><strong>sparse_sampling</strong> (<em>int</em><em>, </em><em>optional</em>) – Down-sampling factor for the signals to accelerate inversion. Default is 1 (no down-sampling).</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Time interval between samples. Default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed weighted loss, combining soft-DTW and global correlation misfits.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.fwi.misfit.WDGC.Misfit_weighted_DTW_GC.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/fwi/misfit/WDGC.html#Misfit_weighted_DTW_GC.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.fwi.misfit.WDGC.Misfit_weighted_DTW_GC.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the weighted misfit between the observed and synthetic waveforms.</p>
+<p>The weight is updated in each iteration based on the progress of the optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>torch.Tensor</em>) – The observed waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+<li><p><strong>syn</strong> (<em>torch.Tensor</em>) – The synthetic waveform with shape [num_shots, num_time_steps, num_receivers].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed weighted loss, combining soft-DTW and global correlation misfits.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.fwi.html" class="btn btn-neutral float-left" title="ADFWI.fwi" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.fwi.regularization.html" class="btn btn-neutral float-right" title="ADFWI.fwi.regularization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

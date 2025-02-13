@@ -1,0 +1,654 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.view &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="ADFWI.utils" href="ADFWI.utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADFWI.view</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.boundary_condition">ADFWI.view.boundary_condition</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.boundary_condition.plot_bc"><code class="docutils literal notranslate"><span class="pre">plot_bc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.boundary_condition.plot_bcx_bcz"><code class="docutils literal notranslate"><span class="pre">plot_bcx_bcz()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.boundary_condition.plot_damp"><code class="docutils literal notranslate"><span class="pre">plot_damp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.inverted_loss_model">ADFWI.view.inverted_loss_model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.inverted_loss_model.animate_inversion_process"><code class="docutils literal notranslate"><span class="pre">animate_inversion_process()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.inverted_loss_model.plot_initial_and_inverted"><code class="docutils literal notranslate"><span class="pre">plot_initial_and_inverted()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.inverted_loss_model.plot_misfit"><code class="docutils literal notranslate"><span class="pre">plot_misfit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.observed_system">ADFWI.view.observed_system</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.observed_system.add_colorbar"><code class="docutils literal notranslate"><span class="pre">add_colorbar()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.survey">ADFWI.view.survey</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.survey.plot_survey"><code class="docutils literal notranslate"><span class="pre">plot_survey()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.survey.plot_wavelet"><code class="docutils literal notranslate"><span class="pre">plot_wavelet()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.velocity_model">ADFWI.view.velocity_model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.velocity_model.plot_eps_delta_gamma"><code class="docutils literal notranslate"><span class="pre">plot_eps_delta_gamma()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.velocity_model.plot_lam_mu"><code class="docutils literal notranslate"><span class="pre">plot_lam_mu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.velocity_model.plot_model"><code class="docutils literal notranslate"><span class="pre">plot_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.velocity_model.plot_vp_rho"><code class="docutils literal notranslate"><span class="pre">plot_vp_rho()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.velocity_model.plot_vp_vs_rho"><code class="docutils literal notranslate"><span class="pre">plot_vp_vs_rho()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ADFWI.view.waveform">ADFWI.view.waveform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.insert_zeros"><code class="docutils literal notranslate"><span class="pre">insert_zeros()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.norm_traces"><code class="docutils literal notranslate"><span class="pre">norm_traces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.plot_waveform2D"><code class="docutils literal notranslate"><span class="pre">plot_waveform2D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.plot_waveform_trace"><code class="docutils literal notranslate"><span class="pre">plot_waveform_trace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.plot_waveform_wiggle"><code class="docutils literal notranslate"><span class="pre">plot_waveform_wiggle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ADFWI.view.waveform.wiggle_input_check"><code class="docutils literal notranslate"><span class="pre">wiggle_input_check()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+      <li class="breadcrumb-item active">ADFWI.view</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.view.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-view">
+<h1>ADFWI.view<a class="headerlink" href="#adfwi-view" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.view.boundary_condition">
+<span id="adfwi-view-boundary-condition"></span><h2>ADFWI.view.boundary_condition<a class="headerlink" href="#module-ADFWI.view.boundary_condition" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.boundary_condition.plot_bc">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.boundary_condition.</span></span><span class="sig-name descname"><span class="pre">plot_bc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/boundary_condition.html#plot_bc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.boundary_condition.plot_bc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.boundary_condition.plot_bcx_bcz">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.boundary_condition.</span></span><span class="sig-name descname"><span class="pre">plot_bcx_bcz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bcx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gray_r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/boundary_condition.html#plot_bcx_bcz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.boundary_condition.plot_bcx_bcz" title="Permalink to this definition"></a></dt>
+<dd><p>Plot boundary conditions along X and Z axes using matplotlib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bcx</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The boundary condition along the X-axis.</p></li>
+<li><p><strong>bcz</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The boundary condition along the Z-axis.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the X-axis. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the Z-axis. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Default is (10, 5).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – The colormap used to map scalar data to colors. Default is ‘gray_r’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The font parameters for tick labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The font parameters for colorbar labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The font parameters for plot titles. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – The padding interval between colorbar and main figure. Default is 0.1.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the colorbar. Default is 0.05.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, displays the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to save the figure. Default is an empty string, meaning no saving.</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The resolution (DPI) of the saved figure. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.boundary_condition.plot_damp">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.boundary_condition.</span></span><span class="sig-name descname"><span class="pre">plot_damp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">damp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gray_r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/boundary_condition.html#plot_damp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.boundary_condition.plot_damp" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the ABL (Absorbing Boundary Layer) boundary condition.</p>
+<p>This function visualizes the damping boundary condition in a 2D grid using either <cite>pcolormesh</cite> or <cite>imshow</cite>
+from <cite>matplotlib</cite>, with optional parameters to customize the appearance and save the plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>damp</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The damping boundary condition to be visualized. Should be a 2D array representing the damping values.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the x-axis in meters. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the z-axis in meters. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure in inches. Default is (8, 8).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – The Colormap instance or registered colormap name used to map scalar data to colors. Default is ‘gray_r’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The fontdict for ticks, e.g., <cite>{‘labelsize’: 15}</cite>.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The fontdict for labels (x and y axes), e.g., <cite>{‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}</cite>.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The fontdict for colorbar labels, e.g., <cite>{‘labelsize’: 15}</cite>.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – The fontdict for the title, e.g., <cite>{‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}</cite>.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – The padding interval for colorbar and main figure, default is 0.12.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the colorbar, default is 0.03.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the figure will be shown. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the figure. If empty, the figure will not be saved. Default is an empty string.</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The resolution (dots per inch) for saving the figure. Default is 300 dpi.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.view.inverted_loss_model">
+<span id="adfwi-view-inverted-loss-model"></span><h2>ADFWI.view.inverted_loss_model<a class="headerlink" href="#module-ADFWI.view.inverted_loss_model" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.inverted_loss_model.animate_inversion_process">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.inverted_loss_model.</span></span><span class="sig-name descname"><span class="pre">animate_inversion_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iter_vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/inverted_loss_model.html#animate_inversion_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.inverted_loss_model.animate_inversion_process" title="Permalink to this definition"></a></dt>
+<dd><p>Create an animation of the inversion process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iter_vp</strong> (<em>list</em><em> or </em><em>np.array</em>) – A list or array containing the velocity model at each iteration. The last element represents the final inverted model.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum value for the color scale. If not provided, the minimum value of the inversion process is used.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum value for the color scale. If not provided, the maximum value of the inversion process is used.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path where the animation will be saved. If not provided, the animation will not be saved.</p></li>
+<li><p><strong>fps</strong> (<em>int</em><em>, </em><em>optional</em>) – Frames per second for the animation. Default is 10.</p></li>
+<li><p><strong>interval</strong> (<em>int</em><em>, </em><em>optional</em>) – The time interval (in milliseconds) between frames in the animation. Default is 150.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.inverted_loss_model.plot_initial_and_inverted">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.inverted_loss_model.</span></span><span class="sig-name descname"><span class="pre">plot_initial_and_inverted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter_vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet_r'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/inverted_loss_model.html#plot_initial_and_inverted"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.inverted_loss_model.plot_initial_and_inverted" title="Permalink to this definition"></a></dt>
+<dd><p>Plot and save the initial model and inverted results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp_init</strong> (<em>np.array</em>) – The initial velocity model to be plotted. It is a 2D array representing the starting model.</p></li>
+<li><p><strong>iter_vp</strong> (<em>list</em><em> or </em><em>np.array</em>) – A list of inverted results, where the last element is the final inverted model. This is the data used to plot the inverted model.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path where the plot image will be saved. If not provided, the plot will not be saved.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to control whether to display the plot. If True, the plot will be shown. Default is False.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – The colormap to be used for visualizing the models. Default is ‘jet_r’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.inverted_loss_model.plot_misfit">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.inverted_loss_model.</span></span><span class="sig-name descname"><span class="pre">plot_misfit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iter_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/inverted_loss_model.html#plot_misfit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.inverted_loss_model.plot_misfit" title="Permalink to this definition"></a></dt>
+<dd><p>Plot and save the misfits over iterations.</p>
+<p>This function generates a plot of the misfit values across iterations and provides options to save the plot to a specified path or display it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iter_loss</strong> (<em>list</em><em> or </em><em>np.array</em>) – A sequence containing the misfits for each iteration. This is the primary data that will be visualized on the plot.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path where the plot image will be saved. If not provided, the plot will not be saved.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to control whether to display the plot. If True, the plot will be shown. Default is False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.view.observed_system">
+<span id="adfwi-view-observed-system"></span><h2>ADFWI.view.observed_system<a class="headerlink" href="#module-ADFWI.view.observed_system" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.observed_system.add_colorbar">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.observed_system.</span></span><span class="sig-name descname"><span class="pre">add_colorbar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/observed_system.html#add_colorbar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.observed_system.add_colorbar" title="Permalink to this definition"></a></dt>
+<dd><p>Add a vertical color bar to an image plot.</p>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.view.survey">
+<span id="adfwi-view-survey"></span><h2>ADFWI.view.survey<a class="headerlink" href="#module-ADFWI.view.survey" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.survey.plot_survey">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.survey.</span></span><span class="sig-name descname"><span class="pre">plot_survey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcv_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/survey.html#plot_survey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.survey.plot_survey" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the survey setup, including the velocity model, sources, and receivers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_x</strong> (<em>array-like</em>) – x-coordinates of the sources.</p></li>
+<li><p><strong>src_z</strong> (<em>array-like</em>) – z-coordinates of the sources.</p></li>
+<li><p><strong>rcv_x</strong> (<em>array-like</em>) – x-coordinates of the receivers.</p></li>
+<li><p><strong>rcv_z</strong> (<em>array-like</em>) – z-coordinates of the receivers.</p></li>
+<li><p><strong>vel_model</strong> (<em>np.ndarray</em>) – 2D array representing the velocity model.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Horizontal spacing of the model, in meters. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – Vertical spacing of the model, in meters. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Size of the figure in inches. Default is (8, 8).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Horizontal space between subplots. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Vertical space between subplots. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em>, </em><em>optional</em>) – Colormap for the velocity model plot. Default is ‘jet’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Parameters for tick labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the colorbar labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of the colorbar height for padding. Default is 0.12.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the colorbar. Default is 0.03.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If provided, saves the figure to the specified path. Default is “” (no saving).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Dots per inch (DPI) for saving the figure. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.survey.plot_wavelet">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.survey.</span></span><span class="sig-name descname"><span class="pre">plot_wavelet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavelet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(6,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linestyle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/survey.html#plot_wavelet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.survey.plot_wavelet" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the source wavelet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tlist</strong> (<em>array-like</em>) – Time values for plotting the wavelet.</p></li>
+<li><p><strong>wavelet</strong> (<em>array-like</em>) – Amplitude values corresponding to the wavelet at each time point.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Size of the figure in inches. Default is (6, 4).</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Color of the wavelet plot. Default is ‘k’ (black).</p></li>
+<li><p><strong>linestyle</strong> (<em>str</em><em>, </em><em>optional</em>) – Line style for the wavelet plot. Default is ‘-’ (solid line).</p></li>
+<li><p><strong>linewidth</strong> (<em>float</em><em>, </em><em>optional</em>) – Line width of the plot. Default is 1.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Parameters for tick labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the colorbar labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of the colorbar height for padding. Default is 0.12.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the colorbar. Default is 0.03.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If provided, saves the figure to the specified path. Default is “” (no saving).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Dots per inch (DPI) for saving the figure. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.view.velocity_model">
+<span id="adfwi-view-velocity-model"></span><h2>ADFWI.view.velocity_model<a class="headerlink" href="#module-ADFWI.view.velocity_model" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.velocity_model.plot_eps_delta_gamma">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.velocity_model.</span></span><span class="sig-name descname"><span class="pre">plot_eps_delta_gamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(14,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/velocity_model.html#plot_eps_delta_gamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.velocity_model.plot_eps_delta_gamma" title="Permalink to this definition"></a></dt>
+<dd><p>Plot epsilon, delta, and gamma data sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eps</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – Anisotropic parameter epsilon.</p></li>
+<li><p><strong>delta</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – Anisotropic parameter delta.</p></li>
+<li><p><strong>gamma</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – Anisotropic parameter gamma.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the x-axis in meters. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the z-axis in meters. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Size of the figure. Default is (14, 4).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – Colormap instance or registered colormap name used to map scalar data to colors. Default is ‘jet’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for ticks. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for the colorbar. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for titles. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Padding fraction between the colorbar and the main plot. Default is 0.1.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the colorbar. Default is 0.05.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to save the figure. Default is an empty string, indicating the figure will not be saved.</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Resolution of the saved figure in dots per inch. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.velocity_model.plot_lam_mu">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.velocity_model.</span></span><span class="sig-name descname"><span class="pre">plot_lam_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/velocity_model.html#plot_lam_mu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.velocity_model.plot_lam_mu" title="Permalink to this definition"></a></dt>
+<dd><p>Plot lambda and mu.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lam</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The lambda constant parameter.</p></li>
+<li><p><strong>mu</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The mu constant parameter.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the x-axis. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the z-axis. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Default is (10, 5).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – The Colormap instance or registered colormap name used to map scalar data to colors. Default is ‘jet’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for ticks. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for colorbar. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – The padding interval between the colorbar and the main figure. Default is 0.1.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the colorbar. Default is 0.05.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to display the figure. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the figure. Default is an empty string (not saved).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The resolution of the saved figure. Default is 300 dpi.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.velocity_model.plot_model">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.velocity_model.</span></span><span class="sig-name descname"><span class="pre">plot_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vel_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/velocity_model.html#plot_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.velocity_model.plot_model" title="Permalink to this definition"></a></dt>
+<dd><p>Plot velocity model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vel_model</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The velocity model to be plotted.</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – The title of the plot.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the x-axis. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval along the z-axis. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Default is (8, 8).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – The Colormap instance or registered colormap name used to map scalar data to colors. Default is ‘jet’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for ticks. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for colorbar. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – The padding interval between the colorbar and the main figure. Default is 0.12.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the colorbar. Default is 0.03.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum value for the colormap. Default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum value for the colormap. Default is None.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to display the figure. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the figure. Default is an empty string (not saved).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The resolution of the saved figure. Default is 300 dpi.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.velocity_model.plot_vp_rho">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.velocity_model.</span></span><span class="sig-name descname"><span class="pre">plot_vp_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/velocity_model.html#plot_vp_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.velocity_model.plot_vp_rho" title="Permalink to this definition"></a></dt>
+<dd><p>Plot P-wave velocity (vp) and density (rho) data sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – P-wave velocity in meters per second.</p></li>
+<li><p><strong>rho</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – Density in kilograms per cubic meter.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the x-axis in meters. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the z-axis in meters. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Size of the figure. Default is (10, 5).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the padding between subplots, as a fraction of the average Axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – The height of the padding between subplots, as a fraction of the average Axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – Colormap instance or registered colormap name. Default is ‘jet’.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for ticks. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for colorbar. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font properties for titles. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Padding fraction between colorbar and the main plot. Default is 0.1.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the colorbar. Default is 0.05.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to save the plot. If not provided, the plot will not be saved. Default is “”.</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – DPI for saving the plot. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.velocity_model.plot_vp_vs_rho">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.velocity_model.</span></span><span class="sig-name descname"><span class="pre">plot_vp_vs_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(14,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">15}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">15,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">12}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_pad_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/velocity_model.html#plot_vp_vs_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.velocity_model.plot_vp_vs_rho" title="Permalink to this definition"></a></dt>
+<dd><p>Plot P-wave velocity (vp), S-wave velocity (vs), and density (rho) sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – P-wave velocity (m/s).</p></li>
+<li><p><strong>vs</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – S-wave velocity (m/s).</p></li>
+<li><p><strong>rho</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – Density (kg/m^3).</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the x-axis in meters. Default is -1.</p></li>
+<li><p><strong>dz</strong> (<em>float</em><em>, </em><em>optional</em>) – Spatial sampling interval along the z-axis in meters. Default is -1.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Size of the figure (width, height) in inches. Default is (14, 4).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Width of the padding between subplots as a fraction of the average axes width. Default is 0.2.</p></li>
+<li><p><strong>hspace</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the padding between subplots as a fraction of the average axes height. Default is 0.2.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>Colormap</em><em>, </em><em>optional</em>) – Colormap used to map scalar data to colors. Default is ‘jet’.</p></li>
+<li><p><strong>vp_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum value for the P-wave velocity color scale. Default is None.</p></li>
+<li><p><strong>vp_max</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value for the P-wave velocity color scale. Default is None.</p></li>
+<li><p><strong>vs_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum value for the S-wave velocity color scale. Default is None.</p></li>
+<li><p><strong>vs_max</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value for the S-wave velocity color scale. Default is None.</p></li>
+<li><p><strong>rho_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum value for the density color scale. Default is None.</p></li>
+<li><p><strong>rho_max</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value for the density color scale. Default is None.</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for tick labels. Default is {‘labelsize’: 15}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 15}.</p></li>
+<li><p><strong>colorbar_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the colorbar labels. Default is {‘labelsize’: 12}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>cbar_pad_fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of padding between the colorbar and the main figure. Default is 0.1.</p></li>
+<li><p><strong>cbar_height</strong> (<em>float</em><em>, </em><em>optional</em>) – Height of the colorbar. Default is 0.05.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, displays the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If provided, saves the figure to the specified path. Default is “” (no saving).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – DPI resolution for saving the figure. Default is 300.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.view.waveform">
+<span id="adfwi-view-waveform"></span><h2>ADFWI.view.waveform<a class="headerlink" href="#module-ADFWI.view.waveform" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.insert_zeros">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">insert_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#insert_zeros"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.insert_zeros" title="Permalink to this definition"></a></dt>
+<dd><p>Insert zero locations in data trace and tt vector based on linear fit</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.norm_traces">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">norm_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#norm_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.norm_traces" title="Permalink to this definition"></a></dt>
+<dd><p>Normalize seismic data to its maximum amplitude, trace by trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>ndarray</em>) – Seismic data of shape (num_traces, num_samples), where each row represents a trace.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The normalized seismic data, where each trace is scaled by its maximum absolute amplitude.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.plot_waveform2D">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">plot_waveform2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'coolwarm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">99.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'section'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wiggle_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wiggle_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_fk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#plot_waveform2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.plot_waveform2D" title="Permalink to this definition"></a></dt>
+<dd><p>Plot a 2D seismic data section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – The seismic data to be plotted.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – The time sampling interval. If not provided, the x-axis will be labeled with sample numbers.</p></li>
+<li><p><strong>dx</strong> (<em>float</em><em>, </em><em>optional</em>) – The spatial sampling interval. If not provided, the y-axis will be labeled with trace numbers.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em>, </em><em>optional</em>) – The colormap to be used. Default is ‘coolwarm’.</p></li>
+<li><p><strong>aspect</strong> (<em>str</em><em>, </em><em>optional</em>) – The aspect ratio of the plot. Default is ‘auto’.</p></li>
+<li><p><strong>clip</strong> (<em>float</em><em>, </em><em>optional</em>) – The percentile value for clipping the data. Default is 99.9.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Default is (10, 6).</p></li>
+<li><p><strong>colorbar</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show the colorbar. Default is False.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – The type of plot to generate. Can be either ‘section’ for an image plot or ‘wiggle’ for a wiggle plot.</p></li>
+<li><p><strong>norm</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to normalize the data. Default is False.</p></li>
+<li><p><strong>wiggle_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factor for the wiggle plot. Default is 1.</p></li>
+<li><p><strong>wiggle_interval</strong> (<em>int</em><em>, </em><em>optional</em>) – The interval for plotting wiggles. Default is 1.</p></li>
+<li><p><strong>plot_fk</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to plot a second subplot for fk filtering. Default is False.</p></li>
+<li><p><strong>vel</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – The velocity model for fk filtering. Not currently used.</p></li>
+<li><p><strong>fmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum frequency for fk filtering. Default is 1 Hz.</p></li>
+<li><p><strong>fmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum frequency for fk filtering. Default is 20 Hz.</p></li>
+<li><p><strong>kmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum wavenumber for fk filtering. Default is -0.05.</p></li>
+<li><p><strong>kmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum wavenumber for fk filtering. Default is 0.05.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the figure. Default is an empty string (no save).</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to display the plot. Default is False (do not display).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.plot_waveform_trace">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">plot_waveform_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'labelsize':</span> <span class="pre">18}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">18,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'family':</span> <span class="pre">'Times</span> <span class="pre">New</span> <span class="pre">Roman',</span> <span class="pre">'size':</span> <span class="pre">20,</span> <span class="pre">'weight':</span> <span class="pre">'normal'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#plot_waveform_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.plot_waveform_trace" title="Permalink to this definition"></a></dt>
+<dd><p>Plot a single trace waveform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – 3D waveform data of shape (shots, time_samples, traces).</p></li>
+<li><p><strong>shot</strong> (<em>int</em><em>, </em><em>optional</em>) – The shot number to visualize. Default is 0.</p></li>
+<li><p><strong>trace</strong> (<em>int</em><em>, </em><em>optional</em>) – The trace number to visualize. Default is 0.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – The time step interval between samples. If provided, the x-axis will be labeled with time in seconds.
+If not provided, the x-axis will show time samples.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Default is (12, 4).</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – The color of the waveform line. Default is ‘k’ (black).</p></li>
+<li><p><strong>tick_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for ticks. Default is {‘labelsize’: 18}.</p></li>
+<li><p><strong>label_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for axis labels. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 18}.</p></li>
+<li><p><strong>title_param</strong> (<em>dict</em><em>, </em><em>optional</em>) – Font parameters for the title. Default is {‘family’: ‘Times New Roman’, ‘weight’: ‘normal’, ‘size’: 20}.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to display the plot. Default is True.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The file path to save the figure. Default is an empty string (not saved).</p></li>
+<li><p><strong>save_dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The resolution of the saved figure. Default is 300 dpi.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.plot_waveform_wiggle">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">plot_waveform_wiggle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#plot_waveform_wiggle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.plot_waveform_wiggle" title="Permalink to this definition"></a></dt>
+<dd><p>Create a wiggle plot of a seismic data section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>ndarray</em><em> or </em><em>Tensor</em>) – 2D waveform data to be plotted.</p></li>
+<li><p><strong>tt</strong> (<em>ndarray</em><em> or </em><em>Tensor</em><em>, </em><em>optional</em>) – Time list of the waveforms. If not provided, the function will default to the indices of the data.</p></li>
+<li><p><strong>xx</strong> (<em>ndarray</em><em> or </em><em>Tensor</em><em>, </em><em>optional</em>) – Offset list of the waveforms. If not provided, the function will default to the trace indices.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – The color of the waveform traces. Defaults to ‘k’ (black).</p></li>
+<li><p><strong>sf</strong> (<em>float</em><em>, </em><em>optional</em>) – Stretch factor to scale the wiggle amplitude. Defaults to 0.15.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints the offsets of the traces. Defaults to False.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path where the figure will be saved. If not provided, the figure will not be saved.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, displays the figure. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The following color abbreviations are supported:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>character</p></th>
+<th class="head"><p>color</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>‘b’</p></td>
+<td><p>blue</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘g’</p></td>
+<td><p>green</p></td>
+</tr>
+<tr class="row-even"><td><p>‘r’</p></td>
+<td><p>red</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘c’</p></td>
+<td><p>cyan</p></td>
+</tr>
+<tr class="row-even"><td><p>‘m’</p></td>
+<td><p>magenta</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘y’</p></td>
+<td><p>yellow</p></td>
+</tr>
+<tr class="row-even"><td><p>‘k’</p></td>
+<td><p>black</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘w’</p></td>
+<td><p>white</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.view.waveform.wiggle_input_check">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.view.waveform.</span></span><span class="sig-name descname"><span class="pre">wiggle_input_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/view/waveform.html#wiggle_input_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.view.waveform.wiggle_input_check" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function for wiggle() and traces() to check input</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.utils.html" class="btn btn-neutral float-left" title="ADFWI.utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

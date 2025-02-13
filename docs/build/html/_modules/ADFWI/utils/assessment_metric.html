@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.utils.assessment_metric &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ADFWI.utils.assessment_metric</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ADFWI.utils.assessment_metric</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage.metrics</span> <span class="kn">import</span> <span class="n">structural_similarity</span> <span class="k">as</span> <span class="n">ssim</span>
+
+<div class="viewcode-block" id="MSE"><a class="viewcode-back" href="../../../API/ADFWI.utils.html#ADFWI.utils.assessment_metric.MSE">[docs]</a><span class="k">def</span> <span class="nf">MSE</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Mean Squared Error (MSE) between the true velocity model and the inverted velocity model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    true_v : numpy.ndarray</span>
+<span class="sd">        The ground truth velocity model of shape (nz, nx).</span>
+<span class="sd">    inv_v : numpy.ndarray</span>
+<span class="sd">        The inverted velocity model of shape (nz, nx).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The sum of squared differences between the true and inverted velocity models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nz</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">true_v</span><span class="o">.</span><span class="n">shape</span>  <span class="c1"># Get the dimensions of the velocity models</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">true_v</span> <span class="o">-</span> <span class="n">inv_v</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Compute the sum of squared differences</span></div>
+
+
+<div class="viewcode-block" id="RMSE"><a class="viewcode-back" href="../../../API/ADFWI.utils.html#ADFWI.utils.assessment_metric.RMSE">[docs]</a><span class="k">def</span> <span class="nf">RMSE</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span><span class="n">inv_v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Root Mean Squared Error (RMSE) between the true velocity model and the inverted velocity model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    true_v : numpy.ndarray</span>
+<span class="sd">        The ground truth velocity model. Shape can be (nz, nx) or (batch, nz, nx).</span>
+<span class="sd">    inv_v : numpy.ndarray</span>
+<span class="sd">        The inverted velocity model. Shape should match `true_v`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray or float</span>
+<span class="sd">        If `true_v` has one less dimension than `inv_v`, returns an array of RMSE values  for each sample in the batch. Otherwise, returns a single RMSE value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">true_v</span> <span class="o">=</span> <span class="n">true_v</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:,:]</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">true_v</span><span class="o">-</span><span class="n">inv_v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">res</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">true_v</span><span class="o">-</span><span class="n">inv_v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MAPE"><a class="viewcode-back" href="../../../API/ADFWI.utils.html#ADFWI.utils.assessment_metric.MAPE">[docs]</a><span class="k">def</span> <span class="nf">MAPE</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Mean Absolute Percentage Error (MAPE) between the true velocity model and the inverted velocity model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    true_v : numpy.ndarray</span>
+<span class="sd">        The ground truth velocity model. Shape can be (nz, nx) or (batch, nz, nx).</span>
+<span class="sd">    inv_v : numpy.ndarray</span>
+<span class="sd">        The inverted velocity model. Shape should match `true_v`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray or float</span>
+<span class="sd">        If `true_v` has one less dimension than `inv_v`, returns an array of MAPE values for each sample in the batch. Otherwise, returns a single MAPE value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">nz</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">true_v</span><span class="o">.</span><span class="n">shape</span>  <span class="c1"># Get spatial dimensions</span>
+        <span class="n">true_v</span> <span class="o">=</span> <span class="n">true_v</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># Add batch dimension if missing</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">/</span> <span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">nz</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inv_v</span> <span class="o">-</span> <span class="n">true_v</span><span class="p">)</span> <span class="o">/</span> <span class="n">true_v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># Compute MAPE per batch</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nz</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">true_v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>  <span class="c1"># Get spatial dimensions</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">/</span> <span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">nz</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inv_v</span> <span class="o">-</span> <span class="n">true_v</span><span class="p">)</span> <span class="o">/</span> <span class="n">true_v</span><span class="p">)</span>  <span class="c1"># Compute single MAPE value</span>
+    
+    <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="SSIM"><a class="viewcode-back" href="../../../API/ADFWI.utils.html#ADFWI.utils.assessment_metric.SSIM">[docs]</a><span class="k">def</span> <span class="nf">SSIM</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">,</span> <span class="n">win_size</span><span class="o">=</span><span class="mi">11</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Structural Similarity Index (SSIM) between the true velocity model and the inverted velocity model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    true_v : numpy.ndarray</span>
+<span class="sd">        The ground truth velocity model. Shape can be (nz, nx) or (batch, nz, nx).</span>
+<span class="sd">    inv_v : numpy.ndarray</span>
+<span class="sd">        The inverted velocity model. Shape should match `true_v`.</span>
+<span class="sd">    win_size : int, optional</span>
+<span class="sd">        The size of the sliding window used for computing SSIM, by default 11.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list or float</span>
+<span class="sd">        If `true_v` has one less dimension than `inv_v`, returns a list of SSIM values for each sample in the batch. Otherwise, returns a single SSIM value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">ssim_res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">true_v</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">inv_v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>  <span class="c1"># Compute max value for data range</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">true_v</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">inv_v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()])</span>  <span class="c1"># Compute min value for data range</span>
+            <span class="n">temp_ssim</span> <span class="o">=</span> <span class="n">ssim</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">data_range</span><span class="o">=</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">win_size</span><span class="o">=</span><span class="n">win_size</span><span class="p">)</span>
+            <span class="n">ssim_res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_ssim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ssim_res</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">true_v</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">inv_v</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+        <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">true_v</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">inv_v</span><span class="o">.</span><span class="n">min</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="n">ssim</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">,</span> <span class="n">data_range</span><span class="o">=</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">win_size</span><span class="o">=</span><span class="n">win_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SNR"><a class="viewcode-back" href="../../../API/ADFWI.utils.html#ADFWI.utils.assessment_metric.SNR">[docs]</a><span class="k">def</span> <span class="nf">SNR</span><span class="p">(</span><span class="n">true_v</span><span class="p">,</span> <span class="n">inv_v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the Signal-to-Noise Ratio (SNR) between the true velocity model and the inverted velocity model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    true_v : numpy.ndarray</span>
+<span class="sd">        The ground truth velocity model. Shape can be (nz, nx) or (batch, nz, nx).</span>
+<span class="sd">    inv_v : numpy.ndarray</span>
+<span class="sd">        The inverted velocity model. Shape should match `true_v`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list or float</span>
+<span class="sd">        If `true_v` has one less dimension than `inv_v`, returns a list of SNR values for each sample in the batch. Otherwise, returns a single SNR value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">snr_res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inv_v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">true_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">true_v</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Compute signal power</span>
+            <span class="n">diff_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">true_v</span> <span class="o">-</span> <span class="n">inv_v</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Compute noise power</span>
+            <span class="n">temp_snr</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">true_norm</span> <span class="o">/</span> <span class="n">diff_norm</span><span class="p">)</span>  <span class="c1"># Compute SNR in dB</span>
+            <span class="n">snr_res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_snr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">snr_res</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">true_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">true_v</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">diff_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">true_v</span> <span class="o">-</span> <span class="n">inv_v</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">temp_snr</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">true_norm</span> <span class="o">/</span> <span class="n">diff_norm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">temp_snr</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

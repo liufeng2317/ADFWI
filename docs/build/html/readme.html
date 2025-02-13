@@ -1,0 +1,183 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=99a04888"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="Tutorial/tutorial.html" />
+    <link rel="prev" title="ADFWI Homepage" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/readme.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<p>  <strong>ADFWI</strong> is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated waveform. Utilizing automatic differentiation (AD), ADFWI <strong>simplifies the derivation and implementation of full waveform inversion (FWI)</strong>, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and horizontal transverse isotropy (HTI) medias.</p>
+<p>  In addition, <strong>ADFWI</strong> provides a comprehensive collection of <strong>Objective functions</strong>, <strong>regularization techniques</strong>, <strong>optimization algorithms</strong>, and <strong>deep neural networks</strong>. This rich set of tools facilitates researchers in conducting experiments and comparisons, enabling them to explore innovative approaches and refine their methodologies effectively.</p>
+<p><img alt="ADFWI" src="_images/Figure1-AISWIT-Workflow.png" />
+<img alt="NNFWI" src="_images/Figure2_DIP_process.png" /></p>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Automatic Differentiation for Gradient Computation</strong><br />
+Eliminates manual adjoint-state derivation by leveraging automatic differentiation (AD) for efficient gradient computation.</p></li>
+<li><p><strong>Versatile Wave Propagation Models</strong><br />
+Supports isotropic acoustic, isotropic elastic, and anisotropic (VTI &amp; HTI) wave simulations for broader subsurface imaging applications.</p></li>
+<li><p><strong>Modular and Customizable</strong><br />
+Easily integrates custom objective functions, regularization techniques, optimization algorithms, and deep neural networks for flexible method development.</p></li>
+<li><p><strong>Advanced Optimization and Regularization</strong><br />
+Includes L-BFGS, Adam, SGD, total variation, sparsity constraints, and physics-guided priors for stable and robust inversion.</p></li>
+<li><p><strong>Deep Learning Integration</strong><br />
+Supports deep priors, learned regularization, and uncertainty quantification, enhancing traditional FWI approaches.</p></li>
+<li><p><strong>Benchmark Datasets and Reproducibility</strong><br />
+Provides ready-to-use datasets (Marmousi2, Overthrust) for standardized evaluation and comparison.</p></li>
+<li><p><strong>Open-Source and Extensible</strong><br />
+Encourages community contributions, allowing researchers to expand functionalities and adapt ADFWI to novel FWI challenges.</p></li>
+</ul>
+<!-- * **Scalable and Efficient Computation**
+ADFWI is optimized for high-performance computing, supporting multi-GPU acceleration and efficient memory management, making it suitable for large-scale FWI applications. -->
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>To install ADFWI, please follow these steps:</p>
+<ol class="arabic">
+<li><p><strong>Ensure Prerequisites</strong></p>
+<ul class="simple">
+<li><p><strong>Python 3.8+</strong>: <a class="reference external" href="https://www.python.org/downloads/">Python Downloads</a>.</p></li>
+</ul>
+</li>
+<li><p><strong>Create a Virtual Environment (Optional)</strong>
+It is recommended to create a virtual environment using <code class="docutils literal notranslate"><span class="pre">conda</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>adfwi-env<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+conda<span class="w"> </span>activate<span class="w"> </span>adfwi-env
+</pre></div>
+</div>
+</li>
+<li><p><strong>Install Required Packages</strong></p></li>
+</ol>
+<ul>
+<li><p>Method 1: <strong>Clone the github Repository</strong>
+This method provides the latest version, which may be more suitable for your research:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/liufeng2317/ADFWI.git
+<span class="nb">cd</span><span class="w"> </span>ADFWI
+</pre></div>
+</div>
+<p>Then, install the necessary packages:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</li>
+<li><p>Method 2: Install via pip
+Alternatively, you can directly install ADFWI from PyPI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>pip<span class="w"> </span>install<span class="w"> </span>ADFWI-Torch
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ADFWI Homepage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Tutorial/tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

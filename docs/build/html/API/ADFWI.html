@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.propagator" href="ADFWI.propagator.html" />
+    <link rel="prev" title="Isotropic Elastic FWI Tests" href="../Examples/elastic_fwi_tests.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
+<ol class="arabic">
+<li><p><strong>ADFWI.propagator</strong></p>
+<p>Contains methods for simulating wave propagation, such as solving wave equations and performing forward and inverse modeling of seismic wavefields.</p>
+</li>
+<li><p><strong>ADFWI.model</strong></p>
+<p>Provides tools for defining and manipulating velocity models and other subsurface parameters used in the full-waveform inversion (FWI) process.</p>
+</li>
+<li><p><strong>ADFWI.fwi</strong></p>
+<p>Focuses on the full-waveform inversion techniques, including misfit function definitions, optimization strategies, and regularization methods. This is central to seismic data inversion.</p>
+</li>
+<li><p><strong>ADFWI.survey</strong></p>
+<p>Implements utilities for handling survey data, including survey design, data preprocessing, and integration with the FWI process.</p>
+</li>
+<li><p><strong>ADFWI.dip</strong></p>
+<p>Includes algorithms for deep image prior (DIP-related) processing.</p>
+</li>
+<li><p><strong>ADFWI.utils</strong></p>
+<p>A collection of utility functions for general-purpose tasks, such as data I/O, mathematical operations, and visualization utilities to support the core functionalities of ADFWI.</p>
+</li>
+<li><p><strong>ADFWI.view</strong></p>
+<p>Provides visualization tools to plot and analyze the results of simulations, inversions, and other model outputs in a user-friendly way.</p>
+</li>
+</ol>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.acoustic_kernels">ADFWI.propagator.acoustic_kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.acoustic_propagator">ADFWI.propagator.acoustic_propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.elastic_kernels">ADFWI.propagator.elastic_kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.elastic_propagator">ADFWI.propagator.elastic_propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.boundary_condition">ADFWI.propagator.boundary_condition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html#module-ADFWI.propagator.gradient_process">ADFWI.propagator.gradient_process</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html#module-ADFWI.model.base">ADFWI.model.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html#module-ADFWI.model.acoustic_model">ADFWI.model.acoustic_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html#module-ADFWI.model.elastic_model">ADFWI.model.elastic_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html#module-ADFWI.model.parameters">ADFWI.model.parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.misfit.html">ADFWI.fwi.misfit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.regularization.html">ADFWI.fwi.regularization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.acoustic_fwi">ADFWI.fwi.acoustic_fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.elastic_fwi">ADFWI.fwi.elastic_fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html#module-ADFWI.fwi.multiScaleProcessing">ADFWI.fwi.multiScaleProcessing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html#module-ADFWI.survey.source">ADFWI.survey.source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html#module-ADFWI.survey.receiver">ADFWI.survey.receiver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html#module-ADFWI.survey.data">ADFWI.survey.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html#module-ADFWI.survey.survey">ADFWI.survey.survey</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.model.html">ADFWI.dip.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html#module-ADFWI.dip.dip_acoustic_fwi">ADFWI.dip.dip_acoustic_fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.dip.html#module-ADFWI.dip.dip_acoustic_model">ADFWI.dip.dip_acoustic_model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.assessment_metric">ADFWI.utils.assessment_metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.first_arrivel_picking">ADFWI.utils.first_arrivel_picking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.frequency_domin_process">ADFWI.utils.frequency_domin_process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.noise">ADFWI.utils.noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.offset_mute">ADFWI.utils.offset_mute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.utils">ADFWI.utils.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.velocityDemo">ADFWI.utils.velocityDemo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html#module-ADFWI.utils.wavelets">ADFWI.utils.wavelets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.boundary_condition">ADFWI.view.boundary_condition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.inverted_loss_model">ADFWI.view.inverted_loss_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.observed_system">ADFWI.view.observed_system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.survey">ADFWI.view.survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.velocity_model">ADFWI.view.velocity_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html#module-ADFWI.view.waveform">ADFWI.view.waveform</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../Examples/elastic_fwi_tests.html" class="btn btn-neutral float-left" title="Isotropic Elastic FWI Tests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.propagator.html" class="btn btn-neutral float-right" title="ADFWI.propagator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
