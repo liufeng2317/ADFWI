@@ -92,6 +92,8 @@ To install ADFWI, please follow these steps:
 
 ## 👾 Examples
 
+Details can be found at the codebook.
+
 ### 1. Gradient Comparation between AD & Central Difference
 A comparative analysis of gradient calculations obtained through AD and the central difference method.
 
