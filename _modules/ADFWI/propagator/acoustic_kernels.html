@@ -1,0 +1,538 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.propagator.acoustic_kernels &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ADFWI.propagator.acoustic_kernels</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ADFWI.propagator.acoustic_kernels</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">torch.utils.checkpoint</span> <span class="kn">import</span> <span class="n">checkpoint</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span><span class="n">Dict</span>
+
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span> <span class="nf">pad_torchSingle</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nz</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ns</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pads the input tensor `v` with a PML (Perfectly Matched Layer) boundary.</span>
+
+<span class="sd">    This function expands the input tensor `v` by adding a PML layer on each side </span>
+<span class="sd">    (top, bottom, left, and right) and returns the padded tensor.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : torch.Tensor</span>
+<span class="sd">        The input tensor to be padded, typically representing a grid of values in a simulation.</span>
+<span class="sd">        </span>
+<span class="sd">    pml : int</span>
+<span class="sd">        The number of grid points to be added as the PML boundary layer on each side of the tensor.</span>
+<span class="sd">        </span>
+<span class="sd">    nz : int</span>
+<span class="sd">        The number of grid points in the Z-direction of the original tensor.</span>
+<span class="sd">        </span>
+<span class="sd">    nx : int</span>
+<span class="sd">        The number of grid points in the X-direction of the original tensor.</span>
+<span class="sd">        </span>
+<span class="sd">    ns : int</span>
+<span class="sd">        Not used in the function, could be intended for a future feature or an error.</span>
+<span class="sd">        </span>
+<span class="sd">    device : torch.device, optional</span>
+<span class="sd">        The device on which the tensor is allocated (default is CPU). It can be set to either &quot;cpu&quot; or &quot;cuda&quot;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        A tensor with dimensions `(nz + 2*pml, nx + 2*pml)` where the original tensor `v` is copied </span>
+<span class="sd">        into the center and the boundaries are filled according to the PML conditions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Calculate the size of the padded tensor</span>
+    <span class="n">nz_pml</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pml</span>
+    <span class="n">nx_pml</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pml</span>
+    
+    <span class="c1"># Initialize the padded tensor with zeros</span>
+    <span class="n">cc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz_pml</span><span class="p">,</span> <span class="n">nx_pml</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="c1"># Copy the original tensor to the appropriate position in the center</span>
+    <span class="n">cc</span><span class="p">[</span><span class="n">pml</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="n">pml</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="n">pml</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="c1"># Handle the top boundary</span>
+    <span class="n">cc</span><span class="p">[:</span><span class="n">pml</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span><span class="n">pml</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cc</span><span class="p">[</span><span class="n">pml</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span><span class="n">pml</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">pml</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Handle the bottom boundary</span>
+    <span class="n">cc</span><span class="p">[</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="n">pml</span><span class="p">:</span><span class="n">nz_pml</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span><span class="n">pml</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cc</span><span class="p">[</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="n">pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pml</span><span class="p">:</span><span class="n">pml</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">pml</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Handle the left boundary</span>
+    <span class="n">cc</span><span class="p">[:,</span> <span class="p">:</span><span class="n">pml</span><span class="p">]</span> <span class="o">=</span> <span class="n">cc</span><span class="p">[:,</span> <span class="p">[</span><span class="n">pml</span><span class="p">]]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pml</span><span class="p">)</span>
+
+    <span class="c1"># Handle the right boundary</span>
+    <span class="n">cc</span><span class="p">[:,</span> <span class="n">nx_pml</span> <span class="o">-</span> <span class="n">pml</span><span class="p">:</span><span class="n">nx_pml</span><span class="p">]</span> <span class="o">=</span> <span class="n">cc</span><span class="p">[:,</span> <span class="p">[</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="n">pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pml</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cc</span>
+
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span> <span class="nf">step_forward</span><span class="p">(</span><span class="n">nx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nz</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">nabc</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">free_surface</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>                               <span class="c1"># Model settings</span>
+                 <span class="n">src_x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">src_z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">src_n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">src_v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>     <span class="c1"># Source</span>
+                 <span class="n">rcv_x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rcv_z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>                  <span class="c1"># Receiver</span>
+                 <span class="n">kappa1</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kappa2</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha2</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                 <span class="n">kappa3</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">c1_staggered</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">c2_staggered</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">p</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                 <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">),</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Forward simulation step for the 2nd-order Acoustic Waveform Equation using finite differences.</span>
+
+<span class="sd">    This function performs one time step of the forward simulation, updating the pressure and velocities </span>
+<span class="sd">    (both vertical and horizontal components) based on the input wavefields and model parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    free_surface : bool</span>
+<span class="sd">        Whether the model includes a free-surface boundary condition.</span>
+
+<span class="sd">    nx : int</span>
+<span class="sd">        Number of grid points in the X-direction (horizontal axis).</span>
+
+<span class="sd">    nz : int</span>
+<span class="sd">        Number of grid points in the Z-direction (vertical axis).</span>
+
+<span class="sd">    dx : float</span>
+<span class="sd">        Grid spacing in the X-direction (in meters).</span>
+
+<span class="sd">    dz : float</span>
+<span class="sd">        Grid spacing in the Z-direction (in meters).</span>
+
+<span class="sd">    dt : float</span>
+<span class="sd">        Time step for the simulation (in seconds).</span>
+
+<span class="sd">    src_x : torch.Tensor</span>
+<span class="sd">        A tensor of source locations in the X-direction (of shape [src_n]).</span>
+
+<span class="sd">    src_z : torch.Tensor</span>
+<span class="sd">        A tensor of source locations in the Z-direction (of shape [src_n]).</span>
+
+<span class="sd">    src_n : int</span>
+<span class="sd">        The number of source points.</span>
+
+<span class="sd">    src_v : torch.Tensor</span>
+<span class="sd">        A tensor of wavelets for each source, specifying the source function for each time step.</span>
+
+<span class="sd">    rcv_x : torch.Tensor</span>
+<span class="sd">        A tensor of receiver locations in the X-direction (of shape [rcv_n]).</span>
+
+<span class="sd">    rcv_z : torch.Tensor</span>
+<span class="sd">        A tensor of receiver locations in the Z-direction (of shape [rcv_n]).</span>
+
+<span class="sd">    rcv_n : int</span>
+<span class="sd">        The number of receiver points.</span>
+
+<span class="sd">    kappa1 : torch.Tensor</span>
+<span class="sd">        Temporary variable used in the forward simulation, representing a physical property in the model.</span>
+
+<span class="sd">    alpha1 : torch.Tensor</span>
+<span class="sd">        Temporary variable used in the forward simulation, representing a physical property in the model.</span>
+
+<span class="sd">    kappa2 : torch.Tensor</span>
+<span class="sd">        Temporary variable used in the forward simulation, representing a physical property in the model.</span>
+
+<span class="sd">    alpha2 : torch.Tensor</span>
+<span class="sd">        Temporary variable used in the forward simulation, representing a physical property in the model.</span>
+
+<span class="sd">    kappa3 : torch.Tensor</span>
+<span class="sd">        Temporary variable used in the forward simulation, representing a physical property in the model.</span>
+
+<span class="sd">    c1_staggered : float</span>
+<span class="sd">        Coefficient used for 2nd-order finite difference in the staggered grid scheme.</span>
+
+<span class="sd">    c2_staggered : float</span>
+<span class="sd">        Coefficient used for 2nd-order finite difference in the staggered grid scheme.</span>
+
+<span class="sd">    p : torch.Tensor</span>
+<span class="sd">        Tensor representing the pressure wavefield (of shape [nz, nx]).</span>
+
+<span class="sd">    u : torch.Tensor</span>
+<span class="sd">        Tensor representing the vertical velocity component (vx) (of shape [nz, nx]).</span>
+
+<span class="sd">    w : torch.Tensor</span>
+<span class="sd">        Tensor representing the horizontal velocity component (vz) (of shape [nz, nx]).</span>
+
+<span class="sd">    device : torch.device, optional</span>
+<span class="sd">        The device on which tensors are allocated. Defaults to the CPU.</span>
+
+<span class="sd">    dtype : torch.dtype, optional</span>
+<span class="sd">        The data type for the tensors (default is `torch.float32`).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p : torch.Tensor</span>
+<span class="sd">        Updated pressure wavefield after the time step (of shape [nz, nx]).</span>
+
+<span class="sd">    u : torch.Tensor</span>
+<span class="sd">        Updated vertical velocity wavefield after the time step (of shape [nz, nx]).</span>
+
+<span class="sd">    w : torch.Tensor</span>
+<span class="sd">        Updated horizontal velocity wavefield after the time step (of shape [nz, nx]).</span>
+
+<span class="sd">    rcv_p : torch.Tensor</span>
+<span class="sd">        Recorded pressure values at the receiver locations for this time step (of shape [rcv_n]).</span>
+
+<span class="sd">    rcv_u : torch.Tensor</span>
+<span class="sd">        Recorded vertical velocity values at the receiver locations for this time step (of shape [rcv_n]).</span>
+
+<span class="sd">    rcv_w : torch.Tensor</span>
+<span class="sd">        Recorded horizontal velocity values at the receiver locations for this time step (of shape [rcv_n]).</span>
+
+<span class="sd">    forward_wavefield_p : torch.Tensor</span>
+<span class="sd">        The forward wavefield of pressure at the current time step, useful for visualization or further processing.</span>
+
+<span class="sd">    forward_wavefield_u : torch.Tensor</span>
+<span class="sd">        The forward wavefield of vertical velocity at the current time step.</span>
+
+<span class="sd">    forward_wavefield_w : torch.Tensor</span>
+<span class="sd">        The forward wavefield of horizontal velocity at the current time step.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - The function assumes the use of staggered grids for pressure and velocity components.</span>
+<span class="sd">    - The input wavefield tensors (p, u, w) are updated at each time step according to the 2nd-order acoustic wave equation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    
+    <span class="n">nt</span> <span class="o">=</span> <span class="n">src_v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">free_surface_start</span> <span class="o">=</span> <span class="n">nabc</span> <span class="k">if</span> <span class="n">free_surface</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">nx_pml</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nabc</span>
+    <span class="n">nz_pml</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nabc</span>
+
+    <span class="c1"># Initialize recorded values</span>
+    <span class="n">rcv_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">rcv_u</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">rcv_w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Initialize forward wavefield</span>
+    <span class="n">forward_wavefield_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">forward_wavefield_u</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">forward_wavefield_w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="n">wavefields</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nt</span><span class="p">):</span>
+        <span class="c1"># Update pressure</span>
+        <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">kappa1</span><span class="p">[</span><span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="o">*</span> 
+            <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> 
+            <span class="n">alpha1</span><span class="p">[</span><span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">c1_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span>
+                                <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="o">+</span>
+                <span class="n">c2_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span>
+                                <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add source</span>
+        <span class="c1"># single source</span>
+        <span class="k">if</span> <span class="n">src_z</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">src_update</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="n">src_v</span><span class="p">[</span><span class="n">it</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">src_v</span><span class="p">[:,</span> <span class="n">it</span><span class="p">])</span>
+            <span class="n">p</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">src_n</span><span class="p">),</span> <span class="n">src_z</span><span class="p">,</span> <span class="n">src_x</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">src_n</span><span class="p">),</span> <span class="n">src_z</span><span class="p">,</span> <span class="n">src_x</span><span class="p">]</span> <span class="o">+</span> <span class="n">src_update</span>
+        <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># encoded source</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">src_n</span><span class="p">):</span>
+                <span class="n">src_update</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="n">src_v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">it</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">src_v</span><span class="p">[</span><span class="n">i</span><span class="p">,:,</span> <span class="n">it</span><span class="p">])</span>
+                <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">src_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">src_x</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">src_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">src_x</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+</span> <span class="n">src_update</span>
+        
+        <span class="c1"># Free surface handling</span>
+        <span class="k">if</span> <span class="n">free_surface</span><span class="p">:</span>
+            <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Update horizontal particle velocity: u</span>
+        <span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">kappa2</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="o">*</span> 
+            <span class="n">u</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> 
+            <span class="n">alpha2</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">c1_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="o">+</span>
+                <span class="n">c2_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span><span class="n">nx_pml</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">3</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update vertical particle velocity: w</span>
+        <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">kappa3</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span>
+            <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> 
+            <span class="n">alpha2</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">c1_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">+</span>
+                <span class="n">c2_staggered</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span><span class="n">nz_pml</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                <span class="n">p</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Free surface for vertical velocity</span>
+        <span class="k">if</span> <span class="n">free_surface</span><span class="p">:</span>
+            <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="n">free_surface_start</span><span class="p">,</span> <span class="p">:]</span>
+            
+        <span class="c1"># Output pressure seismogram</span>
+        <span class="n">rcv_p</span><span class="p">[:,</span> <span class="n">it</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[:,</span> <span class="n">rcv_z</span><span class="p">,</span> <span class="n">rcv_x</span><span class="p">]</span>
+        <span class="n">rcv_u</span><span class="p">[:,</span> <span class="n">it</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[:,</span> <span class="n">rcv_z</span><span class="p">,</span> <span class="n">rcv_x</span><span class="p">]</span>
+        <span class="n">rcv_w</span><span class="p">[:,</span> <span class="n">it</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="n">rcv_z</span><span class="p">,</span> <span class="n">rcv_x</span><span class="p">]</span>
+
+        <span class="c1"># Accumulate forward wavefields</span>
+        <span class="n">forward_wavefield_p</span> <span class="o">=</span> <span class="n">forward_wavefield_p</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">forward_wavefield_u</span> <span class="o">=</span> <span class="n">forward_wavefield_u</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u</span> <span class="o">*</span> <span class="n">u</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">forward_wavefield_w</span> <span class="o">=</span> <span class="n">forward_wavefield_w</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">w</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nabc</span><span class="p">:</span><span class="n">nabc</span> <span class="o">+</span> <span class="n">nx</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        
+    <span class="c1"># if you want to save the wavefield, you need to comments the @torch.jit.script</span>
+    <span class="c1">#     if it % 10 == 0:</span>
+    <span class="c1">#         wavefields.append(p[:,nabc:nabc + nz, nabc:nabc + nx].cpu().detach().numpy())</span>
+    <span class="c1"># wavefields = np.array(wavefields)</span>
+    <span class="c1"># np.savez(f&quot;/ailab/user/liufeng1/project/04_Inversion/ADFWI-github/examples/acoustic/01-model-test/01-Marmousi2/data/wavefield/wavefields.npz&quot;,data=wavefields)</span>
+    
+    <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">rcv_p</span><span class="p">,</span> <span class="n">rcv_u</span><span class="p">,</span> <span class="n">rcv_w</span><span class="p">,</span> <span class="n">forward_wavefield_p</span><span class="p">,</span> <span class="n">forward_wavefield_u</span><span class="p">,</span> <span class="n">forward_wavefield_w</span>
+
+
+<div class="viewcode-block" id="forward_kernel"><a class="viewcode-back" href="../../../API/ADFWI.propagator.html#ADFWI.propagator.acoustic_kernels.forward_kernel">[docs]</a><span class="k">def</span> <span class="nf">forward_kernel</span><span class="p">(</span><span class="n">nx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nz</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                   <span class="n">nabc</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">free_surface</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>                                                   <span class="c1"># Model settings</span>
+                   <span class="n">src_x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">src_z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">src_n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">src_v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>       <span class="c1"># Source</span>
+                   <span class="n">rcv_x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rcv_z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>                            <span class="c1"># Receiver</span>
+                   <span class="n">damp</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>                                                              <span class="c1"># PML</span>
+                   <span class="n">v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>                                              <span class="c1"># Velocity model</span>
+                   <span class="n">checkpoint_segments</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>                                                    <span class="c1"># Finite Difference</span>
+                   <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">),</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span>
+                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>  <span class="c1"># Changed return type to Dict for clarity</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Forward simulation of Acoustic Waveform Equation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nx : int</span>
+<span class="sd">        Number of grid points along the X-axis.</span>
+<span class="sd">    nz : int</span>
+<span class="sd">        Number of grid points along the Z-axis.</span>
+<span class="sd">    dx : float</span>
+<span class="sd">        Grid spacing along the X-axis.</span>
+<span class="sd">    dz : float</span>
+<span class="sd">        Grid spacing along the Z-axis.</span>
+<span class="sd">    nt : int</span>
+<span class="sd">        Number of time points for recording waveforms.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Time spacing (unit: s).</span>
+<span class="sd">    nabc : int</span>
+<span class="sd">        Number of absorbing boundary conditions.</span>
+<span class="sd">    free_surface : bool</span>
+<span class="sd">        Indicates if there&#39;s a free surface.</span>
+<span class="sd">    src_x : torch.Tensor</span>
+<span class="sd">        Source locations along the X-axis.</span>
+<span class="sd">    src_z : torch.Tensor</span>
+<span class="sd">        Source locations along the Z-axis.</span>
+<span class="sd">    src_n : int</span>
+<span class="sd">        Number of sources.</span>
+<span class="sd">    src_v : torch.Tensor</span>
+<span class="sd">        Wavelets for each source.</span>
+<span class="sd">    rcv_x : torch.Tensor</span>
+<span class="sd">        Receiver locations along the X-axis.</span>
+<span class="sd">    rcv_z : torch.Tensor</span>
+<span class="sd">        Receiver locations along the Z-axis.</span>
+<span class="sd">    rcv_n : int</span>
+<span class="sd">        Number of receivers.</span>
+<span class="sd">    damp : torch.Tensor</span>
+<span class="sd">        Damping tensor for the absorbing boundary.</span>
+<span class="sd">    v : torch.Tensor</span>
+<span class="sd">        P-wave velocity (km/s).</span>
+<span class="sd">    rho : torch.Tensor</span>
+<span class="sd">        Density (kg/m^3).</span>
+<span class="sd">    checkpoint_segments : int, optional</span>
+<span class="sd">        Segments of the checkpoints for saving memory (default is 1).</span>
+<span class="sd">    device : torch.device, optional</span>
+<span class="sd">        Device type, default is &quot;cpu&quot;.</span>
+<span class="sd">    dtype : torch.dtype, optional</span>
+<span class="sd">        Data type for tensors, default is torch.float32.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    record_waveform : dict</span>
+<span class="sd">        Dictionary containing recorded waveforms and forward wavefields: Recorded vertical velocity at the receivers, Recorded horizontal velocity at the receivers, Forward wavefield of pressure, Forward wavefield of vertical velocity, Forward wavefield of horizontal velocity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">###################################################################################</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">pad_torchSingle</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">nabc</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">src_n</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">den</span> <span class="o">=</span> <span class="n">pad_torchSingle</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">nabc</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">src_n</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="n">free_surface_start</span> <span class="o">=</span> <span class="n">nabc</span> <span class="k">if</span> <span class="n">free_surface</span> <span class="k">else</span> <span class="mi">1</span>
+    
+    <span class="n">nx_pml</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nabc</span>
+    <span class="n">nz_pml</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nabc</span>
+    
+    <span class="n">src_x</span> <span class="o">=</span> <span class="n">src_x</span> <span class="o">+</span> <span class="n">nabc</span>
+    <span class="n">src_z</span> <span class="o">=</span> <span class="n">src_z</span> <span class="o">+</span> <span class="n">nabc</span>
+    
+    <span class="n">rcv_x</span> <span class="o">=</span> <span class="n">rcv_x</span> <span class="o">+</span> <span class="n">nabc</span>
+    <span class="n">rcv_z</span> <span class="o">=</span> <span class="n">rcv_z</span> <span class="o">+</span> <span class="n">nabc</span>
+    
+    <span class="c1"># Initialize pressure, velocity fields</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nz_pml</span><span class="p">,</span> <span class="n">nx_pml</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nz_pml</span><span class="p">,</span> <span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nx_pml</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Initialize recorded waveforms</span>
+    <span class="n">rcv_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">rcv_u</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">rcv_w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">src_n</span><span class="p">,</span> <span class="n">nt</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">forward_wavefield_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">forward_wavefield_u</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">forward_wavefield_w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nz</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Coefficients for the staggered grid</span>
+    <span class="n">c1_staggered</span> <span class="o">=</span> <span class="mf">9.0</span> <span class="o">/</span> <span class="mf">8.0</span>
+    <span class="n">c2_staggered</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">24.0</span>
+    
+    <span class="c1"># Parameters for waveform simulation</span>
+    <span class="n">alpha1</span> <span class="o">=</span> <span class="n">den</span> <span class="o">*</span> <span class="n">c</span> <span class="o">*</span> <span class="n">c</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">/</span> <span class="n">dz</span>
+    <span class="n">kappa1</span> <span class="o">=</span> <span class="n">damp</span> <span class="o">*</span> <span class="n">dt</span>
+    
+    <span class="n">alpha2</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">/</span> <span class="p">(</span><span class="n">den</span> <span class="o">*</span> <span class="n">dz</span><span class="p">)</span>
+    <span class="n">kappa2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">damp</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">kappa2</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">damp</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">damp</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="n">nx_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dt</span>
+    
+    <span class="n">kappa3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">damp</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">kappa3</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">damp</span><span class="p">[</span><span class="n">free_surface_start</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">damp</span><span class="p">[</span><span class="n">free_surface_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nz_pml</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:])</span> <span class="o">*</span> <span class="n">dt</span>
+    
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">src_v</span><span class="p">,</span> <span class="n">checkpoint_segments</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)):</span>
+        <span class="c1"># Step forward</span>
+        <span class="n">p</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">rcv_p_temp</span><span class="p">,</span> <span class="n">rcv_u_temp</span><span class="p">,</span> <span class="n">rcv_w_temp</span><span class="p">,</span> <span class="n">forward_wavefield_p_temp</span><span class="p">,</span> <span class="n">forward_wavefield_u_temp</span><span class="p">,</span> <span class="n">forward_wavefield_w_temp</span> <span class="o">=</span> \
+            <span class="n">checkpoint</span><span class="p">(</span><span class="n">step_forward</span><span class="p">,</span>
+                       <span class="n">nx</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dz</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span>
+                       <span class="n">nabc</span><span class="p">,</span> <span class="n">free_surface</span><span class="p">,</span>
+                       <span class="n">src_x</span><span class="p">,</span> <span class="n">src_z</span><span class="p">,</span> <span class="n">src_n</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span>
+                       <span class="n">rcv_x</span><span class="p">,</span> <span class="n">rcv_z</span><span class="p">,</span> <span class="n">rcv_n</span><span class="p">,</span>
+                       <span class="n">kappa1</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">,</span> <span class="n">kappa2</span><span class="p">,</span> <span class="n">alpha2</span><span class="p">,</span> <span class="n">kappa3</span><span class="p">,</span> <span class="n">c1_staggered</span><span class="p">,</span> <span class="n">c2_staggered</span><span class="p">,</span>
+                       <span class="n">p</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span>
+                       <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> 
+                       <span class="n">use_reentrant</span><span class="o">=</span><span class="kc">True</span>
+                       <span class="p">)</span>
+
+        <span class="c1"># Save the waveform recorded on the receiver</span>
+        <span class="n">rcv_p</span><span class="p">[:,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span> <span class="o">+</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">rcv_p_temp</span>
+        <span class="n">rcv_u</span><span class="p">[:,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span> <span class="o">+</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">rcv_u_temp</span>
+        <span class="n">rcv_w</span><span class="p">[:,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span> <span class="o">+</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">rcv_w_temp</span>
+
+        <span class="c1"># Accumulate the forward wavefield</span>
+        <span class="n">forward_wavefield_p</span> <span class="o">=</span> <span class="n">forward_wavefield_p</span> <span class="o">+</span> <span class="n">forward_wavefield_p_temp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">forward_wavefield_u</span> <span class="o">=</span> <span class="n">forward_wavefield_u</span> <span class="o">+</span> <span class="n">forward_wavefield_u_temp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">forward_wavefield_w</span> <span class="o">=</span> <span class="n">forward_wavefield_w</span> <span class="o">+</span> <span class="n">forward_wavefield_w_temp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            
+        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="n">record_waveform</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="n">rcv_p</span><span class="p">,</span>
+        <span class="s2">&quot;u&quot;</span><span class="p">:</span> <span class="n">rcv_u</span><span class="p">,</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="n">rcv_w</span><span class="p">,</span>
+        <span class="s2">&quot;forward_wavefield_p&quot;</span><span class="p">:</span> <span class="n">forward_wavefield_p</span><span class="p">,</span>
+        <span class="s2">&quot;forward_wavefield_u&quot;</span><span class="p">:</span> <span class="n">forward_wavefield_u</span><span class="p">,</span>
+        <span class="s2">&quot;forward_wavefield_w&quot;</span><span class="p">:</span> <span class="n">forward_wavefield_w</span><span class="p">,</span>
+    <span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">record_waveform</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

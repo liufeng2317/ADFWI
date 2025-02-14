@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.fwi.misfit.Envelope &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ADFWI.fwi.misfit.Envelope</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ADFWI.fwi.misfit.Envelope</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Misfit</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span> <span class="nf">hilbert</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform Hilbert transform along the last axis of x.</span>
+
+<span class="sd">    This function computes the Hilbert transform of the input signal `x` along its last axis.</span>
+<span class="sd">    It uses FFT-based approach to compute the analytic signal.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : torch.Tensor</span>
+<span class="sd">        Input signal data, a tensor of shape (..., N), where N is the length of the signal</span>
+<span class="sd">        along the last axis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Analytic signal with the same shape as `x`. The result is the Hilbert transform of the</span>
+<span class="sd">        input signal along the last axis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>  <span class="c1"># Double the length for FFT</span>
+    <span class="n">Xf</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># FFT on extended signal</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Xf</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>  <span class="c1"># Initialize multiplier array</span>
+    <span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">:(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Set values to create analytic signal</span>
+    <span class="k">if</span> <span class="n">N</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="n">N</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Special case for even-length signals</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">Xf</span> <span class="o">*</span> <span class="n">h</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>  <span class="c1"># Return Hilbert-transformed signal</span>
+
+
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">same_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute discrete difference along the last axis.</span>
+
+<span class="sd">    This function computes the discrete difference of the input tensor `x` along the specified</span>
+<span class="sd">    axis (`dim`). If `same_size` is set to `True`, the output tensor is padded to maintain the</span>
+<span class="sd">    same size as the input.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : torch.Tensor</span>
+<span class="sd">        Input tensor, with arbitrary shape. The difference will be computed along the last axis by default.</span>
+<span class="sd">        </span>
+<span class="sd">    dim : int, optional</span>
+<span class="sd">        Axis along which to compute the difference (default is -1, i.e., the last axis).</span>
+
+<span class="sd">    same_size : bool, optional</span>
+<span class="sd">        If `True`, pads the output tensor to maintain the same size as the input tensor (default is `False`).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        The discrete difference along the specified axis, with the same shape as `x` if `same_size` is `True`, </span>
+<span class="sd">        or smaller along the specified axis if `same_size` is `False`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">same_size</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>  <span class="c1"># Pad to match original shape</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+<span class="nd">@torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span>
+<span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="n">phi</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Unwrap phase by correcting for phase discontinuities.</span>
+
+<span class="sd">    This function unwraps a phase tensor `phi` by detecting and correcting phase discontinuities.</span>
+<span class="sd">    The phase is adjusted such that the changes in phase are continuous along the specified axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    phi : torch.Tensor</span>
+<span class="sd">        Phase tensor to be unwrapped. The tensor is assumed to contain phase values in radians.</span>
+
+<span class="sd">    dim : int, optional</span>
+<span class="sd">        Axis along which to unwrap the phase (default is -1, i.e., the last axis).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        The unwrapped phase tensor, with phase discontinuities corrected along the specified axis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dphi</span> <span class="o">=</span> <span class="n">diff</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">same_size</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Calculate discrete phase difference</span>
+    <span class="n">dphi_m</span> <span class="o">=</span> <span class="p">((</span><span class="n">dphi</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># Map phase difference to [-pi, pi]</span>
+    <span class="n">dphi_m</span><span class="p">[(</span><span class="n">dphi_m</span> <span class="o">==</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dphi</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># Correct for edge cases</span>
+    <span class="n">phi_adj</span> <span class="o">=</span> <span class="n">dphi_m</span> <span class="o">-</span> <span class="n">dphi</span>
+    <span class="n">phi_adj</span><span class="p">[</span><span class="n">dphi</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Adjust only where discontinuities exist</span>
+    <span class="k">return</span> <span class="n">phi</span> <span class="o">+</span> <span class="n">phi_adj</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>  <span class="c1"># Accumulate adjustments</span>
+
+<div class="viewcode-block" id="Misfit_envelope"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Envelope.Misfit_envelope">[docs]</a><span class="k">class</span> <span class="nc">Misfit_envelope</span><span class="p">(</span><span class="n">Misfit</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the envelope misfit for initial velocity model estimation.</span>
+
+<span class="sd">    This class computes the misfit between observed and synthetic waveforms based on their envelope or instantaneous phase.</span>
+<span class="sd">    It is used for estimating the initial velocity model in seismic inversion.</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        Wu et al., 2014; Yuan et al., 2015</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dt : float, optional</span>
+<span class="sd">        Time sampling interval (default is 1).</span>
+<span class="sd">        </span>
+<span class="sd">    p : float, optional</span>
+<span class="sd">        Norm order for envelope difference (default is 1.5).</span>
+<span class="sd">        </span>
+<span class="sd">    instaneous_phase : bool, optional</span>
+<span class="sd">        If True, use instantaneous phase for misfit (default is False).</span>
+<span class="sd">        </span>
+<span class="sd">    norm : str, optional</span>
+<span class="sd">        Norm type (&quot;L1&quot; or &quot;L2&quot;) for final loss calculation (default is &quot;L2&quot;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">instaneous_phase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;L2&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Misfit_envelope.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instaneous_phase</span> <span class="o">=</span> <span class="n">instaneous_phase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">norm</span>
+        
+<div class="viewcode-block" id="Misfit_envelope.forward"><a class="viewcode-back" href="../../../../API/ADFWI.fwi.misfit.html#ADFWI.fwi.misfit.Envelope.Misfit_envelope.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">syn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the misfit between observed and synthetic waveforms.</span>
+
+<span class="sd">        This function calculates the misfit between the observed and synthetic waveforms either using their envelopes </span>
+<span class="sd">        or instantaneous phases, depending on the chosen option.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obs : torch.Tensor</span>
+<span class="sd">            Observed waveform [batch, trace, time].</span>
+<span class="sd">        </span>
+<span class="sd">        syn : torch.Tensor</span>
+<span class="sd">            Synthetic waveform [batch, trace, time].</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Envelope or phase difference loss computed between the observed and synthetic waveforms.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mask1</span>    <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">mask2</span>    <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">syn</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">mask</span>     <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">mask1</span> <span class="o">*</span> <span class="n">mask2</span><span class="p">)</span>
+        
+        <span class="n">device</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">device</span>
+        <span class="n">rsd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>  <span class="c1"># Residual storage</span>
+        
+        <span class="k">for</span> <span class="n">ishot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">trace_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="n">ishot</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">obs_shot</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="n">ishot</span><span class="p">,:,</span><span class="n">trace_idx</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># Transpose to [trace, time series]</span>
+            <span class="n">syn_shot</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">ishot</span><span class="p">,:,</span><span class="n">trace_idx</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            
+            <span class="c1"># Hilbert transform to get analytic signal</span>
+            <span class="n">analytic_signal_obs</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">obs_shot</span><span class="p">)</span>
+            <span class="n">analytic_signal_syn</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">syn_shot</span><span class="p">)</span>
+            
+            <span class="c1"># Compute envelopes (magnitude of analytic signals)</span>
+            <span class="n">envelopes_obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">analytic_signal_obs</span><span class="p">)</span>
+            <span class="n">envelopes_syn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">analytic_signal_syn</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instaneous_phase</span><span class="p">:</span>
+                <span class="c1"># Use instantaneous phase for misfit</span>
+                <span class="n">phase_obs</span> <span class="o">=</span> <span class="n">unwrap</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">analytic_signal_obs</span><span class="p">))</span>
+                <span class="n">phase_syn</span> <span class="o">=</span> <span class="n">unwrap</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">analytic_signal_syn</span><span class="p">))</span>
+                <span class="n">rsd</span><span class="p">[</span><span class="n">ishot</span><span class="p">,</span><span class="n">trace_idx</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">phase_obs</span> <span class="o">-</span> <span class="n">phase_syn</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Compute envelope difference with norm p</span>
+                <span class="n">rsd</span><span class="p">[</span><span class="n">ishot</span><span class="p">,</span><span class="n">trace_idx</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">envelopes_syn</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="n">envelopes_obs</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Compute final loss based on the selected norm</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">==</span> <span class="s2">&quot;L1&quot;</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rsd</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">rsd</span> <span class="o">*</span> <span class="n">rsd</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>  <span class="c1"># L2 loss with time weighting</span>
+        
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
