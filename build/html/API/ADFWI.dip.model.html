@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADFWI.dip.model &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADFWI.utils" href="ADFWI.utils.html" />
+    <link rel="prev" title="ADFWI.dip" href="ADFWI.dip.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ADFWI.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.propagator.html">ADFWI.propagator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.model.html">ADFWI.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.fwi.html">ADFWI.fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.survey.html">ADFWI.survey</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="ADFWI.dip.html">ADFWI.dip</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ADFWI.dip.model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.dip.model.CNN">ADFWI.dip.model.CNN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.dip.model.MLP">ADFWI.dip.model.MLP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ADFWI.dip.model.Unet">ADFWI.dip.model.Unet</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.dip.html#module-ADFWI.dip.dip_acoustic_fwi">ADFWI.dip.dip_acoustic_fwi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ADFWI.dip.html#module-ADFWI.dip.dip_acoustic_model">ADFWI.dip.dip_acoustic_model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.utils.html">ADFWI.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ADFWI.view.html">ADFWI.view</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.html">API</a></li>
+          <li class="breadcrumb-item"><a href="ADFWI.dip.html">ADFWI.dip</a></li>
+      <li class="breadcrumb-item active">ADFWI.dip.model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API/ADFWI.dip.model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adfwi-dip-model">
+<h1>ADFWI.dip.model<a class="headerlink" href="#adfwi-dip-model" title="Permalink to this heading"></a></h1>
+<section id="module-ADFWI.dip.model.CNN">
+<span id="adfwi-dip-model-cnn"></span><h2>ADFWI.dip.model.CNN<a class="headerlink" href="#module-ADFWI.dip.model.CNN" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.CNN.CNN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.CNN.</span></span><span class="sig-name descname"><span class="pre">CNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">32,</span> <span class="pre">16]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/CNN.html#CNN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.CNN.CNN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Initialize the CNN model with the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_shape</strong> (<em>tuple</em>) – The shape of the velocity model, given as (height, width).</p></li>
+<li><p><strong>in_channels</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – The input and output channels for each CNN block. Default is [8, 32, 16].</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum velocity of the output. Default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum velocity of the output. Default is None.</p></li>
+<li><p><strong>dropout_prob</strong> (<em>float</em><em>, </em><em>optional</em>) – Probability for dropout in CNN layers. Default is 0.</p></li>
+<li><p><strong>random_state_num</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of random features for the fully connected input layer. Default is 100.</p></li>
+<li><p><strong>unit</strong> (<em>int</em><em>, </em><em>optional</em>) – The scaling factor for the output. Default is 1000.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Device to use for computation, either ‘cpu’ or ‘cuda’. Default is ‘cpu’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.CNN.CNN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/CNN.html#CNN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.CNN.CNN.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass through the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The output of the CNN model after processing, reshaped and scaled with the given vmin and vmax.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.CNN.CNN.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.CNN.CNN.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.dip.model.MLP">
+<span id="adfwi-dip-model-mlp"></span><h2>ADFWI.dip.model.MLP<a class="headerlink" href="#module-ADFWI.dip.model.MLP" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.MLP.MLP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.MLP.</span></span><span class="sig-name descname"><span class="pre">MLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layer_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[100,</span> <span class="pre">100]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/MLP.html#MLP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.MLP.MLP" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A Multi-layer Perceptron (MLP) model for generating velocity models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_shape</strong> (<em>tuple</em>) – The shape of the velocity model, given as (height, width).</p></li>
+<li><p><strong>random_state_num</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of random features for the fully connected input layer. Default is 100.</p></li>
+<li><p><strong>hidden_layer_number</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – A list specifying the number of neurons in each hidden layer. Default is [100, 100].</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum velocity of the output. Default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum velocity of the output. Default is None.</p></li>
+<li><p><strong>unit</strong> (<em>int</em><em>, </em><em>optional</em>) – The scaling factor for the output. Default is 1000.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – The device to use for computation, either ‘cpu’ or ‘cuda’. Default is ‘cpu’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.MLP.MLP.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/MLP.html#MLP.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.MLP.MLP.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass through the MLP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The output of the MLP model after processing, reshaped and scaled with the given vmin and vmax.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.MLP.MLP.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.MLP.MLP.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ADFWI.dip.model.Unet">
+<span id="adfwi-dip-model-unet"></span><h2>ADFWI.dip.model.Unet<a class="headerlink" href="#module-ADFWI.dip.model.Unet" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.DoubleConv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#DoubleConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.DoubleConv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A module that applies two consecutive convolutions, each followed by batch normalization and a LeakyReLU activation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.DoubleConv.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#DoubleConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.DoubleConv.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass of the DoubleConv block.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.DoubleConv.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.Unet.DoubleConv.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Down">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">Down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#Down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.Down" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A downscaling block that applies a convolution followed by max pooling.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Down.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#Down.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.Down.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass of the Down block.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Down.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.Unet.Down.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.OutConv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">OutConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#OutConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.OutConv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>The output convolution layer that applies a 1x1 convolution to the input tensor.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.OutConv.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#OutConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.OutConv.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass of the output convolution layer.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.OutConv.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.Unet.OutConv.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Pkgen">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">Pkgen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#Pkgen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.Pkgen" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a power spectrum function with a given power-law exponent.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.UNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">UNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grf_initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grf_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#UNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.UNet" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A flexible UNet model that can be configured with different numbers of layers and channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_shape</strong> (<em>tuple</em>) – The shape of the input model (height, width).</p></li>
+<li><p><strong>n_layers</strong> (<em>int</em>) – The number of layers in the encoder-decoder network.</p></li>
+<li><p><strong>base_channel</strong> (<em>int</em>) – The base number of channels at the input.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – The minimum value for the output, used for rescaling, default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum value for the output, used for rescaling, default is None.</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of input channels, default is 1.</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of output channels, default is 1.</p></li>
+<li><p><strong>bilinear</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use bilinear upsampling instead of transposed convolution, default is False.</p></li>
+<li><p><strong>grf_initialize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to initialize the model with a Gaussian random field, default is False.</p></li>
+<li><p><strong>grf_alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – The power-law exponent for the Gaussian random field initialization, default is 0.</p></li>
+<li><p><strong>unit</strong> (<em>int</em><em>, </em><em>optional</em>) – A scaling factor for the output, default is 1000.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – The device for tensor computations, default is ‘cpu’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.UNet.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#UNet.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.UNet.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass of the UNet model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The output tensor after processing through the UNet.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.UNet.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.Unet.UNet.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Up">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">Up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#Up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.Up" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>An upscaling block that applies either bilinear upsampling or transposed convolution, followed by a convolution.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Up.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#Up.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.Up.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forward pass of the Up block.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.Up.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ADFWI.dip.model.Unet.Up.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.distrib">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">distrib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#distrib"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.distrib" title="Permalink to this definition"></a></dt>
+<dd><p>Generates complex random samples from a normal distribution.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ADFWI.dip.model.Unet.generate_grf">
+<span class="sig-prename descclassname"><span class="pre">ADFWI.dip.model.Unet.</span></span><span class="sig-name descname"><span class="pre">generate_grf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ADFWI/dip/model/Unet.html#generate_grf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ADFWI.dip.model.Unet.generate_grf" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a Gaussian random field using the provided parameters.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ADFWI.dip.html" class="btn btn-neutral float-left" title="ADFWI.dip" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ADFWI.utils.html" class="btn btn-neutral float-right" title="ADFWI.utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

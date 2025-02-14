@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regularization Methods &mdash; ADFWI Document v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=99a04888"></script>
+      <script src="../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Deep Reparameterization" href="../deep_reparameterization/deep_reparameterization.html" />
+    <link rel="prev" title="Optimization Methods" href="../optimization_methods/optimizer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ADFWI Document
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">ADFWI Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../automatic_differentiation/automatic_differentiation.html">Automatic Differentiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wave_equation/wave_equations.html">Wave Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../objective_functions/objective_functions.html">Objective Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization_methods/optimizer.html">Optimization Methods</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Regularization Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tikhonov-regularization">1. Tikhonov Regularization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#introduction">1.1 Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pros-and-cons">1.2 Pros and Cons</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#comparison-between-first-order-and-second-order-tikhonov-regularization">1.3 <strong>Comparison Between First-Order and Second-Order Tikhonov Regularization</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#total-variation-tv-regularization">2. Total Variation (TV) Regularization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">2.1 Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">2.2 Pros and Cons</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#comparison-between-first-order-and-second-order-tv-regularization">2.3 <strong>Comparison Between First-Order and Second-Order TV Regularization</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../deep_reparameterization/deep_reparameterization.html">Deep Reparameterization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../Examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../API/ADFWI.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ADFWI Document</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Regularization Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/Tutorial/regularization_methods/regularization.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="regularization-methods">
+<h1>Regularization Methods<a class="headerlink" href="#regularization-methods" title="Permalink to this heading"></a></h1>
+<p>The objective function for full waveform inversion (FWI) typically combines a data misfit term with a regularization term to stabilize the inversion process and incorporate prior information about the model. This can be formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{m}^* = \underset{\mathbf{m}}{\arg\min} \left( \mathcal{J}(\mathbf{m}) + \alpha \mathcal{R}(\mathbf{m}) \right),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{J}(\mathbf{m})\)</span> represents the data misfit term, and <span class="math notranslate nohighlight">\(\mathcal{R}(\mathbf{m})\)</span> is the regularization term. The regularization parameter <span class="math notranslate nohighlight">\(\alpha\)</span> controls the trade-off between data fidelity and model regularization. The choice of <span class="math notranslate nohighlight">\(\mathcal{R}(\mathbf{m})\)</span> depends on the desired properties of the recovered model and can take various forms.</p>
+<hr class="docutils" />
+<section id="tikhonov-regularization">
+<h2>1. Tikhonov Regularization<a class="headerlink" href="#tikhonov-regularization" title="Permalink to this heading"></a></h2>
+<p>Tikhonov regularization is a commonly used method to stabilize inverse problems by adding smoothness constraints to the model parameters. It is often applied in FWI to suppress high-frequency artifacts and enforce geological continuity.</p>
+<section id="introduction">
+<h3>1.1 Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h3>
+<section id="first-order-tikhonov-regularization">
+<h4><strong>(1) First-Order Tikhonov Regularization</strong><a class="headerlink" href="#first-order-tikhonov-regularization" title="Permalink to this heading"></a></h4>
+<p>First-order Tikhonov regularization penalizes the magnitude of the first-order differences (gradients) of the model parameters, enforcing smooth transitions between neighboring grid points:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{R}_{\text{Tikh}1}(\mathbf{m}) = \alpha_x \sum_{i=1}^{n_x-1} \sum_{j=1}^{n_z} (m_{i+1,j} - m_{i,j})^2 + \alpha_z \sum_{i=1}^{n_x} \sum_{j=1}^{n_z-1} (m_{i,j+1} - m_{i,j})^2\]</div>
+<p>This regularization is commonly used to reduce high-frequency noise while preserving overall model trends.</p>
+</section>
+<section id="second-order-tikhonov-regularization">
+<h4><strong>(2) Second-Order Tikhonov Regularization</strong><a class="headerlink" href="#second-order-tikhonov-regularization" title="Permalink to this heading"></a></h4>
+<p>Second-order Tikhonov regularization penalizes the magnitude of the second-order differences (curvature) of the model parameters:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{R}_{\text{Tikh}2}(\mathbf{m}) = \alpha_x \sum_{i=1}^{n_x-2} \sum_{j=1}^{n_z} (m_{i+2,j} - 2m_{i+1,j} + m_{i,j})^2 + \alpha_z \sum_{i=1}^{n_x} \sum_{j=1}^{n_z-2} (m_{i,j+2} - 2m_{i,j+1} + m_{i,j})^2\]</div>
+<p>This regularization enforces smoothness by suppressing second-order variations, leading to a more continuous and geologically reasonable model with minimal artificial oscillations.</p>
+</section>
+</section>
+<section id="pros-and-cons">
+<h3>1.2 Pros and Cons<a class="headerlink" href="#pros-and-cons" title="Permalink to this heading"></a></h3>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Stabilization of Ill-posed Problems:</strong> Helps to regularize the inversion process and prevent overfitting to noise.</p></li>
+<li><p><strong>Enforcement of Smoothness:</strong> Encourages geologically plausible models by reducing sharp variations in the model parameters.</p></li>
+<li><p><strong>Flexibility:</strong> Can be applied in different orders (e.g., first-order and second-order) to control different aspects of smoothness.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Loss of Resolution:</strong> Excessive smoothing can remove meaningful small-scale structures, reducing inversion accuracy.</p></li>
+<li><p><strong>Bias in Model Recovery:</strong> May bias the solution toward overly smooth models that do not capture sharp geological boundaries.</p></li>
+<li><p><strong>Tuning of Regularization Parameters:</strong> The selection of optimal regularization coefficients (<span class="math notranslate nohighlight">\(\alpha_x, \alpha_z\)</span>) requires careful calibration.</p></li>
+</ul>
+</section>
+<section id="comparison-between-first-order-and-second-order-tikhonov-regularization">
+<h3>1.3 <strong>Comparison Between First-Order and Second-Order Tikhonov Regularization</strong><a class="headerlink" href="#comparison-between-first-order-and-second-order-tikhonov-regularization" title="Permalink to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Regularization Type</p></th>
+<th class="head"><p>Effect</p></th>
+<th class="head"><p>Typical Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>First-Order (<span class="math notranslate nohighlight">\(\mathcal{R}_{\text{Tikh}1}\)</span>)</p></td>
+<td><p>Penalizes sharp gradients, reducing noise and enforcing smoothness.</p></td>
+<td><p>Suitable for suppressing high-frequency noise while preserving large-scale structures.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Second-Order (<span class="math notranslate nohighlight">\(\mathcal{R}_{\text{Tikh}2}\)</span>)</p></td>
+<td><p>Penalizes curvature, leading to a smoother and more continuous model.</p></td>
+<td><p>Used when geological continuity is a priority, minimizing artificial oscillations.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The choice between first-order and second-order Tikhonov regularization depends on the desired balance between resolution and smoothness in the inversion process.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="total-variation-tv-regularization">
+<h2>2. Total Variation (TV) Regularization<a class="headerlink" href="#total-variation-tv-regularization" title="Permalink to this heading"></a></h2>
+<p>Total Variation (TV) regularization is widely used in inverse problems to preserve sharp boundaries while reducing noise. Unlike Tikhonov regularization, which enforces smoothness, TV regularization promotes piecewise-constant solutions, making it particularly useful in applications where geological structures contain sharp contrasts.</p>
+<section id="id1">
+<h3>2.1 Introduction<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<section id="first-order-tv-regularization">
+<h4><strong>(1) First-Order TV Regularization</strong><a class="headerlink" href="#first-order-tv-regularization" title="Permalink to this heading"></a></h4>
+<p>First-order total variation (TV1) regularization penalizes the absolute differences between neighboring model parameters:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{R}_{\text{TV1}}(\mathbf{m}) = \alpha_x \sum_{i=1}^{n_x-1} \sum_{j=1}^{n_z} |m_{i+1,j} - m_{i,j}| + \alpha_z \sum_{i=1}^{n_x} \sum_{j=1}^{n_z-1} |m_{i,j+1} - m_{i,j}|\]</div>
+<p>This formulation enforces sparsity in the model gradients, allowing for sharp transitions between regions with different properties, making it well-suited for geological structures with clear discontinuities, such as faults and layering.</p>
+</section>
+<section id="second-order-tv-regularization">
+<h4><strong>(2) Second-Order TV Regularization</strong><a class="headerlink" href="#second-order-tv-regularization" title="Permalink to this heading"></a></h4>
+<p>Second-order total variation (TV2) regularization penalizes the absolute second-order differences (curvature) in the model parameters:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{R}_{\text{TV2}}(\mathbf{m}) = \alpha_x \sum_{i=1}^{n_x-2} \sum_{j=1}^{n_z} |m_{i+2,j} - 2m_{i+1,j} + m_{i,j}| + \alpha_z \sum_{i=1}^{n_x} \sum_{j=1}^{n_z-2} |m_{i,j+2} - 2m_{i,j+1} + m_{i,j}|\]</div>
+<p>By penalizing curvature, TV2 regularization reduces high-frequency noise while maintaining significant structural variations in the model, making it particularly useful when smoothness is required without losing important geological features.</p>
+</section>
+</section>
+<section id="id2">
+<h3>2.2 Pros and Cons<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Edge Preservation:</strong> TV1 regularization maintains sharp boundaries in the model, preventing excessive smoothing of significant transitions.</p></li>
+<li><p><strong>Robustness to Noise:</strong> TV regularization is effective in reducing small-scale noise without blurring geological structures.</p></li>
+<li><p><strong>Adaptive Smoothing:</strong> Unlike Tikhonov regularization, which uniformly smooths the model, TV regularization selectively smooths regions without strong discontinuities.</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p><strong>Non-Differentiability:</strong> The absolute value function in TV regularization makes gradient-based optimization more challenging and often requires specialized numerical methods.</p></li>
+<li><p><strong>Blocky Artifacts:</strong> TV1 regularization can produce staircasing effects, where the model appears as piecewise-constant regions rather than smooth transitions.</p></li>
+<li><p><strong>Computational Cost:</strong> Solving TV-regularized inverse problems can be computationally demanding due to the need for iterative solvers and total variation minimization techniques.</p></li>
+</ul>
+</section>
+<section id="comparison-between-first-order-and-second-order-tv-regularization">
+<h3>2.3 <strong>Comparison Between First-Order and Second-Order TV Regularization</strong><a class="headerlink" href="#comparison-between-first-order-and-second-order-tv-regularization" title="Permalink to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Regularization Type</p></th>
+<th class="head"><p>Effect</p></th>
+<th class="head"><p>Typical Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>First-Order (<span class="math notranslate nohighlight">\(\mathcal{R}_{\text{TV1}}\)</span>)</p></td>
+<td><p>Preserves sharp edges by penalizing first-order differences.</p></td>
+<td><p>Suitable for models with abrupt changes, such as faulted geological formations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Second-Order (<span class="math notranslate nohighlight">\(\mathcal{R}_{\text{TV2}}\)</span>)</p></td>
+<td><p>Reduces noise while maintaining large-scale variations.</p></td>
+<td><p>Useful when geological continuity is desired without excessive smoothing.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The selection between first-order and second-order TV regularization depends on the need for sharp boundaries versus smooth transitions in the inversion process.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../optimization_methods/optimizer.html" class="btn btn-neutral float-left" title="Optimization Methods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../deep_reparameterization/deep_reparameterization.html" class="btn btn-neutral float-right" title="Deep Reparameterization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Liu Feng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
