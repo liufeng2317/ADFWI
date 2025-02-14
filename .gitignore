@@ -1,0 +1,10 @@
+__pycache__/
+build/
+backup/
+ADFWI_Torch.egg-info/
+dist/
+docs/
+MANIFEST.in
+ADFWI/
+examples/
+README_PIP.md
