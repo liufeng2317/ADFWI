@@ -25,7 +25,8 @@ class DIP_AcousticModel(AbstractModel):
                 dx:float,dz:float,
                 DIP_model_vp                                     = None,     # deep image prior models
                 DIP_model_rho                                    = None,
-                reparameterization_strategy                      = "vel",       # vel/vel_diff
+                reparameterization_strategy                      = "vel",    # vel/vel_diff
+                reparameterization_inputs                        = "random", # random/vel/update_vel
                 vp_init:Optional[Union[np.array,Tensor]]         = None,     # initial model parameter
                 rho_init:Optional[Union[np.array,Tensor]]        = None,
                 vp_bound    : Optional[Tuple[float, float]]      = None,     # model parameter's boundary
@@ -66,6 +67,7 @@ class DIP_AcousticModel(AbstractModel):
         # initialize the common model parameters
         super().__init__(ox,oz,nx,nz,dx,dz,free_surface,abc_type,abc_jerjan_alpha,nabc,device,dtype)
         self.reparameterization_strategy = reparameterization_strategy
+        self.reparameterization_inputs = reparameterization_inputs
         
         # update rho/vp using the empirical function
         self.auto_update_rho = auto_update_rho
@@ -87,9 +89,14 @@ class DIP_AcousticModel(AbstractModel):
         self.rho_init   = torch.zeros((nz,nx),dtype=dtype).to(device) if rho_init is None else numpy2tensor(rho_init,dtype=dtype).to(device)
         self.vp         = self.vp_init.clone()
         self.rho        = self.rho_init.clone()
-        self._parameterization()
         
-
+        if self.reparameterization_inputs == "vel":
+            self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
+        elif self.reparameterization_inputs == "update_vel":
+            self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
+        else:
+            self._parameterization()
+        
         # set model bounds
         self.lower_bound["vp"]  =  vp_bound[0]  if vp_bound  is not None else None
         self.lower_bound["rho"] = rho_bound[0]  if rho_bound is not None else None
@@ -238,7 +245,12 @@ class DIP_AcousticModel(AbstractModel):
     def forward(self,*args,**kwargs) -> Tuple:
         """Forward method of the elastic model class
         """
-        self._parameterization()
+        if self.reparameterization_inputs == "vel":
+            self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
+        elif self.reparameterization_inputs == "update_vel":
+            self._parameterization(numpy2tensor(self.get_model("vp")).to(self.device).unsqueeze(0).unsqueeze(0))
+        else:
+            self._parameterization()
         
         self.clip_params("vp")
         self.clip_params("rho")

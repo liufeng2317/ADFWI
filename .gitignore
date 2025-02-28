@@ -16,6 +16,7 @@ dist
 MANIFEST.in
 docs/
 ADFWI/dip/
+examples/github_Issue
 examples/acoustic/
 examples/elastic/
 examples/gradient_checking
