@@ -41,6 +41,7 @@ class DIP_AcousticFWI(torch.nn.Module):
                  waveform_mute_late_window:Optional[float]                               = None,
                  waveform_mute_offset:Optional[float]                                    = None,
                  cache_result:Optional[bool]                                             = True,
+                 cache_result_epoch:Optional[bool]                                       = 1,
                  save_fig_epoch:Optional[int]                                            = -1,
                  save_fig_path:Optional[str]                                             = "",
                 ):
@@ -125,7 +126,9 @@ class DIP_AcousticFWI(torch.nn.Module):
             
         # save result
         self.cache_result   = cache_result
+        self.cache_result_epoch = cache_result_epoch
         self.iter_vp, self.iter_rho = [],[]
+        self.cache_iter_index = []
         self.iter_loss      = []
         
         # save figure
@@ -325,8 +328,10 @@ class DIP_AcousticFWI(torch.nn.Module):
             if self.cache_result:
                 temp_vp   = self.propagator.model.vp.cpu().detach().numpy()
                 temp_rho  = self.propagator.model.rho.cpu().detach().numpy()
-                self.iter_vp.append(temp_vp)
-                self.iter_rho.append(temp_rho)
+                if i%self.cache_result_epoch == 0:
+                    self.iter_vp.append(temp_vp)
+                    self.iter_rho.append(temp_rho)
+                    self.cache_iter_index.append(i)
                 self.iter_loss.append(loss_batch)
                 # save the result
                 self.save_figure(i,temp_vp,model_type="vp")

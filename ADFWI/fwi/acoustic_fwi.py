@@ -42,6 +42,7 @@ class AcousticFWI(torch.nn.Module):
                  waveform_mute_late_window:Optional[float]                    = None,
                  waveform_mute_offset:Optional[float]                         = None,
                  cache_result:Optional[bool]                                  = True,
+                 cache_result_epoch:Optional[bool]                            = 1,
                  save_fig_epoch:Optional[int]                                 = -1,
                  save_fig_path:Optional[str]                                  = "",
                 ):
@@ -129,8 +130,10 @@ class AcousticFWI(torch.nn.Module):
         
         # result saving
         self.cache_result   = cache_result
+        self.cache_result_epoch = cache_result_epoch
         self.iter_vp, self.iter_rho = [],[]
         self.iter_vp_grad, self.iter_rho_grad = [],[]
+        self.cache_iter_index = []
         self.iter_loss      = []
         
         # figure saving
@@ -328,8 +331,10 @@ class AcousticFWI(torch.nn.Module):
                 # model
                 temp_vp   = self.model.vp.cpu().detach().numpy()
                 temp_rho  = self.model.rho.cpu().detach().numpy()
-                self.iter_vp.append(temp_vp)
-                self.iter_rho.append(temp_rho)
+                if i%self.cache_result_epoch == 0:
+                    self.iter_vp.append(temp_vp)
+                    self.iter_rho.append(temp_rho)
+                    self.cache_iter_index.append(i)
                 self.iter_loss.append(loss_batch)
                 self.save_figure(i,temp_vp     , model_type="vp")
                 self.save_figure(i,temp_rho    , model_type="rho")
@@ -428,10 +433,11 @@ class AcousticFWI(torch.nn.Module):
                 # save the inverted resutls
                 temp_vp   = self.model.vp.cpu().detach().numpy()
                 temp_rho  = self.model.rho.cpu().detach().numpy()
-                self.iter_vp.append(temp_vp)
-                self.iter_rho.append(temp_rho)
+                if i%self.cache_result_epoch == 0:
+                    self.iter_vp.append(temp_vp)
+                    self.iter_rho.append(temp_rho)
+                    self.cache_iter_index.append(i)
                 self.iter_loss.append(loss_batch)
-                
                 self.save_figure(i,temp_vp     , model_type="vp")
                 self.save_figure(i,temp_rho    , model_type="rho")
                 

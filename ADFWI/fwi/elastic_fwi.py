@@ -41,6 +41,7 @@ class ElasticFWI(torch.nn.Module):
                  waveform_mute_late_window:Optional[float]                               = None,
                  waveform_mute_offset:Optional[float]                                    = None,
                  cache_result:Optional[bool]                                             = True,
+                 cache_result_epoch:Optional[bool]                                       = 1,
                  cache_gradient:Optional[bool]                                           = False,
                  save_fig_epoch:Optional[int]                                            = -1,
                  save_fig_path:Optional[str]                                             = "",
@@ -113,11 +114,13 @@ class ElasticFWI(torch.nn.Module):
         
         # save result
         self.cache_result   = cache_result
+        self.cache_result_epoch = cache_result_epoch
         self.cache_gradient = cache_gradient
         self.iter_vp,self.iter_vs,self.iter_rho = [],[],[]       
         self.iter_eps,self.iter_delta,self.iter_gamma = [],[],[]
         self.iter_vp_grad,self.iter_vs_grad,self.iter_rho_grad = [],[],[]
         self.iter_eps_grad,self.iter_delta_grad,self.iter_gamma_grad = [],[],[]
+        self.cache_iter_index = []
         self.iter_loss      = []
         
         # save figure
@@ -308,11 +311,13 @@ class ElasticFWI(torch.nn.Module):
         # Save the model parameters
         param_names = ["vp", "vs", "rho"]
         anisotropic_params = ["eps", "delta", "gamma"] if isinstance(self.model, AnisotropicElasticModel) else []
-        for name in param_names + anisotropic_params:
-            param = getattr(self.model, name, None)
-            if param is not None:
-                temp_param = param.cpu().detach().numpy()
-                getattr(self, f"iter_{name}").append(temp_param)
+        if epoch_id % self.cache_result_epoch == 0:
+            for name in param_names + anisotropic_params:
+                param = getattr(self.model, name, None)
+                if param is not None:
+                    temp_param = param.cpu().detach().numpy()
+                    getattr(self, f"iter_{name}").append(temp_param)
+            self.cache_iter_index.append(epoch_id)
         
         # save the figure
         self.save_vp_vs_rho_fig(epoch_id,self.model.vp.cpu().detach().numpy(),

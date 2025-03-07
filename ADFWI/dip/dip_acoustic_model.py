@@ -25,8 +25,8 @@ class DIP_AcousticModel(AbstractModel):
                 dx:float,dz:float,
                 DIP_model_vp                                     = None,     # deep image prior models
                 DIP_model_rho                                    = None,
-                reparameterization_strategy                      = "vel",    # vel/vel_diff
-                reparameterization_inputs                        = "random", # random/vel/update_vel
+                reparameterization_strategy                      = "vel",    # vel/vel_diff (vel for generate the velocity model; vel_diff for generate the variation of the velocity)
+                reparameterization_inputs                        = "random", # random/vel/update_vel/coords
                 vp_init:Optional[Union[np.array,Tensor]]         = None,     # initial model parameter
                 rho_init:Optional[Union[np.array,Tensor]]        = None,
                 vp_bound    : Optional[Tuple[float, float]]      = None,     # model parameter's boundary
@@ -73,6 +73,14 @@ class DIP_AcousticModel(AbstractModel):
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
         
+        # coordinates for velocity model (for implicit FWI)
+        x = np.arange(0, nx) * dz / 1000
+        z = np.arange(0, nz) * dz / 1000
+        X, Z = np.meshgrid(x[None, :], z[:, None])
+        X = torch.from_numpy(X).type(dtype=dtype).to(device)
+        Z = torch.from_numpy(Z).type(dtype=dtype).to(device)
+        self.coords = torch.stack([X, Z], dim=-1).to(device)[None, :]  # shape [1, nz, nx, 2]
+        
         # gradient mask
         if water_layer_mask is not None:
             self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
@@ -90,11 +98,13 @@ class DIP_AcousticModel(AbstractModel):
         self.vp         = self.vp_init.clone()
         self.rho        = self.rho_init.clone()
         
-        if self.reparameterization_inputs == "vel":
+        if self.reparameterization_inputs == "vel": # input the reference velocity model
             self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
-        elif self.reparameterization_inputs == "update_vel":
+        elif self.reparameterization_inputs == "update_vel": # input the updated velocity model (initial for the initial velocity model)
             self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
-        else:
+        elif self.reparameterization_inputs == 'coords': # input coordianates (implicit neural netowrks)
+            self._parameterization(self.coords)
+        else: # random inputs (integrate into the network)
             self._parameterization()
         
         # set model bounds
@@ -249,6 +259,8 @@ class DIP_AcousticModel(AbstractModel):
             self._parameterization(self.vp_init.unsqueeze(0).unsqueeze(0))
         elif self.reparameterization_inputs == "update_vel":
             self._parameterization(numpy2tensor(self.get_model("vp")).to(self.device).unsqueeze(0).unsqueeze(0))
+        elif self.reparameterization_inputs == "coords":
+            self._parameterization(self.coords)
         else:
             self._parameterization()
         
