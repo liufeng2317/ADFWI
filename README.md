@@ -41,6 +41,8 @@
   - [7. Multi-Scale Strategy in FWI](#7-multi-scale-strategy-in-fwi)
   - [8. Deep Reparameterization](#8-deep-reparameterization)
   - [9. Uncertainty Estimation Using Deep Neural Networks (DNNs)](#9-uncertainty-estimation-using-deep-neural-networks-dnns)
+  - [10. New Features](#10-new-features)
+    - [(1) Source Encoding](#1-source-encoding)
 - [📝 Special Features](#-special-features)
 - [⚖️ LICENSE](#️-license)
 - [🗓️ To-Do List](#️-to-do-list)
@@ -53,7 +55,7 @@
 
 &emsp;&emsp;In addition, **ADFWI** provides a comprehensive collection of **Objective functions**, **regularization techniques**, **optimization algorithms**, and **deep neural networks**. This rich set of tools facilitates researchers in conducting experiments and comparisons, enabling them to explore innovative approaches and refine their methodologies effectively.
 
-![ADFWI](./docs/Md_img/Figure1-AISWIT-Workflow.png)
+![ADFWI](./docs/Md_img/Figure1-AISWIT-Workflow.jpg)
 ![NNFWI](./docs/Md_img/Figure2_DIP_process.png)
 
 ---
@@ -946,6 +948,18 @@ We employ DNNs derived from the Deep Image Prior (DIP) test described earlier, t
     </tr>
 </table>
 </div>
+
+
+### 10. New Features
+
+We have introduced more new features
+
+#### (1) Source Encoding
+
+Computational memory consumption and computational efficiency can be greatly reduced by using more seismic sources in a single round of cannon firing. More details can be foudn at jupyter notebook 
+* forward modeling: [Forward Modeling](./examples/new_features/source_encoding/01_forward.ipynb)
+* inversion: [Source Encoding](./examples/new_features/source_encoding/02_inversion-GC.ipynb)
+
 
 ---
 
