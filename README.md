@@ -53,6 +53,8 @@
 :triangular_flag_on_post: **News (March 2025)**  
 The article titled *"Automatic Differentiation-Based Full Waveform Inversion With Flexible Workflows"* has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542).
 
+:triangular_flag_on_post: **News (February 2025)**  
+The detailed document can be found at [http://www.adfwi.cn/](http://www.adfwi.cn/).
 
 ---
 
