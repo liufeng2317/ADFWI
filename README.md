@@ -50,6 +50,12 @@
 
 ---
 
+:triangular_flag_on_post: **News (March 2025)**  
+The article titled *"Automatic Differentiation-Based Full Waveform Inversion With Flexible Workflows"* has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542).
+
+
+---
+
 ## 👩‍💻 Introduction
 &emsp;&emsp;**ADFWI** is an open-source framework for high-resolution subsurface parameter estimation by minimizing discrepancies between observed and simulated waveform. Utilizing automatic differentiation (AD), ADFWI **simplifies the derivation and implementation of full waveform inversion (FWI)**, enhancing the design and evaluation of methodologies. It supports wave propagation in various media, including isotropic acoustic, isotropic elastic, and both vertical transverse isotropy (VTI) and horizontal transverse isotropy (HTI) medias.
 
@@ -1073,9 +1079,9 @@ This project was developed by **Feng Liu** at the University of Science and Tech
 
 
 
-The related paper, [Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows](https://arxiv.org/abs/2412.00486), is available on Arxiv (https://arxiv.org/abs/2412.00486). If you find ADFWI useful, please consider citing the following reference:
+The related paper, [Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542), has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542). If you find ADFWI useful, please consider citing the following reference:
 ```
-Liu, F., Li, H., Zou, G., & Li, J.. Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows[J]. arXiv preprint arXiv:2412.00486, 2024.
+Liu, F., Li, H., Zou, G., & Li, J. (2025). Automatic differentiation-based full waveform inversion with flexible workflows. Journal of Geophysical Research: Machine Learning and Computation, 2, e2024JH000542. https://doi.org/10.1029/2024JH000542
 ```
 
 or/and the software
