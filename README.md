@@ -46,9 +46,17 @@
 - [📝 Special Features](#-special-features)
 - [⚖️ LICENSE](#️-license)
 - [🗓️ To-Do List](#️-to-do-list)
-- [🔰 Contact](#-contact)
+- [📬 Contact \& Citation](#-contact--citation)
+  - [📩 Contact](#-contact)
+  - [📚 ADFWI Related Publications](#-adfwi-related-publications)
+    - [ADFWI Paper](#adfwi-paper)
+    - [ADFWI Software](#adfwi-software)
+    - [Deep Reparameterization for FWI](#deep-reparameterization-for-fwi)
 
 ---
+
+:newspaper: **Latest Update (April 2025)**  
+Our new preprint "*Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension*" is now available on [arXiv](https://arxiv.org/abs/2504.17375).
 
 :triangular_flag_on_post: **News (March 2025)**  
 The article titled *"Automatic Differentiation-Based Full Waveform Inversion With Flexible Workflows"* has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542).
@@ -1075,27 +1083,75 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 ---
-## 🔰 Contact
+以下是美化后的README内容：
 
-This project was developed by **Feng Liu** at the University of Science and Technology of China (USTC) and Shanghai Jiao Tong University (SJTU). For any inquiries, please contact Liu Feng via email at: [liufeng2317@sjtu.edu.cn](mailto:liufeng2317@sjtu.edu.cn) or [liufeng2317@mail.ustc.edu.cn](mailto:liufeng2317@mail.ustc.edu.cn).
+---
 
+## 📬 Contact & Citation
 
+### 📩 Contact
+**Principal Developer**  
+**Feng Liu**  
+🏛️ Affiliations:  
+- University of Science and Technology of China (Master)  
+- Shanghai Jiao Tong University (PhD)  
 
-The related paper, [Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542), has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542). If you find ADFWI useful, please consider citing the following reference:
-```
-Liu, F., Li, H., Zou, G., & Li, J. (2025). Automatic differentiation-based full waveform inversion with flexible workflows. Journal of Geophysical Research: Machine Learning and Computation, 2, e2024JH000542. https://doi.org/10.1029/2024JH000542
-```
+📧 **Contact Information**:  
+[![Email](https://img.shields.io/badge/Email-liufeng2317@sjtu.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@sjtu.edu.cn)  
+[![Alt Email](https://img.shields.io/badge/Alt_Email-liufeng2317@mail.ustc.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@mail.ustc.edu.cn)
 
-or/and the software
+---
 
+### 📚 ADFWI Related Publications
+
+#### [ADFWI Paper](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542)
+**🗞️ Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows**  
+**Published in**: [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542)  
 ```bibtex
-@software{ADFWI_LiuFeng_2024,
-  author       = {Feng Liu, Haipeng Li, GuangYuan Zou and Junlun Li},
-  title        = {ADFWI},
-  month        = dec,
-  year         = 2024,
-  version      = {v1.1.2},
-  doi          = {10.5281/zenodo.14261243},
-  url          = {https://doi.org/10.5281/zenodo.14261243},
+@article{liu2025automatic,
+  title={Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows},
+  author={Liu, Feng and Li, Hao and Zou, Guangli and Li, Jian},
+  journal={Journal of Geophysical Research: Machine Learning and Computation},
+  volume={2},
+  pages={e2024JH000542},
+  year={2025},
+  doi={10.1029/2024JH000542}
 }
 ```
+
+#### [ADFWI Software](https://zenodo.org/records/14261243)
+**🖥️ ADFWI Software**  
+**Archived in**: [Zenodo](https://zenodo.org/records/14261243)  
+```bibtex
+@software{liu2024adfwi,
+  author       = {Liu, Feng},
+  title        = {liufeng2317/ADFWI: Zenodo},
+  year         = {2024},
+  publisher    = {Zenodo},
+  version      = {v1.1.2},
+  doi          = {10.5281/zenodo.14261243}
+}
+```
+
+#### [Deep Reparameterization for FWI](https://arxiv.org/abs/2504.17375)
+**📜 Deep Reparameterization for Full Waveform Inversion**  
+**Available on**: [arXiv](https://arxiv.org/abs/2504.17375)  
+```bibtex
+@article{liu2025deep,
+  title={Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension},
+  author={Liu, Feng and Li, Yang and Su, Rui and Huang, Jie and Bai, Lu},
+  journal={arXiv preprint},
+  volume={arXiv:2504.17375},
+  year={2025},
+  url={https://arxiv.org/abs/2504.17375}
+}
+```
+
+---
+
+**✨ Citation Tips**  
+If you use ADFWI in your research, please consider:  
+
+1️⃣ Dual-citation recommended for both paper and software 
+
+2️⃣ Update preprint citations with final published version when available
