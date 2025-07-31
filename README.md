@@ -1083,22 +1083,21 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
   </details>
 
 ---
-以下是美化后的README内容：
-
----
 
 ## 📬 Contact & Citation
 
 ### 📩 Contact
 **Principal Developer**  
-**Feng Liu**  
+
+[Feng Liu](https://liufeng2317.github.io/)  
+
 🏛️ Affiliations:  
 - University of Science and Technology of China (Master)  
 - Shanghai Jiao Tong University (PhD)  
 
 📧 **Contact Information**:  
-[![Email](https://img.shields.io/badge/Email-liufeng2317@sjtu.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@sjtu.edu.cn)  
-[![Alt Email](https://img.shields.io/badge/Alt_Email-liufeng2317@mail.ustc.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@mail.ustc.edu.cn)
+- [![Email](https://img.shields.io/badge/Email-liufeng2317@sjtu.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@sjtu.edu.cn)  
+- [![Alt Email](https://img.shields.io/badge/Alt_Email-liufeng2317@mail.ustc.edu.cn-blue?style=flat&logo=gmail)](mailto:liufeng2317@mail.ustc.edu.cn)
 
 ---
 
