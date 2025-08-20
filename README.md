@@ -1109,7 +1109,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 ```bibtex
 @article{liu2025automatic,
   title={Automatic Differentiation-based Full Waveform Inversion with Flexible Workflows},
-  author={Liu, Feng and Li, Hao and Zou, Guangli and Li, Jian},
+  author={Liu, Feng and Li, Haipeng and Zou, Guangyuan and Li, Junlun},
   journal={Journal of Geophysical Research: Machine Learning and Computation},
   volume={2},
   pages={e2024JH000542},
@@ -1138,7 +1138,7 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 ```bibtex
 @article{liu2025deep,
   title={Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension},
-  author={Liu, Feng and Li, Yang and Su, Rui and Huang, Jie and Bai, Lu},
+  author={Liu, Feng and Li, Yaxing and Su, Rui and Huang, Jianping and Bai, Lei},
   journal={arXiv preprint},
   volume={arXiv:2504.17375},
   year={2025},
