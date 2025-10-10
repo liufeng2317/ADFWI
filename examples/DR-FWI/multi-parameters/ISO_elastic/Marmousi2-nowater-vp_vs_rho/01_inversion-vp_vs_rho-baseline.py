@@ -1,0 +1,189 @@
+import numpy as np
+import torch
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("agg")
+from scipy import integrate
+import sys
+import os
+sys.path.append("../../../../../")
+from ADFWI.propagator  import *
+from ADFWI.model       import *
+from ADFWI.view        import *
+from ADFWI.utils       import *
+from ADFWI.survey      import *
+from ADFWI.fwi         import *
+from ADFWI.dip import *
+from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
+
+if __name__ == "__main__":
+    project_path = "./data/"
+    if not os.path.exists(os.path.join(project_path,"model")):
+        os.makedirs(os.path.join(project_path,"model"))
+    if not os.path.exists(os.path.join(project_path,"waveform")):
+        os.makedirs(os.path.join(project_path,"waveform"))
+    if not os.path.exists(os.path.join(project_path,"survey")):
+        os.makedirs(os.path.join(project_path,"survey"))
+    if not os.path.exists(os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline")):
+        os.makedirs(os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline"))
+    #------------------------------------------------------
+    #                   Basic Parameters
+    #------------------------------------------------------
+    device = "cuda:6"         # Specify the GPU device
+    dtype = torch.float32     # Set data type to 32-bit floating point
+    ox, oz = 0, 0             # Origin coordinates for x and z directions
+    nz, nx = 68, 200          # Grid dimensions in z and x directions
+    dx, dz = 45, 45           # Grid spacing in x and z directions
+    nt, dt = 2500, 0.003      # Time steps and time interval
+    nabc = 50                 # Thickness of the absorbing boundary layer
+    f0 = 5                    # Initial frequency in Hz
+    free_surface = True       # Enable free surface boundary condition
+
+    #------------------------------------------------------
+    #                   Velocity Model
+    #------------------------------------------------------
+    # Load the Marmousi model dataset from the specified directory.
+    marmousi_model = load_marmousi_model(in_dir="../../../../datasets/marmousi2_source")
+
+    # Resample the Marmousi model for the defined coordinates
+    x = np.linspace(5000, 5000 + dx * nx, nx)
+    z = np.linspace(500, 500+dz * nz, nz)
+    vel_model = resample_marmousi_model(x, z, marmousi_model)
+
+    vp_true  = vel_model['vp'].T
+    vs_true  = vel_model['vs'].T
+    rho_true = vel_model['rho'].T
+    # rho_true = np.ones_like(vp_true)*2450
+
+    smooth_model= get_smooth_marmousi_model(vel_model,gaussian_kernel=4,mask_extra_detph=0)
+    vp_init     = smooth_model['vp'].T
+    vs_init     = smooth_model['vs'].T
+    rho_init    = smooth_model['rho'].T
+    # rho_init = rho_true
+
+    # processing the water layer
+    model = IsotropicElasticModel(
+                    ox,oz,nx,nz,dx,dz,
+                    vp_init,vs_init,rho_init,
+                    vp_bound =[vp_true.min(),vp_true.max()],
+                    vs_bound =[vs_true.min(),vs_true.max()],
+                    rho_bound=[rho_true.min(),rho_true.max()],
+                    vp_grad = True, vs_grad = True, rho_grad=True,
+                    auto_update_rho=False, auto_update_vp=False,
+                    free_surface=free_surface,
+                    abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc,
+                    device=device,dtype=dtype)
+    print(model.__repr__())
+    model.save(os.path.join(project_path,"model/init_model.npz"))
+    
+    #------------------------------------------------------
+    #                   Source And Receiver
+    #------------------------------------------------------
+    # source    
+    src_z = np.array([2 for i in range(2, nx-1, 5)])  # Z-coordinates for sources
+    src_x = np.array([i for i in range(2, nx-1, 5)])  # X-coordinates for sources
+    src_t,src_v = wavelet(nt,dt,f0,amp0=1)
+    src_v = integrate.cumtrapz(src_v, axis=-1, initial=0) #Integrate
+    source = Source(nt=nt,dt=dt,f0=f0)
+    for i in range(len(src_x)):
+        source.add_source(src_x=src_x[i],src_z=src_z[i],src_wavelet=src_v,src_type="mt",src_mt=np.array([[1,0,0],[0,1,0],[0,0,1]]))
+    source.plot_wavelet(save_path=os.path.join(project_path,"survey/wavelets.png"),show=False)
+
+    # receiver
+    rcv_z = np.array([2 for i in range(0, nx, 1)])  # Z-coordinates for receivers
+    rcv_x = np.array([j for j in range(0, nx, 1)])  # X-coordinates for receivers
+    receiver = Receiver(nt=nt,dt=dt)
+    for i in range(len(rcv_x)):
+        receiver.add_receiver(rcv_x=rcv_x[i],rcv_z=rcv_z[i],rcv_type="pr")
+    
+    # survey
+    survey = Survey(source=source,receiver=receiver)
+    print(survey.__repr__())
+    survey.plot(model.vp,cmap='coolwarm',save_path=os.path.join(project_path,"survey/observed_system_init.png"),show=False)
+    
+    #------------------------------------------------------
+    #                   Waveform Propagator
+    #------------------------------------------------------
+    # Initialize the wave propagator using the specified model and survey configuration
+    F = ElasticPropagator(model,survey,device=device)
+
+    # load data
+    d_obs = SeismicData(survey)
+    d_obs.load(os.path.join(project_path,"waveform/obs_data.npz"))
+    print(d_obs.__repr__())
+        
+    # optimizer
+    iteration   =   300
+    optimizer   =   torch.optim.Adam(model.parameters(), lr = 10)
+    # optimizer   =   torch.optim.SGD(model.parameters(), lr = 0.01)
+    scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=200,gamma=0.75,last_epoch=-1)
+
+    # Setup misfit function
+    from ADFWI.fwi.misfit import Misfit_global_correlation
+    from ADFWI.fwi.regularization import regularization_TV_2order
+    loss_fn = Misfit_global_correlation(dt=1)
+    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
+
+    # gradient processor
+    grad_mask             = np.ones((nz,nx))
+    gradient_processor_vp = GradProcessor(grad_mask=grad_mask,forw_illumination=False,norm_grad=True,grad_smooth=0)
+    gradient_processor_vs = GradProcessor(grad_mask=grad_mask,forw_illumination=False,norm_grad=True,grad_smooth=0)
+    gradient_processor_rho= GradProcessor(grad_mask=grad_mask,forw_illumination=False,norm_grad=True,grad_smooth=0)
+    gradient_processor = [gradient_processor_vp,gradient_processor_vs,gradient_processor_rho]
+
+    # Initialize the acoustic full waveform inversion (FWI) object.
+    fwi = ElasticFWI(propagator=F,
+                        model=model,
+                        optimizer=optimizer,
+                        scheduler=scheduler,
+                        loss_fn=loss_fn,
+                        regularization_fn=regularization_fn,
+                        regularization_weights_x=[0,0,0,0,0,0],
+                        regularization_weights_z=[0,0,0,0,0,0],
+                        obs_data=d_obs,
+                        gradient_processor=gradient_processor,
+                        waveform_normalize=True,
+                        cache_result=True,
+                        save_fig_epoch=10,
+                        save_fig_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline"),
+                        inversion_component=["vx","vz"],
+                        )
+
+    # Run the forward modeling for the specified number of iterations.
+    fwi.forward(iteration=iteration,fd_order=4,
+                        batch_size=None,checkpoint_segments=7,
+                        start_iter=0)
+    
+    # Retrieve the inversion results: updated velocity and loss values.
+    iter_vp     = fwi.iter_vp
+    iter_vs     = fwi.iter_vs
+    iter_rho    = fwi.iter_rho
+    iter_loss   = fwi.iter_loss
+    # Save the iteration results to files for later analysis.
+    np.savez(os.path.join(project_path,"no-gradient-smooth/inversion-vp_vs_rho-baseline/iter_vp.npz"),data=np.array(iter_vp))
+    np.savez(os.path.join(project_path,"no-gradient-smooth/inversion-vp_vs_rho-baseline/iter_vs.npz"),data=np.array(iter_vs))
+    np.savez(os.path.join(project_path,"no-gradient-smooth/inversion-vp_vs_rho-baseline/iter_rho.npz"),data=np.array(iter_rho))
+    np.savez(os.path.join(project_path,"no-gradient-smooth/inversion-vp_vs_rho-baseline/iter_loss.npz"),data=np.array(iter_loss))
+
+    #------------------------------------------------------
+    #            Visualize the Inversion Results
+    #------------------------------------------------------
+    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
+    
+    # misfit
+    plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline/misfit.png"),show=False)
+    
+    # inverted results
+    vp_init = vp_init.cpu().detach().numpy() if torch.is_tensor(vp_init) else vp_init
+    vs_init = vs_init.cpu().detach().numpy() if torch.is_tensor(vs_init) else vs_init
+    rho_init = rho_init.cpu().detach().numpy() if torch.is_tensor(rho_init) else rho_init
+    plot_initial_and_inverted(vp_init=vp_init,iter_vp=iter_vp,save_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inverted_vp.png"),show=False)
+    plot_initial_and_inverted(vp_init=vs_init,iter_vp=iter_vs,save_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inverted_vs.png"),show=False)
+    plot_initial_and_inverted(vp_init=rho_init,iter_vp=iter_rho,save_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inverted_rho.png"),show=False)
+    
+    # inversion animation
+    animate_inversion_process(iter_vp=iter_vp,vmin=vp_true.min(),vmax=vp_true.max(),save_path=os.path.join(project_path, f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inversion_vp.gif"),fps=10)
+    animate_inversion_process(iter_vp=iter_vs,vmin=vs_true.min(),vmax=vs_true.max(),save_path=os.path.join(project_path, f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inversion_vs.gif"),fps=10)
+    animate_inversion_process(iter_vp=iter_rho,vmin=rho_true.min(),vmax=rho_true.max(),save_path=os.path.join(project_path, f"no-gradient-smooth/inversion-vp_vs_rho-baseline/inversion_rho.gif"),fps=10)
