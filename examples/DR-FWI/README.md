@@ -20,8 +20,8 @@ We systematically benchmark multiple neural architectures (CNN, MLP, U-Net) and 
 
 ### 2. 🛡️ Robust Inversion under Sparse and Noisy Conditions
 DR-FWI remains highly effective even under challenging conditions:
-- Works well with extremely sparse data (e.g., 10 sources × 20 receivers).
-- Maintains performance under strong noise (e.g., Gaussian noise with 6× standard deviation).
+- Works well with extremely **sparse data** (e.g., 10 sources × 20 receivers).
+- Maintains performance under **strong noise** (e.g., Gaussian noise with 6× standard deviation).
 - Significantly outperforms conventional FWI in accuracy and stability, enabling applications in data-limited and cost-sensitive environments.
 
 ### 3. 🔁 Multiphysics Joint Inversion via Adaptive Backbone–Branch Network
@@ -29,6 +29,15 @@ We propose a unified **backbone–branch** network for multiparameter inversion:
 - A **shared backbone** captures common structural features.
 - Separate **branches** learn parameter-specific details (e.g., $v_p$, $v_s$, $\rho$), with normalization tailored to each.
 - Demonstrated on synthetic and Marmousi2 models, this architecture significantly reduces parameter crosstalk, offering a scalable solution for multiphysics joint inversion.
+
+### 4. ⚙️ Mechanistic Insights into Deep Reparameterization
+
+We reveal the underlying mechanism that explains why deep reparameterization enhances FWI stability and accuracy. Through spectral dynamics analysis, DR-FWI is shown to impose implicit frequency regularization, consistent with the “spectral bias” observed in deep neural networks.
+- **Progressive frequency learning**: Neural representations first reconstruct low-wavenumber (large-scale) structures and gradually recover high-wavenumber details, forming a natural low-to-high frequency learning sequence.
+- **Implicit regularization**: This spectral bias acts as a built-in regularizer, preventing convergence to local minima and improving robustness against noise and poor initial models.
+- **Architecture-dependent dynamics**: CNNs and U-Nets exhibit stronger low-frequency preference than MLPs, leading to smoother and more geologically consistent inversion results.
+
+These findings bridge empirical observations with theoretical understanding, demonstrating that deep reparameterization functions as an implicit hierarchical spectral regularizer in FWI.
 
 ---
 
@@ -43,6 +52,9 @@ We propose a unified **backbone–branch** network for multiparameter inversion:
 
   <img src="./Figures/Figure3_MultiParameter_Network.png" width="600"/>
   <p><b>Figure 3:</b> "Backbone–branch" architecture for joint inversion of multiple physical parameters.</p>
+
+  <img src="./Figures/Figure10_FBC.png" width="400">
+  <p><b>Figure 10:</b> Frequency-Band Correspondence (FBC) analysis for conventional FWI and DR-FWI with different reparameterization networks.</p>
 </div>
 
 ---
