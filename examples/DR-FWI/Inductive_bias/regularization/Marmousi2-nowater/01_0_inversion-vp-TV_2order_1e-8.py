@@ -6,7 +6,7 @@ matplotlib.use("agg")
 from scipy import integrate
 import sys
 import os
-sys.path.append("/home/bingxing2/ailab/scxlab0055/project/04_Inversion/ADFWI-github")
+sys.path.append("../../../../../")
 from ADFWI.propagator  import *
 from ADFWI.model       import *
 from ADFWI.view        import *

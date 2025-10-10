@@ -6,7 +6,7 @@ matplotlib.use("agg")
 from scipy import integrate
 import sys
 import os
-sys.path.append("/home/bingxing2/ailab/scxlab0055/project/04_Inversion/ADFWI-github")
+sys.path.append("../../../../../")
 from ADFWI.propagator  import *
 from ADFWI.model       import *
 from ADFWI.view        import *
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     free_surface = True       # Enable free surface boundary condition
     
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir="/home/bingxing2/ailab/scxlab0055/project/04_Inversion/ADFWI-github/examples/datasets/marmousi2_source")
+    marmousi_model = load_marmousi_model(in_dir="../../../../datasets/marmousi2_source")
 
     # Create coordinate arrays for x and z based on the grid size.
     x = np.linspace(5000, 5000 + dx * nx, nx)
