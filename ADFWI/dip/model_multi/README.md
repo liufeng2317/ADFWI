@@ -1,4 +1,4 @@
-The v2 version supportin user to define the branches automatically.
+The v2 version supports users in automatically defining network branches.
 
 
-All the network is set as simple as possible, more proper network structure can be designed as yourself.
+The network is intentionally kept as simple as possible, and users can design more appropriate architectures as needed.
