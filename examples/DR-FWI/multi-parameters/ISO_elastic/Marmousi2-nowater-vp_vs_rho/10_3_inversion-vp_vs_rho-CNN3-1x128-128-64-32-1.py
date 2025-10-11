@@ -70,9 +70,9 @@ if __name__ == "__main__":
     model_shape = [nz,nx]
     DIP_model  = DIP_CNN(model_shape,
                         random_state_num=100,
-                        in_channels=[128],
-                        out_channels = [128, 64,32,1],
-                        out_channels_number=3,
+                        backbone_channels=[128],
+                        branches_channels = [128, 64,32,1],
+                        branches_number=3,
                         vmins=[vp_true.min()/1000,vs_true.min()/1000,rho_true.min()/1000] ,
                         vmaxs=[vp_true.max()/1000,vs_true.max()/1000,rho_true.max()/1000],
                         units=[1000,1000,1000],device=device)
