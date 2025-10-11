@@ -147,6 +147,7 @@ if __name__ == "__main__":
                 scheduler.step()
                 pbar.set_description(f'Pretrain Iter:{i}, Misfit:{loss.cpu().detach().numpy()}')
             torch.save(DIP_model_rho.state_dict(),os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-CNN-2x32/DIP_model_rho_pretrained.pt"))
+    
     # -----------------------------------
     #     velocity model for FWI
     # -----------------------------------
