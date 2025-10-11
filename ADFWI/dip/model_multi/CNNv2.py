@@ -19,9 +19,9 @@ import math
 class CNNs(torch.nn.Module):
     def __init__(self,model_shape,
                  random_state_num    = 100,
-                 in_channels         = [32,32],
-                 out_channels        = [1],
-                 out_channels_number = 1,
+                 backbone_channels   = [32,32],
+                 branches_channels   = [1],
+                 branches_number     = 1,
                  vmins               = [None], 
                  vmaxs               = [None],
                  units               = [1000],
@@ -29,11 +29,12 @@ class CNNs(torch.nn.Module):
                  device="cpu"):
         """
             model_shape (tuple) : the shape of velocity model
-            in_channels (list)  : the channels of backbone
-            out_channels (list) : the channels of branches
-            out_channels_number (int) : the number of branches
-            vmin (float)        : the minimum velocity of output
-            vmax (float)        : the maximum velocity of output
+            backbone_channels (list)  : the channels of backbone
+            branches_channels (list) : the channels of branches
+            branches_number (int) : the number of branches
+            vmins (list)        : the minimum velocity of output
+            vmaxs (list)        : the maximum velocity of output
+            units (list)       : the unit of the model parameters
             dropout_prob (float): probability of dropout
             device (optional)   : cpu or cuda
         """
@@ -42,10 +43,10 @@ class CNNs(torch.nn.Module):
         self.vmins = vmins
         self.vmaxs = vmaxs
         self.units = units
-        self.out_channels_number = out_channels_number
+        self.branches_number = branches_number
         
         # model setting
-        self.layer_num = layer_num = len(in_channels)-1
+        self.layer_num = layer_num = len(backbone_channels)-1
         h_in        = math.ceil(model_shape[0]/(2**layer_num))
         w_in        = math.ceil(model_shape[1]/(2**layer_num))
         self.h_v0   = model_shape[0]
@@ -55,8 +56,8 @@ class CNNs(torch.nn.Module):
         self.in_features = random_state_num
         
         self.FNN_in = nn.Sequential(
-            nn.Linear(in_features=self.in_features,out_features=h_in*w_in*in_channels[0],bias=False),
-            nn.Unflatten(0,(-1,in_channels[0],h_in,w_in)),
+            nn.Linear(in_features=self.in_features,out_features=h_in*w_in*backbone_channels[0],bias=False),
+            nn.Unflatten(0,(-1,backbone_channels[0],h_in,w_in)),
             nn.LeakyReLU(0.1)
         )
         
@@ -65,7 +66,7 @@ class CNNs(torch.nn.Module):
             self.CNN_Blocks.append(
                 nn.Sequential(
                     nn.UpsamplingBilinear2d(scale_factor=(2,2)),
-                    nn.Conv2d(in_channels = in_channels[i],out_channels=in_channels[i+1],kernel_size=4,stride=1,padding="same",bias=False),
+                    nn.Conv2d(in_channels = backbone_channels[i],out_channels=backbone_channels[i+1],kernel_size=4,stride=1,padding="same",bias=False),
                     nn.LeakyReLU(0.1),
                     nn.Dropout(p=dropout_prob)  # add dropout layer
                 )
@@ -73,12 +74,12 @@ class CNNs(torch.nn.Module):
 
         # Define separate branches for each output channel
         self.branches = nn.ModuleList()
-        for branch_channels in range(out_channels_number):
+        for _ in range(branches_number):
             layers = []
-            in_ch = in_channels[-1]
-            for idx, out_ch in enumerate(out_channels):
+            in_ch = backbone_channels[-1]
+            for idx, out_ch in enumerate(branches_channels):
                 layers.append(nn.Conv2d(in_channels=in_ch, out_channels=out_ch, kernel_size=4, stride=1, padding="same", bias=False))
-                if idx < len(out_channels) - 1:
+                if idx < len(branches_channels) - 1:
                     layers.append(nn.LeakyReLU(0.1))
                     layers.append(nn.Dropout(p=dropout_prob))
                 in_ch = out_ch
@@ -104,7 +105,7 @@ class CNNs(torch.nn.Module):
         
         out_res = []
         
-        for i in range(self.out_channels_number):
+        for i in range(self.branches_number):
             out_temp = out[i]
             vmin     = self.vmins[i]
             vmax     = self.vmaxs[i]
@@ -118,7 +119,7 @@ class CNNs(torch.nn.Module):
                                 (w_v-w_v0)//2:(w_v-w_v0)//2+w_v0]
             out_res.append(out_temp)
         
-        if self.out_channels_number == 1:
+        if self.branches_number == 1:
             return out_res[0]
         else:
             return out_res

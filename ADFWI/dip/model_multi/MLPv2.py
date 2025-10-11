@@ -21,6 +21,16 @@ class MLPs(torch.nn.Module):
                  vmaxs               = [None],
                  units               = [1000],
                  device="cpu"):
+        """
+            model_shape (tuple) : the shape of velocity model
+            random_state_num (int) : the number of random state
+            hidden_layer_number (list) : the number of hidden layers
+            out_channels_number (int) : the number of output channels
+            vmins (list)        : the minimum velocity of output
+            vmaxs (list)        : the maximum velocity of output
+            units (list)       : the unit of the model parameters
+            device (optional)   : cpu or cuda
+        """
         super(MLPs,self).__init__()
         self.device = device
         self.vmins = vmins

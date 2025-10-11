@@ -23,6 +23,7 @@ import math
 #   GEOPHYSICS, 87, R93–R109. 
 #   doi:10.1190/geo2020-0933.1  
 ############################################################################
+
 # model
 class CNNs(torch.nn.Module):
     def __init__(self,model_shape,
@@ -36,10 +37,13 @@ class CNNs(torch.nn.Module):
                  device="cpu"):
         """
             model_shape (tuple) : the shape of velocity model
+            random_state_num (int) : the number of random state
             in_channels (list)  : the input and output channels for each CNN block
-            vmin (float)        : the minimum velocity of output
-            vmax (float)        : the maximum velocity of output
-            dropout_prob (float): dropout的概率
+            out_channels_number (int) : the number of output channels
+            vmins (list)        : the minimum velocity of output
+            vmaxs (list)        : the maximum velocity of output
+            units (list)       : the unit of the model parameters
+            dropout_prob (float): probability of dropout
             device (optional)   : cpu or cuda
         """
         super(CNNs,self).__init__()
