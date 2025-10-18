@@ -2,6 +2,8 @@
 *.pt
 *.out
 *.sh
+.history/
+.gitignore
 __pycache__/
 docs/CodeBooks/
 log/
@@ -15,7 +17,7 @@ build
 dist
 MANIFEST.in
 docs/
-ADFWI/dip/
+# ADFWI/dip/
 examples/github_Issue
 examples/acoustic/
 examples/elastic/
@@ -34,3 +36,34 @@ examples/dip/sparseShotsTests
 examples/dip/
 examples/acoustic/Article-Adding-Test
 examples/real-case-study
+
+# DR-FWI
+cmp
+data*/
+GC*/
+*.json
+notebook*/
+jupyter*/
+examples/DR-FWI/Article_Figure
+examples/DR-FWI/Inductive_bias/imputation_bias/low-frequency-missing
+examples/DR-FWI/Inductive_bias/imputation_bias/Marmousi2-nowater-MissingTrace
+examples/DR-FWI/Inductive_bias/imputation_bias/Marmousi2-nowater-SingleSide
+examples/DR-FWI/Inductive_bias/initial_model/Marmousi2-nowater-LinearInitModel
+examples/DR-FWI/Inductive_bias/regularization/Marmousi2-nowater-higherResolution
+examples/DR-FWI/Inductive_bias/regularization/Marmousi2-nowater-RealNoise
+
+examples/DR-FWI/multi-parameters/ISO_acoustic/Anomaly-Model
+examples/DR-FWI/multi-parameters/ISO_acoustic/Marmousi2
+examples/DR-FWI/multi-parameters/ISO_acoustic/Marmousi2-nowater
+examples/DR-FWI/multi-parameters/ISO_acoustic/Marmousi2-nowater-highResolution
+examples/DR-FWI/multi-parameters/ISO_acoustic/Overthrust
+examples/DR-FWI/multi-parameters/ISO_acoustic/Overthrust-highResolution
+examples/DR-FWI/multi-parameters/ISO_elastic/Marmousi2-vp_vs
+examples/DR-FWI/multi-parameters/ISO_elastic/Marmousi2-vp_vs_rho
+examples/DR-FWI/multi-parameters/VTI_elastic
+examples/DR-FWI/multi-parameters/ISO_elastic/Anomaly-vp_vs_rho-shotTop-recTop-v2
+
+examples/DR-FWI/reparameterization-strategy/Analysis
+examples/DR-FWI/reparameterization-strategy/Marmousi2-nowater-highresolution
+
+examples/DR-FWI/Utils
