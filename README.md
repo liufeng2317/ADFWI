@@ -51,12 +51,15 @@
   - [📚 ADFWI Related Publications](#-adfwi-related-publications)
     - [ADFWI Paper](#adfwi-paper)
     - [ADFWI Software](#adfwi-software)
-    - [Deep Reparameterization for FWI](#deep-reparameterization-for-fwi)
+    - [Deep Reparameterization for FWI (DR-FWI)](#deep-reparameterization-for-fwi-dr-fwi)
 
 ---
 
-:newspaper: **Latest Update (April 2025)**  
-Our new preprint "*Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension*" is now available on [arXiv](https://arxiv.org/abs/2504.17375).
+:newspaper: **Latest Update (April 2026)**  
+A new upgoing multi-agent architecture enables ADFWI to coordinate forward modeling, inversion, and interpretation in FWI, allowing information to flow from low-level simulation agents up to high-level interpretation agents.
+
+:triangular_flag_on_post: **News (June 2025)**  
+The DR-FWI paper, *"Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension"*, has been published in [Petroleum Science](https://doi.org/10.1016/j.petsci.2025.12.027).
 
 :triangular_flag_on_post: **News (March 2025)**  
 The article titled *"Automatic Differentiation-Based Full Waveform Inversion With Flexible Workflows"* has been published in [JGR: Machine Learning & Computation](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JH000542).
@@ -1132,17 +1135,16 @@ The **Automatic Differentiation-Based Full Waveform Inversion (ADFWI)** framewor
 }
 ```
 
-#### [Deep Reparameterization for FWI](https://arxiv.org/abs/2504.17375)
+#### [Deep Reparameterization for FWI (DR-FWI)](https://doi.org/10.1016/j.petsci.2025.12.027)
 **📜 Deep Reparameterization for Full Waveform Inversion**  
-**Available on**: [arXiv](https://arxiv.org/abs/2504.17375)  
+**Published in**: [Petroleum Science](https://doi.org/10.1016/j.petsci.2025.12.027)  
 ```bibtex
 @article{liu2025deep,
-  title={Deep Reparameterization for Full Waveform Inversion: Architecture Benchmarking, Robust Inversion, and Multiphysics Extension},
+  title={Deep reparameterization for full waveform inversion: Architecture benchmarking, robust inversion, and multiphysics extension},
   author={Liu, Feng and Li, Yaxing and Su, Rui and Huang, Jianping and Bai, Lei},
-  journal={arXiv preprint},
-  volume={arXiv:2504.17375},
+  journal={Petroleum Science},
   year={2025},
-  url={https://arxiv.org/abs/2504.17375}
+  doi={10.1016/j.petsci.2025.12.027}
 }
 ```
 
