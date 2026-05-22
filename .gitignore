@@ -67,3 +67,9 @@ examples/DR-FWI/reparameterization-strategy/Analysis
 examples/DR-FWI/reparameterization-strategy/Marmousi2-nowater-highresolution
 
 examples/DR-FWI/Utils
+
+# new misfit test
+examples/acoustic/02-misfit-functions-test/03-NewMisfit-Test
+examples/acoustic/02-misfit-functions-test/03-NewMisfit-Design
+
+# new feature docs
