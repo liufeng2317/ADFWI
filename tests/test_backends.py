@@ -112,6 +112,17 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(ADFWI.backend().device.type, "cpu")
         self.assertEqual(ADFWI.backend_diagnostics()["device"], "cpu")
 
+    def test_top_level_adfwi_backend_api_can_target_npu_when_available(self):
+        npu = getattr(torch, "npu", None)
+        is_available = getattr(npu, "is_available", None)
+        if not (callable(is_available) and is_available()):
+            self.skipTest("NPU is not available on this machine")
+
+        backend_obj = ADFWI.set_backend("npu:0", dtype="float32")
+        self.assertEqual(backend_obj.name, "npu")
+        self.assertEqual(str(backend_obj.device), "npu:0")
+        self.assertEqual(ADFWI.backend_diagnostics()["device"], "npu:0")
+
 
 if __name__ == "__main__":
     unittest.main()
