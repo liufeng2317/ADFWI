@@ -315,6 +315,28 @@ The CPU run may still emit Ascend owner warnings because importing the backend
 checks optional NPU availability in the local environment; those warnings did not
 affect the smoke-test result.
 
+## Mini Inversion Smoke Test
+
+A one-iteration AcousticFWI smoke test has been added to validate the full
+forward/loss/backward/optimizer/model-update path without touching notebooks or
+example outputs:
+
+```bash
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device cpu
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0
+```
+
+The script builds an in-memory true acoustic model and a perturbed initial model,
+synthesizes observed data from the true model, and runs one `AcousticFWI`
+iteration on the initial model. It checks that loss, `vp` gradient norm, and
+model update norm are finite and nonzero. Progress bars are hidden by default;
+pass `--show-progress` when debugging the FWI loop.
+
+Validated on the local `adfwi` CPU+NPU environment:
+
+- CPU: status `ok`, loss about `3.803281e-07`, finite nonzero `vp` gradient, finite nonzero model update.
+- NPU `npu:0`: status `ok`, loss about `3.803281e-07`, finite nonzero `vp` gradient, finite nonzero model update.
+
 ## Expected User Workflow After Migration
 
 Before:
