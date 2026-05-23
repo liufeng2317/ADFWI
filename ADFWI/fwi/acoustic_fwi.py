@@ -17,7 +17,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.transforms import DataTransformPipeline, TraceNormalize
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
@@ -68,7 +68,7 @@ class AcousticFWI(torch.nn.Module):
         waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
         waveform_mute_late_window:Optional[float]                      : Clipping data after picking the first arrival with the given window size.
         waveform_mute_offset:Optional[float]                           : Clipping data larger than the given offset threshold.
-        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline. If omitted, waveform_normalize=True is implemented internally with TraceNormalize.
+        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline. If omitted, data masks are applied through DataMask and waveform_normalize=True is implemented internally with TraceNormalize.
         cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
         save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).
@@ -148,9 +148,15 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_path  = save_fig_path
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
-        if data_transform_pipeline is None and waveform_normalize:
-            return DataTransformPipeline([TraceNormalize()]), False
-        return data_transform_pipeline, waveform_normalize
+        data_mask = DataMask(required=False, apply_to="synthetic")
+        if data_transform_pipeline is not None:
+            return DataTransformPipeline([data_mask, data_transform_pipeline]), waveform_normalize
+
+        transforms = [data_mask]
+        if waveform_normalize:
+            transforms.append(TraceNormalize())
+            waveform_normalize = False
+        return DataTransformPipeline(transforms), waveform_normalize
 
     def _validate_device_consistency(self):
         if self.model.device != self.propagator.device:
@@ -339,9 +345,6 @@ class AcousticFWI(torch.nn.Module):
                     syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
                     for k in range(rcv_p.shape[0]):
                         syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
-                if self.data_masks is not None:
-                    data_mask = self.data_masks[shot_index]
-                    syn_p = syn_p * data_mask
                 data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt,shot_index)
                 
                 # regularization
@@ -439,9 +442,6 @@ class AcousticFWI(torch.nn.Module):
                         syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
                         for k in range(rcv_p.shape[0]):
                             syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
-                    if self.data_masks is not None:
-                        data_mask = self.data_masks[shot_index]
-                        syn_p = syn_p * data_mask
                     data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
                     
                     # regularization

@@ -127,6 +127,14 @@ Candidate transforms:
 - low-pass filtering
 - trace normalization
 
+Current bv1.2 status:
+
+- pure torch `TraceNormalize`, `ReceiverMask`, and `DataMask` transforms exist with CPU/NPU tests;
+- `AcousticFWI` routes default waveform normalization through transforms;
+- `AcousticFWI` now routes synthetic-side `data_masks` through `DataMask(required=False, apply_to="synthetic")`;
+- `ElasticFWI` now uses the same transform entry for default normalization and synthetic-side sample masks across pressure, vx, and vz components;
+- receiver-mask migration, mute windows, and low-pass filtering remain in the legacy FWI path until separate shape/device validation is complete.
+
 Target style:
 
 ```python

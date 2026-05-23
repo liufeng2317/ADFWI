@@ -60,6 +60,22 @@ class DataTransformTests(unittest.TestCase):
         self.assertTrue(torch.equal(out_obs[:, 1, :], torch.zeros_like(out_obs[:, 1, :])))
         self.assertTrue(torch.equal(out_syn[:, 0, :], synthetic[:, 0, :]))
 
+    def test_data_mask_can_be_optional_noop(self):
+        synthetic, observed = self._waveforms()
+        out_syn, out_obs = DataMask(required=False)(synthetic, observed, context={})
+
+        self.assertTrue(torch.equal(out_syn, synthetic))
+        self.assertTrue(torch.equal(out_obs, observed))
+
+    def test_data_mask_can_apply_to_synthetic_only(self):
+        synthetic, observed = self._waveforms()
+        mask = torch.ones_like(synthetic)
+        mask[:, 1, :] = 0
+        out_syn, out_obs = DataMask(mask, apply_to="synthetic")(synthetic, observed)
+
+        self.assertTrue(torch.equal(out_syn[:, 1, :], torch.zeros_like(out_syn[:, 1, :])))
+        self.assertTrue(torch.equal(out_obs, observed))
+
     def test_masks_can_come_from_context(self):
         synthetic, observed = self._waveforms()
         pipeline = DataTransformPipeline([ReceiverMask(), DataMask()])

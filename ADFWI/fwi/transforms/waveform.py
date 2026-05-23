@@ -2,17 +2,41 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import torch
 
 from .base import Context, DataTransform, TensorPair
 
 
-def _context_value(context: Context, key: str) -> Any:
+MaskTarget = Literal["synthetic", "observed", "both"]
+
+
+def _context_value(context: Context, key: str, required: bool = True) -> Any:
     if context is None or key not in context:
+        if not required:
+            return None
         raise ValueError(f"{key!r} must be provided either at construction time or in context")
     return context[key]
+
+
+def _validate_apply_to(apply_to: MaskTarget) -> MaskTarget:
+    if apply_to not in {"synthetic", "observed", "both"}:
+        raise ValueError("apply_to must be one of 'synthetic', 'observed', or 'both'")
+    return apply_to
+
+
+def _apply_mask(
+    synthetic: torch.Tensor,
+    observed: torch.Tensor,
+    mask: torch.Tensor,
+    apply_to: MaskTarget,
+) -> TensorPair:
+    if apply_to == "synthetic":
+        return synthetic * mask, observed
+    if apply_to == "observed":
+        return synthetic, observed * mask
+    return synthetic * mask, observed * mask
 
 
 def _as_mask_tensor(mask: Any, reference: torch.Tensor) -> torch.Tensor:
@@ -62,13 +86,17 @@ class ReceiverMask(DataTransform):
     If no mask is provided at construction time, ``context["receiver_mask"]`` is used.
     """
 
-    def __init__(self, mask: Optional[Any] = None) -> None:
+    def __init__(self, mask: Optional[Any] = None, required: bool = True, apply_to: MaskTarget = "both") -> None:
         self.mask = mask
+        self.required = required
+        self.apply_to = _validate_apply_to(apply_to)
 
     def __call__(self, synthetic: torch.Tensor, observed: torch.Tensor, context: Context = None) -> TensorPair:
-        raw_mask = self.mask if self.mask is not None else _context_value(context, "receiver_mask")
+        raw_mask = self.mask if self.mask is not None else _context_value(context, "receiver_mask", required=self.required)
+        if raw_mask is None:
+            return synthetic, observed
         mask = _broadcast_mask(_as_mask_tensor(raw_mask, synthetic), synthetic)
-        return synthetic * mask, observed * mask
+        return _apply_mask(synthetic, observed, mask, self.apply_to)
 
 
 class DataMask(DataTransform):
@@ -78,10 +106,14 @@ class DataMask(DataTransform):
     The mask can be any shape broadcastable to the synthetic/observed tensors.
     """
 
-    def __init__(self, mask: Optional[Any] = None) -> None:
+    def __init__(self, mask: Optional[Any] = None, required: bool = True, apply_to: MaskTarget = "both") -> None:
         self.mask = mask
+        self.required = required
+        self.apply_to = _validate_apply_to(apply_to)
 
     def __call__(self, synthetic: torch.Tensor, observed: torch.Tensor, context: Context = None) -> TensorPair:
-        raw_mask = self.mask if self.mask is not None else _context_value(context, "data_mask")
+        raw_mask = self.mask if self.mask is not None else _context_value(context, "data_mask", required=self.required)
+        if raw_mask is None:
+            return synthetic, observed
         mask = _broadcast_mask(_as_mask_tensor(raw_mask, synthetic), synthetic)
-        return synthetic * mask, observed * mask
+        return _apply_mask(synthetic, observed, mask, self.apply_to)

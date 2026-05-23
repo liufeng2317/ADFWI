@@ -6,7 +6,7 @@ import torch
 from ADFWI.backends import configure_backend, get_backend
 from ADFWI.model import AcousticModel, IsotropicElasticModel
 from ADFWI.propagator import AcousticPropagator, ElasticPropagator
-from ADFWI.fwi import AcousticFWI
+from ADFWI.fwi import AcousticFWI, ElasticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
@@ -197,7 +197,48 @@ class BackendIntegrationTests(unittest.TestCase):
         )
 
         self.assertIsInstance(fwi.data_transform_pipeline, DataTransformPipeline)
-        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], TraceNormalize)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], DataMask)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], TraceNormalize)
+        self.assertFalse(fwi.waveform_normalize)
+
+        synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
+        observed = synthetic * 2
+        loss = fwi.calculate_loss(synthetic, observed, fwi.waveform_normalize, fwi.loss_fn, shot_index=np.array([0]))
+
+        self.assertEqual(float(loss.detach().cpu().item()), 0.0)
+
+    def test_elastic_fwi_default_normalization_uses_transform_pipeline(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 1), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 1), dtype=np.float32),
+            "vx": np.zeros((1, 8, 1), dtype=np.float32),
+            "vz": np.zeros((1, 8, 1), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+
+        fwi = ElasticFWI(
+            propagator,
+            model,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            waveform_normalize=True,
+            cache_result=False,
+        )
+
+        self.assertIsInstance(fwi.data_transform_pipeline, DataTransformPipeline)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], DataMask)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], TraceNormalize)
         self.assertFalse(fwi.waveform_normalize)
 
         synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)

@@ -17,6 +17,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
@@ -40,6 +41,7 @@ class ElasticFWI(torch.nn.Module):
                  waveform_normalize:Optional[bool]                                       = True,
                  waveform_mute_late_window:Optional[float]                               = None,
                  waveform_mute_offset:Optional[float]                                    = None,
+                 data_transform_pipeline:Optional[DataTransformPipeline]                  = None,
                  cache_result:Optional[bool]                                             = True,
                  cache_result_epoch:Optional[bool]                                       = 1,
                  cache_gradient:Optional[bool]                                           = False,
@@ -61,6 +63,7 @@ class ElasticFWI(torch.nn.Module):
         regularization_weights_x (Optional[List[Union[float]]])                 : Regularization weights for the x-axis. Default is [0, 0, 0, 0, 0, 0].
         regularization_weights_z (Optional[List[Union[float]]])                 : Regularization weights for the z-axis. Default is [0, 0, 0, 0, 0, 0].
         waveform_normalize (Optional[bool])                                     : Whether to normalize the waveforms during inversion. Default is True.
+        data_transform_pipeline (Optional[DataTransformPipeline])               : Optional synthetic/observed waveform transform pipeline. If omitted, data masks are applied through DataMask and waveform_normalize=True is implemented internally with TraceNormalize.
         cache_result (Optional[bool])                                           : Whether to save intermediate results during the inversion. Default is True.
         cache_gradient (Optional[bool])                                         : Whether to save model variations (not gradients) during inversion. Default is False.
         save_fig_epoch (Optional[int])                                          : The interval (in epochs) at which to save the inversion result figure. Default is -1 (no figure saved).
@@ -90,7 +93,9 @@ class ElasticFWI(torch.nn.Module):
         self.receiver_masks_3D = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1).to(self.device)  # [shot, time, rcv]
         
         # Real-Case settings: mute late window (by first arrival picking) & mute offset
-        self.waveform_normalize         = waveform_normalize
+        self.data_transform_pipeline, self.waveform_normalize = self._configure_data_transform_pipeline(
+            data_transform_pipeline, waveform_normalize
+        )
         self.waveform_mute_late_window  = waveform_mute_late_window 
         self.waveform_mute_offset       = waveform_mute_offset
         
@@ -130,6 +135,17 @@ class ElasticFWI(torch.nn.Module):
         # inversion component
         self.inversion_component = inversion_component
     
+    def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
+        data_mask = DataMask(required=False, apply_to="synthetic")
+        if data_transform_pipeline is not None:
+            return DataTransformPipeline([data_mask, data_transform_pipeline]), waveform_normalize
+
+        transforms = [data_mask]
+        if waveform_normalize:
+            transforms.append(TraceNormalize())
+            waveform_normalize = False
+        return DataTransformPipeline(transforms), waveform_normalize
+
     def _normalize(self,data):
         mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
         max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values
@@ -165,6 +181,16 @@ class ElasticFWI(torch.nn.Module):
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
         
+        if self.data_transform_pipeline is not None:
+            context = {"shot_index": shot_index}
+            if shot_index is not None:
+                context["receiver_mask"] = self.receiver_masks_2D[shot_index]
+                if self.data_masks is not None:
+                    context["data_mask"] = self.data_masks[shot_index]
+            synthetic_waveform, observed_waveform = self.data_transform_pipeline(
+                synthetic_waveform, observed_waveform, context=context
+            )
+
         if normalization:
             observed_waveform  = self._normalize(observed_waveform)
             synthetic_waveform = self._normalize(synthetic_waveform)
@@ -356,10 +382,6 @@ class ElasticFWI(torch.nn.Module):
             syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
             for k in range(rcv_p.shape[0]):
                 syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
-        # some of the data are unuseful
-        if self.data_masks is not None:
-            data_mask = self.data_masks[shot_index]
-            syn_p = syn_p * data_mask
         return syn_p
     
     def forward(self,
@@ -419,13 +441,13 @@ class ElasticFWI(torch.nn.Module):
                 if "pressure" in self.inversion_component:
                     syn_p = -(rcv_txx + rcv_tzz)
                     syn_p = self.real_case_data_selecting(syn_p,shot_index)
-                    loss_pressure = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
+                    loss_pressure = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
                 if "vx" in self.inversion_component:
                     rcv_vx = self.real_case_data_selecting(rcv_vx,shot_index)
-                    loss_vx = self.calculate_loss(rcv_vx, self.obs_vx[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
+                    loss_vx = self.calculate_loss(rcv_vx, self.obs_vx[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
                 if "vz" in self.inversion_component:
                     rcv_vz = self.real_case_data_selecting(rcv_vz,shot_index)
-                    loss_vz = self.calculate_loss(rcv_vz, self.obs_vz[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt)
+                    loss_vz = self.calculate_loss(rcv_vz, self.obs_vz[shot_index],self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
                 data_loss = loss_pressure + loss_vx + loss_vz
                 
                 # regularization
