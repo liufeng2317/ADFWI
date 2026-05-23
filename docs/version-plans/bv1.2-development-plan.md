@@ -271,3 +271,7 @@ The backend API now accepts notebook-friendly string options such as `dtype="flo
 ## Elastic Mini Inversion Smoke Update
 
 Added `scripts/smoke/elastic_mini_inversion_smoke.py` to cover one-step `ElasticFWI` pressure-component inversion on CPU and NPU. This extends bv1.2 backend validation from elastic forward/backward smoke to the full elastic forward/loss/backward/optimizer/model-update path.
+
+## Data Transform Pipeline Update
+
+Added a phase-1 data transform pipeline plan and standalone pure torch transforms under `ADFWI/fwi/transforms`. This first step covers `TraceNormalize`, `ReceiverMask`, and `DataMask` with CPU/NPU tests, without changing existing `AcousticFWI` or `ElasticFWI` behavior yet. See `docs/version-plans/bv1.2-data-transform-plan.md`.
