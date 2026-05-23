@@ -107,10 +107,12 @@ conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device npu:0
 conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0 --misfit L2
 ```
 
-Elastic smoke test:
+Elastic smoke tests:
 
 ```bash
 conda run -n adfwi python scripts/smoke/elastic_backend_smoke.py --device npu:0
+conda run -n adfwi python scripts/smoke/elastic_mini_inversion_smoke.py --device cpu
+conda run -n adfwi python scripts/smoke/elastic_mini_inversion_smoke.py --device npu:0
 ```
 
 Misfit smoke tests:

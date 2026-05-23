@@ -267,3 +267,7 @@ print(ADFWI.backend_diagnostics())
 ```
 
 The backend API now accepts notebook-friendly string options such as `dtype="float64"` and `prefer="npu,cpu"`, while preserving the existing lower-level `configure_backend`, `get_backend`, and `use_backend` functions. Usage details are recorded in `docs/backend-usage.md`.
+
+## Elastic Mini Inversion Smoke Update
+
+Added `scripts/smoke/elastic_mini_inversion_smoke.py` to cover one-step `ElasticFWI` pressure-component inversion on CPU and NPU. This extends bv1.2 backend validation from elastic forward/backward smoke to the full elastic forward/loss/backward/optimizer/model-update path.

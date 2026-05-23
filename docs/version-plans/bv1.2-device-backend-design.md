@@ -360,6 +360,29 @@ Validated on the local `adfwi` CPU+NPU environment:
 - CPU: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
 - NPU `npu:0`: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
 
+## Elastic Mini Inversion Smoke Test
+
+A one-iteration `ElasticFWI` smoke test has been added to validate the elastic
+forward/loss/backward/optimizer/model-update path without touching notebooks or
+example outputs:
+
+```bash
+conda run -n adfwi python scripts/smoke/elastic_mini_inversion_smoke.py --device cpu
+conda run -n adfwi python scripts/smoke/elastic_mini_inversion_smoke.py --device npu:0
+```
+
+The script builds an in-memory true isotropic elastic model and a perturbed
+initial model, synthesizes observed elastic data from the true model, and runs
+one `ElasticFWI` iteration on the initial model using the pressure component and
+`Misfit_waveform_L2`. It checks that loss, `vp` gradient norm, and `vp` update
+norm are finite and nonzero. Progress bars are hidden by default; pass
+`--show-progress` when debugging the FWI loop.
+
+Validated on the local `adfwi` CPU+NPU environment:
+
+- CPU: status `ok`, loss about `8.45254e-04`, finite nonzero `vp` gradient, finite nonzero `vp` update.
+- NPU `npu:0`: status `ok`, loss about `8.45252e-04`, finite nonzero `vp` gradient, finite nonzero `vp` update.
+
 ## User-Facing API Update
 
 The lower-level backend API is now wrapped by a concise user-facing entrypoint:
