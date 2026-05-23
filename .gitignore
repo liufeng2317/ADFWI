@@ -16,7 +16,9 @@ ADFWI_Torch.egg-info
 build
 dist
 MANIFEST.in
-docs/
+docs/*
+!docs/version-plans/
+!docs/version-plans/*.md
 # ADFWI/dip/
 examples/github_Issue
 examples/acoustic/
