@@ -23,3 +23,4 @@ traceable and easy to discuss.
 
 - [v1.1 Code Graph](./v1.1-code-graph.md)
 - [bv1.2 Development Plan](./bv1.2-development-plan.md)
+- [bv1.2 Device Backend Interface Design](./bv1.2-device-backend-design.md)
