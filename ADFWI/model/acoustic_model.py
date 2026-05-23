@@ -35,8 +35,8 @@ class AcousticModel(AbstractModel):
                 abc_type:Optional[str]                           = 'PML',
                 abc_jerjan_alpha:Optional[float]                 = 0.0053,
                 nabc:Optional[int]                               = 20,
-                device                                           = 'cpu',
-                dtype                                            = torch.float32
+                device                                           = None,
+                dtype                                            = None
                 )->None:
         """
         Parameters:
@@ -90,7 +90,7 @@ class AcousticModel(AbstractModel):
         self.auto_update_vp  = auto_update_vp
         
         if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
+            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
         else:
             self.water_layer_mask = None
         

@@ -45,11 +45,29 @@ slightly in how it interprets and applies device settings.
 ```python
 from ADFWI.backends import configure_backend, get_backend
 
-configure_backend("cuda:0")
+configure_backend("npu:0")
 backend = get_backend()
 ```
 
-`configure_backend()` sets the framework default backend.
+`configure_backend()` sets the framework default backend. Researchers can either
+request one explicit device or let ADFWI auto-select from a configurable priority
+list.
+
+Examples:
+
+```python
+# Planned local adfwi environment: prefer NPU, then CPU.
+configure_backend(None, prefer=("npu", "cpu"))
+
+# CUDA workstation: prefer CUDA, then CPU.
+configure_backend(None, prefer=("cuda", "cpu"))
+
+# Mixed accelerator machine: choose a project-specific priority.
+configure_backend(None, prefer=("cuda", "npu", "cpu"))
+
+# Fully explicit request.
+configure_backend("npu:0")
+```
 
 Accepted initial device requests:
 
@@ -121,11 +139,12 @@ dtype handling from models, propagators, regularization, tests, and benchmarks.
 
 ## Backend Detection Policy
 
-Initial policy for `configure_backend(None)`:
+Default policy for `configure_backend(None)` in the planned `adfwi` conda environment:
 
-1. Use CUDA if `torch.cuda.is_available()`.
-2. Else use NPU if an NPU runtime is importable and reports availability.
-3. Else use CPU.
+1. Use NPU if an NPU runtime is importable and reports availability.
+2. Else use CPU.
+
+The priority is intentionally public and configurable through `prefer`. CUDA remains supported for explicit requests or CUDA-equipped machines, but it is not the default priority for the planned CPU+NPU environment.
 
 For explicit requests:
 
@@ -225,6 +244,33 @@ Minimum tests before broader refactor:
 - acoustic forward on NPU target machine;
 - tiny acoustic inversion with 1 iteration when accelerator memory allows.
 
+## Implementation Status
+
+Implemented in the current `bv1.2` working tree:
+
+- Added `ADFWI.backends` with `configure_backend`, `get_backend`, `resolve_backend`, `use_backend`, `Backend`, and backend-specific errors.
+- Default auto-selection is configurable and currently prioritizes `("npu", "cpu")` for the local `adfwi` CPU+NPU environment.
+- `AbstractModel` and `AcousticModel` inherit backend `device`/`dtype` when not explicitly provided.
+- `AcousticPropagator` follows the model backend by default while preserving explicit `device` override.
+- Acoustic regularization classes inherit backend defaults and construct `L0`/`L1` on `self.device` with `self.dtype`.
+- `AcousticFWI` validates model/propagator device consistency and aligns regularization tensors to the propagator backend during initialization.
+- Added unit/integration tests for backend resolution, configurable priority, CPU/NPU inheritance, dtype inheritance, regularization inheritance, and AcousticFWI regularization alignment.
+
+Verified with:
+
+```bash
+conda run -n adfwi python -m unittest tests/test_backends.py tests/test_backend_integration.py
+```
+
+Result on the local CPU+NPU machine: `Ran 17 tests ... OK (skipped=1)`.
+
+Still pending:
+
+- `ElasticPropagator` and `ElasticFWI` migration.
+- Full acoustic smoke test scripts for forward, backward, and one-iteration inversion.
+- Misfit/kernel audit for NPU-sensitive operations and dtype consistency.
+- Public README/example update after the migration is stable.
+
 ## Expected User Workflow After Migration
 
 Before:
@@ -267,11 +313,7 @@ model = AcousticModel(..., device="cpu")
 
 ## Open Questions
 
-1. Should automatic backend selection prefer CUDA before NPU, or NPU before CUDA
-   on the target machine?
-2. Should global default dtype be configured through `configure_backend`, or kept
+1. Should global default dtype be configured through `configure_backend`, or kept
    as per-object `dtype` for now?
-3. Which NPU runtime package is standard on the target system, and what exact
-   availability API should be used?
-4. Should accelerator memory reporting be part of the backend object in phase 1,
-   or added with benchmarks?
+2. Which NPU runtime package is standard in the `adfwi` conda environment, and what exact availability API should be used?
+3. Should accelerator memory reporting be part of the backend object in phase 1, or added with benchmarks?

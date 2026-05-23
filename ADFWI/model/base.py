@@ -17,6 +17,7 @@ from torch import Tensor
 from abc import abstractmethod
 from typing import Optional,Tuple,Union
 from ADFWI.utils import gpu2cpu,numpy2tensor
+from ADFWI.backends import get_backend
 
 
 units = {
@@ -58,10 +59,11 @@ class AbstractModel(torch.nn.Module):
                 abc_type:Optional[str]          = 'PML',
                 abc_jerjan_alpha:Optional[float]= 0.0053,
                 nabc:Optional[int]              = 20,
-                device                          = 'cpu',
+                device                          = None,
                 dtype                           = torch.float32
                 )->None:
         super().__init__()
+        backend = get_backend(device=device, dtype=dtype)
         # initialize the common model parameters
         self.ox             = ox
         self.oz             = oz
@@ -73,8 +75,8 @@ class AbstractModel(torch.nn.Module):
         self.abc_type       = abc_type
         self.abc_jerjan_alpha = abc_jerjan_alpha
         self.nabc           = nabc
-        self.device         = device
-        self.dtype          = dtype
+        self.device         = backend.device
+        self.dtype          = backend.dtype
         
         assert self.dx == self.dz, "Model grid size dx and dz must be the same"
         

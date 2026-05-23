@@ -83,6 +83,8 @@ class AcousticFWI(torch.nn.Module):
         self.gradient_processor         = gradient_processor
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
+        self._validate_device_consistency()
+        self._align_regularization_backend()
         
         # Real-Case settings: for trace missing, partial data missing
         receiver_masks = self.propagator.receiver_masks
@@ -140,6 +142,27 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_epoch = save_fig_epoch
         self.save_fig_path  = save_fig_path
     
+    def _validate_device_consistency(self):
+        if self.model.device != self.propagator.device:
+            raise ValueError(
+                f"Model device {self.model.device} and propagator device {self.propagator.device} are inconsistent. "
+                "Create them with the same backend or configure ADFWI.backends before constructing them."
+            )
+
+    def _align_regularization_backend(self):
+        if self.regularization_fn is None:
+            return
+
+        self.regularization_fn.device = self.device
+        self.regularization_fn.dtype = self.dtype
+        for name, value in vars(self.regularization_fn).items():
+            if not torch.is_tensor(value):
+                continue
+            to_kwargs = {"device": self.device}
+            if value.is_floating_point() or value.is_complex():
+                to_kwargs["dtype"] = self.dtype
+            setattr(self.regularization_fn, name, value.to(**to_kwargs))
+
     def _normalize(self,data):
         mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
         max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values

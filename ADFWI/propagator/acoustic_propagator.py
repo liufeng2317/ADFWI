@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
+from ADFWI.backends import get_backend
 from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
 from .acoustic_kernels import forward_kernel
 
@@ -35,10 +36,10 @@ class AcousticPropagator(torch.nn.Module):
     def __init__(self,
                  model  : AbstractModel,
                  survey : Survey,
-                 device : Optional[str] = 'cpu',
+                 device : Optional[str] = None,
                  cpu_num: Optional[int] = 1,
                  gpu_num: Optional[int] = 1,
-                 dtype  : torch.dtype = torch.float32
+                 dtype  : Optional[torch.dtype] = None
                  ):
         super().__init__()
         
@@ -49,13 +50,15 @@ class AcousticPropagator(torch.nn.Module):
         if not isinstance(survey, Survey):
             raise ValueError("survey is not an instance of Survey")
         
+        backend = get_backend(device=model.device if device is None else device, dtype=model.dtype if dtype is None else dtype)
+
         # ---------------------------------------------------------------
         # set the model and survey
         # ---------------------------------------------------------------
         self.model          = model
         self.survey         = survey
-        self.device         = device
-        self.dtype          = dtype
+        self.device         = backend.device
+        self.dtype          = backend.dtype
         self.cpu_num        = cpu_num
         self.gpu_num        = gpu_num
         

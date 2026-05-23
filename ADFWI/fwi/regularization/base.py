@@ -11,6 +11,7 @@ from abc import abstractmethod
 import torch
 import numpy as np
 from typing import Optional
+from ADFWI.backends import get_backend
 
 
 def regular_StepLR(iter,step_size,alpha,gamma=0.8):
@@ -27,7 +28,7 @@ class Regularization():
     def __init__(self,nx:int,nz:int,dx:float,dz:float,
                  alphax:float,alphaz:float,
                  step_size:Optional[int]=1000,gamma:Optional[int]=1,
-                 device="cpu",dtype=torch.float32) -> None:
+                 device=None,dtype=None) -> None:
         """
         Parameters:
         -------------
@@ -49,8 +50,9 @@ class Regularization():
         self.nz         = nz
         self.dx         = dx
         self.dz         = dz
-        self.device     = device
-        self.dtype      = dtype
+        backend         = get_backend(device=device,dtype=dtype)
+        self.device     = backend.device
+        self.dtype      = backend.dtype
     
     @abstractmethod
     def forward(self):
