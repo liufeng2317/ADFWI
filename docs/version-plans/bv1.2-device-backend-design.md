@@ -360,6 +360,24 @@ Validated on the local `adfwi` CPU+NPU environment:
 - CPU: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
 - NPU `npu:0`: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
 
+## User-Facing API Update
+
+The lower-level backend API is now wrapped by a concise user-facing entrypoint:
+
+```python
+import ADFWI
+
+ADFWI.set_backend("npu:0", dtype="float32")
+backend = ADFWI.backend()
+print(ADFWI.backend_diagnostics())
+```
+
+The same helpers are exported from `ADFWI.backends` as `set_backend`, `backend`, and `backend_diagnostics`. `configure_backend`, `get_backend`, and `use_backend` remain the stable lower-level migration API.
+
+`dtype` accepts strings such as `"float32"` and `"float64"`; `prefer` accepts either tuples/lists or comma-separated strings such as `"npu,cpu"`.
+
+See `docs/backend-usage.md` for the current researcher-facing usage guide.
+
 ## Expected User Workflow After Migration
 
 Before:

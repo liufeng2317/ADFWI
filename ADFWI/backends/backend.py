@@ -9,11 +9,13 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import torch
 
 DeviceLike = Optional[Union[str, "torch.device"]]
+DTypeLike = Union[str, torch.dtype]
+PreferLike = Union[str, Iterable[str]]
 
 
 class BackendError(RuntimeError):
@@ -127,9 +129,9 @@ _BACKEND_STACK: List[Backend] = []
 def configure_backend(
     device: DeviceLike = None,
     *,
-    dtype: torch.dtype = torch.float32,
+    dtype: DTypeLike = torch.float32,
     fallback: bool = False,
-    prefer: Tuple[str, ...] = ("npu", "cpu"),
+    prefer: PreferLike = ("npu", "cpu"),
 ) -> Backend:
     """Configure the process-wide default ADFWI backend.
 
@@ -153,7 +155,7 @@ def configure_backend(
 def get_backend(
     device: DeviceLike = None,
     *,
-    dtype: Optional[torch.dtype] = None,
+    dtype: Optional[DTypeLike] = None,
     fallback: bool = False,
 ) -> Backend:
     """Return the current backend or resolve an explicit override.
@@ -166,23 +168,25 @@ def get_backend(
     without changing the process-wide default. If ``device is None``, the current
     configured backend is returned, creating the default backend lazily if needed.
     """
+    resolved_dtype = _normalize_dtype(dtype) if dtype is not None else None
+
     if device is not None:
-        return resolve_backend(device, dtype=dtype or _current_dtype(), fallback=fallback)
+        return resolve_backend(device, dtype=resolved_dtype or _current_dtype(), fallback=fallback)
 
     if _BACKEND_STACK:
         current = _BACKEND_STACK[-1]
     else:
         global _DEFAULT_BACKEND
         if _DEFAULT_BACKEND is None:
-            _DEFAULT_BACKEND = resolve_backend(None, dtype=dtype or torch.float32)
+            _DEFAULT_BACKEND = resolve_backend(None, dtype=resolved_dtype or torch.float32)
         current = _DEFAULT_BACKEND
 
-    if dtype is not None and current.dtype != dtype:
+    if resolved_dtype is not None and current.dtype != resolved_dtype:
         return Backend(
             name=current.name,
             device=current.device,
             index=current.index,
-            dtype=dtype,
+            dtype=resolved_dtype,
             available=current.available,
             fallback=current.fallback,
             reason=current.reason,
@@ -194,7 +198,7 @@ def get_backend(
 def use_backend(
     device: DeviceLike = None,
     *,
-    dtype: Optional[torch.dtype] = None,
+    dtype: Optional[DTypeLike] = None,
     fallback: bool = False,
 ) -> Iterator[Backend]:
     """Temporarily set the active ADFWI backend inside a context."""
@@ -206,30 +210,59 @@ def use_backend(
         _BACKEND_STACK.pop()
 
 
+def set_backend(
+    device: DeviceLike = None,
+    *,
+    dtype: DTypeLike = torch.float32,
+    fallback: bool = False,
+    prefer: PreferLike = ("npu", "cpu"),
+) -> Backend:
+    """User-facing alias for :func:`configure_backend`."""
+    return configure_backend(device, dtype=dtype, fallback=fallback, prefer=prefer)
+
+
+def backend(
+    device: DeviceLike = None,
+    *,
+    dtype: Optional[DTypeLike] = None,
+    fallback: bool = False,
+) -> Backend:
+    """User-facing alias for :func:`get_backend`."""
+    return get_backend(device=device, dtype=_normalize_dtype(dtype) if dtype is not None else None, fallback=fallback)
+
+
+def backend_diagnostics() -> Dict[str, Any]:
+    """Return diagnostics for the active ADFWI backend."""
+    return get_backend().diagnostics()
+
+
 def resolve_backend(
     device: DeviceLike = None,
     *,
-    dtype: torch.dtype = torch.float32,
+    dtype: DTypeLike = torch.float32,
     fallback: bool = False,
-    prefer: Tuple[str, ...] = ("npu", "cpu"),
+    prefer: PreferLike = ("npu", "cpu"),
 ) -> Backend:
     """Resolve a backend without changing global state."""
+    resolved_dtype = _normalize_dtype(dtype)
+    resolved_prefer = _normalize_prefer(prefer)
+
     if device is None:
-        name, index = _auto_select(prefer)
-        return Backend(name=name, device=torch.device(name if index is None else f"{name}:{index}"), index=index, dtype=dtype)
+        name, index = _auto_select(resolved_prefer)
+        return Backend(name=name, device=torch.device(name if index is None else f"{name}:{index}"), index=index, dtype=resolved_dtype)
 
     requested = _parse_device(device)
     name, index = requested
 
     if name == "cpu":
-        return Backend(name="cpu", device=torch.device("cpu"), index=None, dtype=dtype)
+        return Backend(name="cpu", device=torch.device("cpu"), index=None, dtype=resolved_dtype)
 
     if name == "cuda":
         if torch.cuda.is_available():
             resolved_index = 0 if index is None else index
             _validate_index("cuda", resolved_index, torch.cuda.device_count())
-            return Backend("cuda", torch.device(f"cuda:{resolved_index}"), resolved_index, dtype)
-        return _unavailable_or_fallback("cuda", index, dtype, fallback, "torch.cuda.is_available() is False")
+            return Backend("cuda", torch.device(f"cuda:{resolved_index}"), resolved_index, resolved_dtype)
+        return _unavailable_or_fallback("cuda", index, resolved_dtype, fallback, "torch.cuda.is_available() is False")
 
     if name == "npu":
         npu = _get_torch_npu_api()
@@ -238,10 +271,42 @@ def resolve_backend(
             count = _npu_device_count(npu)
             if count is not None:
                 _validate_index("npu", resolved_index, count)
-            return Backend("npu", torch.device(f"npu:{resolved_index}"), resolved_index, dtype)
-        return _unavailable_or_fallback("npu", index, dtype, fallback, "NPU runtime is not available")
+            return Backend("npu", torch.device(f"npu:{resolved_index}"), resolved_index, resolved_dtype)
+        return _unavailable_or_fallback("npu", index, resolved_dtype, fallback, "NPU runtime is not available")
 
     raise BackendError(f"Unsupported backend device: {device!r}")
+
+
+def _normalize_dtype(dtype: DTypeLike) -> torch.dtype:
+    if isinstance(dtype, torch.dtype):
+        return dtype
+    if isinstance(dtype, str):
+        value = dtype.strip().lower().replace("torch.", "")
+        dtypes = {
+            "float16": torch.float16,
+            "float32": torch.float32,
+            "float64": torch.float64,
+            "double": torch.float64,
+            "half": torch.float16,
+        }
+        try:
+            return dtypes[value]
+        except KeyError as exc:
+            raise BackendError(f"Unsupported backend dtype: {dtype!r}") from exc
+    raise BackendError(f"Backend dtype must be str or torch.dtype, got {type(dtype)!r}")
+
+
+def _normalize_prefer(prefer: PreferLike) -> Tuple[str, ...]:
+    if isinstance(prefer, str):
+        values = tuple(item.strip().lower() for item in prefer.split(",") if item.strip())
+    else:
+        values = tuple(str(item).strip().lower() for item in prefer if str(item).strip())
+    if not values:
+        raise BackendError("Backend preference must include at least one device family")
+    for name in values:
+        if name not in {"cpu", "cuda", "npu"}:
+            raise BackendError(f"Unsupported backend preference: {name!r}")
+    return values
 
 
 def _current_dtype() -> torch.dtype:

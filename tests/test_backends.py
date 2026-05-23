@@ -2,11 +2,15 @@ import unittest
 
 import torch
 
+import ADFWI
 from ADFWI.backends import (
     BackendUnavailableError,
+    backend,
+    backend_diagnostics,
     configure_backend,
     get_backend,
     resolve_backend,
+    set_backend,
     use_backend,
 )
 
@@ -84,6 +88,29 @@ class BackendTests(unittest.TestCase):
         override = get_backend(device="cpu")
         self.assertEqual(override.name, "cpu")
         self.assertEqual(get_backend().name, "cpu")
+
+    def test_string_dtype_is_supported(self):
+        backend_obj = configure_backend("cpu", dtype="float64")
+        self.assertEqual(backend_obj.dtype, torch.float64)
+        self.assertEqual(get_backend(dtype="float32").dtype, torch.float32)
+
+    def test_string_prefer_is_supported(self):
+        backend_obj = configure_backend(None, prefer="cpu,npu")
+        self.assertEqual(backend_obj.name, "cpu")
+
+    def test_user_facing_backend_aliases(self):
+        backend_obj = set_backend("cpu", dtype="float64")
+        self.assertEqual(backend_obj.dtype, torch.float64)
+        self.assertEqual(backend().dtype, torch.float64)
+        diagnostics = backend_diagnostics()
+        self.assertEqual(diagnostics["name"], "cpu")
+        self.assertEqual(diagnostics["dtype"], "float64")
+
+    def test_top_level_adfwi_backend_api(self):
+        backend_obj = ADFWI.set_backend("cpu", dtype="float32")
+        self.assertEqual(backend_obj.name, "cpu")
+        self.assertEqual(ADFWI.backend().device.type, "cpu")
+        self.assertEqual(ADFWI.backend_diagnostics()["device"], "cpu")
 
 
 if __name__ == "__main__":

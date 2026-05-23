@@ -76,12 +76,18 @@ Candidate responsibilities:
 Initial target:
 
 ```python
-from ADFWI.backends import configure_backend, get_backend
+import ADFWI
 
-configure_backend("npu:0")
-backend = get_backend()
+ADFWI.set_backend("npu:0")
+backend = ADFWI.backend()
 device = backend.device
 backend.synchronize()
+```
+
+Lower-level backend functions remain available from `ADFWI.backends` for tests and migration code:
+
+```python
+from ADFWI.backends import configure_backend, get_backend, use_backend
 ```
 
 A more advanced scoped form can be considered later:
@@ -248,3 +254,16 @@ maintainability release. New scientific methods can be added, but they should be
 introduced through stable extension points rather than by directly expanding the
 main inversion classes. DR-FWI and DIP-related extensions are intentionally deferred
 until the ADFWI physical forward/backward path is stable on CPU, CUDA GPU, and NPU.
+
+## bv1.2 Backend API Update
+
+Implemented a user-facing backend entrypoint on top of the lower-level `ADFWI.backends` layer:
+
+```python
+import ADFWI
+
+ADFWI.set_backend("npu:0", dtype="float32")
+print(ADFWI.backend_diagnostics())
+```
+
+The backend API now accepts notebook-friendly string options such as `dtype="float64"` and `prefer="npu,cpu"`, while preserving the existing lower-level `configure_backend`, `get_backend`, and `use_backend` functions. Usage details are recorded in `docs/backend-usage.md`.
