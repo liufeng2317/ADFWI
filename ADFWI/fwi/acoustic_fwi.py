@@ -17,7 +17,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.transforms import DataTransformPipeline
+from ADFWI.fwi.transforms import DataTransformPipeline, TraceNormalize
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
@@ -68,7 +68,7 @@ class AcousticFWI(torch.nn.Module):
         waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
         waveform_mute_late_window:Optional[float]                      : Clipping data after picking the first arrival with the given window size.
         waveform_mute_offset:Optional[float]                           : Clipping data larger than the given offset threshold.
-        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline applied before the legacy normalization step.
+        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline. If omitted, waveform_normalize=True is implemented internally with TraceNormalize.
         cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
         save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).
@@ -84,7 +84,9 @@ class AcousticFWI(torch.nn.Module):
         self.regularization_weights_z   = regularization_weights_z
         self.obs_data                   = obs_data
         self.gradient_processor         = gradient_processor
-        self.data_transform_pipeline    = data_transform_pipeline
+        self.data_transform_pipeline, self.waveform_normalize = self._configure_data_transform_pipeline(
+            data_transform_pipeline, waveform_normalize
+        )
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
         self._validate_device_consistency()
@@ -99,7 +101,6 @@ class AcousticFWI(torch.nn.Module):
         self.receiver_masks_3D = receiver_masks.unsqueeze(1).expand(-1, self.propagator.nt, -1).to(self.device)  # [shot, time, rcv]
         
         # Real-Case settings: mute late window (by first arrival picking) & mute offset
-        self.waveform_normalize         = waveform_normalize
         self.waveform_mute_late_window  = waveform_mute_late_window 
         self.waveform_mute_offset       = waveform_mute_offset
         
@@ -146,6 +147,11 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_epoch = save_fig_epoch
         self.save_fig_path  = save_fig_path
     
+    def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
+        if data_transform_pipeline is None and waveform_normalize:
+            return DataTransformPipeline([TraceNormalize()]), False
+        return data_transform_pipeline, waveform_normalize
+
     def _validate_device_consistency(self):
         if self.model.device != self.propagator.device:
             raise ValueError(

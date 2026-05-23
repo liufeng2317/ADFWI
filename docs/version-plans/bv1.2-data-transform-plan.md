@@ -110,9 +110,10 @@ Phase 1 did not alter `AcousticFWI` or `ElasticFWI` behavior.
 
 Phase 2 started with a conservative optional integration in `AcousticFWI`:
 
-- `AcousticFWI(..., data_transform_pipeline=None)` preserves the legacy default path.
-- When a pipeline is provided, it is applied to `(synthetic, observed)` after mute/filter steps and before the legacy normalization step.
+- `AcousticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now builds an internal `DataTransformPipeline([TraceNormalize()])`.
+- The legacy `_normalize()` branch is bypassed for the default normalization path, but kept as a compatibility fallback for explicit/manual calls.
+- When a custom pipeline is provided, it is applied to `(synthetic, observed)` after mute/filter steps and before any remaining legacy normalization branch.
 - Existing arguments such as `waveform_normalize`, receiver masks, data masks, offset mute, late-window mute, and low-pass filtering remain supported.
-- Users can set `waveform_normalize=False` when `TraceNormalize()` is included in the pipeline to avoid double normalization.
+- Users can set `waveform_normalize=False` when `TraceNormalize()` is included in a custom pipeline to avoid double normalization.
 
-Elastic integration remains deferred until the acoustic optional path has stayed stable under smoke tests.
+Elastic integration remains deferred until the acoustic transform path has stayed stable under smoke tests.

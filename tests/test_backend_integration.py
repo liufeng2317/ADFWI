@@ -9,7 +9,7 @@ from ADFWI.propagator import AcousticPropagator, ElasticPropagator
 from ADFWI.fwi import AcousticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
@@ -171,6 +171,38 @@ class BackendIntegrationTests(unittest.TestCase):
         synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
         observed = synthetic * 2
         loss = fwi.calculate_loss(synthetic, observed, False, fwi.loss_fn, shot_index=np.array([0]))
+
+        self.assertEqual(float(loss.detach().cpu().item()), 0.0)
+
+    def test_acoustic_fwi_default_normalization_uses_transform_pipeline(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            waveform_normalize=True,
+            cache_result=False,
+        )
+
+        self.assertIsInstance(fwi.data_transform_pipeline, DataTransformPipeline)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], TraceNormalize)
+        self.assertFalse(fwi.waveform_normalize)
+
+        synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
+        observed = synthetic * 2
+        loss = fwi.calculate_loss(synthetic, observed, fwi.waveform_normalize, fwi.loss_fn, shot_index=np.array([0]))
 
         self.assertEqual(float(loss.detach().cpu().item()), 0.0)
 

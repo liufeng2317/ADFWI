@@ -278,4 +278,4 @@ Added a phase-1 data transform pipeline plan and standalone pure torch transform
 
 ## AcousticFWI Data Transform Optional Integration
 
-Added an optional `data_transform_pipeline` argument to `AcousticFWI`. The default remains `None`, preserving the existing FWI behavior. When provided, the pipeline is applied inside `calculate_loss` before the legacy normalization step, enabling gradual migration from embedded waveform processing logic to reusable transforms.
+Added an optional `data_transform_pipeline` argument to `AcousticFWI`. The default user behavior is preserved, while `waveform_normalize=True` now builds an internal `DataTransformPipeline([TraceNormalize()])` and bypasses the old `_normalize()` branch in normal FWI execution. Custom pipelines are applied inside `calculate_loss`, enabling gradual migration from embedded waveform processing logic to reusable transforms.
