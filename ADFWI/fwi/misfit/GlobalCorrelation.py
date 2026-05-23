@@ -38,7 +38,7 @@ class Misfit_global_correlation(Misfit):
         mask     = ~(mask1 * mask2)
         
         # Initialize result tensor
-        rsd = torch.zeros((obs.shape[0], obs.shape[2]), device=obs.device)
+        rsd = torch.zeros((obs.shape[0], obs.shape[2]), device=obs.device, dtype=obs.dtype)
 
         # Compute correlation for each trace
         for itrace in range(obs.shape[2]):

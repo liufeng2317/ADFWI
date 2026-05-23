@@ -8,7 +8,6 @@
 '''
 
 from geomloss import SamplesLoss
-import numpy as np
 import torch
 from .base import Misfit
 from typing import Optional
@@ -42,14 +41,14 @@ class Misfit_wasserstein_sinkhorn(Misfit):
         p=self.p
         blur=self.blur
         # define the misfit function
-        rsd = torch.zeros((obs.shape[0],obs.shape[2])).to(device)
+        rsd = torch.zeros((obs.shape[0], obs.shape[2]), device=device, dtype=obs.dtype)
         for ishot in range(obs.shape[0]):
             trace_idx = torch.argwhere(mask[ishot]).reshape(-1)
             misfit_fun = SamplesLoss(loss=self.loss_method,p=p,blur=blur,scaling=self.scaling)
             obs_shot = obs[ishot,::self.sparse_sampling,trace_idx].squeeze(axis=0).T                  # [trace,amplitude]
             syn_shot = syn[ishot,::self.sparse_sampling,trace_idx].squeeze(axis=0).T                  # [trace,amplitude]
             # concate the time list
-            tlist = torch.from_numpy(np.arange(obs_shot.shape[1])*self.dt).to(device).reshape(1,-1)
+            tlist = torch.arange(obs_shot.shape[1], device=device, dtype=obs.dtype).mul(self.dt).reshape(1, -1)
             tlist = torch.ones_like(obs_shot)*tlist
             obs_shot = torch.stack((tlist,obs_shot),dim=-1) # [trace,samples,tlist and amplitude]
             syn_shot = torch.stack((tlist,syn_shot),dim=-1) # [trace,samples,tlist and amplitude]

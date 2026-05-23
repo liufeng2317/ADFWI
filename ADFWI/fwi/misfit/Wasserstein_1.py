@@ -39,11 +39,11 @@ def transform(f, g, trans_type, theta):
         mu, nu = f, g
         c = -min_value if min_value < 0 else 0
         c = c * theta  # Scale by theta for flexibility
-        d = torch.ones(f.shape).to(device)
+        d = torch.ones_like(f)
     elif trans_type == 'abs':
         # Absolute value transformation
         mu, nu = torch.abs(f), torch.abs(g)
-        d = torch.sign(f).to(device)
+        d = torch.sign(f)
     elif trans_type == 'square':
         # Squaring transformation
         mu = f * f
@@ -61,7 +61,7 @@ def transform(f, g, trans_type, theta):
         d = theta / (torch.exp(-theta * f) + 1e-18)  # Avoid division by zero
     else:
         mu, nu = f, g
-        d = torch.ones(f.shape).to(device)
+        d = torch.ones_like(f)
     # Ensure positive values for mu and nu by adding a small constant
     mu = mu + c + 1e-18
     nu = nu + c + 1e-18

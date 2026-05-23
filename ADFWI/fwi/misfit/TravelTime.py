@@ -51,7 +51,7 @@ def calculate_time_shift(wave1,wave2,beta=100):
         padding=wave1.numel()-1
     ).view(-1)
     weights = F.softmax(beta*cross_corr,dim=0)
-    tt_lags = torch.arange(-wave1.numel() + 1, wave1.numel(), device=wave1.device, dtype=torch.float32)
+    tt_lags = torch.arange(-wave1.numel() + 1, wave1.numel(), device=wave1.device, dtype=wave1.dtype)
     time_shift = torch.sum(weights*tt_lags)
     return time_shift
 
@@ -78,7 +78,7 @@ class Misfit_traveltime(Misfit):
         obs = obs / torch.max(torch.abs(obs), dim=1, keepdim=True)[0]  # Normalize observed data
         syn = syn / torch.max(torch.abs(syn), dim=1, keepdim=True)[0]  # Normalize synthetic data
         
-        rsd = torch.zeros((srcn, rcvn), device=device)  # Reset residual tensor
+        rsd = torch.zeros((srcn, rcvn), device=device, dtype=obs.dtype)  # Reset residual tensor
         for ishot in range(srcn):
             for ircv in range(rcvn):
                 # cross_corr = cross_correlation(obs[ishot, :, ircv], syn[ishot, :, ircv], padding=padding)
