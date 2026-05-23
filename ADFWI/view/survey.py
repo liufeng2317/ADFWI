@@ -16,8 +16,8 @@ warnings.filterwarnings("ignore")
 def plot_survey(src_x,src_z,rcv_x,rcv_z,vel_model,dx=-1,dz=-1,
                 figsize=(8,8),wspace=0.2,hspace=0.2,
                 cmap='jet',
-                tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                 cbar_pad_fraction=0.12,cbar_height=0.03,
                 show=True,save_path="",save_dpi=300):
     
@@ -64,8 +64,8 @@ def plot_survey(src_x,src_z,rcv_x,rcv_z,vel_model,dx=-1,dz=-1,
 def plot_wavelet(tlist,wavelet,
                 figsize=(6,4),
                 color='k',linestyle='-',linewidth=1,
-                tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 15},
+                tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 15},
                 cbar_pad_fraction=0.12,cbar_height=0.03,
                 show=True,save_path="",save_dpi=300):
     

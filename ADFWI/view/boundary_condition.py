@@ -18,8 +18,8 @@ def plot_bc():
 
 def plot_bcx_bcz(bcx,bcz,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
                    cmap='gray_r',
-                   tick_param     = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                   colorbar_param = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                   tick_param     = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                   colorbar_param = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                    cbar_pad_fraction=0.1,cbar_height=0.05,
                    show=True,save_path="",save_dpi=300):
     """plot lambda and mu
@@ -104,8 +104,8 @@ def plot_bcx_bcz(bcx,bcz,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
 def plot_damp(damp,dx=-1,dz=-1,
                 figsize=(8,8),wspace=0.2,hspace=0.2,
                 cmap='gray_r',
-                tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                 cbar_pad_fraction=0.12,cbar_height=0.03,
                 show=True,save_path="",save_dpi=300):
     

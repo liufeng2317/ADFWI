@@ -17,8 +17,8 @@ warnings.filterwarnings("ignore")
 #              waveform （single Trace）
 ########################################################
 def plot_waveform_trace(data,shot=0,trace=0,dt=None,figsize=(12,4),color='k',
-                    tick_param     = {'labelsize':18},label_param = {'family':'Times New Roman','weight':'normal','size': 18},
-                    title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                    tick_param     = {'labelsize':18},label_param = {'family':'serif','weight':'normal','size': 18},
+                    title_param = {'family':'serif','weight':'normal','size': 20},
                     show=True,save_path="",save_dpi=300):
     """plot single trace waveform
     Parameters

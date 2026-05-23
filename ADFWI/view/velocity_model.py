@@ -17,8 +17,8 @@ def plot_vp_vs_rho(vp,vs,rho,dx=-1,dz=-1,figsize=(14,4),wspace=0.2,hspace=0.2,
                    vp_min   = None  ,vp_max =None,
                    vs_min   = None  ,vs_max =None,
                    rho_min  = None  ,rho_max=None,
-                   tick_param  = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                   colorbar_param = {'labelsize':12},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                   tick_param  = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                   colorbar_param = {'labelsize':12},title_param = {'family':'serif','weight':'normal','size': 20},
                    cbar_pad_fraction=0.1,cbar_height=0.05,
                    show=True,save_path="",save_dpi=300):
     """plot vp/vs and density
@@ -144,8 +144,8 @@ def plot_vp_vs_rho(vp,vs,rho,dx=-1,dz=-1,figsize=(14,4),wspace=0.2,hspace=0.2,
 
 def plot_vp_rho(vp,rho,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
                    cmap='jet',
-                   tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                   colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                   tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                   colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                    cbar_pad_fraction=0.1,cbar_height=0.05,
                    show=True,save_path="",save_dpi=300):
     """plot vp and rho
@@ -231,8 +231,8 @@ def plot_vp_rho(vp,rho,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
 
 def plot_eps_delta_gamma(eps,delta,gamma,dx=-1,dz=-1,figsize=(14,4),wspace=0.2,hspace=0.2,
                    cmap='jet',
-                   tick_param  = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                   colorbar_param = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                   tick_param  = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                   colorbar_param = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                    cbar_pad_fraction=0.1,cbar_height=0.05,
                    show=True,save_path="",save_dpi=300):
     """plot epsilon/delta and gamma
@@ -337,8 +337,8 @@ def plot_eps_delta_gamma(eps,delta,gamma,dx=-1,dz=-1,figsize=(14,4),wspace=0.2,h
 
 def plot_lam_mu(lam,mu,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
                    cmap='jet',
-                   tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                   colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                   tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                   colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                    cbar_pad_fraction=0.1,cbar_height=0.05,
                    show=True,save_path="",save_dpi=300):
     """plot lambda and mu
@@ -424,8 +424,8 @@ def plot_lam_mu(lam,mu,dx=-1,dz=-1,figsize=(10,5),wspace=0.2,hspace=0.2,
 def plot_model(vel_model,title,dx=-1,dz=-1,
                 figsize=(8,8),wspace=0.2,hspace=0.2,
                 cmap='jet',
-                tick_param       = {'labelsize':15},label_param = {'family':'Times New Roman','weight':'normal','size': 15},
-                colorbar_param   = {'labelsize':15},title_param = {'family':'Times New Roman','weight':'normal','size': 20},
+                tick_param       = {'labelsize':15},label_param = {'family':'serif','weight':'normal','size': 15},
+                colorbar_param   = {'labelsize':15},title_param = {'family':'serif','weight':'normal','size': 20},
                 cbar_pad_fraction=0.12,cbar_height=0.03,
                 vmin = None,vmax=None,
                 show=True,save_path="",save_dpi=300):
