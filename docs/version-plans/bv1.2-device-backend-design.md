@@ -271,6 +271,38 @@ Still pending:
 - Misfit/kernel audit for NPU-sensitive operations and dtype consistency.
 - Public README/example update after the migration is stable.
 
+## Acoustic Smoke Test Script
+
+A notebook-free smoke test has been added for bv1.2 backend validation:
+
+```bash
+conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device cpu
+conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device npu:0
+conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device auto --prefer npu,cpu
+```
+
+The script builds a tiny in-memory acoustic model and survey, runs one forward
+pass, computes `mean(p**2)`, runs backward by default, and prints a JSON summary
+with backend diagnostics, waveform shape, loss, gradient norm, and timings. It
+does not read or write notebooks, figures, wavefields, or example output files.
+
+Default smoke-test geometry:
+
+- model: `nx=24`, `nz=20`, `nabc=4`, `dx=10 m`, `dz=10 m`;
+- survey: one moment-tensor source, three pressure receivers;
+- time axis: `nt=30`, `dt=0.001 s`;
+- dtype: `float32`;
+- backward target: `model.vp`.
+
+Validated on the local `adfwi` CPU+NPU environment:
+
+- CPU: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.7251948e-09`, nonzero finite `vp` gradient.
+- NPU `npu:0`: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.7251946e-09`, nonzero finite `vp` gradient.
+
+The CPU run may still emit Ascend owner warnings because importing the backend
+checks optional NPU availability in the local environment; those warnings did not
+affect the smoke-test result.
+
 ## Expected User Workflow After Migration
 
 Before:
