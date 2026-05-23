@@ -9,6 +9,7 @@ from ADFWI.propagator import AcousticPropagator, ElasticPropagator
 from ADFWI.fwi import AcousticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
@@ -142,6 +143,36 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(reg.device, propagator.device)
         self.assertEqual(reg.dtype, propagator.dtype)
         self.assertEqual(reg.L0.dtype, propagator.dtype)
+
+    def test_acoustic_fwi_can_apply_optional_data_transform_pipeline(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        pipeline = DataTransformPipeline([DataMask(torch.zeros((1, 8, 1)))])
+
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            data_transform_pipeline=pipeline,
+            waveform_normalize=False,
+            cache_result=False,
+        )
+
+        synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
+        observed = synthetic * 2
+        loss = fwi.calculate_loss(synthetic, observed, False, fwi.loss_fn, shot_index=np.array([0]))
+
+        self.assertEqual(float(loss.detach().cpu().item()), 0.0)
 
 
 if __name__ == "__main__":

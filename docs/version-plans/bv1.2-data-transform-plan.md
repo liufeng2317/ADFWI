@@ -106,4 +106,13 @@ Implemented in bv1.2 phase 1:
 - `ADFWI/fwi/transforms/waveform.py`;
 - `tests/test_data_transforms.py`.
 
-This phase does not alter `AcousticFWI` or `ElasticFWI` behavior.
+Phase 1 did not alter `AcousticFWI` or `ElasticFWI` behavior.
+
+Phase 2 started with a conservative optional integration in `AcousticFWI`:
+
+- `AcousticFWI(..., data_transform_pipeline=None)` preserves the legacy default path.
+- When a pipeline is provided, it is applied to `(synthetic, observed)` after mute/filter steps and before the legacy normalization step.
+- Existing arguments such as `waveform_normalize`, receiver masks, data masks, offset mute, late-window mute, and low-pass filtering remain supported.
+- Users can set `waveform_normalize=False` when `TraceNormalize()` is included in the pipeline to avoid double normalization.
+
+Elastic integration remains deferred until the acoustic optional path has stayed stable under smoke tests.

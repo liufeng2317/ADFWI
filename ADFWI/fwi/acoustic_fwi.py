@@ -17,6 +17,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
+from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
@@ -41,6 +42,7 @@ class AcousticFWI(torch.nn.Module):
                  waveform_normalize:Optional[bool]                            = True,
                  waveform_mute_late_window:Optional[float]                    = None,
                  waveform_mute_offset:Optional[float]                         = None,
+                 data_transform_pipeline:Optional[DataTransformPipeline]       = None,
                  cache_result:Optional[bool]                                  = True,
                  cache_result_epoch:Optional[bool]                            = 1,
                  save_fig_epoch:Optional[int]                                 = -1,
@@ -66,6 +68,7 @@ class AcousticFWI(torch.nn.Module):
         waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
         waveform_mute_late_window:Optional[float]                      : Clipping data after picking the first arrival with the given window size.
         waveform_mute_offset:Optional[float]                           : Clipping data larger than the given offset threshold.
+        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline applied before the legacy normalization step.
         cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
         save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).
@@ -81,6 +84,7 @@ class AcousticFWI(torch.nn.Module):
         self.regularization_weights_z   = regularization_weights_z
         self.obs_data                   = obs_data
         self.gradient_processor         = gradient_processor
+        self.data_transform_pipeline    = data_transform_pipeline
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
         self._validate_device_consistency()
@@ -204,6 +208,16 @@ class AcousticFWI(torch.nn.Module):
         if cutoff_freq is not None:
             synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
         
+        if self.data_transform_pipeline is not None:
+            context = {"shot_index": shot_index}
+            if shot_index is not None:
+                context["receiver_mask"] = self.receiver_masks_2D[shot_index]
+                if self.data_masks is not None:
+                    context["data_mask"] = self.data_masks[shot_index]
+            synthetic_waveform, observed_waveform = self.data_transform_pipeline(
+                synthetic_waveform, observed_waveform, context=context
+            )
+
         if normalization:
             synthetic_waveform = self._normalize(synthetic_waveform)
             observed_waveform  = self._normalize(observed_waveform)
