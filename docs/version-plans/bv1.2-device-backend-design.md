@@ -337,6 +337,29 @@ Validated on the local `adfwi` CPU+NPU environment:
 - CPU: status `ok`, loss about `3.803281e-07`, finite nonzero `vp` gradient, finite nonzero model update.
 - NPU `npu:0`: status `ok`, loss about `3.803281e-07`, finite nonzero `vp` gradient, finite nonzero model update.
 
+## Elastic Smoke Test Script
+
+Elastic forward/backward backend validation has been added after the acoustic
+smoke tests. The script builds a tiny in-memory isotropic elastic model and
+survey, runs one forward pass, computes pressure as `-(txx + tzz)`, and runs a
+scalar backward pass by default:
+
+```bash
+conda run -n adfwi python scripts/smoke/elastic_backend_smoke.py --device cpu
+conda run -n adfwi python scripts/smoke/elastic_backend_smoke.py --device npu:0
+```
+
+The elastic backend migration currently covers:
+
+- `IsotropicElasticModel` and `AnisotropicElasticModel` inheriting global backend defaults;
+- `ElasticPropagator` following the model backend by default;
+- elastic finite-difference coefficients being moved to the active backend device/dtype inside the kernel.
+
+Validated on the local `adfwi` CPU+NPU environment:
+
+- CPU: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
+- NPU `npu:0`: status `ok`, pressure shape `[1, 30, 3]`, loss about `3.293591e-02`, finite nonzero `vp` gradient.
+
 ## Expected User Workflow After Migration
 
 Before:

@@ -15,6 +15,7 @@ from ADFWI.survey import Survey
 from .boundary_condition import bc_pml_xz,bc_gerjan,bc_sincos
 from .elastic_kernels import forward_kernel
 from ADFWI.utils import numpy2tensor
+from ADFWI.backends import get_backend
 import torch.jit as jit
 
 class ElasticPropagator(torch.nn.Module):
@@ -33,10 +34,10 @@ class ElasticPropagator(torch.nn.Module):
     def __init__(self,
                 model:AbstractModel,
                 survey:Survey,
-                device:Optional[str]    = 'cpu',
+                device:Optional[str]    = None,
                 cpu_num:Optional[int]   = 1,
                 gpu_num:Optional[int]   = 1,
-                dtype                   = torch.float32
+                dtype                   = None
                 ):
         super().__init__()
         
@@ -46,13 +47,15 @@ class ElasticPropagator(torch.nn.Module):
         if not isinstance(survey, Survey):
             raise ValueError("survey is not Survey")
         
+        backend = get_backend(device=model.device if device is None else device, dtype=model.dtype if dtype is None else dtype)
+
         # ---------------------------------------------------------------
         # set the model and survey
         # ---------------------------------------------------------------
         self.model          = model
         self.survey         = survey
-        self.device         = device
-        self.dtype          = dtype
+        self.device         = backend.device
+        self.dtype          = backend.dtype
         self.cpu_num        = cpu_num
         self.gpu_num        = gpu_num
         

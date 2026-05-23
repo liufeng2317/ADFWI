@@ -4,8 +4,8 @@ import numpy as np
 import torch
 
 from ADFWI.backends import configure_backend, get_backend
-from ADFWI.model import AcousticModel
-from ADFWI.propagator import AcousticPropagator
+from ADFWI.model import AcousticModel, IsotropicElasticModel
+from ADFWI.propagator import AcousticPropagator, ElasticPropagator
 from ADFWI.fwi import AcousticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
@@ -99,6 +99,21 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(reg.device.type, "cpu")
         self.assertEqual(reg.dtype, torch.float32)
         self.assertEqual(reg.L1.dtype, torch.float32)
+
+    def test_elastic_model_and_propagator_inherit_configured_backend(self):
+        configure_backend("cpu", dtype=torch.float64)
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, self._survey())
+
+        self.assertEqual(model.device.type, "cpu")
+        self.assertEqual(model.dtype, torch.float64)
+        self.assertEqual(model.vp.dtype, torch.float64)
+        self.assertEqual(propagator.device, model.device)
+        self.assertEqual(propagator.dtype, model.dtype)
+        self.assertEqual(propagator.wavelet.dtype, torch.float64)
 
     def test_acoustic_fwi_aligns_regularization_to_propagator_backend(self):
         configure_backend("cpu", dtype=torch.float32)

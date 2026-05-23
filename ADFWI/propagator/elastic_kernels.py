@@ -293,7 +293,7 @@ def step_forward_PML_4order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -457,7 +457,7 @@ def step_forward_PML_6order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -621,7 +621,7 @@ def step_forward_PML_8order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -785,7 +785,7 @@ def step_forward_PML_10order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -1018,7 +1018,7 @@ def step_forward_ABL_4order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h       = NN + 1
     i_start = NN 
     i_end   = nz_pml - NN
@@ -1154,7 +1154,7 @@ def step_forward_ABL_6order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -1288,7 +1288,7 @@ def step_forward_ABL_8order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN
@@ -1422,7 +1422,7 @@ def step_forward_ABL_10order(M:int,
     
     # Finite difference order and indexing
     NN = M // 2
-    fdc = DiffCoef(NN, 's')
+    fdc = DiffCoef(NN, 's').to(device=device, dtype=dtype)
     h = NN + 1
     i_start = NN 
     i_end = nz_pml - NN

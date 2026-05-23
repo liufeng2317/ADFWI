@@ -42,8 +42,8 @@ class IsotropicElasticModel(AbstractModel):
                 auto_update_rho:Optional[bool]                   = True,
                 auto_update_vp:Optional[bool]                    = False,
                 water_layer_mask:Optional[Union[np.array,Tensor]]= None,
-                device                                           = 'cpu',
-                dtype                                            = torch.float32
+                device                                           = None,
+                dtype                                            = None
                 )->None:
         """
         Parameters:
@@ -122,7 +122,7 @@ class IsotropicElasticModel(AbstractModel):
         self.auto_update_vp  = auto_update_vp
     
         if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
+            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
         else:
             self.water_layer_mask = None
             
@@ -307,8 +307,8 @@ class AnisotropicElasticModel(AbstractModel):
                 auto_update_rho:Optional[bool]              = False,    # auto update parameters
                 auto_update_vp:Optional[bool]               = False,
                 water_layer_mask:Optional[Union[np.array,Tensor]]= None,
-                device                                      = 'cpu',
-                dtype                                       = torch.float32
+                device                                      = None,
+                dtype                                       = None
                 )->None:
         """
         Parameters:
@@ -411,7 +411,7 @@ class AnisotropicElasticModel(AbstractModel):
         self.auto_update_vp  = auto_update_vp
         
         if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(device)
+            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
         else:
             self.water_layer_mask = None
                 
