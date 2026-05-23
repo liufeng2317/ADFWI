@@ -133,7 +133,9 @@ Current bv1.2 status:
 - `AcousticFWI` routes default waveform normalization through transforms;
 - `AcousticFWI` now routes synthetic-side `data_masks` through `DataMask(required=False, apply_to="synthetic")`;
 - `ElasticFWI` now uses the same transform entry for default normalization and synthetic-side sample masks across pressure, vx, and vz components;
-- receiver-mask migration, mute windows, and low-pass filtering remain in the legacy FWI path until separate shape/device validation is complete.
+- experimental pure torch `LowPassFilter` exists with CPU/NPU transform tests;
+- FWI still uses legacy `multiScaleProcessing.lpass` until low-pass numerical behavior is validated in inversion smoke tests;
+- receiver-mask migration and mute windows remain in the legacy FWI path until separate shape/device validation is complete.
 
 Target style:
 

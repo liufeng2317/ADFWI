@@ -22,7 +22,8 @@ straightforward to validate on CPU/NPU:
 - `DataTransformPipeline` composition;
 - `TraceNormalize`;
 - `ReceiverMask`;
-- `DataMask`.
+- `DataMask`;
+- `LowPassFilter` as an experimental pure torch FIR low-pass transform.
 
 The initial tensor convention is waveform data shaped `[shot, time, receiver]`.
 A receiver mask shaped `[shot, receiver]` is expanded to `[shot, 1, receiver]`
@@ -35,7 +36,7 @@ on extra CPU/NumPy utilities or require additional physics-specific validation:
 
 - offset mute;
 - first-arrival or late-window mute;
-- low-pass filtering;
+- legacy SciPy/autograd low-pass filtering in `multiScaleProcessing.lpass`;
 - real-case receiver selection where observed and synthetic receiver counts differ.
 
 ## Proposed API
@@ -123,4 +124,5 @@ Elastic integration started after the acoustic path was validated:
 
 - `ElasticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now uses the same default `DataMask(required=False, apply_to="synthetic")` plus `TraceNormalize()` pipeline.
 - `ElasticFWI.real_case_data_selecting()` now handles receiver/trace selection only; sample-level `data_masks` are applied in `calculate_loss()` through the transform pipeline for pressure, vx, and vz components.
-- Low-pass filtering, mute windows, and trace-missing receiver selection remain in the legacy path until they have separate CPU/NPU validation.
+- A pure torch `LowPassFilter` transform has been added and tested on CPU/NPU, but FWI still uses the legacy `multiScaleProcessing.lpass` path until numerical behavior is validated in inversion workflows.
+- Mute windows and trace-missing receiver selection remain in the legacy path until they have separate CPU/NPU validation.
