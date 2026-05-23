@@ -226,8 +226,29 @@ Validation result on the local `adfwi` CPU+NPU environment:
 - CPU: `Envelope,WECI` status `ok`.
 - NPU `npu:0`: `Envelope,WECI` failed because the current NPU runtime does not support `torch.abs` on `complex64` tensors produced by the Hilbert/FFT path. Keep these CPU-only or redesign the envelope implementation for NPU before advertising NPU support.
 
+## Acoustic Mini Inversion Follow-Up
+
+Implemented `--misfit` support in `scripts/smoke/acoustic_mini_inversion_smoke.py` for the tensor-smoke-verified portable group:
+
+```text
+L1, L2, SmoothL1, StudentT, WeightedL1L2, GC, TravelTime, NIM
+```
+
+Validation result on the local `adfwi` CPU+NPU environment:
+
+- CPU: all eight values completed one `AcousticFWI` iteration with finite loss, finite/nonzero `vp` gradient, and finite/nonzero model update.
+- NPU `npu:0`: all eight values completed one `AcousticFWI` iteration with finite loss, finite/nonzero `vp` gradient, and finite/nonzero model update.
+- `SmoothL1` and `StudentT` need a larger smoke default learning rate (`1e12`) because the tiny synthetic setup produces gradients small enough that `lr=1e8` is rounded away at the `float32` model scale. This is a smoke-test scaling choice, not a backend limitation.
+
+Representative commands:
+
+```bash
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device cpu --misfit L2
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0 --misfit NIM
+```
+
 ## Recommended Immediate Next Step
 
-Use `misfit_backend_smoke.py` as the gate for low-risk misfit changes. Next, extend `acoustic_mini_inversion_smoke.py` with `--misfit` options only for the default group that passed tensor-level CPU/NPU validation.
+Use `misfit_backend_smoke.py` for tensor-level gates and `acoustic_mini_inversion_smoke.py --misfit ...` for one-step FWI gates before changing low-risk misfit behavior.
 
-Do not modify `SoftDTW`, `WDGC`, or heavy Wasserstein behavior until the low-risk group is covered by mini inversion smoke tests.
+Do not modify `SoftDTW`, `WDGC`, or heavy Wasserstein behavior until the portable group remains stable under both smoke layers.

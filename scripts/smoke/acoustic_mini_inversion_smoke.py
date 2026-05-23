@@ -28,7 +28,16 @@ import torch
 
 from ADFWI.backends import BackendUnavailableError, configure_backend
 from ADFWI.fwi import AcousticFWI
-from ADFWI.fwi.misfit import Misfit_waveform_L2
+from ADFWI.fwi.misfit import (
+    Misfit_NIM,
+    Misfit_global_correlation,
+    Misfit_traveltime,
+    Misfit_waveform_L1,
+    Misfit_waveform_L2,
+    Misfit_waveform_smoothL1,
+    Misfit_waveform_studentT,
+    Misfit_weighted_L1_and_L2,
+)
 from ADFWI.model import AcousticModel
 from ADFWI.propagator import AcousticPropagator, GradProcessor
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
@@ -43,6 +52,53 @@ def parse_dtype(name: str) -> torch.dtype:
         return dtypes[name.lower()]
     except KeyError as exc:
         raise argparse.ArgumentTypeError(f"unsupported dtype: {name}") from exc
+
+
+SUPPORTED_MISFITS = ("L1", "L2", "SmoothL1", "StudentT", "WeightedL1L2", "GC", "TravelTime", "NIM")
+DEFAULT_LR_BY_MISFIT = {
+    "SmoothL1": 1e12,
+    "StudentT": 1e12,
+}
+DEFAULT_LR = 1e8
+
+
+def parse_misfit(name: str) -> str:
+    normalized = name.strip()
+    aliases = {
+        "GlobalCorrelation": "GC",
+        "global_correlation": "GC",
+        "Weighted_L1_L2": "WeightedL1L2",
+        "WeightedL1andL2": "WeightedL1L2",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized not in SUPPORTED_MISFITS:
+        supported = ", ".join(SUPPORTED_MISFITS)
+        raise argparse.ArgumentTypeError(f"unsupported mini-inversion misfit: {name}; supported: {supported}")
+    return normalized
+
+
+def build_loss_fn(name: str, dt: float):
+    if name == "L1":
+        return Misfit_waveform_L1(dt=dt)
+    if name == "L2":
+        return Misfit_waveform_L2(dt=dt)
+    if name == "SmoothL1":
+        return Misfit_waveform_smoothL1(dt=dt)
+    if name == "StudentT":
+        return Misfit_waveform_studentT(dt=dt)
+    if name == "WeightedL1L2":
+        return Misfit_weighted_L1_and_L2(dt=dt, max_iter=4)
+    if name == "GC":
+        return Misfit_global_correlation(dt=dt)
+    if name == "TravelTime":
+        return Misfit_traveltime(dt=dt, beta=5)
+    if name == "NIM":
+        return Misfit_NIM(p=1, trans_type="linear", theta=1, dt=dt)
+    raise ValueError(f"unsupported misfit: {name}")
+
+
+def default_lr_for_misfit(name: str) -> float:
+    return DEFAULT_LR_BY_MISFIT.get(name, DEFAULT_LR)
 
 
 def ricker_wavelet(nt: int, dt: float, f0: float) -> np.ndarray:
@@ -111,6 +167,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
+    lr = args.lr if args.lr is not None else default_lr_for_misfit(args.misfit)
 
     true_vp, init_vp, rho = model_arrays(args.nx, args.nz)
     survey = build_survey(args.nt, args.dt, args.f0, args.nx, args.nz)
@@ -133,10 +190,10 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     model = build_model(init_vp, rho, args.nx, args.nz, args.dx, args.dz, args.nabc, vp_grad=True)
     initial_vp = model.vp.detach().clone()
     propagator = AcousticPropagator(model, survey)
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1.0)
     gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
-    loss_fn = Misfit_waveform_L2(dt=args.dt)
+    loss_fn = build_loss_fn(args.misfit, args.dt)
 
     fwi = AcousticFWI(
         propagator,
@@ -207,7 +264,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "vp_grad_norm": grad_norm,
             "vp_update_norm": model_update_norm,
             "seconds": inversion_seconds,
-            "lr": args.lr,
+            "lr": lr,
+            "misfit": args.misfit,
         },
     }
 
@@ -218,10 +276,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prefer", default="npu,cpu", help="auto-selection priority, e.g. npu,cpu or cuda,cpu")
     parser.add_argument("--fallback-cpu", action="store_true", help="fallback explicit unavailable accelerator requests to CPU")
     parser.add_argument("--dtype", default=torch.float32, type=parse_dtype, help="float32 or float64")
+    parser.add_argument("--misfit", default="L2", type=parse_misfit, help="misfit for one-step inversion: " + ",".join(SUPPORTED_MISFITS))
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--show-progress", action="store_true", help="show AcousticFWI tqdm progress bars")
     parser.add_argument("--seed", type=int, default=20240523)
-    parser.add_argument("--lr", type=float, default=1e8)
+    parser.add_argument("--lr", type=float, default=None, help="optimizer learning rate; defaults are chosen per misfit")
     parser.add_argument("--nx", type=int, default=24)
     parser.add_argument("--nz", type=int, default=20)
     parser.add_argument("--nabc", type=int, default=4)

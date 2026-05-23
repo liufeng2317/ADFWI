@@ -52,6 +52,24 @@ Envelope/WECI CPU-only check:
 conda run -n adfwi python scripts/smoke/misfit_backend_smoke.py --device cpu --misfits Envelope,WECI
 ```
 
+
+## Acoustic Mini Inversion Smoke
+
+The same portable group is also covered by one-step `AcousticFWI` mini inversion smoke through:
+
+```bash
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device cpu --misfit L2
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0 --misfit L2
+```
+
+Supported `--misfit` values for this mini inversion smoke are:
+
+```text
+L1, L2, SmoothL1, StudentT, WeightedL1L2, GC, TravelTime, NIM
+```
+
+Validation on the local CPU/NPU environment passed for all listed values. `SmoothL1` and `StudentT` use a larger script default learning rate because their gradients are very small in the tiny synthetic smoke model; users can still override this with `--lr`.
+
 ## Recommended Usage for bv1.2
 
 For CPU/NPU portable acoustic inversion, prefer:
