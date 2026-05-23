@@ -281,6 +281,18 @@ conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device npu:0
 conda run -n adfwi python scripts/smoke/acoustic_backend_smoke.py --device auto --prefer npu,cpu
 ```
 
+For repeated machine checks, use the multi-device wrapper:
+
+```bash
+conda run -n adfwi python scripts/smoke/run_acoustic_backend_smoke.py --devices cpu,npu:0
+conda run -n adfwi python scripts/smoke/run_acoustic_backend_smoke.py --devices cpu,npu:0 --skip-backward
+```
+
+The wrapper invokes the single-device smoke test once per requested backend and
+returns one combined JSON report. Successful child-process stderr is hidden by
+default so optional runtime warnings do not obscure the baseline metrics; pass
+`--include-stderr` when debugging environment warnings.
+
 The script builds a tiny in-memory acoustic model and survey, runs one forward
 pass, computes `mean(p**2)`, runs backward by default, and prints a JSON summary
 with backend diagnostics, waveform shape, loss, gradient norm, and timings. It
