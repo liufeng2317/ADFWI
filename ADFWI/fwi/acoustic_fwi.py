@@ -70,10 +70,10 @@ class AcousticFWI(torch.nn.Module):
         regularization_fn (Optional[Regularization])                   : The regularization function for model parameters (e.g., for smoothing or penalty terms). Default is None.
         regularization_weights_x (Optional[List[Union[float]]])        : Regularization weights for the x direction (e.g., vp/rho regularization). Default is [0, 0].
         regularization_weights_z (Optional[List[Union[float]]])        : Regularization weights for the z direction (e.g., vp/rho regularization). Default is [0, 0].
-        waveform_normalize (Optional[bool])                            : Whether to normalize the waveform during inversion. Default is True (waveforms are normalized).
+        waveform_normalize (Optional[bool])                            : Whether to normalize waveforms. In bv1.2 the default path implements this through the internal transform pipeline. Set False when a custom pipeline already normalizes data.
         waveform_mute_late_window:Optional[float]                      : Clipping data after picking the first arrival with the given window size.
         waveform_mute_offset:Optional[float]                           : Clipping data larger than the given offset threshold.
-        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional synthetic/observed waveform transform pipeline. If omitted, data masks are applied through DataMask and waveform_normalize=True is implemented internally with TraceNormalize.
+        data_transform_pipeline (Optional[DataTransformPipeline])       : Optional extra synthetic/observed waveform transform pipeline. It is appended after legacy-compatible mute, low-pass, and data-mask transforms; transforms must operate on same-shape synthetic/observed tensors.
         cache_result (Optional[bool])                                  : Whether to cache intermediate inversion results for later use. Default is True.
         save_fig_epoch (Optional[int])                                 : The interval (in epochs) at which to save the inversion result as a figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                  : The path where to save the inversion result figure. Default is an empty string (no path specified).

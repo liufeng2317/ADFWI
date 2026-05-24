@@ -108,6 +108,41 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(reg.dtype, torch.float32)
         self.assertEqual(reg.L1.dtype, torch.float32)
 
+
+    def _elastic_fwi_for_api(self, inversion_component=None, component_weights=None):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 1), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 1), dtype=np.float32),
+            "vx": np.zeros((1, 8, 1), dtype=np.float32),
+            "vz": np.zeros((1, 8, 1), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        kwargs = {}
+        if inversion_component is not None:
+            kwargs["inversion_component"] = inversion_component
+        if component_weights is not None:
+            kwargs["component_weights"] = component_weights
+        return ElasticFWI(
+            propagator,
+            model,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            waveform_normalize=False,
+            cache_result=False,
+            **kwargs,
+        )
+
     def test_elastic_model_and_propagator_inherit_configured_backend(self):
         configure_backend("cpu", dtype=torch.float64)
         vp = np.ones((6, 8), dtype=np.float32) * 2200.0
@@ -259,6 +294,27 @@ class BackendIntegrationTests(unittest.TestCase):
         loss = fwi.calculate_loss(synthetic, observed, fwi.waveform_normalize, fwi.loss_fn, shot_index=np.array([0]))
 
         self.assertEqual(float(loss.detach().cpu().item()), 0.0)
+
+    def test_elastic_fwi_component_weights_default_to_active_components(self):
+        fwi = self._elastic_fwi_for_api(inversion_component=["pressure", "vx"])
+
+        self.assertEqual(fwi.component_weights, {"pressure": 1.0, "vx": 1.0})
+
+    def test_elastic_fwi_accepts_explicit_component_weights(self):
+        fwi = self._elastic_fwi_for_api(
+            inversion_component=["pressure", "vx", "vz"],
+            component_weights={"pressure": 2.0, "vz": 0.25},
+        )
+
+        self.assertEqual(fwi.component_weights, {"pressure": 2.0, "vx": 1.0, "vz": 0.25})
+
+    def test_elastic_fwi_rejects_invalid_component_weights(self):
+        with self.assertRaises(ValueError):
+            self._elastic_fwi_for_api(inversion_component=["pressure", "ux"])
+        with self.assertRaises(ValueError):
+            self._elastic_fwi_for_api(inversion_component=["pressure"], component_weights={"ux": 1.0})
+        with self.assertRaises(ValueError):
+            self._elastic_fwi_for_api(inversion_component=["pressure"], component_weights={"pressure": -1.0})
 
 
 if __name__ == "__main__":

@@ -17,9 +17,11 @@ numbered order unless you are looking for a specific topic.
 | 06 | [Receiver Selection Migration](./06-receiver-selection-migration.md) | Centralized receiver mask and trace-missing selection before loss calculation. |
 | 07 | [Transform Module Organization](./07-transform-module-organization.md) | Module split for transform implementations while preserving public imports. |
 | 08 | [FWI Data Contract](./08-fwi-data-contract.md) | Pre-loss synthetic/observed data contract and shared preparation helper. |
+| 09 | [FWI User-Facing Interface](./09-fwi-user-facing-interface.md) | Recommended public usage for transforms, elastic components, and component weights. |
 
 ## Current Direction
 
+- Keep public FWI usage simple while routing internal data preparation through structured helpers.
 - Continue moving waveform preprocessing into transform pipelines.
 - Preserve FWI numerical behavior first; introduce pure torch/NPU-native
   alternatives only when their numerical differences are explicitly accepted.

@@ -1,4 +1,11 @@
-"""FWI data preparation helpers before misfit evaluation."""
+"""FWI data preparation helpers before misfit evaluation.
+
+This module is the FWI-layer data contract: it aligns synthetic and observed
+waveform pairs before they enter a misfit. It may orchestrate receiver
+selection, transform context construction, and component bookkeeping. Concrete
+waveform operations stay in ``ADFWI.fwi.transforms``; misfit formulas stay in
+``ADFWI.fwi.misfit``; propagator execution stays in ``ADFWI.propagator``.
+"""
 
 from __future__ import annotations
 

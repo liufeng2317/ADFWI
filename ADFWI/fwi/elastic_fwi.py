@@ -74,14 +74,14 @@ class ElasticFWI(torch.nn.Module):
         regularization_fn (Optional[Regularization])                            : Regularization function(s) applied to parameters like vp/vs/rho/epsilon/delta/gamma. Default is None.
         regularization_weights_x (Optional[List[Union[float]]])                 : Regularization weights for the x-axis. Default is [0, 0, 0, 0, 0, 0].
         regularization_weights_z (Optional[List[Union[float]]])                 : Regularization weights for the z-axis. Default is [0, 0, 0, 0, 0, 0].
-        waveform_normalize (Optional[bool])                                     : Whether to normalize the waveforms during inversion. Default is True.
-        data_transform_pipeline (Optional[DataTransformPipeline])               : Optional synthetic/observed waveform transform pipeline. If omitted, data masks are applied through DataMask and waveform_normalize=True is implemented internally with TraceNormalize.
+        waveform_normalize (Optional[bool])                                     : Whether to normalize waveforms. In bv1.2 the default path implements this through the internal transform pipeline. Set False when a custom pipeline already normalizes data.
+        data_transform_pipeline (Optional[DataTransformPipeline])               : Optional extra synthetic/observed waveform transform pipeline. It is appended after legacy-compatible mute, low-pass, and data-mask transforms; transforms must operate on same-shape synthetic/observed tensors.
         cache_result (Optional[bool])                                           : Whether to save intermediate results during the inversion. Default is True.
         cache_gradient (Optional[bool])                                         : Whether to save model variations (not gradients) during inversion. Default is False.
         save_fig_epoch (Optional[int])                                          : The interval (in epochs) at which to save the inversion result figure. Default is -1 (no figure saved).
         save_fig_path (Optional[str])                                           : The path where to save the inversion result figure. Default is an empty string (no save path).
-        inversion_component (Optional[np.array])                                : The components of the inversion (e.g., ["pressure"]). Default is ["pressure"].
-        component_weights (Optional[Mapping[str, float]])                       : Optional per-component loss weights for pressure/vx/vz. Missing active components default to 1.0.
+        inversion_component (Optional[np.array])                                : Elastic components used in the inversion. Supported names are "pressure", "vx", and "vz". Default is ["pressure"].
+        component_weights (Optional[Mapping[str, float]])                       : Optional per-component loss weights for pressure/vx/vz. Missing active components default to 1.0; unknown names and negative weights raise ValueError.
         """
         super().__init__()
         self.propagator                 = propagator
