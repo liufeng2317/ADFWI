@@ -312,6 +312,29 @@ class AcousticFWI(torch.nn.Module):
                             save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False,cmap='coolwarm')
         return
     
+    def save_model_and_gradients(self, epoch_id, loss_epoch):
+        # model
+        temp_vp = self.model.vp.cpu().detach().numpy()
+        temp_rho = self.model.rho.cpu().detach().numpy()
+        if epoch_id % self.cache_result_epoch == 0:
+            self.iter_vp.append(temp_vp)
+            self.iter_rho.append(temp_rho)
+            self.cache_iter_index.append(epoch_id)
+        self.iter_loss.append(loss_epoch)
+        self.save_figure(epoch_id, temp_vp, model_type="vp")
+        self.save_figure(epoch_id, temp_rho, model_type="rho")
+
+        # gradient
+        if self.model.get_requires_grad("vp"):
+            grads_vp = self.model.vp.grad.cpu().detach().numpy()
+            self.save_figure(epoch_id, grads_vp, model_type="grad_vp")
+            self.iter_vp_grad.append(grads_vp)
+        if self.model.get_requires_grad("rho"):
+            grads_rho = self.model.rho.grad.cpu().detach().numpy()
+            self.save_figure(epoch_id, grads_rho, model_type="grad_rho")
+            self.iter_rho_grad.append(grads_rho)
+        return
+    
     def forward(self,
                 iteration:int,
                 batch_size:Optional[int]            = None,
@@ -385,25 +408,7 @@ class AcousticFWI(torch.nn.Module):
             self.model.forward()
             
             if self.cache_result:
-                # model
-                temp_vp   = self.model.vp.cpu().detach().numpy()
-                temp_rho  = self.model.rho.cpu().detach().numpy()
-                if i%self.cache_result_epoch == 0:
-                    self.iter_vp.append(temp_vp)
-                    self.iter_rho.append(temp_rho)
-                    self.cache_iter_index.append(i)
-                self.iter_loss.append(loss_batch)
-                self.save_figure(i,temp_vp     , model_type="vp")
-                self.save_figure(i,temp_rho    , model_type="rho")
-                # gradient
-                if self.model.get_requires_grad("vp"):
-                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
-                    self.save_figure(i,grads_vp    , model_type="grad_vp")
-                    self.iter_vp_grad.append(grads_vp)
-                if self.model.get_requires_grad("rho"):
-                    grads_rho  = self.model.rho.grad.cpu().detach().numpy()
-                    self.save_figure(i,grads_rho   , model_type="grad_rho")
-                    self.iter_rho_grad.append(grads_rho)
+                self.save_model_and_gradients(epoch_id=i, loss_epoch=loss_batch)
 
             self.true_epoch = 0
             pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
@@ -476,24 +481,5 @@ class AcousticFWI(torch.nn.Module):
             
             # save the result
             if self.cache_result:
-                # save the inverted resutls
-                temp_vp   = self.model.vp.cpu().detach().numpy()
-                temp_rho  = self.model.rho.cpu().detach().numpy()
-                if i%self.cache_result_epoch == 0:
-                    self.iter_vp.append(temp_vp)
-                    self.iter_rho.append(temp_rho)
-                    self.cache_iter_index.append(i)
-                self.iter_loss.append(loss_batch)
-                self.save_figure(i,temp_vp     , model_type="vp")
-                self.save_figure(i,temp_rho    , model_type="rho")
-                
-                # save the inverted gradient
-                if self.model.get_requires_grad("vp"):
-                    grads_vp   = self.model.vp.grad.cpu().detach().numpy()
-                    self.save_figure(i,grads_vp    , model_type="grad_vp")
-                    self.iter_vp_grad.append(grads_vp)
-                if self.model.get_requires_grad("rho"):
-                    grads_rho  = self.model.rho.grad.cpu().detach().numpy()
-                    self.save_figure(i,grads_rho   , model_type="grad_rho")
-                    self.iter_rho_grad.append(grads_rho)
+                self.save_model_and_gradients(epoch_id=i, loss_epoch=loss_batch)
             pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))

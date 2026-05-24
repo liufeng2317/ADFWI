@@ -19,6 +19,7 @@ numbered order unless you are looking for a specific topic.
 | 08 | [FWI Data Contract](./08-fwi-data-contract.md) | Pre-loss synthetic/observed data contract and shared preparation helper. |
 | 09 | [FWI User-Facing Interface](./09-fwi-user-facing-interface.md) | Recommended public usage for transforms, elastic components, and component weights. |
 | 10 | [FWI Loop Structure](./10-fwi-loop-structure.md) | Shared batch range helper and staged cleanup plan for acoustic/elastic FWI loops. |
+| 11 | [FWI Cache Organization](./11-fwi-cache-organization.md) | Acoustic cache helper cleanup and validation plan for result bookkeeping. |
 
 ## Current Direction
 
