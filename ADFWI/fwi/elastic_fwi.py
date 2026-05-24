@@ -247,6 +247,22 @@ class ElasticFWI(torch.nn.Module):
                 regularization_loss = regularization_fn.forward(model_param)
         return regularization_loss
     
+    def calculate_model_regularization_loss(self):
+        parameter_names = ["vp", "vs", "rho"]
+        if isinstance(self.model, AnisotropicElasticModel):
+            parameter_names.extend(["eps", "delta", "gamma"])
+
+        regularization_loss = None
+        for idx, name in enumerate(parameter_names):
+            parameter_loss = self.calculate_regularization_loss(
+                getattr(self.model, name),
+                self.regularization_weights_x[idx],
+                self.regularization_weights_z[idx],
+                self.regularization_fn,
+            )
+            regularization_loss = parameter_loss if regularization_loss is None else regularization_loss + parameter_loss
+        return regularization_loss
+    
     # gradient precondition
     def process_gradient(self, parameter, forw, idx=None):
         with torch.no_grad():
@@ -488,20 +504,7 @@ class ElasticFWI(torch.nn.Module):
                 
                 # regularization
                 if self.regularization_fn is not None:
-                    # Initialize regularization losses
-                    regularization_loss_vp  = self.calculate_regularization_loss(self.model.vp , self.regularization_weights_x[0], self.regularization_weights_z[0], self.regularization_fn)
-                    regularization_loss_vs  = self.calculate_regularization_loss(self.model.vs , self.regularization_weights_x[1], self.regularization_weights_z[1], self.regularization_fn)
-                    regularization_loss_rho = self.calculate_regularization_loss(self.model.rho, self.regularization_weights_x[2], self.regularization_weights_z[2], self.regularization_fn)
-                    # For anisotropic model parameters
-                    regularization_loss_eps,regularization_loss_delta,regularization_loss_gamma = torch.tensor(0.0, device=self.device),torch.tensor(0.0, device=self.device),torch.tensor(0.0, device=self.device)
-                    if isinstance(self.model, AnisotropicElasticModel):
-                        regularization_loss_eps   = self.calculate_regularization_loss(self.model.eps  , self.regularization_weights_x[3], self.regularization_weights_z[3], self.regularization_fn)
-                        regularization_loss_delta = self.calculate_regularization_loss(self.model.delta, self.regularization_weights_x[4], self.regularization_weights_z[4], self.regularization_fn)
-                        regularization_loss_gamma = self.calculate_regularization_loss(self.model.gamma, self.regularization_weights_x[5], self.regularization_weights_z[5], self.regularization_fn)
-                    # Summing all regularization losses
-                    regularization_loss = (regularization_loss_vp + regularization_loss_vs + regularization_loss_rho +
-                                           regularization_loss_eps + regularization_loss_delta + regularization_loss_gamma)
-                    # Adding regularization loss to total loss
+                    regularization_loss = self.calculate_model_regularization_loss()
                     loss_epoch += data_loss.item() + regularization_loss.item()
                     loss = data_loss + regularization_loss
                 else:

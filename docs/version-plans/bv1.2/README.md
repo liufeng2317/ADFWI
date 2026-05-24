@@ -20,6 +20,7 @@ numbered order unless you are looking for a specific topic.
 | 09 | [FWI User-Facing Interface](./09-fwi-user-facing-interface.md) | Recommended public usage for transforms, elastic components, and component weights. |
 | 10 | [FWI Loop Structure](./10-fwi-loop-structure.md) | Shared batch range helper and staged cleanup plan for acoustic/elastic FWI loops. |
 | 11 | [FWI Cache Organization](./11-fwi-cache-organization.md) | Acoustic cache helper cleanup and validation plan for result bookkeeping. |
+| 12 | [FWI Regularization Organization](./12-fwi-regularization-organization.md) | Acoustic/elastic model regularization helper extraction and validation plan. |
 
 ## Current Direction
 

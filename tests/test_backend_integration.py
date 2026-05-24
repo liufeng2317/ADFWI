@@ -20,6 +20,19 @@ from ADFWI.fwi.transforms import (
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
+class DummyRegularization:
+    def __init__(self):
+        self.alphax = 0.0
+        self.alphaz = 0.0
+        self.calls = []
+        self.device = None
+        self.dtype = None
+
+    def forward(self, model_param):
+        self.calls.append((self.alphax, self.alphaz))
+        return torch.sum(model_param * self.alphax) + torch.sum(model_param * self.alphaz * 0.1)
+
+
 class BackendIntegrationTests(unittest.TestCase):
     def tearDown(self):
         configure_backend("cpu")
@@ -158,6 +171,51 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(propagator.dtype, model.dtype)
         self.assertEqual(propagator.wavelet.dtype, torch.float64)
 
+    def test_elastic_model_regularization_helper_matches_expanded_sum(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(
+            0, 0, 8, 6, 10, 10, vp, vs, rho,
+            vp_grad=True, vs_grad=True, rho_grad=True, auto_update_rho=False,
+        )
+        propagator = ElasticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 1), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 1), dtype=np.float32),
+            "vx": np.zeros((1, 8, 1), dtype=np.float32),
+            "vz": np.zeros((1, 8, 1), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        reg = DummyRegularization()
+
+        fwi = ElasticFWI(
+            propagator,
+            model,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            regularization_fn=reg,
+            regularization_weights_x=[1.0, 2.0, 3.0, 0.0, 0.0, 0.0],
+            regularization_weights_z=[4.0, 5.0, 6.0, 0.0, 0.0, 0.0],
+            cache_result=False,
+        )
+
+        loss = fwi.calculate_model_regularization_loss()
+        expected = (
+            torch.sum(fwi.model.vp * 1.0) + torch.sum(fwi.model.vp * 4.0 * 0.1)
+            + torch.sum(fwi.model.vs * 2.0) + torch.sum(fwi.model.vs * 5.0 * 0.1)
+            + torch.sum(fwi.model.rho * 3.0) + torch.sum(fwi.model.rho * 6.0 * 0.1)
+        )
+
+        self.assertTrue(torch.allclose(loss, expected))
+        self.assertEqual(reg.calls, [(1.0, 4.0), (2.0, 5.0), (3.0, 6.0)])
+
     def test_acoustic_fwi_aligns_regularization_to_propagator_backend(self):
         configure_backend("cpu", dtype=torch.float32)
         survey = self._survey()
@@ -185,6 +243,40 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(reg.device, propagator.device)
         self.assertEqual(reg.dtype, propagator.dtype)
         self.assertEqual(reg.L0.dtype, propagator.dtype)
+
+    def test_acoustic_model_regularization_helper_matches_expanded_sum(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True, rho_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        reg = DummyRegularization()
+
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            regularization_fn=reg,
+            regularization_weights_x=[1.0, 2.0],
+            regularization_weights_z=[3.0, 4.0],
+            cache_result=False,
+        )
+
+        loss = fwi.calculate_model_regularization_loss()
+        expected = (
+            torch.sum(fwi.model.vp * 1.0) + torch.sum(fwi.model.vp * 3.0 * 0.1)
+            + torch.sum(fwi.model.rho * 2.0) + torch.sum(fwi.model.rho * 4.0 * 0.1)
+        )
+
+        self.assertTrue(torch.allclose(loss, expected))
+        self.assertEqual(reg.calls, [(1.0, 3.0), (2.0, 4.0)])
 
     def test_acoustic_fwi_can_apply_optional_data_transform_pipeline(self):
         configure_backend("cpu", dtype=torch.float32)

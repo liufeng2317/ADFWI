@@ -277,6 +277,21 @@ class AcousticFWI(torch.nn.Module):
                 regularization_loss = regularization_fn.forward(model_param)
         return regularization_loss
 
+    def calculate_model_regularization_loss(self):
+        regularization_loss_vp = self.calculate_regularization_loss(
+            self.model.vp,
+            self.regularization_weights_x[0],
+            self.regularization_weights_z[0],
+            self.regularization_fn,
+        )
+        regularization_loss_rho = self.calculate_regularization_loss(
+            self.model.rho,
+            self.regularization_weights_x[1],
+            self.regularization_weights_z[1],
+            self.regularization_fn,
+        )
+        return regularization_loss_vp + regularization_loss_rho
+
     # gradient precondition
     def process_gradient(self, parameter,forw,idx=None):
         with torch.no_grad():
@@ -383,9 +398,7 @@ class AcousticFWI(torch.nn.Module):
                 
                 # regularization
                 if self.regularization_fn is not None:
-                    regularization_loss_vp  = self.calculate_regularization_loss(self.model.vp , self.regularization_weights_x[0], self.regularization_weights_z[0], self.regularization_fn)
-                    regularization_loss_rho = self.calculate_regularization_loss(self.model.rho, self.regularization_weights_x[1], self.regularization_weights_z[1], self.regularization_fn)
-                    regularization_loss = regularization_loss_vp+regularization_loss_rho
+                    regularization_loss = self.calculate_model_regularization_loss()
                     loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
                     loss = data_loss + regularization_loss
                 else:
@@ -454,9 +467,7 @@ class AcousticFWI(torch.nn.Module):
                     
                     # regularization
                     if self.regularization_fn is not None:
-                        regularization_loss_vp  = self.calculate_regularization_loss(self.model.vp , self.regularization_weights_x[0], self.regularization_weights_z[0], self.regularization_fn)
-                        regularization_loss_rho = self.calculate_regularization_loss(self.model.rho, self.regularization_weights_x[1], self.regularization_weights_z[1], self.regularization_fn)
-                        regularization_loss = regularization_loss_vp+regularization_loss_rho
+                        regularization_loss = self.calculate_model_regularization_loss()
                         loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
                         loss = data_loss + regularization_loss
                     else:
