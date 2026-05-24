@@ -124,5 +124,5 @@ Elastic integration started after the acoustic path was validated:
 
 - `ElasticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now uses the same default `DataMask(required=False, apply_to="synthetic")` plus `TraceNormalize()` pipeline.
 - `ElasticFWI.real_case_data_selecting()` now handles receiver/trace selection only; sample-level `data_masks` are applied in `calculate_loss()` through the transform pipeline for pressure, vx, and vz components.
-- A pure torch `LowPassFilter` transform has been added and tested on CPU/NPU, but FWI still uses the legacy `multiScaleProcessing.lpass` path until numerical behavior is validated in inversion workflows.
+- A pure torch `LowPassFilter` transform has been added and tested on CPU/NPU. Inversion smoke comparisons show stable CPU/NPU behavior but non-equivalent loss/gradient values versus legacy `multiScaleProcessing.lpass`, so FWI still uses the legacy path by default.
 - Mute windows and trace-missing receiver selection remain in the legacy path until they have separate CPU/NPU validation.

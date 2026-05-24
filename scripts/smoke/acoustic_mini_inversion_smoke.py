@@ -28,6 +28,7 @@ import torch
 
 from ADFWI.backends import BackendUnavailableError, configure_backend
 from ADFWI.fwi import AcousticFWI
+from ADFWI.fwi.transforms import LowPassFilter
 from ADFWI.fwi.misfit import (
     Misfit_NIM,
     Misfit_global_correlation,
@@ -195,6 +196,13 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
     loss_fn = build_loss_fn(args.misfit, args.dt)
 
+    data_transform_pipeline = None
+    legacy_cutoff_freq = None
+    if args.lowpass_mode == "legacy":
+        legacy_cutoff_freq = args.cutoff_freq
+    elif args.lowpass_mode == "transform":
+        data_transform_pipeline = LowPassFilter(cutoff_freq=args.cutoff_freq, dt=args.dt, filter_length=args.lowpass_filter_length)
+
     fwi = AcousticFWI(
         propagator,
         model,
@@ -204,6 +212,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         obs_data,
         gradient_processor=gradient_processor,
         waveform_normalize=False,
+        data_transform_pipeline=data_transform_pipeline,
         cache_result=True,
         cache_result_epoch=1,
         save_fig_epoch=-1,
@@ -214,7 +223,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         backend.synchronize()
     start = time.perf_counter()
     with progress_context:
-        fwi.forward(iteration=1, batch_size=1, checkpoint_segments=args.checkpoint_segments)
+        fwi.forward(iteration=1, batch_size=1, checkpoint_segments=args.checkpoint_segments, cutoff_freq=legacy_cutoff_freq)
     if backend.name in ("cuda", "npu"):
         backend.synchronize()
     inversion_seconds = time.perf_counter() - start
@@ -266,6 +275,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "seconds": inversion_seconds,
             "lr": lr,
             "misfit": args.misfit,
+            "lowpass_mode": args.lowpass_mode,
+            "cutoff_freq": args.cutoff_freq,
         },
     }
 
@@ -278,6 +289,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dtype", default=torch.float32, type=parse_dtype, help="float32 or float64")
     parser.add_argument("--misfit", default="L2", type=parse_misfit, help="misfit for one-step inversion: " + ",".join(SUPPORTED_MISFITS))
     parser.add_argument("--checkpoint-segments", type=int, default=1)
+    parser.add_argument("--cutoff-freq", type=float, default=None, help="optional low-pass cutoff frequency in Hz")
+    parser.add_argument("--lowpass-mode", choices=("none", "legacy", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
+    parser.add_argument("--lowpass-filter-length", type=int, default=101, help="FIR length for --lowpass-mode transform")
     parser.add_argument("--show-progress", action="store_true", help="show AcousticFWI tqdm progress bars")
     parser.add_argument("--seed", type=int, default=20240523)
     parser.add_argument("--lr", type=float, default=None, help="optimizer learning rate; defaults are chosen per misfit")
@@ -295,6 +309,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if args.lowpass_mode != "none" and args.cutoff_freq is None:
+        parser.error("--cutoff-freq is required when --lowpass-mode is legacy or transform")
+    if args.lowpass_mode == "none" and args.cutoff_freq is not None:
+        parser.error("--lowpass-mode must be legacy or transform when --cutoff-freq is set")
+
     try:
         result = run_smoke(args)
     except BackendUnavailableError as exc:
