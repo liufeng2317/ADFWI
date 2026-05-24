@@ -97,4 +97,4 @@ SoftDTW, WDGC, Wasserstein_sinkhorn, Wasserstein_1d, Wasserstein1
 - Fix `SoftDTW` backend detection before testing NPU. It should distinguish `cpu`, `cuda`, and `npu` explicitly instead of treating all non-CPU devices as CUDA.
 - Keep `Envelope`/`WECI` marked CPU-only until an NPU-compatible envelope implementation is added.
 - Validate `GeomLoss` and POT-based Wasserstein losses independently before advertising NPU support.
-- Keep this file synchronized with `docs/version-plans/bv1.2-misfit-backend-audit.md`.
+- Keep this file synchronized with `docs/version-plans/bv1.2/02-misfit-backend-audit.md`.

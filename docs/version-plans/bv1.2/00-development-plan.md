@@ -284,7 +284,7 @@ Added `scripts/smoke/elastic_mini_inversion_smoke.py` to cover one-step `Elastic
 
 ## Data Transform Pipeline Update
 
-Added a phase-1 data transform pipeline plan and standalone pure torch transforms under `ADFWI/fwi/transforms`. This first step covers `TraceNormalize`, `ReceiverMask`, and `DataMask` with CPU/NPU tests, without changing existing `AcousticFWI` or `ElasticFWI` behavior yet. See `docs/version-plans/bv1.2-data-transform-plan.md`.
+Added a phase-1 data transform pipeline plan and standalone pure torch transforms under `ADFWI/fwi/transforms`. This first step covers `TraceNormalize`, `ReceiverMask`, and `DataMask` with CPU/NPU tests, without changing existing `AcousticFWI` or `ElasticFWI` behavior yet. See `docs/version-plans/bv1.2/03-data-transform-pipeline.md`.
 
 ## AcousticFWI Data Transform Optional Integration
 
