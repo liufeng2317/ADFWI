@@ -29,7 +29,7 @@ import torch
 
 from ADFWI.backends import BackendUnavailableError, configure_backend
 from ADFWI.fwi import ElasticFWI
-from ADFWI.fwi.transforms import LowPassFilter
+from ADFWI.fwi.transforms import LegacyLowPassFilter, LowPassFilter
 from ADFWI.fwi.misfit import Misfit_waveform_L2
 from ADFWI.model import IsotropicElasticModel
 from ADFWI.propagator import ElasticPropagator, GradProcessor
@@ -150,6 +150,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     legacy_cutoff_freq = None
     if args.lowpass_mode == "legacy":
         legacy_cutoff_freq = args.cutoff_freq
+    elif args.lowpass_mode == "legacy-transform":
+        data_transform_pipeline = LegacyLowPassFilter(cutoff_freq=args.cutoff_freq, dt=args.dt)
     elif args.lowpass_mode == "transform":
         data_transform_pipeline = LowPassFilter(cutoff_freq=args.cutoff_freq, dt=args.dt, filter_length=args.lowpass_filter_length)
 
@@ -231,7 +233,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dtype", default=torch.float32, type=parse_dtype, help="float32 or float64")
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--cutoff-freq", type=float, default=None, help="optional low-pass cutoff frequency in Hz")
-    parser.add_argument("--lowpass-mode", choices=("none", "legacy", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
+    parser.add_argument("--lowpass-mode", choices=("none", "legacy", "legacy-transform", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
     parser.add_argument("--lowpass-filter-length", type=int, default=101, help="FIR length for --lowpass-mode transform")
     parser.add_argument("--fd-order", type=int, default=4, choices=(4, 6, 8, 10))
     parser.add_argument("--show-progress", action="store_true", help="show ElasticFWI tqdm progress bars")

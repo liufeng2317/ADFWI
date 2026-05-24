@@ -123,3 +123,70 @@ but it should not replace the legacy path until we either:
 The next useful validation is to repeat the comparison on longer traces and with
 multiple cutoff frequencies, because the current mini smoke length magnifies
 boundary effects.
+
+
+## Precision Investigation Update
+
+Further checks showed that the inversion-level mismatch is not a random backend
+issue. It is caused by a genuine numerical-method difference:
+
+- legacy `lpass` is a SciPy Butterworth IIR filter applied with `filtfilt`;
+- torch `LowPassFilter` is a Hann-windowed sinc FIR filter applied with
+  `conv1d`;
+- these filters have different transition bands and different boundary
+  behavior;
+- short smoke traces (`nt=30`) magnify boundary effects, and changing FIR length
+  alone did not recover legacy losses.
+
+A sweep on synthetic traces showed that longer traces improve interior waveform
+correlation, but the full-trace relative error remains non-negligible because
+the filters are not the same operator. For `nt=30`, FIR lengths from 15 to 51
+still produced acoustic inversion losses well below the legacy loss, so this is
+not an acceptable precision-preserving replacement.
+
+## Precision-Preserving Transform Path
+
+To support transform-pipeline migration without changing FWI numerics,
+`LegacyLowPassFilter` was added. It delegates to the existing
+`multiScaleProcessing.lpass` implementation and therefore preserves the legacy
+forward and backward behavior. This is intentionally different from
+`LowPassFilter`:
+
+- `LegacyLowPassFilter`: precision-preserving, legacy-compatible, not pure torch;
+- `LowPassFilter`: pure torch and CPU/NPU-capable, but a different numerical
+  low-pass method.
+
+Additional tests verify that `LegacyLowPassFilter` exactly matches `lpass` and
+keeps the legacy backward path finite.
+
+### Legacy Branch vs Legacy Transform Smoke Results
+
+With `cutoff_freq=60 Hz`, the direct legacy FWI branch and the transform-wrapped
+legacy path produced identical CPU smoke metrics:
+
+| Workflow | Mode | Loss | Grad norm | Update norm |
+| --- | --- | ---: | ---: | ---: |
+| Acoustic CPU | legacy | `3.798891725637077e-07` | `1.8225856379672223e-08` | `1.8225871324539185` |
+| Acoustic CPU | legacy-transform | `3.798891725637077e-07` | `1.8225856379672223e-08` | `1.8225871324539185` |
+| Elastic CPU | legacy | `0.0008560275891795754` | `4.369477755972184e-05` | `4.369435787200928` |
+| Elastic CPU | legacy-transform | `0.0008560275891795754` | `4.369477755972184e-05` | `4.369435787200928` |
+
+An acoustic NPU legacy-transform smoke also matched the NPU legacy metrics:
+
+| Workflow | Device | Mode | Loss | Grad norm | Update norm |
+| --- | --- | --- | ---: | ---: | ---: |
+| Acoustic | NPU | legacy-transform | `3.7988914414199826e-07` | `1.82258599323859e-08` | `1.8225871324539185` |
+
+## Updated Precision Decision
+
+For FWI, numerical precision and reproducibility take priority over replacing
+the filter with a mathematically different pure torch operator. The safe bv1.2
+migration path is therefore:
+
+1. Use `LegacyLowPassFilter` if low-pass filtering is moved into the transform
+   pipeline.
+2. Keep `LowPassFilter` available only as an experimental/new-method transform.
+3. Do not use `LowPassFilter` as a drop-in replacement for legacy `lpass` in
+   existing FWI examples or default workflows.
+4. Treat any future switch to `LowPassFilter` as a deliberate numerical-method
+   change requiring separate benchmarks and documentation.

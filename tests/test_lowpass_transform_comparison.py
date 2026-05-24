@@ -3,7 +3,7 @@ import unittest
 import torch
 
 from ADFWI.fwi.multiScaleProcessing import lpass
-from ADFWI.fwi.transforms import LowPassFilter
+from ADFWI.fwi.transforms import LegacyLowPassFilter, LowPassFilter
 
 
 class LowPassTransformComparisonTests(unittest.TestCase):
@@ -53,6 +53,31 @@ class LowPassTransformComparisonTests(unittest.TestCase):
 
         self.assertLess(torch_ratio, legacy_ratio)
         self.assertLess(torch_ratio, 0.1)
+
+    def test_legacy_lowpass_transform_matches_lpass_exactly(self):
+        dt = 0.001
+        cutoff = 60.0
+        synthetic, observed = self._mixed_signal(nt=60, dt=dt)
+
+        expected_syn, expected_obs = lpass(synthetic, observed, cutoff, int(1 / dt))
+        actual_syn, actual_obs = LegacyLowPassFilter(cutoff_freq=cutoff, dt=dt)(synthetic, observed)
+
+        self.assertTrue(torch.equal(actual_syn, expected_syn))
+        self.assertTrue(torch.equal(actual_obs, expected_obs))
+
+    def test_legacy_lowpass_transform_keeps_legacy_backward_path(self):
+        synthetic, observed = self._mixed_signal(nt=60)
+        synthetic.requires_grad_(True)
+        observed.requires_grad_(True)
+
+        out_syn, out_obs = LegacyLowPassFilter(cutoff_freq=60.0, dt=0.001)(synthetic, observed)
+        loss = out_syn.square().mean() + out_obs.square().mean()
+        loss.backward()
+
+        self.assertIsNotNone(synthetic.grad)
+        self.assertIsNotNone(observed.grad)
+        self.assertTrue(torch.isfinite(synthetic.grad).all())
+        self.assertTrue(torch.isfinite(observed.grad).all())
 
     def test_torch_lowpass_keeps_gradients_differentiable(self):
         synthetic, observed = self._mixed_signal()

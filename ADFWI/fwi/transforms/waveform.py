@@ -173,6 +173,60 @@ class LowPassFilter(DataTransform):
         )
 
 
+class LegacyLowPassFilter(DataTransform):
+    """Apply the legacy SciPy/autograd low-pass path through a transform.
+
+    This transform is intended for precision-preserving migration of existing
+    FWI workflows. It delegates to ``multiScaleProcessing.lpass`` and therefore
+    matches the legacy numerical behavior, including its custom backward path,
+    but it is not a pure torch/NPU-native implementation.
+    """
+
+    def __init__(
+        self,
+        cutoff_freq: Optional[float] = None,
+        dt: Optional[float] = None,
+        sampling_frequency: Optional[float] = None,
+        required: bool = True,
+    ) -> None:
+        if dt is not None and sampling_frequency is not None:
+            raise ValueError("provide either dt or sampling_frequency, not both")
+        self.cutoff_freq = cutoff_freq
+        self.dt = dt
+        self.sampling_frequency = sampling_frequency
+        self.required = required
+
+    def _resolve_settings(self, context: Context) -> tuple[Optional[float], Optional[float]]:
+        cutoff_freq = self.cutoff_freq
+        if cutoff_freq is None and context is not None:
+            cutoff_freq = context.get("cutoff_freq")
+
+        sampling_frequency = self.sampling_frequency
+        if sampling_frequency is None:
+            dt = self.dt
+            if dt is None and context is not None:
+                dt = context.get("dt")
+            if dt is not None:
+                sampling_frequency = 1.0 / float(dt)
+        if sampling_frequency is None and context is not None:
+            sampling_frequency = context.get("sampling_frequency")
+
+        if cutoff_freq is None or sampling_frequency is None:
+            if not self.required:
+                return None, None
+            raise ValueError("cutoff_freq and dt or sampling_frequency must be provided")
+        return float(cutoff_freq), float(sampling_frequency)
+
+    def __call__(self, synthetic: torch.Tensor, observed: torch.Tensor, context: Context = None) -> TensorPair:
+        cutoff_freq, sampling_frequency = self._resolve_settings(context)
+        if cutoff_freq is None or sampling_frequency is None:
+            return synthetic, observed
+
+        from ADFWI.fwi.multiScaleProcessing import lpass
+
+        return lpass(synthetic, observed, cutoff_freq, int(round(sampling_frequency)))
+
+
 class ReceiverMask(DataTransform):
     """Apply a receiver mask to waveform tensors.
 
