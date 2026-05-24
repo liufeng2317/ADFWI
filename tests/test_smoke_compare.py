@@ -52,6 +52,9 @@ class SmokeCompareTests(unittest.TestCase):
             ["--nt", "160", "--mute-late-window", "0.01"],
         )
 
+    def test_case_args_for_trace_missing_selects_receivers(self):
+        self.assertEqual(compare.case_args("elastic", "trace-missing"), ["--receiver-mask-mode", "select"])
+
     def test_parse_cases_rejects_unknown_case(self):
         with self.assertRaises(Exception):
             compare.parse_cases("baseline,unknown")

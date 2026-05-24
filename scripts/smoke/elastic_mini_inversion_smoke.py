@@ -51,7 +51,7 @@ def ricker_wavelet(nt: int, dt: float, f0: float) -> np.ndarray:
     return ((1.0 - 2.0 * arg * arg) * np.exp(-(arg * arg))).astype(np.float32)
 
 
-def build_survey(nt: int, dt: float, f0: float, nx: int, nz: int) -> Survey:
+def build_survey(nt: int, dt: float, f0: float, nx: int, nz: int, receiver_mask_mode: str = "none") -> Survey:
     source = Source(nt=nt, dt=dt, f0=f0)
     source.add_source(nx // 2, max(3, nz // 4), ricker_wavelet(nt, dt, f0), src_type="mt")
 
@@ -59,8 +59,24 @@ def build_survey(nt: int, dt: float, f0: float, nx: int, nz: int) -> Survey:
     rcv_x = np.array([nx // 4, nx // 2, (3 * nx) // 4], dtype=np.int64)
     rcv_z = np.full_like(rcv_x, max(3, nz // 4))
     receiver.add_receivers(rcv_x, rcv_z, rcv_type="pr")
-    return Survey(source, receiver)
+    receiver_masks = None
+    receiver_masks_obs = True
+    if receiver_mask_mode in {"mask", "select"}:
+        receiver_masks = np.array([[1, 0, 1]], dtype=np.float32)
+        receiver_masks_obs = receiver_mask_mode == "mask"
+    return Survey(source, receiver, receiver_masks=receiver_masks, receiver_masks_obs=receiver_masks_obs)
 
+
+
+def select_observed_traces(record: Dict[str, torch.Tensor], receiver_mask_mode: str) -> Dict[str, torch.Tensor]:
+    if receiver_mask_mode != "select":
+        return record
+    active = torch.tensor([0, 2], device=record["txx"].device, dtype=torch.long)
+    selected = dict(record)
+    for key in ("txx", "tzz", "txz", "vx", "vz"):
+        if key in selected:
+            selected[key] = selected[key][..., active]
+    return selected
 
 def model_arrays(nx: int, nz: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     x = np.linspace(-1.0, 1.0, nx, dtype=np.float32)
@@ -119,7 +135,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     np.random.seed(args.seed)
 
     true_vp, init_vp, true_vs, init_vs, rho = model_arrays(args.nx, args.nz)
-    survey = build_survey(args.nt, args.dt, args.f0, args.nx, args.nz)
+    survey = build_survey(args.nt, args.dt, args.f0, args.nx, args.nz, args.receiver_mask_mode)
 
     true_model = build_model(true_vp, true_vs, rho, args.nx, args.nz, args.dx, args.dz, args.nabc, vp_grad=False)
     true_propagator = ElasticPropagator(true_model, survey)
@@ -131,6 +147,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         observed_record = true_propagator.forward(
             shot_index=np.array([0]), fd_order=args.fd_order, checkpoint_segments=args.checkpoint_segments
         )
+        observed_record = select_observed_traces(observed_record, args.receiver_mask_mode)
     if backend.name in ("cuda", "npu"):
         backend.synchronize()
     observed_seconds = time.perf_counter() - start
@@ -223,6 +240,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "component": "pressure",
             "lowpass_mode": args.lowpass_mode,
             "cutoff_freq": args.cutoff_freq,
+            "receiver_mask_mode": args.receiver_mask_mode,
             "mute_offset": args.mute_offset,
             "mute_late_window": args.mute_late_window,
         },
@@ -239,6 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cutoff-freq", type=float, default=None, help="optional low-pass cutoff frequency in Hz")
     parser.add_argument("--lowpass-mode", choices=("none", "legacy", "legacy-transform", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
     parser.add_argument("--lowpass-filter-length", type=int, default=101, help="FIR length for --lowpass-mode transform")
+    parser.add_argument("--receiver-mask-mode", choices=("none", "mask", "select"), default="none", help="receiver mask smoke mode: none, same-shape mask, or trace-missing selection")
     parser.add_argument("--mute-offset", type=float, default=None, help="optional offset mute threshold in meters")
     parser.add_argument("--mute-late-window", type=float, default=None, help="optional first-arrival late mute window in seconds")
     parser.add_argument("--fd-order", type=int, default=4, choices=(4, 6, 8, 10))

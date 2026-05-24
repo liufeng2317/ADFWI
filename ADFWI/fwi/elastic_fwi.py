@@ -24,6 +24,7 @@ from ADFWI.fwi.transforms import (
     LegacyLowPassFilter,
     LegacyOffsetMute,
     TraceNormalize,
+    select_or_mask_receivers,
 )
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
@@ -364,17 +365,7 @@ class ElasticFWI(torch.nn.Module):
         return
     
     def real_case_data_selecting(self,rcv_p,shot_index):
-        # observed and synthetic data with the same shape (observed and synthetic data keep all the trace)
-        if rcv_p.shape == self.obs_p[shot_index].shape:
-            receiver_mask_3D = self.receiver_masks_3D[shot_index] # [shot, time, rcv]
-            syn_p = rcv_p*receiver_mask_3D 
-        # observed and synthetic data with the different shape (observed data only keep the usefule trace)
-        else:
-            receiver_mask_2D = self.receiver_masks_2D[shot_index] # [shot, rcv]
-            syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
-            for k in range(rcv_p.shape[0]):
-                syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
-        return syn_p
+        return select_or_mask_receivers(rcv_p, self.obs_p[shot_index], self.receiver_masks_2D[shot_index])
     
     def forward(self,
                 iteration:int,

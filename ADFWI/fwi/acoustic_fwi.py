@@ -24,6 +24,7 @@ from ADFWI.fwi.transforms import (
     LegacyLowPassFilter,
     LegacyOffsetMute,
     TraceNormalize,
+    select_or_mask_receivers,
 )
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -330,14 +331,7 @@ class AcousticFWI(torch.nn.Module):
                     forw += forward_wavefield_p.cpu().detach().numpy()
                 
                 # misfit
-                if rcv_p.shape == self.obs_p[shot_index].shape: # observed and synthetic data with the same shape (partial-data missing)
-                    receiver_mask_3D = self.receiver_masks_3D[shot_index] # [shot, time, rcv]
-                    syn_p = rcv_p*receiver_mask_3D 
-                else: # observed and synthetic data with the different shape (trace missing)
-                    receiver_mask_2D = self.receiver_masks_2D[shot_index] # [shot, rcv]
-                    syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
-                    for k in range(rcv_p.shape[0]):
-                        syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
+                syn_p = select_or_mask_receivers(rcv_p, self.obs_p[shot_index], self.receiver_masks_2D[shot_index])
                 data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt,shot_index)
                 
                 # regularization
@@ -427,14 +421,7 @@ class AcousticFWI(torch.nn.Module):
                         self.forw += forward_wavefield_p.cpu().detach().numpy()
                     
                     # misfit
-                    if rcv_p.shape == self.obs_p[shot_index].shape: # observed and synthetic data with the same shape (partial-data missing)
-                        receiver_mask_3D = self.receiver_masks_3D[shot_index] # [shot, time, rcv]
-                        syn_p = rcv_p*receiver_mask_3D 
-                    else: # observed and synthetic data with the different shape (trace missing)
-                        receiver_mask_2D = self.receiver_masks_2D[shot_index] # [shot, rcv]
-                        syn_p = torch.zeros_like(self.obs_p[shot_index],device=self.device)
-                        for k in range(rcv_p.shape[0]):
-                            syn_p[k] = rcv_p[k,...,np.argwhere(receiver_mask_2D[k]).tolist()].squeeze()
+                    syn_p = select_or_mask_receivers(rcv_p, self.obs_p[shot_index], self.receiver_masks_2D[shot_index])
                     data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
                     
                     # regularization
