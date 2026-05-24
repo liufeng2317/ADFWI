@@ -134,7 +134,7 @@ Current bv1.2 status:
 - `AcousticFWI` now routes synthetic-side `data_masks` through `DataMask(required=False, apply_to="synthetic")`;
 - `ElasticFWI` now uses the same transform entry for default normalization and synthetic-side sample masks across pressure, vx, and vz components;
 - experimental pure torch `LowPassFilter` exists with CPU/NPU transform tests;
-- FWI still uses legacy `multiScaleProcessing.lpass` until low-pass numerical behavior is validated in inversion smoke tests;
+- FWI routes `cutoff_freq` low-pass filtering through `LegacyLowPassFilter` in the default transform pipeline to preserve legacy numerics;
 - receiver-mask migration and mute windows remain in the legacy FWI path until separate shape/device validation is complete.
 
 Target style:
@@ -288,4 +288,4 @@ Added a phase-1 data transform pipeline plan and standalone pure torch transform
 
 ## AcousticFWI Data Transform Optional Integration
 
-Added an optional `data_transform_pipeline` argument to `AcousticFWI`. The default user behavior is preserved, while `waveform_normalize=True` now builds an internal `DataTransformPipeline([TraceNormalize()])` and bypasses the old `_normalize()` branch in normal FWI execution. Custom pipelines are applied inside `calculate_loss`, enabling gradual migration from embedded waveform processing logic to reusable transforms.
+Added an optional `data_transform_pipeline` argument to `AcousticFWI`. The default user behavior is preserved, while `waveform_normalize=True` now builds an internal transform pipeline and bypasses the old `_normalize()` branch in normal FWI execution. Custom pipelines are applied inside `calculate_loss`, enabling gradual migration from embedded waveform processing logic to reusable transforms.

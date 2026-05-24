@@ -9,7 +9,7 @@ from ADFWI.propagator import AcousticPropagator, ElasticPropagator
 from ADFWI.fwi import AcousticFWI, ElasticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLowPassFilter, TraceNormalize
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
@@ -197,8 +197,9 @@ class BackendIntegrationTests(unittest.TestCase):
         )
 
         self.assertIsInstance(fwi.data_transform_pipeline, DataTransformPipeline)
-        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], DataMask)
-        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], TraceNormalize)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], LegacyLowPassFilter)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], DataMask)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[2], TraceNormalize)
         self.assertFalse(fwi.waveform_normalize)
 
         synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
@@ -237,8 +238,9 @@ class BackendIntegrationTests(unittest.TestCase):
         )
 
         self.assertIsInstance(fwi.data_transform_pipeline, DataTransformPipeline)
-        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], DataMask)
-        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], TraceNormalize)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[0], LegacyLowPassFilter)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[1], DataMask)
+        self.assertIsInstance(fwi.data_transform_pipeline.transforms[2], TraceNormalize)
         self.assertFalse(fwi.waveform_normalize)
 
         synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)

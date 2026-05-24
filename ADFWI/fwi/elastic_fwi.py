@@ -17,14 +17,12 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLowPassFilter, TraceNormalize
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
-from ADFWI.fwi.multiScaleProcessing import lpass
 from ADFWI.utils.first_arrivel_picking import apply_mute
 from ADFWI.utils.offset_mute import mute_offset
-from ADFWI.fwi.multiScaleProcessing import lpass
 
 class ElasticFWI(torch.nn.Module):
     """Elastic Full waveform inversion class
@@ -136,11 +134,12 @@ class ElasticFWI(torch.nn.Module):
         self.inversion_component = inversion_component
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
+        lowpass = LegacyLowPassFilter(required=False)
         data_mask = DataMask(required=False, apply_to="synthetic")
         if data_transform_pipeline is not None:
-            return DataTransformPipeline([data_mask, data_transform_pipeline]), waveform_normalize
+            return DataTransformPipeline([lowpass, data_mask, data_transform_pipeline]), waveform_normalize
 
-        transforms = [data_mask]
+        transforms = [lowpass, data_mask]
         if waveform_normalize:
             transforms.append(TraceNormalize())
             waveform_normalize = False
@@ -177,12 +176,8 @@ class ElasticFWI(torch.nn.Module):
                 synthetic_waveform[i] = apply_mute(self.waveform_mute_late_window, synthetic_waveform_temp[i], self.propagator.dt)
                 observed_waveform[i]  = apply_mute(self.waveform_mute_late_window, observed_waveform_temp[i], self.propagator.dt)
         
-        # Apply low-pass filter if cutoff frequency is provided
-        if cutoff_freq is not None:
-            synthetic_waveform, observed_waveform = lpass(synthetic_waveform, observed_waveform, cutoff_freq, int(1 / propagator_dt))
-        
         if self.data_transform_pipeline is not None:
-            context = {"shot_index": shot_index}
+            context = {"shot_index": shot_index, "cutoff_freq": cutoff_freq, "dt": propagator_dt}
             if shot_index is not None:
                 context["receiver_mask"] = self.receiver_masks_2D[shot_index]
                 if self.data_masks is not None:

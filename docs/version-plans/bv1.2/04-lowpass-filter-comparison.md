@@ -112,9 +112,9 @@ iteration, and the existing mini smoke model sizes.
 
 ## Updated Decision
 
-Keep `multiScaleProcessing.lpass` as the default FWI low-pass path for now.
+`cutoff_freq` low-pass filtering should use `LegacyLowPassFilter` in the default FWI transform pipeline so existing `multiScaleProcessing.lpass` numerics are preserved.
 `LowPassFilter` remains a validated, differentiable, CPU/NPU-capable candidate,
-but it should not replace the legacy path until we either:
+but it should not replace the legacy-compatible path until we either:
 
 1. tune the FIR design and boundary handling to better match legacy behavior; or
 2. intentionally accept the new filter as a changed numerical method and document
@@ -190,3 +190,40 @@ migration path is therefore:
    existing FWI examples or default workflows.
 4. Treat any future switch to `LowPassFilter` as a deliberate numerical-method
    change requiring separate benchmarks and documentation.
+
+
+## Default Pipeline Migration
+
+After the precision investigation, `AcousticFWI` and `ElasticFWI` were updated to
+route `cutoff_freq` through `LegacyLowPassFilter(required=False)` inside the
+default data transform pipeline. This removes the dedicated low-pass branch from
+`calculate_loss()` while preserving the legacy `lpass` numerical behavior.
+
+The default low-risk transform order is now:
+
+```python
+DataTransformPipeline([
+    LegacyLowPassFilter(required=False),
+    DataMask(required=False, apply_to="synthetic"),
+    TraceNormalize(),  # only when waveform_normalize=True
+])
+```
+
+This order matches the previous FWI processing sequence: mute, low-pass, data
+mask, then normalization.
+
+### Migration Verification
+
+After this migration, the direct `cutoff_freq` user interface still produces the
+legacy low-pass values because `calculate_loss()` passes `cutoff_freq` and `dt`
+into the default pipeline context. Verification on 2026-05-24:
+
+| Workflow | Device | Command mode | Loss | Grad norm | Update norm |
+| --- | --- | --- | ---: | ---: | ---: |
+| Acoustic | CPU | `--lowpass-mode legacy` | `3.798891725637077e-07` | `1.8225856379672223e-08` | `1.8225871324539185` |
+| Elastic | CPU | `--lowpass-mode legacy` | `0.0008560275891795754` | `4.369477755972184e-05` | `4.369435787200928` |
+| Acoustic | NPU | `--lowpass-mode legacy` | `3.7988914414199826e-07` | `1.82258599323859e-08` | `1.8225871324539185` |
+
+These match the previously recorded legacy branch values, so the structural
+migration did not change the FWI objective or gradient for the tested smoke
+workflows.
