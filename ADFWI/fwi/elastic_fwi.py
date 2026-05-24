@@ -47,8 +47,8 @@ class ElasticFWI(torch.nn.Module):
                  scheduler:torch.optim.lr_scheduler                                      = None,
                  gradient_processor: Union[GradProcessor,List[GradProcessor]]            = None,                # vp/vs/rho epsilon/delta/gamma
                  regularization_fn:Optional[Regularization]                              = None,
-                 regularization_weights_x:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
-                 regularization_weights_z:Optional[List[Union[float]]]                   = [0,0,0,0,0,0],       # vp/vs/rho epsilon/delta/gamma
+                 regularization_weights_x:Optional[List[Union[float]]]                   = None,              # vp/vs/rho epsilon/delta/gamma
+                 regularization_weights_z:Optional[List[Union[float]]]                   = None,              # vp/vs/rho epsilon/delta/gamma
                  waveform_normalize:Optional[bool]                                       = True,
                  waveform_mute_late_window:Optional[float]                               = None,
                  waveform_mute_offset:Optional[float]                                    = None,
@@ -58,7 +58,7 @@ class ElasticFWI(torch.nn.Module):
                  cache_gradient:Optional[bool]                                           = False,
                  save_fig_epoch:Optional[int]                                            = -1,
                  save_fig_path:Optional[str]                                             = "",
-                 inversion_component:Optional[np.array]                                  = ["pressure"],
+                 inversion_component:Optional[np.array]                                  = None,
                  component_weights:Optional[Mapping[str, float]]                         = None,
                 ):
         """
@@ -90,8 +90,8 @@ class ElasticFWI(torch.nn.Module):
         self.scheduler                  = scheduler
         self.loss_fn                    = loss_fn
         self.regularization_fn          = regularization_fn
-        self.regularization_weights_x   = regularization_weights_x
-        self.regularization_weights_z   = regularization_weights_z
+        self.regularization_weights_x   = list(regularization_weights_x) if regularization_weights_x is not None else [0, 0, 0, 0, 0, 0]
+        self.regularization_weights_z   = list(regularization_weights_z) if regularization_weights_z is not None else [0, 0, 0, 0, 0, 0]
         self.obs_data                   = obs_data
         self.gradient_processor         = gradient_processor
         self.device                     = self.propagator.device
@@ -149,8 +149,8 @@ class ElasticFWI(torch.nn.Module):
         self.save_fig_path  = save_fig_path
         
         # inversion component
-        self.inversion_component = inversion_component
-        self.component_weights = normalize_elastic_component_weights(inversion_component, component_weights)
+        self.inversion_component = list(inversion_component) if inversion_component is not None else ["pressure"]
+        self.component_weights = normalize_elastic_component_weights(self.inversion_component, component_weights)
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
         offset_mute = LegacyOffsetMute(required=False)

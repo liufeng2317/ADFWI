@@ -42,8 +42,8 @@ class AcousticFWI(torch.nn.Module):
                  obs_data:SeismicData,
                  gradient_processor: Union[GradProcessor,List[GradProcessor]] = None,
                  regularization_fn:Optional[Regularization]                   = None, 
-                 regularization_weights_x:Optional[List[Union[float]]]        = [0,0], # vp/rho in x direction
-                 regularization_weights_z:Optional[List[Union[float]]]        = [0,0], # vp/rho in z direction
+                 regularization_weights_x:Optional[List[Union[float]]]        = None, # vp/rho in x direction
+                 regularization_weights_z:Optional[List[Union[float]]]        = None, # vp/rho in z direction
                  waveform_normalize:Optional[bool]                            = True,
                  waveform_mute_late_window:Optional[float]                    = None,
                  waveform_mute_offset:Optional[float]                         = None,
@@ -85,8 +85,8 @@ class AcousticFWI(torch.nn.Module):
         self.scheduler                  = scheduler
         self.loss_fn                    = loss_fn
         self.regularization_fn          = regularization_fn
-        self.regularization_weights_x   = regularization_weights_x
-        self.regularization_weights_z   = regularization_weights_z
+        self.regularization_weights_x   = list(regularization_weights_x) if regularization_weights_x is not None else [0, 0]
+        self.regularization_weights_z   = list(regularization_weights_z) if regularization_weights_z is not None else [0, 0]
         self.obs_data                   = obs_data
         self.gradient_processor         = gradient_processor
         self.data_transform_pipeline, self.waveform_normalize = self._configure_data_transform_pipeline(

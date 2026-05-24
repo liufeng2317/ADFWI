@@ -295,6 +295,43 @@ class BackendIntegrationTests(unittest.TestCase):
 
         self.assertEqual(float(loss.detach().cpu().item()), 0.0)
 
+    def test_fwi_default_list_arguments_are_not_shared_between_instances(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+
+        def acoustic_instance():
+            model = AcousticModel(0, 0, 8, 6, 10, 10, vp.copy(), rho.copy(), vp_grad=True)
+            propagator = AcousticPropagator(model, survey)
+            obs_data = SeismicData(survey)
+            obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+            optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+            return AcousticFWI(
+                propagator,
+                model,
+                optimizer,
+                scheduler,
+                Misfit_waveform_L2(dt=survey.source.dt),
+                obs_data,
+                cache_result=False,
+            )
+
+        first = acoustic_instance()
+        second = acoustic_instance()
+        first.regularization_weights_x[0] = 9
+
+        self.assertEqual(second.regularization_weights_x, [0, 0])
+
+        elastic_first = self._elastic_fwi_for_api()
+        elastic_second = self._elastic_fwi_for_api()
+        elastic_first.regularization_weights_x[0] = 9
+        elastic_first.inversion_component.append("vx")
+
+        self.assertEqual(elastic_second.regularization_weights_x, [0, 0, 0, 0, 0, 0])
+        self.assertEqual(elastic_second.inversion_component, ["pressure"])
+        self.assertEqual(elastic_second.component_weights, {"pressure": 1.0})
+
     def test_elastic_fwi_component_weights_default_to_active_components(self):
         fwi = self._elastic_fwi_for_api(inversion_component=["pressure", "vx"])
 
