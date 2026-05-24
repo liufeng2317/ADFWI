@@ -8,7 +8,6 @@
 '''
 from typing import Optional,Union,List
 import os
-import math
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -18,6 +17,7 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.data import build_transform_context, prepare_loss_pair
+from ADFWI.fwi.loop import iter_batch_ranges
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,
@@ -332,8 +332,7 @@ class AcousticFWI(torch.nn.Module):
             return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,start_iter=start_iter,cutoff_freq=cutoff_freq)
 
         n_shots = self.propagator.src_n
-        if batch_size is None or batch_size > n_shots:
-            batch_size = n_shots
+        batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
 
         # epoch
         pbar_epoch = tqdm(range(start_iter,start_iter+iteration),position=0,leave=False,colour='green',ncols=80)
@@ -341,16 +340,16 @@ class AcousticFWI(torch.nn.Module):
             # batch
             self.optimizer.zero_grad()
             loss_batch = 0
-            pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
-            for batch in pbar_batch:
+            pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
+            for batch_range in pbar_batch:
                 # forward simulation
-                begin_index = 0  if batch==0 else batch*batch_size
-                end_index   = n_shots if batch==math.ceil(n_shots/batch_size)-1 else (batch+1)*batch_size
-                shot_index  = np.arange(begin_index,end_index)
+                begin_index = batch_range.begin
+                end_index   = batch_range.end
+                shot_index  = batch_range.shot_index
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                 forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
-                if batch == 0:
+                if batch_range.batch == 0:
                     forw  = forward_wavefield_p.cpu().detach().numpy()
                 else:
                     forw += forward_wavefield_p.cpu().detach().numpy()
@@ -370,7 +369,7 @@ class AcousticFWI(torch.nn.Module):
                     loss_batch = loss_batch + data_loss.item()
                     loss = data_loss
                 loss.backward()
-                if math.ceil(n_shots/batch_size) == 1:
+                if len(batch_ranges) == 1:
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
             # gradient process
@@ -419,8 +418,7 @@ class AcousticFWI(torch.nn.Module):
         """ inversion using closure version ==> LBFGS,NLCG
         """
         n_shots = self.propagator.src_n
-        if batch_size is None or batch_size > n_shots:
-            batch_size = n_shots
+        batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
                 
         # epoch
         pbar_epoch = tqdm(range(start_iter,start_iter+iteration),position=0,leave=False,colour='green',ncols=80)
@@ -431,16 +429,16 @@ class AcousticFWI(torch.nn.Module):
                 # batch (for the clouser we hold 1 batch)
                 self.optimizer.zero_grad()
                 loss_batch = 0
-                pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
-                for batch in pbar_batch:
+                pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
+                for batch_range in pbar_batch:
                     # forward simulation
-                    begin_index = 0  if batch==0 else batch*batch_size
-                    end_index   = n_shots if batch==math.ceil(n_shots/batch_size)-1 else (batch+1)*batch_size
-                    shot_index  = np.arange(begin_index,end_index)
+                    begin_index = batch_range.begin
+                    end_index   = batch_range.end
+                    shot_index  = batch_range.shot_index
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                     rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                     forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
-                    if batch == 0:
+                    if batch_range.batch == 0:
                         self.forw  = forward_wavefield_p.cpu().detach().numpy()
                     else:
                         self.forw += forward_wavefield_p.cpu().detach().numpy()
@@ -460,7 +458,7 @@ class AcousticFWI(torch.nn.Module):
                         loss_batch = loss_batch + data_loss.item()
                         loss = data_loss
                     loss.backward()
-                    if math.ceil(n_shots/batch_size) == 1:
+                    if len(batch_ranges) == 1:
                         pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
                 self.true_epoch = self.true_epoch + 1
                 # gradient process

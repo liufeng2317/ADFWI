@@ -8,7 +8,6 @@
 '''
 from typing import Optional,Union,List,Mapping
 import os
-import math
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -17,6 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
+from ADFWI.fwi.loop import iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_transform_context,
@@ -429,8 +429,7 @@ class ElasticFWI(torch.nn.Module):
         cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
         n_shots = self.propagator.src_n
-        if batch_size is None or batch_size > n_shots:
-            batch_size = n_shots
+        batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
         
         # epoch
         pbar_epoch = tqdm(range(start_iter,start_iter+iteration),position=0,leave=False,colour='green',ncols=80)
@@ -438,16 +437,16 @@ class ElasticFWI(torch.nn.Module):
             # batch
             self.optimizer.zero_grad()
             loss_epoch = 0
-            pbar_batch = tqdm(range(math.ceil(n_shots/batch_size)),position=1,leave=False,colour='red',ncols=80)
-            for batch in pbar_batch:
+            pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
+            for batch_range in pbar_batch:
                 # forward simulation
-                begin_index     = 0  if batch==0 else batch*batch_size
-                end_index       = n_shots if batch==math.ceil(n_shots/batch_size)-1 else (batch+1)*batch_size
-                shot_index      = np.arange(begin_index,end_index)
+                begin_index     = batch_range.begin
+                end_index       = batch_range.end
+                shot_index      = batch_range.shot_index
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
                 forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]
-                if batch == 0:
+                if batch_range.batch == 0:
                     if "pressure" in self.inversion_component:
                         forw_p  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
                     if "vx" in self.inversion_component:
@@ -509,7 +508,7 @@ class ElasticFWI(torch.nn.Module):
                     loss_epoch += data_loss.item()
                     loss = data_loss
                 loss.backward()
-                if math.ceil(n_shots/batch_size) == 1:
+                if len(batch_ranges) == 1:
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
             # gradient process
