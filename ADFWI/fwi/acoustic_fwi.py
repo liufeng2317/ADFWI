@@ -17,6 +17,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
+from ADFWI.fwi.data import build_transform_context, prepare_loss_pair
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,
@@ -24,7 +25,6 @@ from ADFWI.fwi.transforms import (
     LegacyLowPassFilter,
     LegacyOffsetMute,
     TraceNormalize,
-    select_or_mask_receivers,
 )
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -195,7 +195,42 @@ class AcousticFWI(torch.nn.Module):
         return data
     
     # misfits calculation
-    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None,shot_index=None):
+    def _build_transform_context(self, shot_index=None, cutoff_freq=None, propagator_dt=None):
+        data_mask = None
+        receiver_mask = None
+        src_x = None
+        rcv_x = None
+        if shot_index is not None:
+            receiver_mask = self.receiver_masks_2D[shot_index]
+            src_x = self.propagator.src_x.cpu()[shot_index]
+            rcv_x = self.propagator.rcv_x.cpu()
+            if self.data_masks is not None:
+                data_mask = self.data_masks[shot_index]
+        return build_transform_context(
+            shot_index=shot_index,
+            cutoff_freq=cutoff_freq,
+            dt=propagator_dt if propagator_dt is not None else self.propagator.dt,
+            late_window=self.waveform_mute_late_window,
+            offset_mute_threshold=self.waveform_mute_offset,
+            dx=self.propagator.dx,
+            receiver_mask=receiver_mask,
+            src_x=src_x,
+            rcv_x=rcv_x,
+            data_mask=data_mask,
+        )
+
+    def _prepare_loss_pair(self, synthetic_waveform, observed_waveform, shot_index=None, cutoff_freq=None, propagator_dt=None):
+        context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
+        receiver_mask = self.receiver_masks_2D[shot_index] if shot_index is not None else None
+        return prepare_loss_pair(
+            synthetic_waveform,
+            observed_waveform,
+            receiver_mask=receiver_mask,
+            data_transform_pipeline=self.data_transform_pipeline,
+            context=context,
+        )
+
+    def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None,shot_index=None, apply_transforms=True):
         """
         Generalized function to calculate misfit loss for a given component.
         Real-Data Processing
@@ -205,23 +240,13 @@ class AcousticFWI(torch.nn.Module):
             (4) low-pass filter
             (5) data normalize
         """
-        if self.data_transform_pipeline is not None:
-            context = {
-                "shot_index": shot_index,
-                "cutoff_freq": cutoff_freq,
-                "dt": propagator_dt if propagator_dt is not None else self.propagator.dt,
-                "late_window": self.waveform_mute_late_window,
-                "offset_mute_threshold": self.waveform_mute_offset,
-                "dx": self.propagator.dx,
-            }
-            if shot_index is not None:
-                context["receiver_mask"] = self.receiver_masks_2D[shot_index]
-                context["src_x"] = self.propagator.src_x.cpu()[shot_index]
-                context["rcv_x"] = self.propagator.rcv_x.cpu()
-                if self.data_masks is not None:
-                    context["data_mask"] = self.data_masks[shot_index]
-            synthetic_waveform, observed_waveform = self.data_transform_pipeline(
-                synthetic_waveform, observed_waveform, context=context
+        if apply_transforms:
+            context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
+            synthetic_waveform, observed_waveform = prepare_loss_pair(
+                synthetic_waveform,
+                observed_waveform,
+                data_transform_pipeline=self.data_transform_pipeline,
+                context=context,
             )
 
         if normalization:
@@ -331,8 +356,8 @@ class AcousticFWI(torch.nn.Module):
                     forw += forward_wavefield_p.cpu().detach().numpy()
                 
                 # misfit
-                syn_p = select_or_mask_receivers(rcv_p, self.obs_p[shot_index], self.receiver_masks_2D[shot_index])
-                data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt,shot_index)
+                syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
+                data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                 
                 # regularization
                 if self.regularization_fn is not None:
@@ -421,8 +446,8 @@ class AcousticFWI(torch.nn.Module):
                         self.forw += forward_wavefield_p.cpu().detach().numpy()
                     
                     # misfit
-                    syn_p = select_or_mask_receivers(rcv_p, self.obs_p[shot_index], self.receiver_masks_2D[shot_index])
-                    data_loss = self.calculate_loss(syn_p, self.obs_p[shot_index], self.waveform_normalize, self.loss_fn, cutoff_freq, self.propagator.dt, shot_index)
+                    syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
+                    data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                     
                     # regularization
                     if self.regularization_fn is not None:

@@ -51,6 +51,42 @@ def ricker_wavelet(nt: int, dt: float, f0: float) -> np.ndarray:
     return ((1.0 - 2.0 * arg * arg) * np.exp(-(arg * arg))).astype(np.float32)
 
 
+def parse_components(value: str) -> Tuple[str, ...]:
+    supported = {"pressure", "vx", "vz"}
+    components = tuple(item.strip() for item in value.split(",") if item.strip())
+    if not components:
+        raise argparse.ArgumentTypeError("at least one elastic component is required")
+    invalid = [component for component in components if component not in supported]
+    if invalid:
+        raise argparse.ArgumentTypeError(f"unsupported elastic components: {', '.join(invalid)}")
+    return components
+
+
+def parse_component_weights(value: str) -> Dict[str, float]:
+    weights: Dict[str, float] = {}
+    if not value.strip():
+        return weights
+    supported = {"pressure", "vx", "vz"}
+    for item in value.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if "=" not in item:
+            raise argparse.ArgumentTypeError("component weights must use name=value entries")
+        name, raw_weight = item.split("=", 1)
+        name = name.strip()
+        if name not in supported:
+            raise argparse.ArgumentTypeError(f"unsupported elastic component weight: {name}")
+        try:
+            weight = float(raw_weight)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"invalid weight for {name}: {raw_weight}") from exc
+        if weight < 0.0:
+            raise argparse.ArgumentTypeError(f"component weight must be non-negative: {name}={weight}")
+        weights[name] = weight
+    return weights
+
+
 def build_survey(nt: int, dt: float, f0: float, nx: int, nz: int, receiver_mask_mode: str = "none") -> Survey:
     source = Source(nt=nt, dt=dt, f0=f0)
     source.add_source(nx // 2, max(3, nz // 4), ricker_wavelet(nt, dt, f0), src_type="mt")
@@ -187,7 +223,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         cache_result=True,
         cache_result_epoch=1,
         save_fig_epoch=-1,
-        inversion_component=["pressure"],
+        inversion_component=list(args.components),
+        component_weights=args.component_weights,
     )
 
     progress_context = nullcontext() if args.show_progress else redirect_stderr(io.StringIO())
@@ -237,7 +274,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "vp_update_norm": model_update_norm,
             "seconds": inversion_seconds,
             "lr": args.lr,
-            "component": "pressure",
+            "components": list(args.components),
+            "component_weights": args.component_weights,
             "lowpass_mode": args.lowpass_mode,
             "cutoff_freq": args.cutoff_freq,
             "receiver_mask_mode": args.receiver_mask_mode,
@@ -258,6 +296,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lowpass-mode", choices=("none", "legacy", "legacy-transform", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
     parser.add_argument("--lowpass-filter-length", type=int, default=101, help="FIR length for --lowpass-mode transform")
     parser.add_argument("--receiver-mask-mode", choices=("none", "mask", "select"), default="none", help="receiver mask smoke mode: none, same-shape mask, or trace-missing selection")
+    parser.add_argument("--components", type=parse_components, default=("pressure",), help="comma-separated elastic inversion components: pressure,vx,vz")
+    parser.add_argument("--component-weights", type=parse_component_weights, default={}, help="comma-separated elastic component weights, e.g. pressure=1,vx=0.5")
     parser.add_argument("--mute-offset", type=float, default=None, help="optional offset mute threshold in meters")
     parser.add_argument("--mute-late-window", type=float, default=None, help="optional first-arrival late mute window in seconds")
     parser.add_argument("--fd-order", type=int, default=4, choices=(4, 6, 8, 10))

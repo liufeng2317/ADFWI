@@ -55,6 +55,11 @@ class SmokeCompareTests(unittest.TestCase):
     def test_case_args_for_trace_missing_selects_receivers(self):
         self.assertEqual(compare.case_args("elastic", "trace-missing"), ["--receiver-mask-mode", "select"])
 
+    def test_case_args_for_weighted_pressure_is_elastic_only(self):
+        self.assertEqual(compare.case_args("elastic", "weighted-pressure"), ["--component-weights", "pressure=2.0"])
+        with self.assertRaises(ValueError):
+            compare.case_args("acoustic", "weighted-pressure")
+
     def test_parse_cases_rejects_unknown_case(self):
         with self.assertRaises(Exception):
             compare.parse_cases("baseline,unknown")

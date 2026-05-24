@@ -23,7 +23,7 @@ SMOKE_SCRIPTS = {
     "elastic": Path("scripts/smoke/elastic_mini_inversion_smoke.py"),
 }
 METRICS = ("loss", "vp_grad_norm", "vp_update_norm")
-CASES = ("baseline", "mute-offset", "mute-late", "mute-combined", "legacy-lowpass", "trace-missing")
+CASES = ("baseline", "mute-offset", "mute-late", "mute-combined", "legacy-lowpass", "trace-missing", "weighted-pressure")
 
 
 def parse_csv(value: str, choices: Sequence[str], label: str) -> List[str]:
@@ -72,6 +72,10 @@ def case_args(problem: str, case: str) -> List[str]:
         return ["--cutoff-freq", "60", "--lowpass-mode", "legacy"]
     if case == "trace-missing":
         return ["--receiver-mask-mode", "select"]
+    if case == "weighted-pressure":
+        if problem != "elastic":
+            raise ValueError("weighted-pressure is only supported for elastic smoke tests")
+        return ["--component-weights", "pressure=2.0"]
     raise ValueError(f"unsupported case for {problem}: {case}")
 
 
