@@ -17,12 +17,17 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLowPassFilter, TraceNormalize
+from ADFWI.fwi.transforms import (
+    DataMask,
+    DataTransformPipeline,
+    LegacyLateWindowMute,
+    LegacyLowPassFilter,
+    LegacyOffsetMute,
+    TraceNormalize,
+)
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
-from ADFWI.utils.first_arrivel_picking import apply_mute
-from ADFWI.utils.offset_mute import mute_offset
 
 class ElasticFWI(torch.nn.Module):
     """Elastic Full waveform inversion class
@@ -134,12 +139,14 @@ class ElasticFWI(torch.nn.Module):
         self.inversion_component = inversion_component
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
+        offset_mute = LegacyOffsetMute(required=False)
+        late_mute = LegacyLateWindowMute(required=False)
         lowpass = LegacyLowPassFilter(required=False)
         data_mask = DataMask(required=False, apply_to="synthetic")
+        transforms = [offset_mute, late_mute, lowpass, data_mask]
         if data_transform_pipeline is not None:
-            return DataTransformPipeline([lowpass, data_mask, data_transform_pipeline]), waveform_normalize
+            return DataTransformPipeline(transforms + [data_transform_pipeline]), waveform_normalize
 
-        transforms = [lowpass, data_mask]
         if waveform_normalize:
             transforms.append(TraceNormalize())
             waveform_normalize = False
@@ -157,29 +164,19 @@ class ElasticFWI(torch.nn.Module):
         """
         Generalized function to calculate misfit loss for a given component.
         """
-        # mute data by offset
-        if self.waveform_mute_offset is not None:
-            receiver_mask_2D = self.receiver_masks_2D[shot_index].cpu() # [shot, rcv]
-            src_x            = self.propagator.src_x.cpu()[shot_index]
-            rcv_x_list       = self.propagator.rcv_x.cpu()
-            rcv_x = torch.zeros(synthetic_waveform.shape[0],synthetic_waveform.shape[-1])
-            for i in range(synthetic_waveform.shape[0]):
-                rcv_x[i] = rcv_x_list[np.argwhere(receiver_mask_2D[i]).tolist()].squeeze()   
-            synthetic_waveform = mute_offset(rcv_x,src_x,self.propagator.dx,synthetic_waveform,self.waveform_mute_offset)
-            observed_waveform  = mute_offset(rcv_x,src_x,self.propagator.dx,observed_waveform,self.waveform_mute_offset)
-        
-        # mute data by first arrival & late window
-        if self.waveform_mute_late_window is not None:
-            synthetic_waveform_temp = synthetic_waveform.clone()
-            observed_waveform_temp  = observed_waveform.clone()
-            for i in range(synthetic_waveform.shape[0]):
-                synthetic_waveform[i] = apply_mute(self.waveform_mute_late_window, synthetic_waveform_temp[i], self.propagator.dt)
-                observed_waveform[i]  = apply_mute(self.waveform_mute_late_window, observed_waveform_temp[i], self.propagator.dt)
-        
         if self.data_transform_pipeline is not None:
-            context = {"shot_index": shot_index, "cutoff_freq": cutoff_freq, "dt": propagator_dt}
+            context = {
+                "shot_index": shot_index,
+                "cutoff_freq": cutoff_freq,
+                "dt": propagator_dt if propagator_dt is not None else self.propagator.dt,
+                "late_window": self.waveform_mute_late_window,
+                "offset_mute_threshold": self.waveform_mute_offset,
+                "dx": self.propagator.dx,
+            }
             if shot_index is not None:
                 context["receiver_mask"] = self.receiver_masks_2D[shot_index]
+                context["src_x"] = self.propagator.src_x.cpu()[shot_index]
+                context["rcv_x"] = self.propagator.rcv_x.cpu()
                 if self.data_masks is not None:
                     context["data_mask"] = self.data_masks[shot_index]
             synthetic_waveform, observed_waveform = self.data_transform_pipeline(

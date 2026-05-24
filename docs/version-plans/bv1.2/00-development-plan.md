@@ -135,7 +135,8 @@ Current bv1.2 status:
 - `ElasticFWI` now uses the same transform entry for default normalization and synthetic-side sample masks across pressure, vx, and vz components;
 - experimental pure torch `LowPassFilter` exists with CPU/NPU transform tests;
 - FWI routes `cutoff_freq` low-pass filtering through `LegacyLowPassFilter` in the default transform pipeline to preserve legacy numerics;
-- receiver-mask migration and mute windows remain in the legacy FWI path until separate shape/device validation is complete.
+- offset mute and first-arrival late-window mute now run through legacy-compatible transform wrappers in the default FWI pipeline, with dedicated smoke script arguments, CPU/NPU baselines, and an automated drift comparison runner;
+- receiver-mask migration remains separate until the dimension-changing trace selection path has dedicated shape/device validation.
 
 Target style:
 

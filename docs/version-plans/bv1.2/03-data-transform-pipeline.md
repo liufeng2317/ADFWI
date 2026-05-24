@@ -111,9 +111,9 @@ Phase 1 did not alter `AcousticFWI` or `ElasticFWI` behavior.
 
 Phase 2 started with a conservative optional integration in `AcousticFWI`:
 
-- `AcousticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now builds an internal `DataTransformPipeline([LegacyLowPassFilter(required=False), DataMask(required=False, apply_to="synthetic"), TraceNormalize()])`.
+- `AcousticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now builds an internal `DataTransformPipeline([LegacyOffsetMute(required=False), LegacyLateWindowMute(required=False), LegacyLowPassFilter(required=False), DataMask(required=False, apply_to="synthetic"), TraceNormalize()])`.
 - The default `DataMask` replaces the old synthetic-waveform `syn_p * data_mask` branch while preserving the existing observed-data masking performed during initialization.
-- If a custom pipeline is provided, `AcousticFWI` still prepends the compatibility `DataMask(required=False, apply_to="synthetic")` so existing `obs_data.data_masks` behavior is not accidentally skipped.
+- If a custom pipeline is provided, `AcousticFWI` still prepends the compatibility mute, low-pass, and `DataMask(required=False, apply_to="synthetic")` transforms so existing constructor arguments and `obs_data.data_masks` behavior are not accidentally skipped.
 - The legacy `_normalize()` branch is bypassed for the default normalization path, but kept as a compatibility fallback for explicit/manual calls.
 - When a custom pipeline is provided, it is applied to `(synthetic, observed)` after mute/filter steps and before any remaining legacy normalization branch.
 - Existing arguments such as `waveform_normalize`, receiver masks, data masks, offset mute, late-window mute, and `cutoff_freq` low-pass filtering remain supported.
@@ -122,7 +122,8 @@ Phase 2 started with a conservative optional integration in `AcousticFWI`:
 
 Elastic integration started after the acoustic path was validated:
 
-- `ElasticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now uses the same default `LegacyLowPassFilter(required=False)`, `DataMask(required=False, apply_to="synthetic")`, and `TraceNormalize()` pipeline.
+- `ElasticFWI(..., data_transform_pipeline=None, waveform_normalize=True)` now uses the same default `LegacyOffsetMute(required=False)`, `LegacyLateWindowMute(required=False)`, `LegacyLowPassFilter(required=False)`, `DataMask(required=False, apply_to="synthetic")`, and `TraceNormalize()` pipeline.
 - `ElasticFWI.real_case_data_selecting()` now handles receiver/trace selection only; sample-level `data_masks` are applied in `calculate_loss()` through the transform pipeline for pressure, vx, and vz components.
 - `LegacyLowPassFilter` now preserves exact legacy `multiScaleProcessing.lpass` numerics inside the default AcousticFWI/ElasticFWI transform pipeline. `calculate_loss(..., cutoff_freq=...)` passes cutoff settings through pipeline context instead of using a standalone low-pass branch. Pure torch `LowPassFilter` remains experimental because inversion smoke comparisons show non-equivalent loss/gradient values versus legacy filtering.
-- Mute windows and trace-missing receiver selection remain in the legacy path until they have separate CPU/NPU validation.
+- Offset mute and first-arrival late-window mute now run through legacy-compatible transform wrappers. See `05-mute-transform-migration.md`.
+- Trace-missing receiver selection remains outside `ReceiverMask` because it can change receiver dimensions before loss calculation.

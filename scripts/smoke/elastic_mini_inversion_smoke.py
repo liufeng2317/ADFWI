@@ -164,6 +164,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         scheduler=scheduler,
         gradient_processor=gradient_processor,
         waveform_normalize=False,
+        waveform_mute_late_window=args.mute_late_window,
+        waveform_mute_offset=args.mute_offset,
         data_transform_pipeline=data_transform_pipeline,
         cache_result=True,
         cache_result_epoch=1,
@@ -221,6 +223,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "component": "pressure",
             "lowpass_mode": args.lowpass_mode,
             "cutoff_freq": args.cutoff_freq,
+            "mute_offset": args.mute_offset,
+            "mute_late_window": args.mute_late_window,
         },
     }
 
@@ -235,6 +239,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cutoff-freq", type=float, default=None, help="optional low-pass cutoff frequency in Hz")
     parser.add_argument("--lowpass-mode", choices=("none", "legacy", "legacy-transform", "transform"), default="none", help="low-pass implementation to use when --cutoff-freq is set")
     parser.add_argument("--lowpass-filter-length", type=int, default=101, help="FIR length for --lowpass-mode transform")
+    parser.add_argument("--mute-offset", type=float, default=None, help="optional offset mute threshold in meters")
+    parser.add_argument("--mute-late-window", type=float, default=None, help="optional first-arrival late mute window in seconds")
     parser.add_argument("--fd-order", type=int, default=4, choices=(4, 6, 8, 10))
     parser.add_argument("--show-progress", action="store_true", help="show ElasticFWI tqdm progress bars")
     parser.add_argument("--seed", type=int, default=20240523)
@@ -257,6 +263,8 @@ def main() -> int:
         parser.error("--cutoff-freq is required when --lowpass-mode is legacy or transform")
     if args.lowpass_mode == "none" and args.cutoff_freq is not None:
         parser.error("--lowpass-mode must be legacy or transform when --cutoff-freq is set")
+    if args.mute_late_window is not None and args.nt < 128:
+        parser.error("--mute-late-window uses the legacy fixed taper length and requires --nt >= 128")
 
     try:
         result = run_smoke(args)
