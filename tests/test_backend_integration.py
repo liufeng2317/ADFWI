@@ -181,6 +181,71 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(propagator.dtype, model.dtype)
         self.assertEqual(propagator.wavelet.dtype, torch.float64)
 
+    def test_elastic_fwi_aligns_regularization_to_propagator_backend(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 1), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 1), dtype=np.float32),
+            "vx": np.zeros((1, 8, 1), dtype=np.float32),
+            "vz": np.zeros((1, 8, 1), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        reg = regularization_Tikhonov_1order(8, 6, 10, 10, alphax=1, alphaz=1, device="cpu", dtype=torch.float64)
+
+        fwi = ElasticFWI(
+            propagator,
+            model,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            regularization_fn=reg,
+            cache_result=False,
+        )
+
+        self.assertEqual(fwi.device, propagator.device)
+        self.assertEqual(reg.device, propagator.device)
+        self.assertEqual(reg.dtype, propagator.dtype)
+        self.assertEqual(reg.L0.dtype, propagator.dtype)
+
+    def test_elastic_fwi_rejects_model_propagator_device_mismatch(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, survey)
+        model.device = torch.device("meta")
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 1), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 1), dtype=np.float32),
+            "vx": np.zeros((1, 8, 1), dtype=np.float32),
+            "vz": np.zeros((1, 8, 1), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+
+        with self.assertRaisesRegex(ValueError, "device .* inconsistent"):
+            ElasticFWI(
+                propagator,
+                model,
+                Misfit_waveform_L2(dt=survey.source.dt),
+                obs_data,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                cache_result=False,
+            )
+
     def test_elastic_model_regularization_helper_matches_expanded_sum(self):
         configure_backend("cpu", dtype=torch.float32)
         survey = self._survey()
