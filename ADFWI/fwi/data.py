@@ -158,6 +158,52 @@ def prepare_loss_pair(
     return synthetic, observed
 
 
+def prepare_fwi_loss_pair(
+    synthetic: torch.Tensor,
+    observed: torch.Tensor,
+    *,
+    shot_index: Any = None,
+    cutoff_freq: Optional[float] = None,
+    propagator_dt: Optional[float] = None,
+    default_dt: Optional[float] = None,
+    late_window: Optional[float] = None,
+    offset_mute_threshold: Optional[float] = None,
+    dx: Optional[float] = None,
+    receiver_masks_2d: Any = None,
+    src_x: Any = None,
+    rcv_x: Any = None,
+    data_masks: Optional[torch.Tensor] = None,
+    data_transform_pipeline: Optional[DataTransformPipeline] = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Build FWI transform context and prepare a loss pair.
+
+    This is the shared AcousticFWI/ElasticFWI pre-loss path. It keeps receiver
+    selection before the transform pipeline and uses the same context values as
+    ``build_fwi_transform_context``.
+    """
+
+    context = build_fwi_transform_context(
+        shot_index=shot_index,
+        cutoff_freq=cutoff_freq,
+        propagator_dt=propagator_dt,
+        default_dt=default_dt,
+        late_window=late_window,
+        offset_mute_threshold=offset_mute_threshold,
+        dx=dx,
+        receiver_masks_2d=receiver_masks_2d,
+        src_x=src_x,
+        rcv_x=rcv_x,
+        data_masks=data_masks,
+    )
+    return prepare_loss_pair(
+        synthetic,
+        observed,
+        receiver_mask=context.get("receiver_mask"),
+        data_transform_pipeline=data_transform_pipeline,
+        context=context,
+    )
+
+
 ELASTIC_COMPONENTS = ("pressure", "vx", "vz")
 
 

@@ -7,6 +7,7 @@ from ADFWI.fwi.data import (
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
     build_transform_context,
+    prepare_fwi_loss_pair,
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
@@ -90,6 +91,41 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertNotIn("src_x", context)
         self.assertNotIn("rcv_x", context)
         self.assertNotIn("data_mask", context)
+
+    def test_prepare_fwi_loss_pair_matches_manual_context_path(self):
+        shot_index = torch.tensor([0, 1])
+        synthetic = torch.arange(2 * 4 * 3, dtype=torch.float32).reshape(2, 4, 3)
+        observed = torch.ones((2, 4, 2), dtype=torch.float32)
+        receiver_masks = torch.tensor([[1, 0, 1], [0, 1, 1]], dtype=torch.float32)
+        data_masks = torch.ones_like(observed)
+        data_masks[:, 0, :] = 0
+        pipeline = DataTransformPipeline([DataMask(apply_to="synthetic")])
+
+        actual_syn, actual_obs = prepare_fwi_loss_pair(
+            synthetic,
+            observed,
+            shot_index=shot_index,
+            default_dt=0.002,
+            receiver_masks_2d=receiver_masks,
+            data_masks=data_masks,
+            data_transform_pipeline=pipeline,
+        )
+
+        context = build_fwi_transform_context(
+            shot_index=shot_index,
+            default_dt=0.002,
+            receiver_masks_2d=receiver_masks,
+            data_masks=data_masks,
+        )
+        expected_syn, expected_obs = prepare_loss_pair(
+            synthetic,
+            observed,
+            receiver_mask=context["receiver_mask"],
+            data_transform_pipeline=pipeline,
+            context=context,
+        )
+        self.assertTrue(torch.equal(actual_syn, expected_syn))
+        self.assertTrue(torch.equal(actual_obs, expected_obs))
 
     def test_prepare_loss_pair_selects_receivers_before_pipeline(self):
         synthetic = torch.arange(1 * 4 * 3, dtype=torch.float32).reshape(1, 4, 3)

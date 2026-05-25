@@ -16,7 +16,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, prepare_loss_pair
+from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, prepare_fwi_loss_pair, prepare_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
@@ -193,14 +193,21 @@ class AcousticFWI(torch.nn.Module):
         )
 
     def _prepare_loss_pair(self, synthetic_waveform, observed_waveform, shot_index=None, cutoff_freq=None, propagator_dt=None):
-        context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
-        receiver_mask = self.receiver_masks_2D[shot_index] if shot_index is not None else None
-        return prepare_loss_pair(
+        return prepare_fwi_loss_pair(
             synthetic_waveform,
             observed_waveform,
-            receiver_mask=receiver_mask,
+            shot_index=shot_index,
+            cutoff_freq=cutoff_freq,
+            propagator_dt=propagator_dt,
+            default_dt=self.propagator.dt,
+            late_window=self.waveform_mute_late_window,
+            offset_mute_threshold=self.waveform_mute_offset,
+            dx=self.propagator.dx,
+            receiver_masks_2d=self.receiver_masks_2D,
+            src_x=self.propagator.src_x,
+            rcv_x=self.propagator.rcv_x,
+            data_masks=self.data_masks,
             data_transform_pipeline=self.data_transform_pipeline,
-            context=context,
         )
 
     def calculate_loss(self, synthetic_waveform, observed_waveform, normalization, loss_fn, cutoff_freq=None, propagator_dt=None,shot_index=None, apply_transforms=True):

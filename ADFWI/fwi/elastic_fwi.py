@@ -24,6 +24,7 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
+    prepare_fwi_loss_pair,
     prepare_loss_pair,
 )
 from ADFWI.fwi.transforms import DataTransformPipeline
@@ -172,14 +173,21 @@ class ElasticFWI(torch.nn.Module):
         )
 
     def _prepare_loss_pair(self, synthetic_waveform, observed_waveform, shot_index=None, cutoff_freq=None, propagator_dt=None):
-        context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
-        receiver_mask = self.receiver_masks_2D[shot_index] if shot_index is not None else None
-        return prepare_loss_pair(
+        return prepare_fwi_loss_pair(
             synthetic_waveform,
             observed_waveform,
-            receiver_mask=receiver_mask,
+            shot_index=shot_index,
+            cutoff_freq=cutoff_freq,
+            propagator_dt=propagator_dt,
+            default_dt=self.propagator.dt,
+            late_window=self.waveform_mute_late_window,
+            offset_mute_threshold=self.waveform_mute_offset,
+            dx=self.propagator.dx,
+            receiver_masks_2d=self.receiver_masks_2D,
+            src_x=self.propagator.src_x,
+            rcv_x=self.propagator.rcv_x,
+            data_masks=self.data_masks,
             data_transform_pipeline=self.data_transform_pipeline,
-            context=context,
         )
 
     # misfits calculation
