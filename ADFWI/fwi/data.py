@@ -260,6 +260,33 @@ def elastic_observed_components(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def elastic_component_loss_inputs(
+    synthetic_components: Mapping[str, torch.Tensor],
+    observed_components: Mapping[str, Any],
+    inversion_components: Sequence[str],
+    component_weights: Mapping[str, float],
+) -> list[tuple[str, torch.Tensor, Any, float]]:
+    """Return active elastic component tensors and weights in stable order.
+
+    ElasticFWI evaluates components in ``ELASTIC_COMPONENTS`` order regardless
+    of user input order. This helper keeps the component selection and weight
+    lookup outside the inversion loop while leaving loss evaluation in ElasticFWI.
+    """
+
+    active_components = set(inversion_components)
+    inputs: list[tuple[str, torch.Tensor, Any, float]] = []
+    for component in ELASTIC_COMPONENTS:
+        if component not in active_components:
+            continue
+        inputs.append((
+            component,
+            synthetic_components[component],
+            observed_components[component],
+            component_weights[component],
+        ))
+    return inputs
+
+
 def normalize_elastic_component_weights(
     inversion_components: Sequence[str],
     component_weights: Optional[Mapping[str, float]] = None,

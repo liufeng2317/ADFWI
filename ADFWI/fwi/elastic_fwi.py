@@ -21,6 +21,7 @@ from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
+    elastic_component_loss_inputs,
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
@@ -462,12 +463,15 @@ class ElasticFWI(torch.nn.Module):
                 # misfits
                 synthetic_components = elastic_synthetic_components(record_waveform)
                 component_losses = []
-                for component in ELASTIC_COMPONENTS:
-                    if component not in self.inversion_component:
-                        continue
+                for component, synthetic_component, observed_component, component_weight in elastic_component_loss_inputs(
+                    synthetic_components,
+                    self.obs_components,
+                    self.inversion_component,
+                    self.component_weights,
+                ):
                     synthetic_waveform, observed_waveform = self._prepare_loss_pair(
-                        synthetic_components[component],
-                        self.obs_components[component][shot_index],
+                        synthetic_component,
+                        observed_component[shot_index],
                         shot_index,
                         cutoff_freq,
                         self.propagator.dt,
@@ -479,7 +483,7 @@ class ElasticFWI(torch.nn.Module):
                         self.loss_fn,
                         apply_transforms=False,
                     )
-                    component_losses.append(component_loss * self.component_weights[component])
+                    component_losses.append(component_loss * component_weight)
                 data_loss = component_losses[0] if component_losses else torch.tensor(0.0, device=self.device)
                 for component_loss in component_losses[1:]:
                     data_loss = data_loss + component_loss

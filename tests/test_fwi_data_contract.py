@@ -8,6 +8,7 @@ from ADFWI.fwi.data import (
     build_fwi_transform_context,
     build_transform_context,
     prepare_fwi_loss_pair,
+    elastic_component_loss_inputs,
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
@@ -253,6 +254,43 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertTrue(torch.equal(components["pressure"], torch.full((1, 2, 2), -3.0)))
         self.assertTrue(torch.equal(components["vx"], record["vx"]))
         self.assertTrue(torch.equal(components["vz"], record["vz"]))
+
+    def test_elastic_component_loss_inputs_filters_active_components_in_stable_order(self):
+        synthetic_components = {
+            "pressure": torch.full((1, 2, 2), 1.0),
+            "vx": torch.full((1, 2, 2), 2.0),
+            "vz": torch.full((1, 2, 2), 3.0),
+        }
+        observed_components = {
+            "pressure": torch.full((1, 2, 2), 4.0),
+            "vx": torch.full((1, 2, 2), 5.0),
+            "vz": torch.full((1, 2, 2), 6.0),
+        }
+        weights = {"pressure": 1.0, "vx": 2.0, "vz": 3.0}
+
+        inputs = elastic_component_loss_inputs(
+            synthetic_components,
+            observed_components,
+            ["vz", "pressure"],
+            weights,
+        )
+
+        self.assertEqual([item[0] for item in inputs], ["pressure", "vz"])
+        self.assertIs(inputs[0][1], synthetic_components["pressure"])
+        self.assertIs(inputs[0][2], observed_components["pressure"])
+        self.assertEqual(inputs[0][3], 1.0)
+        self.assertIs(inputs[1][1], synthetic_components["vz"])
+        self.assertIs(inputs[1][2], observed_components["vz"])
+        self.assertEqual(inputs[1][3], 3.0)
+
+    def test_elastic_component_loss_inputs_returns_empty_for_no_active_components(self):
+        synthetic_components = {component: torch.ones((1, 1, 1)) for component in ELASTIC_COMPONENTS}
+        observed_components = {component: torch.ones((1, 1, 1)) for component in ELASTIC_COMPONENTS}
+        weights = {component: 1.0 for component in ELASTIC_COMPONENTS}
+
+        inputs = elastic_component_loss_inputs(synthetic_components, observed_components, [], weights)
+
+        self.assertEqual(inputs, [])
 
     def test_elastic_observed_components_match_legacy_pressure_rule(self):
         data = {
