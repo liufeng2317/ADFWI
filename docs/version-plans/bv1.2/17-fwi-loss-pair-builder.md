@@ -19,10 +19,12 @@ The helper preserves the established ordering:
 3. Run the configured data transform pipeline on same-shape synthetic/observed
    tensors.
 
-`calculate_loss(..., apply_transforms=True)` was intentionally left unchanged in
-this step. The training loops already call `_prepare_loss_pair()` and then call
-`calculate_loss(..., apply_transforms=False)`, so this refactor avoids changing
-public API behavior while cleaning the main inversion path.
+At this step, `calculate_loss(..., apply_transforms=True)` was intentionally left
+unchanged. That follow-up has since been completed in
+`18-calculate-loss-receiver-selection.md`: direct `calculate_loss()` calls now
+reuse `_prepare_loss_pair()` when transforms are enabled. The training loops
+still call `_prepare_loss_pair()` first and then use
+`calculate_loss(..., apply_transforms=False)` to avoid double preprocessing.
 
 ## Validation
 
@@ -46,9 +48,10 @@ CPU/NPU smoke drift stayed within the established bv1.2 baseline:
 
 ## Next Steps
 
-1. Decide whether public `calculate_loss(..., apply_transforms=True)` should
-   also use receiver selection when `shot_index` is provided.
-2. If that API behavior is changed, add explicit tests for trace-missing
-   receiver dimensions before merging.
-3. Continue keeping propagator kernels untouched until the FWI orchestration
-   layer is stable.
+1. The public `calculate_loss(..., apply_transforms=True)` receiver-selection
+   follow-up is complete; keep the direct trace-missing tests as API guards.
+2. Continue keeping propagator kernels untouched until FWI orchestration
+   helpers are stable.
+3. Use later docs for current next steps: normalization sharing is tracked in
+   `21-trace-normalize-shared-formula.md`, and broader engine cleanup remains a
+   separate staged task.

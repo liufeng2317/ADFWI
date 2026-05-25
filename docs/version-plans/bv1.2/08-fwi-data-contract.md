@@ -32,12 +32,17 @@ Before a component reaches the misfit function, the pair must satisfy:
 
 ## Implementation
 
-Added `ADFWI.fwi.data` with two helpers:
+Added `ADFWI.fwi.data` as the FWI-layer data contract with shared helpers:
 
-- `build_transform_context(...)`: creates the context consumed by transform
-  pipelines.
-- `prepare_loss_pair(...)`: applies receiver selection first, then applies the
-  same-shape `DataTransformPipeline`.
+- `build_fwi_data_transform_pipeline(...)`: builds the legacy-compatible default
+  transform pipeline.
+- `build_transform_context(...)` and `build_fwi_transform_context(...)`: create
+  the context consumed by transform pipelines.
+- `prepare_loss_pair(...)` and `prepare_fwi_loss_pair(...)`: apply receiver
+  selection first, then apply the same-shape `DataTransformPipeline`.
+- `normalize_waveform(...)`: exposes the shared normalization formula from
+  `ADFWI.fwi.normalization`.
+- `evaluate_misfit_loss(...)`: centralizes legacy misfit dispatch rules.
 - `elastic_pressure(...)`, `elastic_synthetic_components(...)`, and
   `elastic_observed_components(...)`: centralize the elastic `pressure/vx/vz`
   component contract.
@@ -47,9 +52,9 @@ Added `ADFWI.fwi.data` with two helpers:
 Updated `AcousticFWI` and `ElasticFWI` to use `_prepare_loss_pair()` inside the
 forward path. `ElasticFWI` now also builds observed and synthetic components
 through the shared component helpers. This removes duplicated pre-loss data
-handling from component loops while preserving `calculate_loss()` compatibility. By default,
-`calculate_loss()` still only runs the transform pipeline and misfit on the
-provided tensors; receiver selection is not silently applied there.
+handling from component loops. Direct `calculate_loss(..., apply_transforms=True)`
+calls now reuse `_prepare_loss_pair()`, so calls with `shot_index` follow the same
+receiver-selection and transform path as the training loop.
 
 ## Compatibility Notes
 
@@ -57,11 +62,11 @@ provided tensors; receiver selection is not silently applied there.
   the previous `1.0` weight for every active component.
 - Elastic smoke tests expose `--components` and `--component-weights` so weighted
   component behavior can be fixed in CI/smoke baselines.
-- `calculate_loss(..., apply_transforms=True)` keeps the historical expectation
-  that its input tensors are already receiver-aligned.
-- Internal forward paths now call `calculate_loss(..., apply_transforms=False)`
+- `calculate_loss(..., apply_transforms=True)` now performs receiver selection
+  through `_prepare_loss_pair()` when `shot_index` is provided.
+- Internal forward paths still call `calculate_loss(..., apply_transforms=False)`
   after `_prepare_loss_pair()` has already performed receiver selection and
-  pipeline preprocessing.
+  pipeline preprocessing, avoiding double transforms.
 - Elastic `real_case_data_selecting()` remains as a compatibility wrapper around
   receiver selection only.
 
