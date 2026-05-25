@@ -4,6 +4,7 @@ import torch
 
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
+    build_fwi_data_transform_pipeline,
     build_transform_context,
     elastic_observed_components,
     elastic_pressure,
@@ -11,11 +12,34 @@ from ADFWI.fwi.data import (
     normalize_elastic_component_weights,
     prepare_loss_pair,
 )
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, TraceNormalize
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
 from ADFWI.fwi.transforms.receivers import select_or_mask_receivers
 
 
 class FWIDataContractTests(unittest.TestCase):
+    def test_build_fwi_data_transform_pipeline_adds_legacy_transforms_and_normalize(self):
+        pipeline, waveform_normalize = build_fwi_data_transform_pipeline(None, True)
+
+        self.assertFalse(waveform_normalize)
+        self.assertIsInstance(pipeline, DataTransformPipeline)
+        self.assertIsInstance(pipeline.transforms[0], LegacyOffsetMute)
+        self.assertIsInstance(pipeline.transforms[1], LegacyLateWindowMute)
+        self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
+        self.assertIsInstance(pipeline.transforms[3], DataMask)
+        self.assertIsInstance(pipeline.transforms[4], TraceNormalize)
+
+    def test_build_fwi_data_transform_pipeline_appends_custom_pipeline(self):
+        custom_pipeline = DataTransformPipeline([TraceNormalize()])
+
+        pipeline, waveform_normalize = build_fwi_data_transform_pipeline(custom_pipeline, True)
+
+        self.assertTrue(waveform_normalize)
+        self.assertIsInstance(pipeline.transforms[0], LegacyOffsetMute)
+        self.assertIsInstance(pipeline.transforms[1], LegacyLateWindowMute)
+        self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
+        self.assertIsInstance(pipeline.transforms[3], DataMask)
+        self.assertIs(pipeline.transforms[4], custom_pipeline)
+
     def test_prepare_loss_pair_selects_receivers_before_pipeline(self):
         synthetic = torch.arange(1 * 4 * 3, dtype=torch.float32).reshape(1, 4, 3)
         observed = torch.ones((1, 4, 2), dtype=torch.float32)

@@ -19,20 +19,14 @@ from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
+    build_fwi_data_transform_pipeline,
     build_transform_context,
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
     prepare_loss_pair,
 )
-from ADFWI.fwi.transforms import (
-    DataMask,
-    DataTransformPipeline,
-    LegacyLateWindowMute,
-    LegacyLowPassFilter,
-    LegacyOffsetMute,
-    TraceNormalize,
-)
+from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
@@ -153,18 +147,7 @@ class ElasticFWI(torch.nn.Module):
         self.component_weights = normalize_elastic_component_weights(self.inversion_component, component_weights)
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
-        offset_mute = LegacyOffsetMute(required=False)
-        late_mute = LegacyLateWindowMute(required=False)
-        lowpass = LegacyLowPassFilter(required=False)
-        data_mask = DataMask(required=False, apply_to="synthetic")
-        transforms = [offset_mute, late_mute, lowpass, data_mask]
-        if data_transform_pipeline is not None:
-            return DataTransformPipeline(transforms + [data_transform_pipeline]), waveform_normalize
-
-        if waveform_normalize:
-            transforms.append(TraceNormalize())
-            waveform_normalize = False
-        return DataTransformPipeline(transforms), waveform_normalize
+        return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
     def _normalize(self,data):
         mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0

@@ -16,16 +16,9 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.data import build_transform_context, prepare_loss_pair
+from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_transform_context, prepare_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
-from ADFWI.fwi.transforms import (
-    DataMask,
-    DataTransformPipeline,
-    LegacyLateWindowMute,
-    LegacyLowPassFilter,
-    LegacyOffsetMute,
-    TraceNormalize,
-)
+from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
@@ -153,18 +146,7 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_path  = save_fig_path
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
-        offset_mute = LegacyOffsetMute(required=False)
-        late_mute = LegacyLateWindowMute(required=False)
-        lowpass = LegacyLowPassFilter(required=False)
-        data_mask = DataMask(required=False, apply_to="synthetic")
-        transforms = [offset_mute, late_mute, lowpass, data_mask]
-        if data_transform_pipeline is not None:
-            return DataTransformPipeline(transforms + [data_transform_pipeline]), waveform_normalize
-
-        if waveform_normalize:
-            transforms.append(TraceNormalize())
-            waveform_normalize = False
-        return DataTransformPipeline(transforms), waveform_normalize
+        return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
     def _validate_device_consistency(self):
         if self.model.device != self.propagator.device:
