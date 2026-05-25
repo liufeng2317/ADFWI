@@ -51,6 +51,16 @@ class BackendIntegrationTests(unittest.TestCase):
         receiver.add_receiver(3, 2, rcv_type="pr")
         return Survey(source, receiver)
 
+    def _trace_missing_survey(self):
+        nt = 8
+        dt = 0.001
+        source = Source(nt=nt, dt=dt, f0=5.0)
+        source.add_source(2, 2, np.ones(nt, dtype=np.float32), src_type="mt")
+        receiver = Receiver(nt=nt, dt=dt)
+        receiver.add_receivers(np.array([2, 3, 4]), np.array([2, 2, 2]), rcv_type="pr")
+        receiver_masks = np.array([[1, 0, 1]], dtype=np.float32)
+        return Survey(source, receiver, receiver_masks=receiver_masks, receiver_masks_obs=False)
+
     def test_acoustic_model_inherits_configured_cpu_backend(self):
         configure_backend("cpu")
         vp, rho = self._model_arrays()
@@ -308,6 +318,36 @@ class BackendIntegrationTests(unittest.TestCase):
 
         self.assertEqual(float(loss.detach().cpu().item()), 0.0)
 
+    def test_acoustic_calculate_loss_selects_missing_receivers_when_applying_transforms(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._trace_missing_survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 2), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            waveform_normalize=False,
+            cache_result=False,
+        )
+
+        synthetic = torch.zeros((1, 8, 3), device=fwi.device, dtype=fwi.dtype)
+        synthetic[..., 0] = 2.0
+        synthetic[..., 2] = 2.0
+        observed = torch.full((1, 8, 2), 2.0, device=fwi.device, dtype=fwi.dtype)
+        loss = fwi.calculate_loss(synthetic, observed, False, fwi.loss_fn, shot_index=np.array([0]))
+
+        self.assertEqual(float(loss.detach().cpu().item()), 0.0)
+
     def test_acoustic_fwi_default_normalization_uses_transform_pipeline(self):
         configure_backend("cpu", dtype=torch.float32)
         survey = self._survey()
@@ -384,6 +424,43 @@ class BackendIntegrationTests(unittest.TestCase):
         synthetic = torch.ones((1, 8, 1), device=fwi.device, dtype=fwi.dtype)
         observed = synthetic * 2
         loss = fwi.calculate_loss(synthetic, observed, fwi.waveform_normalize, fwi.loss_fn, shot_index=np.array([0]))
+
+        self.assertEqual(float(loss.detach().cpu().item()), 0.0)
+
+    def test_elastic_calculate_loss_selects_missing_receivers_when_applying_transforms(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._trace_missing_survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+        propagator = ElasticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {
+            "txx": np.zeros((1, 8, 2), dtype=np.float32),
+            "tzz": np.zeros((1, 8, 2), dtype=np.float32),
+            "vx": np.zeros((1, 8, 2), dtype=np.float32),
+            "vz": np.zeros((1, 8, 2), dtype=np.float32),
+        }
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+
+        fwi = ElasticFWI(
+            propagator,
+            model,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            waveform_normalize=False,
+            cache_result=False,
+        )
+
+        synthetic = torch.zeros((1, 8, 3), device=fwi.device, dtype=fwi.dtype)
+        synthetic[..., 0] = 2.0
+        synthetic[..., 2] = 2.0
+        observed = torch.full((1, 8, 2), 2.0, device=fwi.device, dtype=fwi.dtype)
+        loss = fwi.calculate_loss(synthetic, observed, False, fwi.loss_fn, shot_index=np.array([0]))
 
         self.assertEqual(float(loss.detach().cpu().item()), 0.0)
 

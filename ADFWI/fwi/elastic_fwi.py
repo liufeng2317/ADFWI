@@ -196,12 +196,12 @@ class ElasticFWI(torch.nn.Module):
         Generalized function to calculate misfit loss for a given component.
         """
         if apply_transforms:
-            context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
-            synthetic_waveform, observed_waveform = prepare_loss_pair(
+            synthetic_waveform, observed_waveform = self._prepare_loss_pair(
                 synthetic_waveform,
                 observed_waveform,
-                data_transform_pipeline=self.data_transform_pipeline,
-                context=context,
+                shot_index=shot_index,
+                cutoff_freq=cutoff_freq,
+                propagator_dt=propagator_dt,
             )
 
         if normalization:

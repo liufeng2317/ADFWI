@@ -16,7 +16,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, prepare_fwi_loss_pair, prepare_loss_pair
+from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, prepare_fwi_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
@@ -221,12 +221,12 @@ class AcousticFWI(torch.nn.Module):
             (5) data normalize
         """
         if apply_transforms:
-            context = self._build_transform_context(shot_index=shot_index, cutoff_freq=cutoff_freq, propagator_dt=propagator_dt)
-            synthetic_waveform, observed_waveform = prepare_loss_pair(
+            synthetic_waveform, observed_waveform = self._prepare_loss_pair(
                 synthetic_waveform,
                 observed_waveform,
-                data_transform_pipeline=self.data_transform_pipeline,
-                context=context,
+                shot_index=shot_index,
+                cutoff_freq=cutoff_freq,
+                propagator_dt=propagator_dt,
             )
 
         if normalization:
