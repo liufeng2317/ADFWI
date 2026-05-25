@@ -52,6 +52,23 @@ def build_fwi_data_transform_pipeline(
     return DataTransformPipeline(transforms), waveform_normalize
 
 
+def sum_weighted_losses(losses: Sequence[torch.Tensor], *, device: Any = None) -> torch.Tensor:
+    """Sum loss tensors while preserving autograd links.
+
+    Empty component sets are valid for edge-case tests and return a scalar zero
+    on the requested device. Non-empty inputs start from the first loss tensor so
+    dtype, device, and autograd history are inherited from real loss values.
+    """
+
+    if not losses:
+        return torch.tensor(0.0, device=device)
+
+    total = losses[0]
+    for loss in losses[1:]:
+        total = total + loss
+    return total
+
+
 def evaluate_misfit_loss(
     loss_fn: Any,
     synthetic: torch.Tensor,

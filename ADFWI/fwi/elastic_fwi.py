@@ -29,6 +29,7 @@ from ADFWI.fwi.data import (
     normalize_waveform,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
+    sum_weighted_losses,
 )
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.utils       import numpy2tensor
@@ -484,9 +485,7 @@ class ElasticFWI(torch.nn.Module):
                         apply_transforms=False,
                     )
                     component_losses.append(component_loss * component_weight)
-                data_loss = component_losses[0] if component_losses else torch.tensor(0.0, device=self.device)
-                for component_loss in component_losses[1:]:
-                    data_loss = data_loss + component_loss
+                data_loss = sum_weighted_losses(component_losses, device=self.device)
                 
                 # regularization
                 regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None

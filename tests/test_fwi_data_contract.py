@@ -16,6 +16,7 @@ from ADFWI.fwi.data import (
     normalize_elastic_component_weights,
     normalize_waveform,
     prepare_loss_pair,
+    sum_weighted_losses,
 )
 from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
@@ -49,6 +50,23 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
         self.assertIsInstance(pipeline.transforms[3], DataMask)
         self.assertIsInstance(pipeline.transforms[4], TraceNormalize)
+
+    def test_sum_weighted_losses_preserves_autograd(self):
+        first = torch.tensor(1.5, requires_grad=True)
+        second = torch.tensor(2.5, requires_grad=True)
+
+        total = sum_weighted_losses([first * 2.0, second * 3.0])
+        total.backward()
+
+        self.assertTrue(torch.equal(total.detach(), torch.tensor(10.5)))
+        self.assertEqual(float(first.grad), 2.0)
+        self.assertEqual(float(second.grad), 3.0)
+
+    def test_sum_weighted_losses_empty_uses_requested_device(self):
+        total = sum_weighted_losses([], device=torch.device("cpu"))
+
+        self.assertEqual(total.device.type, "cpu")
+        self.assertEqual(float(total.item()), 0.0)
 
     def test_evaluate_misfit_loss_uses_misfit_forward(self):
         synthetic = torch.tensor([1.0, 3.0])
