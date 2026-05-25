@@ -14,9 +14,9 @@ from tqdm import tqdm
 from ADFWI.model       import AbstractModel
 from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
-from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
+from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, normalize_waveform, prepare_fwi_loss_pair
+from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
@@ -229,12 +229,12 @@ class AcousticFWI(torch.nn.Module):
             synthetic_waveform = self._normalize(synthetic_waveform)
             observed_waveform  = self._normalize(observed_waveform)
         
-        if isinstance(loss_fn, Misfit):
-            return loss_fn.forward(synthetic_waveform, observed_waveform)
-        elif isinstance(loss_fn,Misfit_NIM):
-            return loss_fn.apply(synthetic_waveform,observed_waveform,loss_fn.p,loss_fn.trans_type,loss_fn.theta)
-        else:
-            return loss_fn.apply(synthetic_waveform, observed_waveform)
+        return evaluate_misfit_loss(
+            loss_fn,
+            synthetic_waveform,
+            observed_waveform,
+            function_fallback="apply",
+        )
         
     
     # regularization calculation

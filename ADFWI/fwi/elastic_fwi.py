@@ -24,6 +24,7 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
+    evaluate_misfit_loss,
     normalize_waveform,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
@@ -205,10 +206,12 @@ class ElasticFWI(torch.nn.Module):
             observed_waveform  = self._normalize(observed_waveform)
             synthetic_waveform = self._normalize(synthetic_waveform)
         
-        if isinstance(loss_fn, Misfit):
-            return loss_fn.forward(synthetic_waveform, observed_waveform)
-        else:
-            return loss_fn(synthetic_waveform, observed_waveform)
+        return evaluate_misfit_loss(
+            loss_fn,
+            synthetic_waveform,
+            observed_waveform,
+            function_fallback="call",
+        )
     
     # regularization calculation
     def calculate_regularization_loss(self, model_param, weight_x, weight_z, regularization_fn):

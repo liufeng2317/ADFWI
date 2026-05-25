@@ -13,6 +13,7 @@ from typing import Any, Mapping, Optional, Sequence
 
 import torch
 
+from ADFWI.fwi.misfit import Misfit, Misfit_NIM
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,
@@ -61,6 +62,31 @@ def normalize_waveform(data: torch.Tensor) -> torch.Tensor:
     max_val = torch.max(torch.abs(data), axis=1, keepdim=True).values
     max_val = max_val.masked_fill(mask, 1)
     return data / max_val
+
+
+def evaluate_misfit_loss(
+    loss_fn: Any,
+    synthetic: torch.Tensor,
+    observed: torch.Tensor,
+    *,
+    function_fallback: str = "call",
+) -> torch.Tensor:
+    """Evaluate a misfit while preserving legacy FWI calling conventions.
+
+    ``Misfit`` instances use ``forward``. ``Misfit_NIM`` keeps its custom
+    autograd signature. Other loss functions either use ``loss_fn(...)`` or
+    ``loss_fn.apply(...)`` depending on the historical caller.
+    """
+
+    if isinstance(loss_fn, Misfit):
+        return loss_fn.forward(synthetic, observed)
+    if isinstance(loss_fn, Misfit_NIM):
+        return loss_fn.apply(synthetic, observed, loss_fn.p, loss_fn.trans_type, loss_fn.theta)
+    if function_fallback == "call":
+        return loss_fn(synthetic, observed)
+    if function_fallback == "apply":
+        return loss_fn.apply(synthetic, observed)
+    raise ValueError(f"unsupported misfit function fallback: {function_fallback}")
 
 
 def build_transform_context(

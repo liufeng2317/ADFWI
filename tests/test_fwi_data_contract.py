@@ -11,12 +11,30 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
+    evaluate_misfit_loss,
     normalize_elastic_component_weights,
     normalize_waveform,
     prepare_loss_pair,
 )
+from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
 from ADFWI.fwi.transforms.receivers import select_or_mask_receivers
+
+
+class DummyMisfit(Misfit):
+    def forward(self, synthetic, observed):
+        return torch.sum(synthetic - observed)
+
+
+class DummyCallableLoss:
+    def __call__(self, synthetic, observed):
+        return torch.sum((synthetic - observed) ** 2)
+
+
+class DummyApplyLoss(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, synthetic, observed):
+        return torch.sum(torch.abs(synthetic - observed))
 
 
 class FWIDataContractTests(unittest.TestCase):
@@ -30,6 +48,30 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
         self.assertIsInstance(pipeline.transforms[3], DataMask)
         self.assertIsInstance(pipeline.transforms[4], TraceNormalize)
+
+    def test_evaluate_misfit_loss_uses_misfit_forward(self):
+        synthetic = torch.tensor([1.0, 3.0])
+        observed = torch.tensor([0.5, 1.0])
+
+        loss = evaluate_misfit_loss(DummyMisfit(), synthetic, observed)
+
+        self.assertTrue(torch.equal(loss, torch.tensor(2.5)))
+
+    def test_evaluate_misfit_loss_supports_callable_fallback(self):
+        synthetic = torch.tensor([1.0, 3.0])
+        observed = torch.tensor([0.5, 1.0])
+
+        loss = evaluate_misfit_loss(DummyCallableLoss(), synthetic, observed, function_fallback="call")
+
+        self.assertTrue(torch.equal(loss, torch.tensor(4.25)))
+
+    def test_evaluate_misfit_loss_supports_apply_fallback(self):
+        synthetic = torch.tensor([1.0, 3.0])
+        observed = torch.tensor([0.5, 1.0])
+
+        loss = evaluate_misfit_loss(DummyApplyLoss, synthetic, observed, function_fallback="apply")
+
+        self.assertTrue(torch.equal(loss, torch.tensor(2.5)))
 
     def test_normalize_waveform_matches_legacy_trace_normalization(self):
         data = torch.tensor(
