@@ -5,6 +5,7 @@ import torch
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
+    build_fwi_transform_context,
     build_transform_context,
     elastic_observed_components,
     elastic_pressure,
@@ -39,6 +40,56 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
         self.assertIsInstance(pipeline.transforms[3], DataMask)
         self.assertIs(pipeline.transforms[4], custom_pipeline)
+
+    def test_build_fwi_transform_context_selects_shot_scoped_values(self):
+        shot_index = torch.tensor([0, 2])
+        receiver_masks = torch.tensor([[1, 0], [0, 1], [1, 1]], dtype=torch.float32)
+        src_x = torch.tensor([10.0, 20.0, 30.0])
+        rcv_x = torch.tensor([100.0, 110.0])
+        data_masks = torch.arange(3 * 4 * 2, dtype=torch.float32).reshape(3, 4, 2)
+
+        context = build_fwi_transform_context(
+            shot_index=shot_index,
+            cutoff_freq=8.0,
+            propagator_dt=None,
+            default_dt=0.002,
+            late_window=0.1,
+            offset_mute_threshold=250.0,
+            dx=10.0,
+            receiver_masks_2d=receiver_masks,
+            src_x=src_x,
+            rcv_x=rcv_x,
+            data_masks=data_masks,
+        )
+
+        self.assertIs(context["shot_index"], shot_index)
+        self.assertEqual(context["cutoff_freq"], 8.0)
+        self.assertEqual(context["dt"], 0.002)
+        self.assertTrue(torch.equal(context["receiver_mask"], receiver_masks[shot_index]))
+        self.assertTrue(torch.equal(context["src_x"], src_x[shot_index]))
+        self.assertTrue(torch.equal(context["rcv_x"], rcv_x))
+        self.assertTrue(torch.equal(context["data_mask"], data_masks[shot_index]))
+
+    def test_build_fwi_transform_context_omits_shot_scoped_values_without_shot_index(self):
+        context = build_fwi_transform_context(
+            shot_index=None,
+            cutoff_freq=None,
+            propagator_dt=0.003,
+            default_dt=0.002,
+            late_window=None,
+            offset_mute_threshold=None,
+            dx=10.0,
+            receiver_masks_2d=torch.ones((1, 2)),
+            src_x=torch.ones(1),
+            rcv_x=torch.ones(2),
+            data_masks=torch.ones((1, 4, 2)),
+        )
+
+        self.assertEqual(context["dt"], 0.003)
+        self.assertNotIn("receiver_mask", context)
+        self.assertNotIn("src_x", context)
+        self.assertNotIn("rcv_x", context)
+        self.assertNotIn("data_mask", context)
 
     def test_prepare_loss_pair_selects_receivers_before_pipeline(self):
         synthetic = torch.arange(1 * 4 * 3, dtype=torch.float32).reshape(1, 4, 3)

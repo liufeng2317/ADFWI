@@ -20,7 +20,7 @@ from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_d
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
-    build_transform_context,
+    build_fwi_transform_context,
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
@@ -157,27 +157,18 @@ class ElasticFWI(torch.nn.Module):
         return data
     
     def _build_transform_context(self, shot_index=None, cutoff_freq=None, propagator_dt=None):
-        data_mask = None
-        receiver_mask = None
-        src_x = None
-        rcv_x = None
-        if shot_index is not None:
-            receiver_mask = self.receiver_masks_2D[shot_index]
-            src_x = self.propagator.src_x.cpu()[shot_index]
-            rcv_x = self.propagator.rcv_x.cpu()
-            if self.data_masks is not None:
-                data_mask = self.data_masks[shot_index]
-        return build_transform_context(
+        return build_fwi_transform_context(
             shot_index=shot_index,
             cutoff_freq=cutoff_freq,
-            dt=propagator_dt if propagator_dt is not None else self.propagator.dt,
+            propagator_dt=propagator_dt,
+            default_dt=self.propagator.dt,
             late_window=self.waveform_mute_late_window,
             offset_mute_threshold=self.waveform_mute_offset,
             dx=self.propagator.dx,
-            receiver_mask=receiver_mask,
-            src_x=src_x,
-            rcv_x=rcv_x,
-            data_mask=data_mask,
+            receiver_masks_2d=self.receiver_masks_2D,
+            src_x=self.propagator.src_x,
+            rcv_x=self.propagator.rcv_x,
+            data_masks=self.data_masks,
         )
 
     def _prepare_loss_pair(self, synthetic_waveform, observed_waveform, shot_index=None, cutoff_freq=None, propagator_dt=None):

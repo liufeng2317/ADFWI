@@ -16,7 +16,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_transform_context, prepare_loss_pair
+from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, prepare_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
@@ -178,27 +178,18 @@ class AcousticFWI(torch.nn.Module):
     
     # misfits calculation
     def _build_transform_context(self, shot_index=None, cutoff_freq=None, propagator_dt=None):
-        data_mask = None
-        receiver_mask = None
-        src_x = None
-        rcv_x = None
-        if shot_index is not None:
-            receiver_mask = self.receiver_masks_2D[shot_index]
-            src_x = self.propagator.src_x.cpu()[shot_index]
-            rcv_x = self.propagator.rcv_x.cpu()
-            if self.data_masks is not None:
-                data_mask = self.data_masks[shot_index]
-        return build_transform_context(
+        return build_fwi_transform_context(
             shot_index=shot_index,
             cutoff_freq=cutoff_freq,
-            dt=propagator_dt if propagator_dt is not None else self.propagator.dt,
+            propagator_dt=propagator_dt,
+            default_dt=self.propagator.dt,
             late_window=self.waveform_mute_late_window,
             offset_mute_threshold=self.waveform_mute_offset,
             dx=self.propagator.dx,
-            receiver_mask=receiver_mask,
-            src_x=src_x,
-            rcv_x=rcv_x,
-            data_mask=data_mask,
+            receiver_masks_2d=self.receiver_masks_2D,
+            src_x=self.propagator.src_x,
+            rcv_x=self.propagator.rcv_x,
+            data_masks=self.data_masks,
         )
 
     def _prepare_loss_pair(self, synthetic_waveform, observed_waveform, shot_index=None, cutoff_freq=None, propagator_dt=None):
