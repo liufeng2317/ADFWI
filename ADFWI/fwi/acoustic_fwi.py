@@ -17,7 +17,7 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.data import build_transform_context, prepare_loss_pair
-from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
+from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,

@@ -30,7 +30,7 @@ used by the mini inversion script.
 Validation run after the change:
 
 - `python -m py_compile ADFWI/fwi/acoustic_fwi.py` passed.
-- `conda run -n adfwi python -m unittest tests/test_fwi_loop.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 30 tests OK.
+- `conda run -n adfwi python -m unittest tests/test_fwi_iteration.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 30 tests OK.
 - `conda run -n adfwi python scripts/smoke/compare_backend_smoke.py --problems acoustic --cases trace-missing --devices cpu,npu:0` passed. CPU/NPU drift was zero for loss, `vp_grad_norm`, and `vp_update_norm`.
 
 ## Next Steps

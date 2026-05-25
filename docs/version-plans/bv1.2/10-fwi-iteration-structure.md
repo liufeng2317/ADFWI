@@ -1,14 +1,14 @@
-# FWI Loop Structure
+# FWI Iteration Structure
 
 ## Goal
 
-The next cleanup layer is the acoustic/elastic FWI main loop. The intent is to
+The next cleanup layer is the acoustic/elastic FWI iteration flow. The intent is to
 reduce duplicated orchestration code while keeping numerical work in the
 existing model-specific paths until each extraction is tested.
 
 ## Current Step
 
-Implemented a shared `iter_batch_ranges` helper in `ADFWI.fwi.loop` and routed
+Implemented a shared `iter_batch_ranges` helper in `ADFWI.fwi.iteration` and routed
 AcousticFWI and ElasticFWI batch iteration through it. This helper only owns shot
 range generation:
 
@@ -24,12 +24,12 @@ processing, optimizer, or scheduler behavior was moved in this step.
 ## Validation
 
 Unit tests cover full-batch, oversized batch, partial final batch, and invalid
-input behavior in `tests/test_fwi_loop.py`.
+input behavior in `tests/test_fwi_iteration.py`.
 
 Validation run after the change:
 
-- `python -m py_compile ADFWI/fwi/loop.py ADFWI/fwi/acoustic_fwi.py ADFWI/fwi/elastic_fwi.py tests/test_fwi_loop.py` passed.
-- `conda run -n adfwi python -m unittest tests/test_fwi_loop.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 30 tests OK.
+- `python -m py_compile ADFWI/fwi/iteration.py ADFWI/fwi/acoustic_fwi.py ADFWI/fwi/elastic_fwi.py tests/test_fwi_iteration.py` passed.
+- `conda run -n adfwi python -m unittest tests/test_fwi_iteration.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 30 tests OK.
 - `conda run -n adfwi python scripts/smoke/compare_backend_smoke.py --problems acoustic,elastic --cases trace-missing --devices cpu,npu:0` passed. Acoustic CPU/NPU drift was zero for loss, `vp_grad_norm`, and `vp_update_norm`; elastic maximum relative drift was `4.880620563312549e-06`, within the `1e-5` tolerance.
 
 Smoke comparison remained stable because the helper only constructs the same

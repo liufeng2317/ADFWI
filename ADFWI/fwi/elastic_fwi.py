@@ -16,7 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
+from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_transform_context,

@@ -3,10 +3,10 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
+from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges
 
 
-class TestFWILoopHelpers(unittest.TestCase):
+class TestFWIIterationHelpers(unittest.TestCase):
     def test_none_batch_size_uses_full_batch(self):
         batches = list(iter_batch_ranges(5, None))
 

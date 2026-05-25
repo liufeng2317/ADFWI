@@ -9,7 +9,7 @@ propagation, gradient processing, optimizer steps, or scheduler steps.
 
 ## Current Step
 
-`ADFWI.fwi.loop` now provides `BatchLoss` and `build_batch_loss(data_loss,
+`ADFWI.fwi.iteration` now provides `BatchLoss` and `build_batch_loss(data_loss,
 regularization_loss=None)`. The helper returns:
 
 - `tensor`: `data_loss` when no regularization is used, otherwise
@@ -33,8 +33,8 @@ Validation covers both helper semantics and end-to-end behavior:
 
 Validation run after the change:
 
-- `python -m py_compile ADFWI/fwi/loop.py ADFWI/fwi/acoustic_fwi.py ADFWI/fwi/elastic_fwi.py tests/test_fwi_loop.py` passed.
-- `conda run -n adfwi python -m unittest tests/test_fwi_loop.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 34 tests OK.
+- `python -m py_compile ADFWI/fwi/iteration.py ADFWI/fwi/acoustic_fwi.py ADFWI/fwi/elastic_fwi.py tests/test_fwi_iteration.py` passed.
+- `conda run -n adfwi python -m unittest tests/test_fwi_iteration.py tests/test_backend_integration.py tests/test_fwi_data_contract.py` passed: 34 tests OK.
 - `conda run -n adfwi python scripts/smoke/compare_backend_smoke.py --problems acoustic,elastic --cases trace-missing --devices cpu,npu:0` passed. Acoustic CPU/NPU drift was zero for loss, `vp_grad_norm`, and `vp_update_norm`; elastic maximum relative drift was `4.880620563312549e-06`, within the `1e-5` tolerance.
 
 ## Next Steps
