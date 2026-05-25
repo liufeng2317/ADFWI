@@ -16,7 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges
+from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_transform_context,
@@ -507,8 +507,7 @@ class ElasticFWI(torch.nn.Module):
                 batch_loss = build_batch_loss(data_loss, regularization_loss)
                 loss_epoch += batch_loss.scalar
                 batch_loss.tensor.backward()
-                if len(batch_ranges) == 1:
-                    pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
+                set_batch_description(pbar_batch, batch_range, len(batch_ranges))
             
             # gradient process
             if self.model.get_requires_grad("vp"):

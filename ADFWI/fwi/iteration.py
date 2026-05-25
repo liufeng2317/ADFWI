@@ -45,6 +45,17 @@ def build_batch_loss(data_loss, regularization_loss=None) -> BatchLoss:
     )
 
 
+def set_batch_description(progress_bar, batch_range: BatchRange, batch_count: int) -> None:
+    """Set a legacy single-batch shot range description on a tqdm bar.
+
+    The historical FWI loops only displayed the shot range when there was a
+    single batch. Keeping that rule here preserves progress output while moving
+    iteration bookkeeping out of acoustic/elastic code.
+    """
+    if batch_count == 1:
+        progress_bar.set_description(f"Shot:{batch_range.begin} to {batch_range.end}")
+
+
 def iter_batch_ranges(n_shots: int, batch_size: Optional[int] = None) -> Iterator[BatchRange]:
     """Yield contiguous shot batches for an FWI epoch.
 

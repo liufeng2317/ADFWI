@@ -3,7 +3,15 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges
+from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
+
+
+class DummyProgressBar:
+    def __init__(self):
+        self.description = None
+
+    def set_description(self, value):
+        self.description = value
 
 
 class TestFWIIterationHelpers(unittest.TestCase):
@@ -58,6 +66,22 @@ class TestFWIIterationHelpers(unittest.TestCase):
         self.assertEqual(batch_loss.scalar, 5.0)
         self.assertEqual(float(data_loss.grad.item()), 1.0)
         self.assertEqual(float(regularization_loss.grad.item()), 1.0)
+
+    def test_set_batch_description_single_batch_matches_legacy_label(self):
+        batch_range = list(iter_batch_ranges(5, None))[0]
+        progress_bar = DummyProgressBar()
+
+        set_batch_description(progress_bar, batch_range, 1)
+
+        self.assertEqual(progress_bar.description, "Shot:0 to 5")
+
+    def test_set_batch_description_multi_batch_keeps_description_unchanged(self):
+        batch_range = list(iter_batch_ranges(5, 2))[0]
+        progress_bar = DummyProgressBar()
+
+        set_batch_description(progress_bar, batch_range, 3)
+
+        self.assertIsNone(progress_bar.description)
 
 
 if __name__ == "__main__":
