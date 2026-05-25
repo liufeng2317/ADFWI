@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import torch
 
+from ADFWI.fwi.normalization import normalize_waveform
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LowPassFilter, ReceiverMask, TraceNormalize
 
 
@@ -30,6 +31,23 @@ class DataTransformTests(unittest.TestCase):
         synthetic, observed = self._waveforms()
         with self.assertRaises(ValueError):
             DataTransformPipeline()(synthetic, observed[:, :, :2])
+
+    def test_trace_normalize_reuses_shared_waveform_normalization(self):
+        synthetic, observed = self._waveforms()
+
+        out_syn, out_obs = TraceNormalize()(synthetic, observed)
+
+        self.assertTrue(torch.equal(out_syn, normalize_waveform(synthetic)))
+        self.assertTrue(torch.equal(out_obs, normalize_waveform(observed)))
+
+    def test_trace_normalize_respects_custom_dimension(self):
+        synthetic = torch.tensor([[[1.0, -3.0], [2.0, 6.0]]])
+        observed = synthetic * 2
+
+        out_syn, out_obs = TraceNormalize(dim=2)(synthetic, observed)
+
+        self.assertTrue(torch.equal(out_syn, normalize_waveform(synthetic, dim=2)))
+        self.assertTrue(torch.equal(out_obs, normalize_waveform(observed, dim=2)))
 
     def test_trace_normalize_preserves_zero_traces(self):
         synthetic, observed = self._waveforms()

@@ -14,6 +14,7 @@ from typing import Any, Mapping, Optional, Sequence
 import torch
 
 from ADFWI.fwi.misfit import Misfit, Misfit_NIM
+from ADFWI.fwi.normalization import normalize_waveform
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,
@@ -49,19 +50,6 @@ def build_fwi_data_transform_pipeline(
         transforms.append(TraceNormalize())
         waveform_normalize = False
     return DataTransformPipeline(transforms), waveform_normalize
-
-
-def normalize_waveform(data: torch.Tensor) -> torch.Tensor:
-    """Normalize each waveform trace by its time-axis maximum amplitude.
-
-    This preserves the legacy AcousticFWI/ElasticFWI fallback normalization:
-    normalize over time dimension 1 and leave all-zero traces unchanged.
-    """
-
-    mask = torch.sum(torch.abs(data), axis=1, keepdim=True) == 0
-    max_val = torch.max(torch.abs(data), axis=1, keepdim=True).values
-    max_val = max_val.masked_fill(mask, 1)
-    return data / max_val
 
 
 def evaluate_misfit_loss(

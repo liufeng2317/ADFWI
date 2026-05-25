@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import torch
 
+from ADFWI.fwi.normalization import normalize_waveform
+
 from .base import Context, DataTransform, TensorPair
 
 
@@ -18,10 +20,7 @@ class TraceNormalize(DataTransform):
         self.dim = dim
 
     def _normalize(self, data: torch.Tensor) -> torch.Tensor:
-        zero_trace = torch.sum(torch.abs(data), dim=self.dim, keepdim=True) == 0
-        max_value = torch.max(torch.abs(data), dim=self.dim, keepdim=True).values
-        max_value = max_value.masked_fill(zero_trace, 1)
-        return data / max_value
+        return normalize_waveform(data, dim=self.dim)
 
     def __call__(self, synthetic: torch.Tensor, observed: torch.Tensor, context: Context = None) -> TensorPair:
         return self._normalize(synthetic), self._normalize(observed)
