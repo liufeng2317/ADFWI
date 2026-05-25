@@ -17,7 +17,7 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.data import build_transform_context, prepare_loss_pair
-from ADFWI.fwi.loop import iter_batch_ranges
+from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
 from ADFWI.fwi.transforms import (
     DataMask,
     DataTransformPipeline,
@@ -397,14 +397,10 @@ class AcousticFWI(torch.nn.Module):
                 data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                 
                 # regularization
-                if self.regularization_fn is not None:
-                    regularization_loss = self.calculate_model_regularization_loss()
-                    loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
-                    loss = data_loss + regularization_loss
-                else:
-                    loss_batch = loss_batch + data_loss.item()
-                    loss = data_loss
-                loss.backward()
+                regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
+                batch_loss = build_batch_loss(data_loss, regularization_loss)
+                loss_batch = loss_batch + batch_loss.scalar
+                batch_loss.tensor.backward()
                 if len(batch_ranges) == 1:
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             
@@ -466,14 +462,10 @@ class AcousticFWI(torch.nn.Module):
                     data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                     
                     # regularization
-                    if self.regularization_fn is not None:
-                        regularization_loss = self.calculate_model_regularization_loss()
-                        loss_batch = loss_batch + data_loss.item() + regularization_loss.item()
-                        loss = data_loss + regularization_loss
-                    else:
-                        loss_batch = loss_batch + data_loss.item()
-                        loss = data_loss
-                    loss.backward()
+                    regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
+                    batch_loss = build_batch_loss(data_loss, regularization_loss)
+                    loss_batch = loss_batch + batch_loss.scalar
+                    batch_loss.tensor.backward()
                     if len(batch_ranges) == 1:
                         pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
                 self.true_epoch = self.true_epoch + 1

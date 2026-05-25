@@ -7,7 +7,7 @@ without moving any numerical work out of the model-specific loops.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterator, Optional
+from typing import Any, Iterator, Optional
 
 import numpy as np
 
@@ -20,6 +20,29 @@ class BatchRange:
     begin: int
     end: int
     shot_index: np.ndarray
+
+
+@dataclass(frozen=True)
+class BatchLoss:
+    """Tensor loss and detached scalar value for epoch loss history."""
+
+    tensor: Any
+    scalar: float
+
+
+def build_batch_loss(data_loss, regularization_loss=None) -> BatchLoss:
+    """Combine data and optional regularization losses for one FWI batch.
+
+    The scalar value intentionally mirrors the historical code path:
+    ``data_loss.item()`` alone when no regularization is used, otherwise
+    ``data_loss.item() + regularization_loss.item()``.
+    """
+    if regularization_loss is None:
+        return BatchLoss(tensor=data_loss, scalar=data_loss.item())
+    return BatchLoss(
+        tensor=data_loss + regularization_loss,
+        scalar=data_loss.item() + regularization_loss.item(),
+    )
 
 
 def iter_batch_ranges(n_shots: int, batch_size: Optional[int] = None) -> Iterator[BatchRange]:

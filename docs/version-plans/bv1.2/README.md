@@ -21,6 +21,7 @@ numbered order unless you are looking for a specific topic.
 | 10 | [FWI Loop Structure](./10-fwi-loop-structure.md) | Shared batch range helper and staged cleanup plan for acoustic/elastic FWI loops. |
 | 11 | [FWI Cache Organization](./11-fwi-cache-organization.md) | Acoustic cache helper cleanup and validation plan for result bookkeeping. |
 | 12 | [FWI Regularization Organization](./12-fwi-regularization-organization.md) | Acoustic/elastic model regularization helper extraction and validation plan. |
+| 13 | [FWI Loss Accumulator](./13-fwi-loss-accumulator.md) | Shared batch loss tensor/scalar helper and validation plan. |
 
 ## Current Direction
 

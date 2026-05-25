@@ -16,7 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.loop import iter_batch_ranges
+from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_transform_context,
@@ -503,14 +503,10 @@ class ElasticFWI(torch.nn.Module):
                     data_loss = data_loss + component_loss
                 
                 # regularization
-                if self.regularization_fn is not None:
-                    regularization_loss = self.calculate_model_regularization_loss()
-                    loss_epoch += data_loss.item() + regularization_loss.item()
-                    loss = data_loss + regularization_loss
-                else:
-                    loss_epoch += data_loss.item()
-                    loss = data_loss
-                loss.backward()
+                regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
+                batch_loss = build_batch_loss(data_loss, regularization_loss)
+                loss_epoch += batch_loss.scalar
+                batch_loss.tensor.backward()
                 if len(batch_ranges) == 1:
                     pbar_batch.set_description(f"Shot:{begin_index} to {end_index}")
             

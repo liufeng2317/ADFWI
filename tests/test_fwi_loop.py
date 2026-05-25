@@ -1,8 +1,9 @@
 import unittest
 
 import numpy as np
+import torch
 
-from ADFWI.fwi.loop import iter_batch_ranges
+from ADFWI.fwi.loop import build_batch_loss, iter_batch_ranges
 
 
 class TestFWILoopHelpers(unittest.TestCase):
@@ -35,6 +36,28 @@ class TestFWILoopHelpers(unittest.TestCase):
             list(iter_batch_ranges(5, 0))
         with self.assertRaises(ValueError):
             list(iter_batch_ranges(5, -1))
+
+    def test_build_batch_loss_without_regularization_keeps_data_loss(self):
+        data_loss = torch.tensor(2.0, requires_grad=True)
+
+        batch_loss = build_batch_loss(data_loss)
+        batch_loss.tensor.backward()
+
+        self.assertIs(batch_loss.tensor, data_loss)
+        self.assertEqual(batch_loss.scalar, 2.0)
+        self.assertEqual(float(data_loss.grad.item()), 1.0)
+
+    def test_build_batch_loss_with_regularization_matches_expanded_sum(self):
+        data_loss = torch.tensor(2.0, requires_grad=True)
+        regularization_loss = torch.tensor(3.0, requires_grad=True)
+
+        batch_loss = build_batch_loss(data_loss, regularization_loss)
+        batch_loss.tensor.backward()
+
+        self.assertEqual(float(batch_loss.tensor.detach().item()), 5.0)
+        self.assertEqual(batch_loss.scalar, 5.0)
+        self.assertEqual(float(data_loss.grad.item()), 1.0)
+        self.assertEqual(float(regularization_loss.grad.item()), 1.0)
 
 
 if __name__ == "__main__":
