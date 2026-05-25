@@ -24,6 +24,7 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
+    normalize_waveform,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
 )
@@ -150,12 +151,8 @@ class ElasticFWI(torch.nn.Module):
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
         return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
-    def _normalize(self,data):
-        mask    = torch.sum(torch.abs(data),axis=1,keepdim=True) == 0
-        max_val = torch.max(torch.abs(data),axis=1,keepdim=True).values
-        max_val = max_val.masked_fill(mask, 1)
-        data = data/max_val
-        return data
+    def _normalize(self, data):
+        return normalize_waveform(data)
     
     def _build_transform_context(self, shot_index=None, cutoff_freq=None, propagator_dt=None):
         return build_fwi_transform_context(

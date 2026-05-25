@@ -12,6 +12,7 @@ from ADFWI.fwi.data import (
     elastic_pressure,
     elastic_synthetic_components,
     normalize_elastic_component_weights,
+    normalize_waveform,
     prepare_loss_pair,
 )
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
@@ -29,6 +30,25 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertIsInstance(pipeline.transforms[2], LegacyLowPassFilter)
         self.assertIsInstance(pipeline.transforms[3], DataMask)
         self.assertIsInstance(pipeline.transforms[4], TraceNormalize)
+
+    def test_normalize_waveform_matches_legacy_trace_normalization(self):
+        data = torch.tensor(
+            [
+                [[0.0, 2.0], [2.0, -4.0], [-1.0, 0.0]],
+                [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
+            ]
+        )
+
+        normalized = normalize_waveform(data)
+
+        expected = torch.tensor(
+            [
+                [[0.0, 0.5], [1.0, -1.0], [-0.5, 0.0]],
+                [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
+            ]
+        )
+        self.assertTrue(torch.equal(normalized, expected))
+        self.assertFalse(torch.isnan(normalized).any())
 
     def test_build_fwi_data_transform_pipeline_appends_custom_pipeline(self):
         custom_pipeline = DataTransformPipeline([TraceNormalize()])
