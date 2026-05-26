@@ -3,8 +3,8 @@
 
 The suite is intended for new CPU/NPU/CUDA machines. It starts with the
 lightweight public backend API check and can optionally run tensor-level misfit
-checks, acoustic/elastic forward checks, user-facing minimal examples, and
-mini-inversion CPU-vs-device comparisons. It writes no notebooks, figures,
+checks, acoustic/elastic forward checks, user-facing minimal examples,
+read-only real-case checks, and mini-inversion CPU-vs-device comparisons. It writes no notebooks, figures,
 wavefields, or example outputs.
 """
 
@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = Path(__file__).resolve().parent
 EXAMPLE_DIR = REPO_ROOT / "scripts" / "examples"
 
-SUITES = ("public", "misfit", "acoustic-forward", "elastic-forward", "examples", "compare-mini")
+SUITES = ("public", "misfit", "acoustic-forward", "elastic-forward", "examples", "case-checks", "compare-mini")
 SCRIPT_BY_SUITE = {
     "public": "backend_public_api_smoke.py",
     "misfit": "misfit_backend_smoke.py",
@@ -31,6 +31,9 @@ SCRIPT_BY_SUITE = {
 EXAMPLE_SCRIPT_BY_PROBLEM = {
     "acoustic": "minimal_acoustic_fwi_backend.py",
     "elastic": "minimal_elastic_fwi_backend.py",
+}
+CASE_CHECK_SCRIPT_BY_CASE = {
+    "marmousi2-acoustic": "marmousi2_acoustic_backend_check.py",
 }
 
 
@@ -216,6 +219,48 @@ def run_examples(args: argparse.Namespace) -> Dict[str, Any]:
     }
 
 
+def command_for_case_check(case: str, device: str, args: argparse.Namespace) -> List[str]:
+    cmd = [
+        sys.executable,
+        str(EXAMPLE_DIR / CASE_CHECK_SCRIPT_BY_CASE[case]),
+        "--device",
+        device,
+        "--prefer",
+        args.prefer,
+        "--dtype",
+        args.dtype,
+        "--seed",
+        str(args.seed),
+        "--model-file",
+        args.case_model_file,
+        "--checkpoint-segments",
+        str(args.checkpoint_segments),
+    ]
+    if args.fallback_cpu:
+        cmd.append("--fallback-cpu")
+    if args.case_run_forward:
+        cmd.extend(["--run-forward", "--shot-index", str(args.case_shot_index)])
+    return cmd
+
+
+def run_case_checks(args: argparse.Namespace) -> Dict[str, Any]:
+    runs = []
+    for case in args.case_checks:
+        for device in args.devices:
+            run = run_command(command_for_case_check(case, device, args), include_stderr=args.include_stderr)
+            run["case_check"] = case
+            run["device_request"] = device
+            runs.append(run)
+    failed = [run for run in runs if run["status"] == "failed" or (run["status"] == "unavailable" and not args.skip_unavailable)]
+    return {
+        "suite": "case-checks",
+        "status": "failed" if failed else "ok",
+        "devices": args.devices,
+        "case_checks": args.case_checks,
+        "runs": runs,
+    }
+
+
 def iter_report_runs(report: Dict[str, Any]) -> List[Dict[str, Any]]:
     if "runs" in report:
         return list(report["runs"])
@@ -319,6 +364,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--example-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device example metrics")
     parser.add_argument("--example-atol", type=float, default=1e-8, help="absolute tolerance for CPU-vs-device example metrics")
+    parser.add_argument(
+        "--case-checks",
+        type=lambda value: parse_csv(value, label="case check", choices=tuple(CASE_CHECK_SCRIPT_BY_CASE)),
+        default=parse_csv("marmousi2-acoustic", label="case check", choices=tuple(CASE_CHECK_SCRIPT_BY_CASE)),
+        help="comma-separated read-only real-case checks to run when --suites includes case-checks",
+    )
+    parser.add_argument("--case-model-file", default="init_model.npz", choices=("init_model.npz", "true_model.npz"))
+    parser.add_argument("--case-run-forward", action="store_true", help="run optional forward checks inside real-case check scripts")
+    parser.add_argument("--case-shot-index", type=int, default=0, help="shot index used by optional real-case forward checks")
     return parser
 
 
@@ -332,6 +386,8 @@ def main() -> int:
             reports.append(run_compare_mini(args))
         elif suite == "examples":
             reports.append(run_examples(args))
+        elif suite == "case-checks":
+            reports.append(run_case_checks(args))
         else:
             reports.append(run_single_device_suite(suite, args))
 

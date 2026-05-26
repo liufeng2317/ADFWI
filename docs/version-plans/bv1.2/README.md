@@ -51,6 +51,7 @@ numbered order unless you are looking for a specific topic.
 | 40 | [Backend Example Suite](./40-backend-example-suite.md) | Add the user-facing acoustic/elastic minimal examples to the layered backend smoke runner. |
 | 41 | [Script Example Guide](./41-script-example-guide.md) | Add a researcher-facing guide for running and adapting script-style backend examples. |
 | 42 | [Marmousi2 Script Backend Check](./42-marmousi2-script-backend-check.md) | Add a read-only script entry point for checking the existing acoustic Marmousi2 case on CPU/NPU. |
+| 43 | [Backend Case Check Suite](./43-backend-case-check-suite.md) | Add read-only real-case checks to the layered backend smoke runner. |
 
 ## Current Direction
 

@@ -93,6 +93,12 @@ conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py -
 
 Use `--run-forward --shot-index 0` only when you intentionally want to run one selected shot through the acoustic propagator. The default mode is intended for fast case integrity checks before heavier benchmark or inversion runs.
 
+The same check can be launched through the layered smoke runner:
+
+```bash
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic
+```
+
 ## Extending Toward A Real Case
 
 When adapting a minimal script to a real example such as Marmousi2, keep the same outer structure and replace the synthetic pieces gradually:
