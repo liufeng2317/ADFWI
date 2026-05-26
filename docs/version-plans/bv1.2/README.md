@@ -48,6 +48,7 @@ numbered order unless you are looking for a specific topic.
 | 37 | [Backend Smoke Suite Runner](./37-backend-smoke-suite-runner.md) | Add one layered JSON runner for public API, misfit, forward, and mini-inversion backend smoke checks. |
 | 38 | [Minimal Acoustic Backend Example](./38-minimal-acoustic-backend-example.md) | Add a no-output script example showing the recommended backend setup through one tiny AcousticFWI iteration. |
 | 39 | [Minimal Elastic Backend Example](./39-minimal-elastic-backend-example.md) | Add a no-output script example showing the recommended backend setup through one tiny pressure-component ElasticFWI iteration. |
+| 40 | [Backend Example Suite](./40-backend-example-suite.md) | Add the user-facing acoustic/elastic minimal examples to the layered backend smoke runner. |
 
 ## Current Direction
 

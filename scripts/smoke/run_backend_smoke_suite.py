@@ -3,8 +3,9 @@
 
 The suite is intended for new CPU/NPU/CUDA machines. It starts with the
 lightweight public backend API check and can optionally run tensor-level misfit
-checks, acoustic/elastic forward checks, and mini-inversion CPU-vs-device
-comparisons. It writes no notebooks, figures, wavefields, or example outputs.
+checks, acoustic/elastic forward checks, user-facing minimal examples, and
+mini-inversion CPU-vs-device comparisons. It writes no notebooks, figures,
+wavefields, or example outputs.
 """
 
 from __future__ import annotations
@@ -18,13 +19,18 @@ from typing import Any, Dict, List, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = Path(__file__).resolve().parent
+EXAMPLE_DIR = REPO_ROOT / "scripts" / "examples"
 
-SUITES = ("public", "misfit", "acoustic-forward", "elastic-forward", "compare-mini")
+SUITES = ("public", "misfit", "acoustic-forward", "elastic-forward", "examples", "compare-mini")
 SCRIPT_BY_SUITE = {
     "public": "backend_public_api_smoke.py",
     "misfit": "misfit_backend_smoke.py",
     "acoustic-forward": "acoustic_backend_smoke.py",
     "elastic-forward": "elastic_backend_smoke.py",
+}
+EXAMPLE_SCRIPT_BY_PROBLEM = {
+    "acoustic": "minimal_acoustic_fwi_backend.py",
+    "elastic": "minimal_elastic_fwi_backend.py",
 }
 
 
@@ -115,6 +121,101 @@ def run_single_device_suite(suite: str, args: argparse.Namespace) -> Dict[str, A
     }
 
 
+def command_for_example(problem: str, device: str, args: argparse.Namespace) -> List[str]:
+    cmd = [
+        sys.executable,
+        str(EXAMPLE_DIR / EXAMPLE_SCRIPT_BY_PROBLEM[problem]),
+        "--device",
+        device,
+        "--prefer",
+        args.prefer,
+        "--dtype",
+        args.dtype,
+        "--checkpoint-segments",
+        str(args.checkpoint_segments),
+        "--seed",
+        str(args.seed),
+    ]
+    if args.fallback_cpu:
+        cmd.append("--fallback-cpu")
+    return cmd
+
+
+def example_metric(run: Dict[str, Any], metric: str) -> float | None:
+    try:
+        return float(run["result"]["inversion"][metric])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def compare_example_runs(runs: List[Dict[str, Any]], args: argparse.Namespace) -> List[Dict[str, Any]]:
+    comparisons = []
+    metrics = ("loss", "vp_grad_norm", "vp_update_norm")
+    for problem in args.example_problems:
+        problem_runs = [run for run in runs if run.get("problem") == problem and run["status"] == "ok"]
+        reference = next((run for run in problem_runs if run.get("device_request") == "cpu"), None)
+        if reference is None and problem_runs:
+            reference = problem_runs[0]
+        if reference is None:
+            continue
+        reference_device = reference.get("device_request")
+        for run in problem_runs:
+            if run is reference:
+                continue
+            metric_reports = []
+            failed = False
+            for metric in metrics:
+                ref_value = example_metric(reference, metric)
+                value = example_metric(run, metric)
+                if ref_value is None or value is None:
+                    failed = True
+                    metric_reports.append({"metric": metric, "status": "missing"})
+                    continue
+                abs_diff = abs(value - ref_value)
+                rel_diff = abs_diff / max(abs(ref_value), args.example_atol)
+                metric_failed = abs_diff > args.example_atol and rel_diff > args.example_rtol
+                failed = failed or metric_failed
+                metric_reports.append({
+                    "metric": metric,
+                    "reference": ref_value,
+                    "value": value,
+                    "abs_diff": abs_diff,
+                    "rel_diff": rel_diff,
+                    "status": "failed" if metric_failed else "ok",
+                })
+            comparisons.append({
+                "problem": problem,
+                "reference_device": reference_device,
+                "device": run.get("device_request"),
+                "rtol": args.example_rtol,
+                "atol": args.example_atol,
+                "status": "failed" if failed else "ok",
+                "metrics": metric_reports,
+            })
+    return comparisons
+
+
+def run_examples(args: argparse.Namespace) -> Dict[str, Any]:
+    runs = []
+    for problem in args.example_problems:
+        for device in args.devices:
+            run = run_command(command_for_example(problem, device, args), include_stderr=args.include_stderr)
+            run["problem"] = problem
+            run["device_request"] = device
+            runs.append(run)
+    comparisons = compare_example_runs(runs, args)
+    failed = [run for run in runs if run["status"] == "failed" or (run["status"] == "unavailable" and not args.skip_unavailable)]
+    failed.extend(compare for compare in comparisons if compare["status"] == "failed")
+    return {
+        "suite": "examples",
+        "status": "failed" if failed else "ok",
+        "devices": args.devices,
+        "problems": args.example_problems,
+        "runs": runs,
+        "comparisons": comparisons,
+    }
+
+
 def run_compare_mini(args: argparse.Namespace) -> Dict[str, Any]:
     cmd = [
         sys.executable,
@@ -164,6 +265,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--misfits", default="L2", help="misfit list passed to misfit_backend_smoke.py")
     parser.add_argument("--compare-problems", default="acoustic,elastic", help="problem list passed to compare_backend_smoke.py")
     parser.add_argument("--compare-cases", default="trace-missing", help="case list passed to compare_backend_smoke.py")
+    parser.add_argument(
+        "--example-problems",
+        type=lambda value: parse_csv(value, label="example problem", choices=tuple(EXAMPLE_SCRIPT_BY_PROBLEM)),
+        default=parse_csv("acoustic,elastic", label="example problem", choices=tuple(EXAMPLE_SCRIPT_BY_PROBLEM)),
+        help="comma-separated user-facing examples to run when --suites includes examples",
+    )
+    parser.add_argument("--example-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device example metrics")
+    parser.add_argument("--example-atol", type=float, default=1e-8, help="absolute tolerance for CPU-vs-device example metrics")
     return parser
 
 
@@ -175,6 +284,8 @@ def main() -> int:
     for suite in args.suites:
         if suite == "compare-mini":
             reports.append(run_compare_mini(args))
+        elif suite == "examples":
+            reports.append(run_examples(args))
         else:
             reports.append(run_single_device_suite(suite, args))
 
