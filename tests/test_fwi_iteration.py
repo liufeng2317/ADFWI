@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, build_batch_loss, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, build_batch_loss, finalize_epoch_progress, iter_batch_ranges, set_batch_description
 
 
 class DummyProgressBar:
@@ -149,6 +149,42 @@ class TestFWIIterationHelpers(unittest.TestCase):
         self.assertEqual(result, 7.0)
         self.assertEqual(optimizer.calls, ["optimizer.step"])
         self.assertEqual(call_log, ["closure", "scheduler.step", "model.forward"])
+
+    def test_finalize_epoch_progress_runs_cache_callback_and_sets_label(self):
+        progress_bar = DummyProgressBar()
+        calls = []
+
+        def cache_callback(*, epoch_id, loss_epoch):
+            calls.append((epoch_id, loss_epoch))
+
+        finalize_epoch_progress(
+            progress_bar,
+            epoch_id=2,
+            loss_epoch=3.25,
+            cache_result=True,
+            cache_callback=cache_callback,
+        )
+
+        self.assertEqual(calls, [(2, 3.25)])
+        self.assertEqual(progress_bar.description, "Iter:3,Loss:3.25")
+
+    def test_finalize_epoch_progress_skips_cache_when_disabled(self):
+        progress_bar = DummyProgressBar()
+        calls = []
+
+        def cache_callback(*, epoch_id, loss_epoch):
+            calls.append((epoch_id, loss_epoch))
+
+        finalize_epoch_progress(
+            progress_bar,
+            epoch_id=0,
+            loss_epoch=1.0,
+            cache_result=False,
+            cache_callback=cache_callback,
+        )
+
+        self.assertEqual(calls, [])
+        self.assertEqual(progress_bar.description, "Iter:1,Loss:1.0")
 
     def test_set_batch_description_single_batch_matches_legacy_label(self):
         batch_range = list(iter_batch_ranges(5, None))[0]

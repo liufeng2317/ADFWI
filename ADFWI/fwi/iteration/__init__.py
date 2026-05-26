@@ -7,7 +7,7 @@ the model-specific loops.
 
 from .epoch import apply_epoch_update_step
 from .loss import BatchLoss, apply_batch_loss_step, build_batch_loss
-from .progress import set_batch_description
+from .progress import finalize_epoch_progress, set_batch_description
 from .range import BatchRange, iter_batch_ranges
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     "apply_epoch_update_step",
     "apply_batch_loss_step",
     "build_batch_loss",
+    "finalize_epoch_progress",
     "iter_batch_ranges",
     "set_batch_description",
 ]

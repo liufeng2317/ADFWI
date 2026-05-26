@@ -30,7 +30,7 @@ from ADFWI.fwi.runtime import (
     validate_model_propagator_devices,
 )
 from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, iter_batch_ranges
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -365,11 +365,14 @@ class AcousticFWI(torch.nn.Module):
         
             apply_epoch_update_step(self.optimizer, self.scheduler, self.model)
             
-            if self.cache_result:
-                self.save_model_and_gradients(epoch_id=i, loss_epoch=loss_batch)
-
+            finalize_epoch_progress(
+                pbar_epoch,
+                epoch_id=i,
+                loss_epoch=loss_batch,
+                cache_result=self.cache_result,
+                cache_callback=self.save_model_and_gradients,
+            )
             self.true_epoch = 0
-            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
     
     def forward_closure(self,
                 iteration:int,
@@ -436,6 +439,10 @@ class AcousticFWI(torch.nn.Module):
             )
             
             # save the result
-            if self.cache_result:
-                self.save_model_and_gradients(epoch_id=i, loss_epoch=loss_batch)
-            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_batch))
+            finalize_epoch_progress(
+                pbar_epoch,
+                epoch_id=i,
+                loss_epoch=loss_batch,
+                cache_result=self.cache_result,
+                cache_callback=self.save_model_and_gradients,
+            )

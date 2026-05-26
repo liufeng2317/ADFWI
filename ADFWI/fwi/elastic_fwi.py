@@ -31,7 +31,7 @@ from ADFWI.fwi.runtime import (
     tensor_to_numpy,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, iter_batch_ranges
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
@@ -503,7 +503,10 @@ class ElasticFWI(torch.nn.Module):
             apply_epoch_update_step(self.optimizer, self.scheduler, self.model)
 
             # cache results
-            if self.cache_result:
-                self.save_model_and_gradients(epoch_id=i,loss_epoch=loss_epoch)   
-                         
-            pbar_epoch.set_description("Iter:{},Loss:{:.4}".format(i+1,loss_epoch))
+            finalize_epoch_progress(
+                pbar_epoch,
+                epoch_id=i,
+                loss_epoch=loss_epoch,
+                cache_result=self.cache_result,
+                cache_callback=self.save_model_and_gradients,
+            )
