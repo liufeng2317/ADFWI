@@ -16,8 +16,22 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, process_parameter_gradient, validate_model_propagator_devices
-from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.runtime import (
+    accumulate_named_wavefields,
+    align_regularization_backend,
+    append_epoch_loss,
+    append_model_snapshots,
+    append_required_gradient_snapshots,
+    calculate_regularization_loss,
+    process_named_parameter_gradients,
+    process_parameter_gradient,
+    select_elastic_gradient_wavefield,
+    should_cache_epoch,
+    snapshot_model_parameters,
+    tensor_to_numpy,
+    validate_model_propagator_devices,
+)
+from ADFWI.fwi.iteration import apply_batch_loss_step, iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
@@ -355,44 +369,31 @@ class ElasticFWI(torch.nn.Module):
         """
             Save model parameters and gradients if caching is enabled.
         """
-        # Save the loss
-        self.iter_loss.append(loss_epoch)
-
-        # Save the model parameters
         param_names = ["vp", "vs", "rho"]
         anisotropic_params = ["eps", "delta", "gamma"] if isinstance(self.model, AnisotropicElasticModel) else []
-        if epoch_id % self.cache_result_epoch == 0:
-            for name in param_names + anisotropic_params:
-                param = getattr(self.model, name, None)
-                if param is not None:
-                    temp_param = param.cpu().detach().numpy()
-                    getattr(self, f"iter_{name}").append(temp_param)
-            self.cache_iter_index.append(epoch_id)
+        all_param_names = param_names + anisotropic_params
+
+        append_epoch_loss(self, loss_epoch)
+        if should_cache_epoch(epoch_id, self.cache_result_epoch):
+            append_model_snapshots(
+                self,
+                snapshot_model_parameters(self.model, all_param_names),
+                epoch_id,
+            )
         
         # save the figure
-        self.save_vp_vs_rho_fig(epoch_id,self.model.vp.cpu().detach().numpy(),
-                                         self.model.vs.cpu().detach().numpy(),
-                                         self.model.rho.cpu().detach().numpy())
+        self.save_vp_vs_rho_fig(epoch_id,tensor_to_numpy(self.model.vp),
+                                         tensor_to_numpy(self.model.vs),
+                                         tensor_to_numpy(self.model.rho))
         if isinstance(self.model,AnisotropicElasticModel):
             self.save_eps_delta_gamma_fig(epoch_id,
-                                          self.model.eps.cpu().detach().numpy(),
-                                          self.model.delta.cpu().detach().numpy(),
-                                          self.model.gamma.cpu().detach().numpy())
+                                          tensor_to_numpy(self.model.eps),
+                                          tensor_to_numpy(self.model.delta),
+                                          tensor_to_numpy(self.model.gamma))
 
-        # Save gradients if required
-        for name in param_names:
-            if self.model.get_requires_grad(name):
-                temp_grad = getattr(self.model, name).grad.cpu().detach().numpy()
-                getattr(self, f"iter_{name}_grad").append(temp_grad)
-                self.save_gradient_fig(epoch_id, temp_grad, model_type=f"grad_{name}")
-
-        # For anisotropic model parameters, save gradients if required
-        if isinstance(self.model, AnisotropicElasticModel):
-            for name in anisotropic_params:
-                if self.model.get_requires_grad(name):
-                    temp_grad = getattr(self.model, name).grad.cpu().detach().numpy()
-                    getattr(self, f"iter_{name}_grad").append(temp_grad)
-                    self.save_gradient_fig(epoch_id, temp_grad, model_type=f"grad_{name}")
+        gradient_snapshots = append_required_gradient_snapshots(self, self.model, all_param_names)
+        for name, gradient in gradient_snapshots.items():
+            self.save_gradient_fig(epoch_id, gradient, model_type=f"grad_{name}")
         return
     
     def real_case_data_selecting(self,rcv_p,shot_index):
@@ -430,6 +431,7 @@ class ElasticFWI(torch.nn.Module):
             # batch
             self.optimizer.zero_grad()
             loss_epoch = 0
+            accumulated_wavefields = {}
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
@@ -439,20 +441,14 @@ class ElasticFWI(torch.nn.Module):
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
                 forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]
-                if batch_range.batch == 0:
-                    if "pressure" in self.inversion_component:
-                        forw_p  = -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
-                    if "vx" in self.inversion_component:
-                        forw_vx = forward_wavefield_vx.cpu().detach().numpy()
-                    if "vz" in self.inversion_component:
-                        forw_vz = forward_wavefield_vz.cpu().detach().numpy()
-                else:
-                    if "pressure" in self.inversion_component:
-                        forw_p  += -(forward_wavefield_txx + forward_wavefield_tzz).cpu().detach().numpy()
-                    if "vx" in self.inversion_component:
-                        forw_vx += forward_wavefield_vx.cpu().detach().numpy()
-                    if "vz" in self.inversion_component:
-                        forw_vz += forward_wavefield_vz.cpu().detach().numpy()
+                batch_wavefields = {}
+                if "pressure" in self.inversion_component:
+                    batch_wavefields["pressure"] = -(forward_wavefield_txx + forward_wavefield_tzz)
+                if "vx" in self.inversion_component:
+                    batch_wavefields["vx"] = forward_wavefield_vx
+                if "vz" in self.inversion_component:
+                    batch_wavefields["vz"] = forward_wavefield_vz
+                accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
 
                 # misfits
                 synthetic_components = elastic_synthetic_components(record_waveform)
@@ -482,23 +478,26 @@ class ElasticFWI(torch.nn.Module):
                 
                 # regularization
                 regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                batch_loss = build_batch_loss(data_loss, regularization_loss)
-                loss_epoch += batch_loss.scalar
-                batch_loss.tensor.backward()
-                set_batch_description(pbar_batch, batch_range, len(batch_ranges))
+                loss_epoch = apply_batch_loss_step(
+                    loss_epoch,
+                    data_loss,
+                    regularization_loss,
+                    progress_bar=pbar_batch,
+                    batch_range=batch_range,
+                    batch_count=len(batch_ranges),
+                )
             
             # gradient process
-            if self.model.get_requires_grad("vp"):
-                self.process_gradient(self.model.vp,  forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=0)
-            if self.model.get_requires_grad("vs"):
-                self.process_gradient(self.model.vs,  forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=1)
-            if self.model.get_requires_grad("rho"):
-                self.process_gradient(self.model.rho, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=2)
+            gradient_wavefield = select_elastic_gradient_wavefield(accumulated_wavefields)
+            gradient_parameter_specs = [("vp", 0), ("vs", 1), ("rho", 2)]
             if isinstance(self.model, AnisotropicElasticModel):
-                if self.model.get_requires_grad("eps"):
-                    self.process_gradient(self.model.eps, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=3)
-                if self.model.get_requires_grad("delta"):
-                    self.process_gradient(self.model.delta, forw=forw_p if "pressure" in self.inversion_component else forw_vz, idx=4)
+                gradient_parameter_specs.extend([("eps", 3), ("delta", 4)])
+            process_named_parameter_gradients(
+                self.model,
+                gradient_parameter_specs,
+                self.process_gradient,
+                forw=gradient_wavefield,
+            )
 
             # update model parameters
             self.optimizer.step()

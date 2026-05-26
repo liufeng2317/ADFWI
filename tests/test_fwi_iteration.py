@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.iteration import apply_batch_loss_step, build_batch_loss, iter_batch_ranges, set_batch_description
 
 
 class DummyProgressBar:
@@ -66,6 +66,34 @@ class TestFWIIterationHelpers(unittest.TestCase):
         self.assertEqual(batch_loss.scalar, 5.0)
         self.assertEqual(float(data_loss.grad.item()), 1.0)
         self.assertEqual(float(regularization_loss.grad.item()), 1.0)
+
+    def test_apply_batch_loss_step_runs_backward_accumulates_scalar_and_updates_progress(self):
+        data_loss = torch.tensor(2.0, requires_grad=True)
+        regularization_loss = torch.tensor(3.0, requires_grad=True)
+        batch_range = list(iter_batch_ranges(5, None))[0]
+        progress_bar = DummyProgressBar()
+
+        epoch_loss = apply_batch_loss_step(
+            10.0,
+            data_loss,
+            regularization_loss,
+            progress_bar=progress_bar,
+            batch_range=batch_range,
+            batch_count=1,
+        )
+
+        self.assertEqual(epoch_loss, 15.0)
+        self.assertEqual(float(data_loss.grad.item()), 1.0)
+        self.assertEqual(float(regularization_loss.grad.item()), 1.0)
+        self.assertEqual(progress_bar.description, "Shot:0 to 5")
+
+    def test_apply_batch_loss_step_without_regularization_keeps_data_loss_gradient(self):
+        data_loss = torch.tensor(2.0, requires_grad=True)
+
+        epoch_loss = apply_batch_loss_step(4.0, data_loss)
+
+        self.assertEqual(epoch_loss, 6.0)
+        self.assertEqual(float(data_loss.grad.item()), 1.0)
 
     def test_set_batch_description_single_batch_matches_legacy_label(self):
         batch_range = list(iter_batch_ranges(5, None))[0]

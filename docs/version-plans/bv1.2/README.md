@@ -56,6 +56,10 @@ numbered order unless you are looking for a specific topic.
 | 45 | [Marmousi2 Reduced Inversion Smoke](./45-marmousi2-reduced-inversion-smoke.md) | Add a no-output Marmousi2 subset inversion script to validate backward and gradient paths. |
 | 46 | [Legacy L2 Numerical Stability](./46-legacy-l2-numerical-stability.md) | Record the zero-residual NaN gradient risk in the historical L2-norm misfit and design a stable squared-L2 migration path. |
 | 47 | [Backend Case Inversion Suite](./47-backend-case-inversion-suite.md) | Add reduced Marmousi2 real-case inversion checks to the layered backend smoke runner with CPU/NPU metric comparison. |
+| 48 | [FWI Runtime Cache Helper](./48-fwi-runtime-cache-helper.md) | Share AcousticFWI/ElasticFWI result-cache bookkeeping while keeping physical parameter choices in each driver. |
+| 49 | [FWI Runtime Wavefield Helper](./49-fwi-runtime-wavefield-helper.md) | Share forward-wavefield accumulation for gradient processors while preserving acoustic/elastic component semantics. |
+| 50 | [FWI Runtime Gradient Dispatch Helper](./50-fwi-runtime-gradient-dispatch.md) | Share trainable-parameter gradient dispatch while keeping physical parameter lists in AcousticFWI and ElasticFWI. |
+| 51 | [FWI Iteration Batch Step Helper](./51-fwi-iteration-batch-step.md) | Share batch loss/backward/progress bookkeeping while keeping data-loss construction in FWI drivers. |
 
 ## Current Direction
 

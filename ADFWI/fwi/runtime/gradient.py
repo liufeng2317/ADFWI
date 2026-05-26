@@ -73,3 +73,18 @@ def process_parameter_gradient(
             )
 
         parameter.grad = numpy2tensor(grads, dtype=propagator.dtype).to(propagator.device)
+
+
+def process_named_parameter_gradients(model, parameter_specs, process_gradient_fn, *, forw):
+    """Apply a driver's gradient processor to trainable named parameters.
+
+    ``parameter_specs`` is an iterable of ``(name, idx)`` pairs. The FWI driver
+    owns that physical parameter list; this helper only preserves the historical
+    ``model.get_requires_grad(name)`` gate before calling ``process_gradient_fn``.
+    """
+    processed = []
+    for name, idx in parameter_specs:
+        if model.get_requires_grad(name):
+            process_gradient_fn(getattr(model, name), forw=forw, idx=idx)
+            processed.append(name)
+    return processed

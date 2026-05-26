@@ -16,9 +16,21 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, process_parameter_gradient, validate_model_propagator_devices
+from ADFWI.fwi.runtime import (
+    accumulate_wavefield,
+    align_regularization_backend,
+    append_epoch_loss,
+    append_model_snapshots,
+    append_required_gradient_snapshots,
+    calculate_regularization_loss,
+    process_named_parameter_gradients,
+    process_parameter_gradient,
+    should_cache_epoch,
+    snapshot_model_parameters,
+    validate_model_propagator_devices,
+)
 from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
-from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.iteration import apply_batch_loss_step, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -274,26 +286,18 @@ class AcousticFWI(torch.nn.Module):
         return
     
     def save_model_and_gradients(self, epoch_id, loss_epoch):
-        # model
-        temp_vp = self.model.vp.cpu().detach().numpy()
-        temp_rho = self.model.rho.cpu().detach().numpy()
-        if epoch_id % self.cache_result_epoch == 0:
-            self.iter_vp.append(temp_vp)
-            self.iter_rho.append(temp_rho)
-            self.cache_iter_index.append(epoch_id)
-        self.iter_loss.append(loss_epoch)
+        model_snapshots = snapshot_model_parameters(self.model, ["vp", "rho"])
+        if should_cache_epoch(epoch_id, self.cache_result_epoch):
+            append_model_snapshots(self, model_snapshots, epoch_id)
+        append_epoch_loss(self, loss_epoch)
+        temp_vp = model_snapshots["vp"]
+        temp_rho = model_snapshots["rho"]
         self.save_figure(epoch_id, temp_vp, model_type="vp")
         self.save_figure(epoch_id, temp_rho, model_type="rho")
 
-        # gradient
-        if self.model.get_requires_grad("vp"):
-            grads_vp = self.model.vp.grad.cpu().detach().numpy()
-            self.save_figure(epoch_id, grads_vp, model_type="grad_vp")
-            self.iter_vp_grad.append(grads_vp)
-        if self.model.get_requires_grad("rho"):
-            grads_rho = self.model.rho.grad.cpu().detach().numpy()
-            self.save_figure(epoch_id, grads_rho, model_type="grad_rho")
-            self.iter_rho_grad.append(grads_rho)
+        gradient_snapshots = append_required_gradient_snapshots(self, self.model, ["vp", "rho"])
+        for name, gradient in gradient_snapshots.items():
+            self.save_figure(epoch_id, gradient, model_type=f"grad_{name}")
         return
     
     def forward(self,
@@ -324,6 +328,7 @@ class AcousticFWI(torch.nn.Module):
             # batch
             self.optimizer.zero_grad()
             loss_batch = 0
+            forw = None
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
@@ -333,10 +338,7 @@ class AcousticFWI(torch.nn.Module):
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                 forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
-                if batch_range.batch == 0:
-                    forw  = forward_wavefield_p.cpu().detach().numpy()
-                else:
-                    forw += forward_wavefield_p.cpu().detach().numpy()
+                forw = accumulate_wavefield(forw, forward_wavefield_p)
                 
                 # misfit
                 syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
@@ -344,16 +346,22 @@ class AcousticFWI(torch.nn.Module):
                 
                 # regularization
                 regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                batch_loss = build_batch_loss(data_loss, regularization_loss)
-                loss_batch = loss_batch + batch_loss.scalar
-                batch_loss.tensor.backward()
-                set_batch_description(pbar_batch, batch_range, len(batch_ranges))
+                loss_batch = apply_batch_loss_step(
+                    loss_batch,
+                    data_loss,
+                    regularization_loss,
+                    progress_bar=pbar_batch,
+                    batch_range=batch_range,
+                    batch_count=len(batch_ranges),
+                )
             
             # gradient process
-            if self.model.get_requires_grad("vp"):
-                self.process_gradient(self.model.vp, forw=forw, idx=0)
-            if self.model.get_requires_grad("rho"):
-                self.process_gradient(self.model.rho, forw=forw, idx=1)
+            process_named_parameter_gradients(
+                self.model,
+                [("vp", 0), ("rho", 1)],
+                self.process_gradient,
+                forw=forw,
+            )
         
             self.optimizer.step()
             self.scheduler.step()
@@ -388,6 +396,7 @@ class AcousticFWI(torch.nn.Module):
                 # batch (for the clouser we hold 1 batch)
                 self.optimizer.zero_grad()
                 loss_batch = 0
+                self.forw = None
                 pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
                 for batch_range in pbar_batch:
                     # forward simulation
@@ -397,10 +406,7 @@ class AcousticFWI(torch.nn.Module):
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                     rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
                     forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
-                    if batch_range.batch == 0:
-                        self.forw  = forward_wavefield_p.cpu().detach().numpy()
-                    else:
-                        self.forw += forward_wavefield_p.cpu().detach().numpy()
+                    self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
                     
                     # misfit
                     syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
@@ -408,16 +414,22 @@ class AcousticFWI(torch.nn.Module):
                     
                     # regularization
                     regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                    batch_loss = build_batch_loss(data_loss, regularization_loss)
-                    loss_batch = loss_batch + batch_loss.scalar
-                    batch_loss.tensor.backward()
-                    set_batch_description(pbar_batch, batch_range, len(batch_ranges))
+                    loss_batch = apply_batch_loss_step(
+                        loss_batch,
+                        data_loss,
+                        regularization_loss,
+                        progress_bar=pbar_batch,
+                        batch_range=batch_range,
+                        batch_count=len(batch_ranges),
+                    )
                 self.true_epoch = self.true_epoch + 1
                 # gradient process
-                if self.model.get_requires_grad("vp"):
-                    self.process_gradient(self.model.vp, forw=self.forw, idx=0)
-                if self.model.get_requires_grad("rho"):
-                    self.process_gradient(self.model.rho, forw=self.forw, idx=1)
+                process_named_parameter_gradients(
+                    self.model,
+                    [("vp", 0), ("rho", 1)],
+                    self.process_gradient,
+                    forw=self.forw,
+                )
                 return loss_batch
             
             loss_batch = self.optimizer.step(closure=closure)

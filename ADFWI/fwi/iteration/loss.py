@@ -27,3 +27,29 @@ def build_batch_loss(data_loss, regularization_loss=None) -> BatchLoss:
         tensor=data_loss + regularization_loss,
         scalar=data_loss.item() + regularization_loss.item(),
     )
+
+
+def apply_batch_loss_step(
+    epoch_loss_scalar,
+    data_loss,
+    regularization_loss=None,
+    *,
+    progress_bar=None,
+    batch_range=None,
+    batch_count=None,
+):
+    """Apply the shared loss/backward/progress step for one FWI batch.
+
+    Data loss construction remains in the acoustic/elastic drivers. This helper
+    only preserves the common bookkeeping sequence: combine optional
+    regularization, add the detached scalar to the epoch total, run backward,
+    and update the legacy progress label when batch metadata is provided.
+    """
+    from .progress import set_batch_description
+
+    batch_loss = build_batch_loss(data_loss, regularization_loss)
+    epoch_loss_scalar = epoch_loss_scalar + batch_loss.scalar
+    batch_loss.tensor.backward()
+    if progress_bar is not None and batch_range is not None and batch_count is not None:
+        set_batch_description(progress_bar, batch_range, batch_count)
+    return epoch_loss_scalar

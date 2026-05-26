@@ -1,13 +1,25 @@
 import unittest
 from types import SimpleNamespace
 
+import numpy as np
 import torch
 
 from ADFWI.fwi.runtime import (
+    accumulate_named_wavefields,
+    accumulate_wavefield,
     align_regularization_backend,
+    append_epoch_loss,
+    append_model_snapshots,
+    append_required_gradient_snapshots,
     calculate_regularization_loss,
+    process_named_parameter_gradients,
     process_parameter_gradient,
+    select_elastic_gradient_wavefield,
+    should_cache_epoch,
+    snapshot_model_parameters,
+    tensor_to_numpy,
     validate_model_propagator_devices,
+    wavefield_to_numpy,
 )
 
 
@@ -106,6 +118,115 @@ class FWIRuntimeTests(unittest.TestCase):
         self.assertEqual(float(loss.item()), 0.0)
         self.assertEqual((regularization.alphax, regularization.alphaz), (0.0, 0.0))
         self.assertEqual(regularization.calls, [])
+
+    def test_cache_helpers_record_loss_and_model_snapshots(self):
+        owner = SimpleNamespace(iter_loss=[], iter_vp=[], iter_rho=[], cache_iter_index=[])
+        model = SimpleNamespace(
+            vp=torch.tensor([[1.0, 2.0]], requires_grad=True),
+            rho=torch.tensor([[3.0, 4.0]], requires_grad=True),
+        )
+
+        append_epoch_loss(owner, 12.5)
+        snapshots = snapshot_model_parameters(model, ["vp", "missing", "rho"])
+        append_model_snapshots(owner, snapshots, epoch_id=4)
+
+        self.assertEqual(owner.iter_loss, [12.5])
+        self.assertEqual(owner.cache_iter_index, [4])
+        self.assertEqual(set(snapshots), {"vp", "rho"})
+        self.assertTrue(torch.equal(torch.tensor(owner.iter_vp[0]), torch.tensor([[1.0, 2.0]])))
+        self.assertTrue(torch.equal(torch.tensor(owner.iter_rho[0]), torch.tensor([[3.0, 4.0]])))
+        self.assertTrue(should_cache_epoch(4, 2))
+        self.assertFalse(should_cache_epoch(5, 2))
+
+    def test_cache_helpers_record_only_trainable_gradients(self):
+        owner = SimpleNamespace(iter_vp_grad=[], iter_rho_grad=[])
+        vp = torch.tensor([[1.0, 2.0]], requires_grad=True)
+        rho = torch.tensor([[3.0, 4.0]], requires_grad=True)
+        vp.grad = torch.tensor([[0.1, 0.2]])
+        rho.grad = torch.tensor([[0.3, 0.4]])
+        model = SimpleNamespace(
+            vp=vp,
+            rho=rho,
+            get_requires_grad=lambda name: name == "vp",
+        )
+
+        snapshots = append_required_gradient_snapshots(owner, model, ["vp", "rho"])
+
+        self.assertEqual(set(snapshots), {"vp"})
+        self.assertEqual(len(owner.iter_vp_grad), 1)
+        self.assertEqual(owner.iter_rho_grad, [])
+        self.assertTrue(torch.equal(torch.tensor(owner.iter_vp_grad[0]), torch.tensor([[0.1, 0.2]])))
+
+    def test_tensor_to_numpy_returns_detached_cpu_snapshot(self):
+        tensor = torch.tensor([1.0, 2.0], requires_grad=True)
+
+        snapshot = tensor_to_numpy(tensor)
+        tensor.data.add_(10.0)
+
+        self.assertEqual(snapshot.tolist(), [1.0, 2.0])
+
+    def test_wavefield_helpers_accumulate_detached_numpy_arrays(self):
+        first = torch.tensor([[1.0, 2.0]], requires_grad=True)
+        second = torch.tensor([[3.0, 4.0]], requires_grad=True)
+
+        accumulator = accumulate_wavefield(None, first)
+        accumulator = accumulate_wavefield(accumulator, second)
+
+        np.testing.assert_array_equal(accumulator, np.array([[4.0, 6.0]], dtype=np.float32))
+        self.assertIsInstance(wavefield_to_numpy(first), np.ndarray)
+
+    def test_wavefield_helpers_accumulate_named_elastic_components(self):
+        accumulators = {}
+
+        accumulate_named_wavefields(
+            accumulators,
+            {
+                "pressure": torch.tensor([[1.0]]),
+                "vz": torch.tensor([[2.0]]),
+            },
+        )
+        accumulate_named_wavefields(
+            accumulators,
+            {
+                "pressure": torch.tensor([[3.0]]),
+                "vz": torch.tensor([[4.0]]),
+            },
+        )
+
+        np.testing.assert_array_equal(accumulators["pressure"], np.array([[4.0]], dtype=np.float32))
+        np.testing.assert_array_equal(accumulators["vz"], np.array([[6.0]], dtype=np.float32))
+
+    def test_select_elastic_gradient_wavefield_preserves_legacy_priority(self):
+        pressure = np.array([[1.0]])
+        vz = np.array([[2.0]])
+        vx = np.array([[3.0]])
+
+        self.assertIs(select_elastic_gradient_wavefield({"pressure": pressure, "vz": vz}), pressure)
+        self.assertIs(select_elastic_gradient_wavefield({"vz": vz, "vx": vx}), vz)
+        self.assertIs(select_elastic_gradient_wavefield({"vx": vx}), vx)
+        with self.assertRaisesRegex(ValueError, "no accumulated elastic wavefield"):
+            select_elastic_gradient_wavefield({})
+
+    def test_process_named_parameter_gradients_respects_requires_grad_gate_and_indices(self):
+        model = SimpleNamespace(
+            vp="vp-param",
+            rho="rho-param",
+            get_requires_grad=lambda name: name == "vp",
+        )
+        calls = []
+
+        def process_gradient(parameter, *, forw, idx):
+            calls.append((parameter, forw, idx))
+
+        processed = process_named_parameter_gradients(
+            model,
+            [("vp", 0), ("rho", 1)],
+            process_gradient,
+            forw="forward-wavefield",
+        )
+
+        self.assertEqual(processed, ["vp"])
+        self.assertEqual(calls, [("vp-param", "forward-wavefield", 0)])
 
     def test_process_parameter_gradient_single_processor_matches_legacy_formula(self):
         param = torch.tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
