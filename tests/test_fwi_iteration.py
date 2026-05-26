@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import apply_batch_loss_step, build_batch_loss, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, build_batch_loss, iter_batch_ranges, set_batch_description
 
 
 class DummyProgressBar:
@@ -12,6 +12,33 @@ class DummyProgressBar:
 
     def set_description(self, value):
         self.description = value
+
+
+class DummyOptimizer:
+    def __init__(self):
+        self.calls = []
+
+    def step(self, closure=None):
+        self.calls.append("optimizer.step")
+        if closure is None:
+            return "step-result"
+        return closure()
+
+
+class DummyScheduler:
+    def __init__(self, call_log):
+        self.call_log = call_log
+
+    def step(self):
+        self.call_log.append("scheduler.step")
+
+
+class DummyModel:
+    def __init__(self, call_log):
+        self.call_log = call_log
+
+    def forward(self):
+        self.call_log.append("model.forward")
 
 
 class TestFWIIterationHelpers(unittest.TestCase):
@@ -94,6 +121,34 @@ class TestFWIIterationHelpers(unittest.TestCase):
 
         self.assertEqual(epoch_loss, 6.0)
         self.assertEqual(float(data_loss.grad.item()), 1.0)
+
+    def test_apply_epoch_update_step_preserves_update_order_without_closure(self):
+        call_log = []
+        optimizer = DummyOptimizer()
+        scheduler = DummyScheduler(call_log)
+        model = DummyModel(call_log)
+
+        result = apply_epoch_update_step(optimizer, scheduler, model)
+
+        self.assertEqual(result, "step-result")
+        self.assertEqual(optimizer.calls, ["optimizer.step"])
+        self.assertEqual(call_log, ["scheduler.step", "model.forward"])
+
+    def test_apply_epoch_update_step_passes_closure_and_returns_optimizer_result(self):
+        call_log = []
+        optimizer = DummyOptimizer()
+        scheduler = DummyScheduler(call_log)
+        model = DummyModel(call_log)
+
+        def closure():
+            call_log.append("closure")
+            return 7.0
+
+        result = apply_epoch_update_step(optimizer, scheduler, model, closure=closure)
+
+        self.assertEqual(result, 7.0)
+        self.assertEqual(optimizer.calls, ["optimizer.step"])
+        self.assertEqual(call_log, ["closure", "scheduler.step", "model.forward"])
 
     def test_set_batch_description_single_batch_matches_legacy_label(self):
         batch_range = list(iter_batch_ranges(5, None))[0]

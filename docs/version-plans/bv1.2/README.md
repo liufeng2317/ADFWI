@@ -60,6 +60,7 @@ numbered order unless you are looking for a specific topic.
 | 49 | [FWI Runtime Wavefield Helper](./49-fwi-runtime-wavefield-helper.md) | Share forward-wavefield accumulation for gradient processors while preserving acoustic/elastic component semantics. |
 | 50 | [FWI Runtime Gradient Dispatch Helper](./50-fwi-runtime-gradient-dispatch.md) | Share trainable-parameter gradient dispatch while keeping physical parameter lists in AcousticFWI and ElasticFWI. |
 | 51 | [FWI Iteration Batch Step Helper](./51-fwi-iteration-batch-step.md) | Share batch loss/backward/progress bookkeeping while keeping data-loss construction in FWI drivers. |
+| 52 | [FWI Iteration Epoch Update Helper](./52-fwi-iteration-epoch-update.md) | Share optimizer/scheduler/model-constraint epoch-tail ordering while keeping closure construction in FWI drivers. |
 
 ## Current Direction
 

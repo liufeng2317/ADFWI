@@ -30,7 +30,7 @@ from ADFWI.fwi.runtime import (
     validate_model_propagator_devices,
 )
 from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
-from ADFWI.fwi.iteration import apply_batch_loss_step, iter_batch_ranges
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -363,11 +363,7 @@ class AcousticFWI(torch.nn.Module):
                 forw=forw,
             )
         
-            self.optimizer.step()
-            self.scheduler.step()
-            
-            # constrain the velocity model
-            self.model.forward()
+            apply_epoch_update_step(self.optimizer, self.scheduler, self.model)
             
             if self.cache_result:
                 self.save_model_and_gradients(epoch_id=i, loss_epoch=loss_batch)
@@ -432,11 +428,12 @@ class AcousticFWI(torch.nn.Module):
                 )
                 return loss_batch
             
-            loss_batch = self.optimizer.step(closure=closure)
-            self.scheduler.step()
-            
-            # constrain the velocity model
-            self.model.forward()
+            loss_batch = apply_epoch_update_step(
+                self.optimizer,
+                self.scheduler,
+                self.model,
+                closure=closure,
+            )
             
             # save the result
             if self.cache_result:

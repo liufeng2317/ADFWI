@@ -31,7 +31,7 @@ from ADFWI.fwi.runtime import (
     tensor_to_numpy,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.iteration import apply_batch_loss_step, iter_batch_ranges
+from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, iter_batch_ranges
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
@@ -500,11 +500,7 @@ class ElasticFWI(torch.nn.Module):
             )
 
             # update model parameters
-            self.optimizer.step()
-            self.scheduler.step()
-            
-            # constrain the velocity model
-            self.model.forward()
+            apply_epoch_update_step(self.optimizer, self.scheduler, self.model)
 
             # cache results
             if self.cache_result:

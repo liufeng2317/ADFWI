@@ -5,6 +5,7 @@ identical between acoustic and elastic FWI without moving numerical work out of
 the model-specific loops.
 """
 
+from .epoch import apply_epoch_update_step
 from .loss import BatchLoss, apply_batch_loss_step, build_batch_loss
 from .progress import set_batch_description
 from .range import BatchRange, iter_batch_ranges
@@ -12,6 +13,7 @@ from .range import BatchRange, iter_batch_ranges
 __all__ = [
     "BatchLoss",
     "BatchRange",
+    "apply_epoch_update_step",
     "apply_batch_loss_step",
     "build_batch_loss",
     "iter_batch_ranges",
