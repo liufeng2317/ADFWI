@@ -5,6 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ADFWI.fwi.data.inputs import acoustic_pressure_loss_input
+from ADFWI.fwi.data.loss import evaluate_loss_inputs
+from ADFWI.fwi.runtime import acoustic_forward_batch, acoustic_pressure_waveforms, accumulate_wavefield
+
 
 @dataclass(frozen=True)
 class BatchLoss:
@@ -12,6 +16,14 @@ class BatchLoss:
 
     tensor: Any
     scalar: float
+
+
+@dataclass(frozen=True)
+class AcousticBatchStepResult:
+    """Updated acoustic epoch loss and accumulated gradient wavefield."""
+
+    epoch_loss_scalar: Any
+    accumulated_wavefield: Any
 
 
 def build_batch_loss(data_loss, regularization_loss=None) -> BatchLoss:
@@ -53,3 +65,61 @@ def apply_batch_loss_step(
     if progress_bar is not None and batch_range is not None and batch_count is not None:
         set_batch_description(progress_bar, batch_range, batch_count)
     return epoch_loss_scalar
+
+
+def apply_acoustic_batch_loss_step(
+    *,
+    epoch_loss_scalar,
+    accumulated_wavefield,
+    propagator,
+    batch_range,
+    checkpoint_segments,
+    observed_pressure,
+    prepare_loss_pair,
+    loss_fn,
+    normalization,
+    cutoff_freq,
+    regularization_loss_fn=None,
+    progress_bar=None,
+    batch_count=None,
+    device=None,
+) -> AcousticBatchStepResult:
+    """Run one acoustic FWI batch and apply the shared loss/backward step.
+
+    AcousticFWI still owns the surrounding optimizer, closure, and gradient
+    processing flow. This helper only keeps the duplicated acoustic batch body
+    identical between closure and non-closure optimizers.
+    """
+
+    forward_batch = acoustic_forward_batch(propagator, batch_range, checkpoint_segments)
+    loss_input = acoustic_pressure_loss_input(
+        forward_batch.record_waveform,
+        observed_pressure,
+        forward_batch.shot_index,
+    )
+    _, forward_wavefield_p = acoustic_pressure_waveforms(forward_batch.record_waveform)
+    accumulated_wavefield = accumulate_wavefield(accumulated_wavefield, forward_wavefield_p)
+
+    loss_evaluation = evaluate_loss_inputs(
+        [loss_input],
+        prepare_loss_pair=prepare_loss_pair,
+        loss_fn=loss_fn,
+        normalization=normalization,
+        function_fallback="apply",
+        cutoff_freq=cutoff_freq,
+        propagator_dt=propagator.dt,
+        device=device,
+    )
+    regularization_loss = regularization_loss_fn() if regularization_loss_fn is not None else None
+    epoch_loss_scalar = apply_batch_loss_step(
+        epoch_loss_scalar,
+        loss_evaluation.data_loss,
+        regularization_loss,
+        progress_bar=progress_bar,
+        batch_range=batch_range,
+        batch_count=batch_count,
+    )
+    return AcousticBatchStepResult(
+        epoch_loss_scalar=epoch_loss_scalar,
+        accumulated_wavefield=accumulated_wavefield,
+    )

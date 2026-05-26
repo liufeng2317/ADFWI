@@ -6,13 +6,21 @@ the model-specific loops.
 """
 
 from .epoch import apply_epoch_update_step
-from .loss import BatchLoss, apply_batch_loss_step, build_batch_loss
+from .loss import (
+    AcousticBatchStepResult,
+    BatchLoss,
+    apply_acoustic_batch_loss_step,
+    apply_batch_loss_step,
+    build_batch_loss,
+)
 from .progress import finalize_epoch_progress, set_batch_description
 from .range import BatchRange, iter_batch_ranges
 
 __all__ = [
+    "AcousticBatchStepResult",
     "BatchLoss",
     "BatchRange",
+    "apply_acoustic_batch_loss_step",
     "apply_epoch_update_step",
     "apply_batch_loss_step",
     "build_batch_loss",

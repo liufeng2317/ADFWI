@@ -3,7 +3,15 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, build_batch_loss, finalize_epoch_progress, iter_batch_ranges, set_batch_description
+from ADFWI.fwi.iteration import (
+    apply_acoustic_batch_loss_step,
+    apply_batch_loss_step,
+    apply_epoch_update_step,
+    build_batch_loss,
+    finalize_epoch_progress,
+    iter_batch_ranges,
+    set_batch_description,
+)
 
 
 class DummyProgressBar:
@@ -39,6 +47,33 @@ class DummyModel:
 
     def forward(self):
         self.call_log.append("model.forward")
+
+
+class DummyApplyLoss(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, synthetic, observed):
+        ctx.save_for_backward(synthetic, observed)
+        return torch.sum((synthetic - observed) ** 2)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        synthetic, observed = ctx.saved_tensors
+        return grad_output * 2.0 * (synthetic - observed), None
+
+
+class DummyAcousticPropagator:
+    def __init__(self, synthetic, forward_wavefield):
+        self.synthetic = synthetic
+        self.forward_wavefield = forward_wavefield
+        self.dt = 0.002
+        self.calls = []
+
+    def forward(self, *, shot_index, checkpoint_segments):
+        self.calls.append((shot_index, checkpoint_segments))
+        return {
+            "p": self.synthetic,
+            "forward_wavefield_p": self.forward_wavefield,
+        }
 
 
 class TestFWIIterationHelpers(unittest.TestCase):
@@ -121,6 +156,45 @@ class TestFWIIterationHelpers(unittest.TestCase):
 
         self.assertEqual(epoch_loss, 6.0)
         self.assertEqual(float(data_loss.grad.item()), 1.0)
+
+    def test_apply_acoustic_batch_loss_step_runs_forward_loss_backward_and_wavefield_accumulation(self):
+        synthetic = torch.tensor([[[1.0], [2.0]]], requires_grad=True)
+        observed = torch.zeros((1, 2, 1))
+        forward_wavefield = torch.tensor([[3.0, 4.0]])
+        propagator = DummyAcousticPropagator(synthetic, forward_wavefield)
+        regularization = torch.tensor(0.5, requires_grad=True)
+        batch_range = list(iter_batch_ranges(1, None))[0]
+        progress_bar = DummyProgressBar()
+        prepare_calls = []
+
+        def prepare_pair(synthetic_waveform, observed_waveform, *, shot_index, cutoff_freq, propagator_dt):
+            prepare_calls.append((shot_index, cutoff_freq, propagator_dt))
+            return synthetic_waveform, observed_waveform
+
+        result = apply_acoustic_batch_loss_step(
+            epoch_loss_scalar=2.0,
+            accumulated_wavefield=None,
+            propagator=propagator,
+            batch_range=batch_range,
+            checkpoint_segments=3,
+            observed_pressure=observed,
+            prepare_loss_pair=prepare_pair,
+            loss_fn=DummyApplyLoss,
+            normalization=False,
+            cutoff_freq=8.0,
+            regularization_loss_fn=lambda: regularization,
+            progress_bar=progress_bar,
+            batch_count=1,
+            device=torch.device("cpu"),
+        )
+
+        self.assertEqual(result.epoch_loss_scalar, 7.5)
+        self.assertTrue(torch.equal(synthetic.grad, torch.tensor([[[2.0], [4.0]]])))
+        self.assertEqual(float(regularization.grad.item()), 1.0)
+        np.testing.assert_array_equal(result.accumulated_wavefield, np.array([[3.0, 4.0]], dtype=np.float32))
+        self.assertEqual(propagator.calls, [(batch_range.shot_index, 3)])
+        self.assertEqual(prepare_calls, [(batch_range.shot_index, 8.0, 0.002)])
+        self.assertEqual(progress_bar.description, "Shot:0 to 1")
 
     def test_apply_epoch_update_step_preserves_update_order_without_closure(self):
         call_log = []

@@ -17,9 +17,6 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
-    accumulate_wavefield,
-    acoustic_forward_batch,
-    acoustic_pressure_waveforms,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -31,8 +28,14 @@ from ADFWI.fwi.runtime import (
     snapshot_model_parameters,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.data import acoustic_pressure_loss_input, build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_loss_inputs, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
+from ADFWI.fwi.data import (
+    build_fwi_data_transform_pipeline,
+    build_fwi_transform_context,
+    evaluate_misfit_loss,
+    normalize_waveform,
+    prepare_fwi_loss_pair,
+)
+from ADFWI.fwi.iteration import apply_acoustic_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
@@ -333,35 +336,25 @@ class AcousticFWI(torch.nn.Module):
             forw = None
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
-                # forward simulation
-                forward_batch = acoustic_forward_batch(self.propagator, batch_range, checkpoint_segments)
-                loss_input = acoustic_pressure_loss_input(forward_batch.record_waveform, self.obs_p, forward_batch.shot_index)
-                _, forward_wavefield_p = acoustic_pressure_waveforms(forward_batch.record_waveform)
-                forw = accumulate_wavefield(forw, forward_wavefield_p)
-                
-                # misfit
-                loss_evaluation = evaluate_loss_inputs(
-                    [loss_input],
+                # forward simulation and batch loss
+                batch_result = apply_acoustic_batch_loss_step(
+                    epoch_loss_scalar=loss_batch,
+                    accumulated_wavefield=forw,
+                    propagator=self.propagator,
+                    batch_range=batch_range,
+                    checkpoint_segments=checkpoint_segments,
+                    observed_pressure=self.obs_p,
                     prepare_loss_pair=self._prepare_loss_pair,
                     loss_fn=self.loss_fn,
                     normalization=self.waveform_normalize,
-                    function_fallback="apply",
                     cutoff_freq=cutoff_freq,
-                    propagator_dt=self.propagator.dt,
+                    regularization_loss_fn=self.calculate_model_regularization_loss if self.regularization_fn is not None else None,
+                    progress_bar=pbar_batch,
+                    batch_count=len(batch_ranges),
                     device=self.device,
                 )
-                data_loss = loss_evaluation.data_loss
-                
-                # regularization
-                regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                loss_batch = apply_batch_loss_step(
-                    loss_batch,
-                    data_loss,
-                    regularization_loss,
-                    progress_bar=pbar_batch,
-                    batch_range=batch_range,
-                    batch_count=len(batch_ranges),
-                )
+                loss_batch = batch_result.epoch_loss_scalar
+                forw = batch_result.accumulated_wavefield
             
             # gradient process
             process_named_parameter_gradients(
@@ -406,35 +399,25 @@ class AcousticFWI(torch.nn.Module):
                 self.forw = None
                 pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
                 for batch_range in pbar_batch:
-                    # forward simulation
-                    forward_batch = acoustic_forward_batch(self.propagator, batch_range, checkpoint_segments)
-                    loss_input = acoustic_pressure_loss_input(forward_batch.record_waveform, self.obs_p, forward_batch.shot_index)
-                    _, forward_wavefield_p = acoustic_pressure_waveforms(forward_batch.record_waveform)
-                    self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
-                    
-                    # misfit
-                    loss_evaluation = evaluate_loss_inputs(
-                        [loss_input],
+                    # forward simulation and batch loss
+                    batch_result = apply_acoustic_batch_loss_step(
+                        epoch_loss_scalar=loss_batch,
+                        accumulated_wavefield=self.forw,
+                        propagator=self.propagator,
+                        batch_range=batch_range,
+                        checkpoint_segments=checkpoint_segments,
+                        observed_pressure=self.obs_p,
                         prepare_loss_pair=self._prepare_loss_pair,
                         loss_fn=self.loss_fn,
                         normalization=self.waveform_normalize,
-                        function_fallback="apply",
                         cutoff_freq=cutoff_freq,
-                        propagator_dt=self.propagator.dt,
+                        regularization_loss_fn=self.calculate_model_regularization_loss if self.regularization_fn is not None else None,
+                        progress_bar=pbar_batch,
+                        batch_count=len(batch_ranges),
                         device=self.device,
                     )
-                    data_loss = loss_evaluation.data_loss
-                    
-                    # regularization
-                    regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                    loss_batch = apply_batch_loss_step(
-                        loss_batch,
-                        data_loss,
-                        regularization_loss,
-                        progress_bar=pbar_batch,
-                        batch_range=batch_range,
-                        batch_count=len(batch_ranges),
-                    )
+                    loss_batch = batch_result.epoch_loss_scalar
+                    self.forw = batch_result.accumulated_wavefield
                 self.true_epoch = self.true_epoch + 1
                 # gradient process
                 process_named_parameter_gradients(

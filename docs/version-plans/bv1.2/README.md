@@ -68,6 +68,7 @@ numbered order unless you are looking for a specific topic.
 | 57 | [FWI Forward Batch Record](./57-fwi-forward-batch-record.md) | Introduce a per-batch forward record so shot selection and propagator output move together through FWI loops. |
 | 58 | [FWI Loss Input Record](./58-fwi-loss-input-record.md) | Move raw synthetic/observed loss-input pairing into the data contract layer while preserving transform and misfit behavior. |
 | 59 | [FWI Loss Evaluation Helper](./59-fwi-loss-evaluation-helper.md) | Share prepared loss-input evaluation and weighted component accumulation while keeping physical loss-input choices in the drivers. |
+| 60 | [Acoustic Batch Loss Step Helper](./60-acoustic-batch-loss-step.md) | Share the acoustic per-batch forward/loss/backward body between closure and non-closure optimizer paths. |
 
 ## Current Direction
 
