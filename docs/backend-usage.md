@@ -118,6 +118,18 @@ model = AcousticModel(..., device="cpu")
 
 Use explicit object overrides only when intentionally mixing devices or keeping legacy scripts unchanged. New examples should prefer one framework-level backend setup call.
 
+## Minimal Script Example
+
+A small script-style example is available for users who want to copy the bv1.2 backend pattern without editing notebook outputs:
+
+```bash
+conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device auto --prefer npu,cpu
+conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device cpu
+conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device npu:0
+```
+
+The example configures `ADFWI.set_backend(...)`, builds a tiny acoustic true/initial model pair, synthesizes observed data in memory, runs one AcousticFWI iteration, and prints a JSON summary.
+
 ## Smoke Test Commands
 
 Backend public API and integration tests:
