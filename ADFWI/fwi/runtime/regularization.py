@@ -6,7 +6,11 @@ import torch
 
 
 def calculate_regularization_loss(model_param, weight_x, weight_z, regularization_fn):
-    """Calculate regularization loss for one model parameter.
+    """Calculate regularization loss for one model parameter tensor.
+
+    ``model_param`` is usually one differentiable field such as ``vp``, ``vs``,
+    ``rho``, ``eps``, ``delta``, or ``gamma``. ``weight_x`` and ``weight_z`` are
+    the regularization strengths in horizontal and vertical directions.
 
     This preserves the historical AcousticFWI/ElasticFWI behavior: parameters
     that do not require gradients contribute a scalar zero on their device;

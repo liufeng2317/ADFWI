@@ -75,18 +75,23 @@ class Backend:
         return torch.as_tensor(value, dtype=target_dtype, device=self.device)
 
     def tensor(self, data: Any, dtype: Optional[torch.dtype] = None) -> torch.Tensor:
+        """Create a tensor on this backend from array-like ``data``."""
         return torch.as_tensor(data, dtype=self.dtype if dtype is None else dtype, device=self.device)
 
     def zeros(self, shape: Any, dtype: Optional[torch.dtype] = None) -> torch.Tensor:
+        """Create a zero tensor with backend dtype/device defaults."""
         return torch.zeros(shape, dtype=self.dtype if dtype is None else dtype, device=self.device)
 
     def ones(self, shape: Any, dtype: Optional[torch.dtype] = None) -> torch.Tensor:
+        """Create a one-filled tensor with backend dtype/device defaults."""
         return torch.ones(shape, dtype=self.dtype if dtype is None else dtype, device=self.device)
 
     def empty(self, shape: Any, dtype: Optional[torch.dtype] = None) -> torch.Tensor:
+        """Create an uninitialized tensor with backend dtype/device defaults."""
         return torch.empty(shape, dtype=self.dtype if dtype is None else dtype, device=self.device)
 
     def arange(self, *args: Any, dtype: Optional[torch.dtype] = None) -> torch.Tensor:
+        """Create a 1-D range tensor on this backend."""
         return torch.arange(*args, dtype=self.dtype if dtype is None else dtype, device=self.device)
 
     def synchronize(self) -> None:
@@ -145,7 +150,9 @@ def configure_backend(
         If ``True``, unavailable explicit accelerator requests fall back to CPU.
         Production inversion scripts should normally keep this ``False``.
     prefer:
-        Auto-selection priority used when ``device is None``. The default targets the ADFWI CPU+NPU environment.
+        Auto-selection priority used when ``device is None``. Accepts either a
+        comma-separated string such as ``"npu,cpu"`` or an iterable of backend
+        family names. The default targets the ADFWI CPU+NPU environment.
     """
     global _DEFAULT_BACKEND
     _DEFAULT_BACKEND = resolve_backend(device, dtype=dtype, fallback=fallback, prefer=prefer)
@@ -243,7 +250,13 @@ def resolve_backend(
     fallback: bool = False,
     prefer: PreferLike = ("npu", "cpu"),
 ) -> Backend:
-    """Resolve a backend without changing global state."""
+    """Resolve a concrete backend without changing global state.
+
+    Explicit devices such as ``"cpu"``, ``"cuda:0"``, or ``"npu:0"`` are
+    validated directly. ``device=None`` follows ``prefer`` and chooses the first
+    available backend family. The returned :class:`Backend` records the resolved
+    ``torch.device``, device index, dtype, and fallback diagnostics.
+    """
     resolved_dtype = _normalize_dtype(dtype)
     resolved_prefer = _normalize_prefer(prefer)
 

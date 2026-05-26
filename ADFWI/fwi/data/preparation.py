@@ -22,7 +22,15 @@ def build_transform_context(
     rcv_x: Any = None,
     data_mask: Optional[torch.Tensor] = None,
 ) -> dict[str, Any]:
-    """Build the context consumed by FWI data transform pipelines."""
+    """Build the metadata dictionary consumed by waveform transforms.
+
+    Key meanings follow the FWI data path: ``shot_index`` selects the current
+    source batch; ``cutoff_freq`` and ``dt`` parameterize low-pass filtering;
+    ``late_window`` controls first-arrival muting; ``offset_mute_threshold`` and
+    ``dx`` define offset muting; ``receiver_mask`` and ``data_mask`` describe
+    trace/data availability. Optional geometry arrays ``src_x`` and ``rcv_x``
+    are included only when needed by offset-based transforms.
+    """
 
     context: dict[str, Any] = {
         "shot_index": shot_index,
@@ -101,11 +109,12 @@ def prepare_loss_pair(
     data_transform_pipeline: Optional[DataTransformPipeline] = None,
     context: Optional[dict[str, Any]] = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Prepare a synthetic/observed pair for same-shape loss evaluation.
+    """Prepare one synthetic/observed tensor pair before misfit evaluation.
 
-    Receiver selection runs first because trace-missing data can change the
-    receiver dimension. The regular transform pipeline then operates only on
-    same-shape synthetic/observed tensors.
+    ``synthetic`` and ``observed`` are waveform tensors, normally shaped
+    ``[shot, time, receiver]`` after shot selection. Receiver selection runs
+    first because trace-missing data can change the receiver dimension. The
+    transform pipeline then operates only on same-shape tensor pairs.
     """
 
     if receiver_mask is not None:

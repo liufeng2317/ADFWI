@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Optional, Type
+
 import numpy as np
 import torch
 
@@ -9,16 +11,46 @@ from ADFWI.utils import numpy2tensor
 
 
 def process_parameter_gradient(
-    parameter,
-    gradient_processor,
+    parameter: torch.Tensor,
+    gradient_processor: Any,
     *,
-    model,
-    propagator,
-    forw,
-    idx=None,
-    processor_type=None,
-):
-    """Apply the legacy gradient processor and restore grad on propagator backend."""
+    model: Any,
+    propagator: Any,
+    forw: Any,
+    idx: Optional[int] = None,
+    processor_type: Optional[Type[Any]] = None,
+) -> None:
+    """Apply one legacy gradient processor to ``parameter.grad``.
+
+    Parameters
+    ----------
+    parameter:
+        Model parameter tensor whose ``.grad`` field has already been filled by
+        autograd. The processed gradient is written back to this same field.
+    gradient_processor:
+        Either a single GradProcessor-like object or a sequence of such objects.
+        A processor must provide ``forward(nz, nx, vmax, grad, forw)`` and return
+        a NumPy gradient array.
+    model:
+        FWI model object providing ``nz`` and ``nx`` for processor geometry.
+    propagator:
+        Propagator object providing the target ``dtype`` and ``device`` for the
+        restored PyTorch gradient tensor.
+    forw:
+        Forward wavefield array passed through to the legacy processor. Its
+        exact shape depends on acoustic/elastic propagator output.
+    idx:
+        Parameter index used when ``gradient_processor`` is a list/sequence.
+    processor_type:
+        Optional class used to recognize the single-processor case without
+        importing ``GradProcessor`` into this generic runtime module.
+
+    Notes
+    -----
+    This helper intentionally keeps the historical CPU NumPy processor contract:
+    gradients are converted to NumPy before processing, then converted back to
+    ``propagator.dtype`` on ``propagator.device``.
+    """
     with torch.no_grad():
         grads = parameter.grad.cpu().detach().numpy()
         vmax = np.max(parameter.cpu().detach().numpy())
