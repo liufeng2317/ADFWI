@@ -139,6 +139,7 @@ A read-only Marmousi2 acoustic case check is also available:
 ```bash
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device cpu
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device npu:0
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300
 ```
 
 ## Smoke Test Commands

@@ -32,6 +32,7 @@ conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --devi
 | `minimal_acoustic_fwi_backend.py` | Acoustic pressure modeling | One `AcousticFWI` iteration updating `vp` | JSON only |
 | `minimal_elastic_fwi_backend.py` | Isotropic elastic modeling, pressure component | One `ElasticFWI` iteration updating `vp` | JSON only |
 | `marmousi2_acoustic_backend_check.py` | Existing Marmousi2 acoustic case | Rebuild model, survey, observed data, and propagator; optional one-shot forward | JSON only |
+| `marmousi2_acoustic_reduced_inversion.py` | Existing Marmousi2 acoustic case subset | One reduced `AcousticFWI` iteration for backward/gradient smoke | JSON only |
 
 Both examples:
 
@@ -92,6 +93,15 @@ conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py -
 ```
 
 Use `--run-forward --shot-index 0` only when you intentionally want to run one selected shot through the acoustic propagator. The default mode is intended for fast case integrity checks before heavier benchmark or inversion runs.
+
+Run the reduced inversion smoke when you want to verify the real-case backward and gradient path without running the full notebook inversion:
+
+```bash
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device cpu --shot-count 1 --nt-samples 300
+```
+
+The reduced inversion script uses a local `safe-squared-l2` misfit by default. The legacy waveform L2 misfit is available with `--misfit legacy-l2` for diagnostics, but it can produce NaN gradients on this reduced window because its square-root form is singular at zero residual.
 
 The same check can be launched through the layered smoke runner:
 
