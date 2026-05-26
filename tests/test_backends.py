@@ -106,6 +106,38 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(diagnostics["name"], "cpu")
         self.assertEqual(diagnostics["dtype"], "float64")
 
+    def test_backend_package_public_api_is_stable(self):
+        import ADFWI.backends as backends
+
+        expected = {
+            "Backend",
+            "BackendError",
+            "BackendUnavailableError",
+            "backend",
+            "backend_diagnostics",
+            "configure_backend",
+            "get_backend",
+            "resolve_backend",
+            "set_backend",
+            "use_backend",
+        }
+        self.assertEqual(set(backends.__all__), expected)
+        for name in expected:
+            self.assertTrue(hasattr(backends, name), name)
+
+    def test_top_level_adfwi_backend_public_api_is_researcher_facing_subset(self):
+        expected = {
+            "__version__",
+            "__author__",
+            "backend",
+            "backend_diagnostics",
+            "get_backend",
+            "set_backend",
+        }
+        self.assertEqual(set(ADFWI.__all__), expected)
+        for name in expected:
+            self.assertTrue(hasattr(ADFWI, name), name)
+
     def test_top_level_adfwi_backend_api(self):
         backend_obj = ADFWI.set_backend("cpu", dtype="float32")
         self.assertEqual(backend_obj.name, "cpu")

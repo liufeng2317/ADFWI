@@ -31,6 +31,7 @@
 
 - [👩‍💻 Introduction](#-introduction)
 - [⚡️ Installation](#️-installation)
+- [Backend / Device Setup](#backend--device-setup)
 - [👾 Examples](#-examples)
   - [1. Gradient Comparation between AD \& Central Difference](#1-gradient-comparation-between-ad--central-difference)
   - [2. Iso-acoustic Model Tests](#2-iso-acoustic-model-tests)
@@ -110,6 +111,19 @@ To install ADFWI, please follow these steps:
     pip install ADFWI-Torch
   ```
 ---
+
+## Backend / Device Setup
+
+For CPU, CUDA, or NPU execution in bv1.2-style scripts, configure the backend once before creating models or propagators:
+
+```python
+import ADFWI
+
+ADFWI.set_backend("npu:0", dtype="float32")
+print(ADFWI.backend_diagnostics())
+```
+
+See [docs/backend-usage.md](./docs/backend-usage.md) for automatic selection, CPU fallback policy, diagnostics, and smoke-test commands.
 
 ## 👾 Examples
 
