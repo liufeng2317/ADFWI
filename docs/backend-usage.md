@@ -120,10 +120,18 @@ Use explicit object overrides only when intentionally mixing devices or keeping 
 
 ## Smoke Test Commands
 
-Backend resolution and integration tests:
+Backend public API and integration tests:
 
 ```bash
 conda run -n adfwi python -m unittest tests/test_backends.py tests/test_backend_integration.py
+```
+
+Lightweight public API smoke tests:
+
+```bash
+conda run -n adfwi python scripts/smoke/backend_public_api_smoke.py --device auto --prefer npu,cpu
+conda run -n adfwi python scripts/smoke/backend_public_api_smoke.py --device cpu --dtype float64
+conda run -n adfwi python scripts/smoke/backend_public_api_smoke.py --device npu:0
 ```
 
 Acoustic smoke tests:
