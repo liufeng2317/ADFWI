@@ -126,9 +126,11 @@ A small script-style example is available for users who want to copy the bv1.2 b
 conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device auto --prefer npu,cpu
 conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device cpu
 conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device npu:0
+conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --device cpu
+conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --device npu:0
 ```
 
-The example configures `ADFWI.set_backend(...)`, builds a tiny acoustic true/initial model pair, synthesizes observed data in memory, runs one AcousticFWI iteration, and prints a JSON summary.
+The acoustic example configures `ADFWI.set_backend(...)`, builds a tiny acoustic true/initial model pair, synthesizes observed data in memory, runs one AcousticFWI iteration, and prints a JSON summary. The elastic example mirrors the same pattern with an isotropic ElasticFWI pressure-component inversion.
 
 ## Smoke Test Commands
 
