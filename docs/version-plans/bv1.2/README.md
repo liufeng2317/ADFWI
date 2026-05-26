@@ -54,6 +54,7 @@ numbered order unless you are looking for a specific topic.
 | 43 | [Backend Case Check Suite](./43-backend-case-check-suite.md) | Add read-only real-case checks to the layered backend smoke runner. |
 | 44 | [Marmousi2 Forward Case Check](./44-marmousi2-forward-case-check.md) | Add optional single-shot forward validation and CPU/NPU norm comparison for the Marmousi2 acoustic case. |
 | 45 | [Marmousi2 Reduced Inversion Smoke](./45-marmousi2-reduced-inversion-smoke.md) | Add a no-output Marmousi2 subset inversion script to validate backward and gradient paths. |
+| 46 | [Legacy L2 Numerical Stability](./46-legacy-l2-numerical-stability.md) | Record the zero-residual NaN gradient risk in the historical L2-norm misfit and design a stable squared-L2 migration path. |
 
 ## Current Direction
 

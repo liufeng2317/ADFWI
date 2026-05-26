@@ -29,6 +29,7 @@ from ADFWI.fwi.misfit import (
     Misfit_traveltime,
     Misfit_waveform_L1,
     Misfit_waveform_L2,
+    Misfit_waveform_SquaredL2,
     Misfit_waveform_smoothL1,
     Misfit_waveform_studentT,
     Misfit_weighted_L1_and_L2,
@@ -84,6 +85,8 @@ def make_registry(dt: float) -> Dict[str, Tuple[MisfitFactory, str]]:
     registry: Dict[str, Tuple[MisfitFactory, str]] = {
         "L1": (lambda dt: Misfit_waveform_L1(dt=dt), "forward"),
         "L2": (lambda dt: Misfit_waveform_L2(dt=dt), "forward"),
+        "SquaredL2": (lambda dt: Misfit_waveform_SquaredL2(dt=dt), "forward"),
+        "SquaredL2Mean": (lambda dt: Misfit_waveform_SquaredL2(dt=dt, reduction="mean"), "forward"),
         "SmoothL1": (lambda dt: Misfit_waveform_smoothL1(dt=dt), "forward"),
         "StudentT": (lambda dt: Misfit_waveform_studentT(dt=dt), "forward"),
         "WeightedL1L2": (lambda dt: Misfit_weighted_L1_and_L2(dt=dt, max_iter=4), "forward"),
@@ -173,7 +176,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prefer", default="npu,cpu")
     parser.add_argument("--fallback-cpu", action="store_true")
     parser.add_argument("--dtype", default=torch.float32, type=parse_dtype, help="float32 or float64")
-    parser.add_argument("--misfits", type=parse_misfits, default=parse_misfits("L1,L2,SmoothL1,StudentT,WeightedL1L2,GC,TravelTime,NIM"))
+    parser.add_argument("--misfits", type=parse_misfits, default=parse_misfits("L1,L2,SquaredL2,SmoothL1,StudentT,WeightedL1L2,GC,TravelTime,NIM"))
     parser.add_argument("--seed", type=int, default=20240523)
     parser.add_argument("--nshot", type=int, default=2)
     parser.add_argument("--nt", type=int, default=32)

@@ -24,7 +24,7 @@ The smoke checks that loss, `vp` gradient norm, and `vp` update norm are finite 
 
 An initial test with the legacy `Misfit_waveform_L2` produced NaN `vp` gradients on both CPU and NPU, even for `nt_samples=100`. This points to the reduced-window misfit formula rather than an NPU-specific backend issue. The legacy L2 implementation uses a square root of squared residual energy; exactly zero residual samples can make the gradient singular at `sqrt(0)`.
 
-For this smoke, the default misfit is therefore a local `safe-squared-l2` class that uses mean squared residuals and avoids the square-root singularity. The legacy L2 path remains available with `--misfit legacy-l2` for diagnostics.
+For the original smoke implementation, the default misfit was a local `safe-squared-l2` class that used mean squared residuals and avoided the square-root singularity. In the following bv1.2 optimization this was replaced by the package-level `Misfit_waveform_SquaredL2(reduction="mean")`, while the `--misfit legacy-l2` path remains available for diagnostics.
 
 ## Validation Commands
 

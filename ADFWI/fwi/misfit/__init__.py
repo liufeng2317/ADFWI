@@ -1,6 +1,6 @@
 from .base  import Misfit
 from .L1    import Misfit_waveform_L1
-from .L2    import Misfit_waveform_L2
+from .L2    import Misfit_waveform_L2, Misfit_waveform_SquaredL2
 from .SmoothL1 import Misfit_waveform_smoothL1
 from .Weighted_L1_L2 import Misfit_weighted_L1_and_L2
 from .StudentT import Misfit_waveform_studentT

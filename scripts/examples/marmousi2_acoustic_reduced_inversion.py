@@ -34,7 +34,7 @@ import torch
 import ADFWI
 from ADFWI.backends import BackendUnavailableError
 from ADFWI.fwi import AcousticFWI
-from ADFWI.fwi.misfit import Misfit, Misfit_waveform_L2
+from ADFWI.fwi.misfit import Misfit_waveform_L2, Misfit_waveform_SquaredL2
 from ADFWI.model import AcousticModel
 from ADFWI.propagator import AcousticPropagator, GradProcessor
 from ADFWI.survey import SeismicData
@@ -51,26 +51,9 @@ from marmousi2_acoustic_backend_check import (
 
 
 
-class SafeSquaredL2Misfit(Misfit):
-    """Mean squared waveform residual for smoke tests.
-
-    The historical waveform L2 misfit uses a square root and can have singular
-    gradients at exactly zero residual. This smoke-test misfit avoids that
-    singular point while still exercising the full differentiable FWI path.
-    """
-
-    def __init__(self, dt: float = 1.0) -> None:
-        super().__init__()
-        self.dt = dt
-
-    def forward(self, synthetic: torch.Tensor, observed: torch.Tensor) -> torch.Tensor:
-        residual = synthetic - observed
-        return torch.mean(residual * residual) * self.dt
-
-
 def build_loss(args: argparse.Namespace):
     if args.misfit == "safe-squared-l2":
-        return SafeSquaredL2Misfit(dt=args.dt_for_loss), "safe-squared-l2"
+        return Misfit_waveform_SquaredL2(dt=args.dt_for_loss, reduction="mean"), "safe-squared-l2"
     if args.misfit == "legacy-l2":
         return Misfit_waveform_L2(dt=args.dt_for_loss), "legacy-l2"
     raise ValueError(f"unsupported misfit: {args.misfit}")

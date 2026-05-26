@@ -35,6 +35,7 @@ from ADFWI.fwi.misfit import (
     Misfit_traveltime,
     Misfit_waveform_L1,
     Misfit_waveform_L2,
+    Misfit_waveform_SquaredL2,
     Misfit_waveform_smoothL1,
     Misfit_waveform_studentT,
     Misfit_weighted_L1_and_L2,
@@ -55,8 +56,9 @@ def parse_dtype(name: str) -> torch.dtype:
         raise argparse.ArgumentTypeError(f"unsupported dtype: {name}") from exc
 
 
-SUPPORTED_MISFITS = ("L1", "L2", "SmoothL1", "StudentT", "WeightedL1L2", "GC", "TravelTime", "NIM")
+SUPPORTED_MISFITS = ("L1", "L2", "SquaredL2", "SmoothL1", "StudentT", "WeightedL1L2", "GC", "TravelTime", "NIM")
 DEFAULT_LR_BY_MISFIT = {
+    "SquaredL2": 1e12,
     "SmoothL1": 1e12,
     "StudentT": 1e12,
 }
@@ -69,6 +71,7 @@ def parse_misfit(name: str) -> str:
         "GlobalCorrelation": "GC",
         "global_correlation": "GC",
         "Weighted_L1_L2": "WeightedL1L2",
+        "Squared_L2": "SquaredL2",
         "WeightedL1andL2": "WeightedL1L2",
     }
     normalized = aliases.get(normalized, normalized)
@@ -83,6 +86,8 @@ def build_loss_fn(name: str, dt: float):
         return Misfit_waveform_L1(dt=dt)
     if name == "L2":
         return Misfit_waveform_L2(dt=dt)
+    if name == "SquaredL2":
+        return Misfit_waveform_SquaredL2(dt=dt)
     if name == "SmoothL1":
         return Misfit_waveform_smoothL1(dt=dt)
     if name == "StudentT":

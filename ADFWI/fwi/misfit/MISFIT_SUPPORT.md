@@ -15,7 +15,8 @@ Status labels:
 | Misfit class | Short name | Exported | Main idea | CPU | NPU | Notes |
 |---|---|---:|---|---|---|---|
 | `Misfit_waveform_L1` | `L1` | Yes | L1 waveform difference | Verified | Verified | Pure torch. |
-| `Misfit_waveform_L2` | `L2` | Yes | L2 waveform difference | Verified | Verified | Pure torch; default ADFWI baseline. |
+| `Misfit_waveform_L2` | `L2` | Yes | Legacy L2-norm waveform difference | Verified with caveat | Verified with caveat | Pure torch and backend-portable for nonzero residuals, but `sqrt(sum(residual^2))` has a zero-residual gradient singularity that can produce NaN gradients. |
+| `Misfit_waveform_SquaredL2` | `SquaredL2` / `SquaredL2Mean` | Yes | Stable squared waveform residual | Verified | Verified | Pure torch; recommended stable L2-style baseline for new FWI workflows. |
 | `Misfit_waveform_smoothL1` | `SmoothL1` | Yes | PyTorch SmoothL1 waveform loss | Verified | Verified | Uses `nn.SmoothL1Loss`. |
 | `Misfit_waveform_studentT` | `StudentT` | Yes | Robust Student-t waveform loss | Verified | Verified | Pure torch. |
 | `Misfit_weighted_L1_and_L2` | `WeightedL1L2` | Yes | Iteration-weighted L1/L2 composite | Verified | Verified | Wraps L1 and L2. |
@@ -43,7 +44,7 @@ conda run -n adfwi python scripts/smoke/misfit_backend_smoke.py --device npu:0
 Default group:
 
 ```text
-L1,L2,SmoothL1,StudentT,WeightedL1L2,GC,TravelTime,NIM
+L1,L2,SquaredL2,SmoothL1,StudentT,WeightedL1L2,GC,TravelTime,NIM
 ```
 
 Envelope/WECI CPU-only check:
@@ -58,33 +59,38 @@ conda run -n adfwi python scripts/smoke/misfit_backend_smoke.py --device cpu --m
 The same portable group is also covered by one-step `AcousticFWI` mini inversion smoke through:
 
 ```bash
-conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device cpu --misfit L2
-conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0 --misfit L2
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device cpu --misfit SquaredL2
+conda run -n adfwi python scripts/smoke/acoustic_mini_inversion_smoke.py --device npu:0 --misfit SquaredL2
 ```
 
 Supported `--misfit` values for this mini inversion smoke are:
 
 ```text
-L1, L2, SmoothL1, StudentT, WeightedL1L2, GC, TravelTime, NIM
+L1, L2, SquaredL2, SmoothL1, StudentT, WeightedL1L2, GC, TravelTime, NIM
 ```
 
-Validation on the local CPU/NPU environment passed for all listed values. `SmoothL1` and `StudentT` use a larger script default learning rate because their gradients are very small in the tiny synthetic smoke model; users can still override this with `--lr`.
+Validation on the local CPU/NPU environment passed for the stable `SquaredL2` mini inversion path; the legacy `L2` path remains supported with the caveat documented above. `SmoothL1` and `StudentT` use a larger script default learning rate because their gradients are very small in the tiny synthetic smoke model; users can still override this with `--lr`.
 
 ## Recommended Usage for bv1.2
 
-For CPU/NPU portable acoustic inversion, prefer:
+For new CPU/NPU portable acoustic inversion examples, prefer losses without a
+zero-residual square-root singularity:
 
 ```text
-L1, L2, SmoothL1, StudentT, WeightedL1L2, GC, TravelTime, NIM
+SquaredL2, L1, SmoothL1, StudentT, GC, TravelTime, NIM
 ```
 
 Use with caution:
 
 ```text
-Envelope, WECI
+L2, WeightedL1L2, Envelope, WECI
 ```
 
-These are currently CPU-only in the local NPU environment because the Hilbert/FFT implementation produces complex tensors that the NPU runtime cannot fully process.
+`L2` and `WeightedL1L2` are backend-portable, but the legacy L2-norm branch can
+produce NaN gradients when the residual energy is exactly zero. `Envelope` and
+`WECI` are currently CPU-only in the local NPU environment because the
+Hilbert/FFT implementation produces complex tensors that the NPU runtime cannot
+fully process.
 
 Treat as experimental until separately validated:
 
@@ -95,6 +101,7 @@ SoftDTW, WDGC, Wasserstein_sinkhorn, Wasserstein_1d, Wasserstein1
 ## Notes for Future Refactoring
 
 - Fix `SoftDTW` backend detection before testing NPU. It should distinguish `cpu`, `cuda`, and `npu` explicitly instead of treating all non-CPU devices as CUDA.
+- Keep the explicit stable squared-L2 waveform misfit as the default candidate for new FWI examples and smoke tests. Keep `Misfit_waveform_L2` available as the historical norm objective, but document its zero-residual NaN-gradient risk.
 - Keep `Envelope`/`WECI` marked CPU-only until an NPU-compatible envelope implementation is added.
 - Validate `GeomLoss` and POT-based Wasserstein losses independently before advertising NPU support.
 - Keep this file synchronized with `docs/version-plans/bv1.2/02-misfit-backend-audit.md`.

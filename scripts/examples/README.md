@@ -101,7 +101,7 @@ conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device cpu --shot-count 1 --nt-samples 300
 ```
 
-The reduced inversion script uses a local `safe-squared-l2` misfit by default. The legacy waveform L2 misfit is available with `--misfit legacy-l2` for diagnostics, but it can produce NaN gradients on this reduced window because its square-root form is singular at zero residual.
+The reduced inversion script uses the package-level `Misfit_waveform_SquaredL2(reduction="mean")` through the `safe-squared-l2` option by default. The legacy waveform L2 misfit is available with `--misfit legacy-l2` for diagnostics, but it can produce NaN gradients on this reduced window because its square-root form is singular at zero residual.
 
 The same check can be launched through the layered smoke runner:
 

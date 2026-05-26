@@ -409,7 +409,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--seed", type=int, default=20240523)
     parser.add_argument("--skip-backward", action="store_true", help="skip backward pass for forward propagation suites")
-    parser.add_argument("--misfits", default="L2", help="misfit list passed to misfit_backend_smoke.py")
+    parser.add_argument("--misfits", default="L2,SquaredL2", help="misfit list passed to misfit_backend_smoke.py")
     parser.add_argument("--compare-problems", default="acoustic,elastic", help="problem list passed to compare_backend_smoke.py")
     parser.add_argument("--compare-cases", default="trace-missing", help="case list passed to compare_backend_smoke.py")
     parser.add_argument(
