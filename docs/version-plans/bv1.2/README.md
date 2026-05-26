@@ -67,6 +67,7 @@ numbered order unless you are looking for a specific topic.
 | 56 | [FWI Wavefield Input Helper](./56-fwi-wavefield-input-helper.md) | Share small record-to-wavefield selection helpers while preserving acoustic/elastic loss semantics. |
 | 57 | [FWI Forward Batch Record](./57-fwi-forward-batch-record.md) | Introduce a per-batch forward record so shot selection and propagator output move together through FWI loops. |
 | 58 | [FWI Loss Input Record](./58-fwi-loss-input-record.md) | Move raw synthetic/observed loss-input pairing into the data contract layer while preserving transform and misfit behavior. |
+| 59 | [FWI Loss Evaluation Helper](./59-fwi-loss-evaluation-helper.md) | Share prepared loss-input evaluation and weighted component accumulation while keeping physical loss-input choices in the drivers. |
 
 ## Current Direction
 

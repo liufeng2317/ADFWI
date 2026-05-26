@@ -15,6 +15,7 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
+    evaluate_loss_inputs,
     evaluate_misfit_loss,
     normalize_elastic_component_weights,
     normalize_waveform,
@@ -94,6 +95,54 @@ class FWIDataContractTests(unittest.TestCase):
         loss = evaluate_misfit_loss(DummyApplyLoss, synthetic, observed, function_fallback="apply")
 
         self.assertTrue(torch.equal(loss, torch.tensor(2.5)))
+
+    def test_evaluate_loss_inputs_prepares_weights_and_preserves_autograd(self):
+        first = torch.tensor([1.0, 2.0], requires_grad=True)
+        second = torch.tensor([3.0], requires_grad=True)
+        observed = torch.zeros(2)
+        calls = []
+
+        def prepare_pair(synthetic, observed_waveform, *, shot_index, cutoff_freq, propagator_dt):
+            calls.append((synthetic, observed_waveform, shot_index, cutoff_freq, propagator_dt))
+            return synthetic, observed_waveform
+
+        result = evaluate_loss_inputs(
+            [
+                LossInput("pressure", first, observed, shot_index="shot-a", weight=2.0),
+                LossInput("vz", second, torch.zeros(1), shot_index="shot-b", weight=0.5),
+            ],
+            prepare_loss_pair=prepare_pair,
+            loss_fn=DummyCallableLoss(),
+            normalization=False,
+            function_fallback="call",
+            cutoff_freq=8.0,
+            propagator_dt=0.002,
+            device=torch.device("cpu"),
+        )
+        result.data_loss.backward()
+
+        self.assertEqual([item.component for item in result.component_losses], ["pressure", "vz"])
+        self.assertEqual([item.weight for item in result.component_losses], [2.0, 0.5])
+        self.assertTrue(torch.equal(result.data_loss.detach(), torch.tensor(14.5)))
+        self.assertTrue(torch.equal(first.grad, torch.tensor([4.0, 8.0])))
+        self.assertTrue(torch.equal(second.grad, torch.tensor([3.0])))
+        self.assertEqual(calls[0][2:], ("shot-a", 8.0, 0.002))
+        self.assertEqual(calls[1][2:], ("shot-b", 8.0, 0.002))
+
+    def test_evaluate_loss_inputs_applies_legacy_normalization(self):
+        synthetic = torch.tensor([[[2.0], [4.0]]])
+        observed = torch.zeros_like(synthetic)
+
+        result = evaluate_loss_inputs(
+            [LossInput("pressure", synthetic, observed, shot_index=None)],
+            prepare_loss_pair=lambda synthetic, observed, **_: (synthetic, observed),
+            loss_fn=DummyCallableLoss(),
+            normalization=True,
+            function_fallback="call",
+            device=torch.device("cpu"),
+        )
+
+        self.assertTrue(torch.equal(result.data_loss, torch.tensor(1.25)))
 
     def test_normalize_waveform_matches_legacy_trace_normalization(self):
         data = torch.tensor(

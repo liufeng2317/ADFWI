@@ -22,7 +22,7 @@ from .components import (
     normalize_elastic_component_weights,
 )
 from .inputs import LossInput, acoustic_pressure_loss_input, elastic_loss_inputs
-from .loss import evaluate_misfit_loss, sum_weighted_losses
+from .loss import ComponentLoss, LossEvaluation, evaluate_loss_inputs, evaluate_misfit_loss, sum_weighted_losses
 from .pipeline import build_fwi_data_transform_pipeline
 from .preparation import (
     build_fwi_transform_context,
@@ -33,7 +33,9 @@ from .preparation import (
 
 __all__ = [
     "ELASTIC_COMPONENTS",
+    "ComponentLoss",
     "LossInput",
+    "LossEvaluation",
     "build_fwi_data_transform_pipeline",
     "build_fwi_transform_context",
     "build_transform_context",
@@ -43,6 +45,7 @@ __all__ = [
     "elastic_observed_components",
     "elastic_pressure",
     "elastic_synthetic_components",
+    "evaluate_loss_inputs",
     "evaluate_misfit_loss",
     "normalize_elastic_component_weights",
     "normalize_waveform",

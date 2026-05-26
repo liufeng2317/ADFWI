@@ -31,7 +31,7 @@ from ADFWI.fwi.runtime import (
     snapshot_model_parameters,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.data import acoustic_pressure_loss_input, build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
+from ADFWI.fwi.data import acoustic_pressure_loss_input, build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_loss_inputs, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
 from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.optimizer import NLCG
@@ -340,8 +340,17 @@ class AcousticFWI(torch.nn.Module):
                 forw = accumulate_wavefield(forw, forward_wavefield_p)
                 
                 # misfit
-                syn_p, obs_p = self._prepare_loss_pair(loss_input.synthetic, loss_input.observed, loss_input.shot_index, cutoff_freq, self.propagator.dt)
-                data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
+                loss_evaluation = evaluate_loss_inputs(
+                    [loss_input],
+                    prepare_loss_pair=self._prepare_loss_pair,
+                    loss_fn=self.loss_fn,
+                    normalization=self.waveform_normalize,
+                    function_fallback="apply",
+                    cutoff_freq=cutoff_freq,
+                    propagator_dt=self.propagator.dt,
+                    device=self.device,
+                )
+                data_loss = loss_evaluation.data_loss
                 
                 # regularization
                 regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
@@ -404,8 +413,17 @@ class AcousticFWI(torch.nn.Module):
                     self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
                     
                     # misfit
-                    syn_p, obs_p = self._prepare_loss_pair(loss_input.synthetic, loss_input.observed, loss_input.shot_index, cutoff_freq, self.propagator.dt)
-                    data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
+                    loss_evaluation = evaluate_loss_inputs(
+                        [loss_input],
+                        prepare_loss_pair=self._prepare_loss_pair,
+                        loss_fn=self.loss_fn,
+                        normalization=self.waveform_normalize,
+                        function_fallback="apply",
+                        cutoff_freq=cutoff_freq,
+                        propagator_dt=self.propagator.dt,
+                        device=self.device,
+                    )
+                    data_loss = loss_evaluation.data_loss
                     
                     # regularization
                     regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None

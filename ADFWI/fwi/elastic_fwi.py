@@ -40,12 +40,12 @@ from ADFWI.fwi.data import (
     build_fwi_transform_context,
     elastic_loss_inputs,
     elastic_observed_components,
+    evaluate_loss_inputs,
     normalize_elastic_component_weights,
     evaluate_misfit_loss,
     normalize_waveform,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
-    sum_weighted_losses,
 )
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.utils       import numpy2tensor
@@ -446,30 +446,23 @@ class ElasticFWI(torch.nn.Module):
                 accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
 
                 # misfits
-                component_losses = []
-                for loss_input in elastic_loss_inputs(
-                    forward_batch.record_waveform,
-                    self.obs_components,
-                    self.inversion_component,
-                    self.component_weights,
-                    forward_batch.shot_index,
-                ):
-                    synthetic_waveform, observed_waveform = self._prepare_loss_pair(
-                        loss_input.synthetic,
-                        loss_input.observed,
-                        loss_input.shot_index,
-                        cutoff_freq,
-                        self.propagator.dt,
-                    )
-                    component_loss = self.calculate_loss(
-                        synthetic_waveform,
-                        observed_waveform,
-                        self.waveform_normalize,
-                        self.loss_fn,
-                        apply_transforms=False,
-                    )
-                    component_losses.append(component_loss * loss_input.weight)
-                data_loss = sum_weighted_losses(component_losses, device=self.device)
+                loss_evaluation = evaluate_loss_inputs(
+                    elastic_loss_inputs(
+                        forward_batch.record_waveform,
+                        self.obs_components,
+                        self.inversion_component,
+                        self.component_weights,
+                        forward_batch.shot_index,
+                    ),
+                    prepare_loss_pair=self._prepare_loss_pair,
+                    loss_fn=self.loss_fn,
+                    normalization=self.waveform_normalize,
+                    function_fallback="call",
+                    cutoff_freq=cutoff_freq,
+                    propagator_dt=self.propagator.dt,
+                    device=self.device,
+                )
+                data_loss = loss_evaluation.data_loss
                 
                 # regularization
                 regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
