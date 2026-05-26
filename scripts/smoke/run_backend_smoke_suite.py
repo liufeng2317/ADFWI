@@ -216,6 +216,52 @@ def run_examples(args: argparse.Namespace) -> Dict[str, Any]:
     }
 
 
+def iter_report_runs(report: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if "runs" in report:
+        return list(report["runs"])
+    if "run" in report:
+        return [report["run"]]
+    return []
+
+
+def summarize_report(report: Dict[str, Any]) -> Dict[str, Any]:
+    runs = iter_report_runs(report)
+    counts = {"ok": 0, "failed": 0, "unavailable": 0}
+    for run in runs:
+        status = run.get("status", "failed")
+        counts[status if status in counts else "failed"] += 1
+
+    summary: Dict[str, Any] = {
+        "suite": report["suite"],
+        "status": report["status"],
+        "runs": len(runs),
+        "ok": counts["ok"],
+        "failed": counts["failed"],
+        "unavailable": counts["unavailable"],
+    }
+    if report["suite"] == "examples":
+        comparisons = report.get("comparisons", [])
+        metric_rows = [metric for comparison in comparisons for metric in comparison.get("metrics", [])]
+        summary["comparisons"] = len(comparisons)
+        summary["max_abs_diff"] = max((float(metric.get("abs_diff", 0.0)) for metric in metric_rows), default=0.0)
+        summary["max_rel_diff"] = max((float(metric.get("rel_diff", 0.0)) for metric in metric_rows), default=0.0)
+        summary["comparison_status"] = "failed" if any(comparison.get("status") == "failed" for comparison in comparisons) else "ok"
+    return summary
+
+
+def summarize_reports(reports: List[Dict[str, Any]]) -> Dict[str, Any]:
+    suite_summaries = [summarize_report(report) for report in reports]
+    return {
+        "suites": len(suite_summaries),
+        "failed_suites": sum(1 for item in suite_summaries if item["status"] == "failed"),
+        "runs": sum(item["runs"] for item in suite_summaries),
+        "ok": sum(item["ok"] for item in suite_summaries),
+        "failed": sum(item["failed"] for item in suite_summaries),
+        "unavailable": sum(item["unavailable"] for item in suite_summaries),
+        "by_suite": suite_summaries,
+    }
+
+
 def run_compare_mini(args: argparse.Namespace) -> Dict[str, Any]:
     cmd = [
         sys.executable,
@@ -296,6 +342,7 @@ def main() -> int:
         "devices": args.devices,
         "prefer": args.prefer,
         "dtype": args.dtype,
+        "summary": summarize_reports(reports),
         "reports": reports,
     }
     print(json.dumps(report, indent=2, sort_keys=True))

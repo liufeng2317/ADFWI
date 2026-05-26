@@ -21,6 +21,8 @@ The suite runs each selected minimal example once per requested device. Each chi
 
 When a CPU reference run is present, the suite also compares each non-reference device against CPU for `loss`, `vp_grad_norm`, and `vp_update_norm`. The default tolerances are `--example-rtol 1e-4` and `--example-atol 1e-8`.
 
+The runner also adds a top-level `summary` block. The detailed `reports` payload remains unchanged, while `summary.by_suite` gives compact counts and, for the `examples` suite, the maximum absolute and relative CPU-vs-device metric differences.
+
 ## Scientific Contract
 
 The example suite checks that the public one-line backend API is usable through complete tiny FWI workflows:
@@ -52,7 +54,9 @@ Observed CPU-vs-NPU comparison on the local `adfwi` environment:
 | elastic | `vp_grad_norm` | `4.3503572669578716e-05` | `4.350356903159991e-05` | `3.637978807091713e-12` | `8.362482857955452e-08` |
 | elastic | `vp_update_norm` | `4.350393295288086` | `4.350393295288086` | `0.0` | `0.0` |
 
-All observed relative differences are below the default `1e-4` relative tolerance.
+All observed relative differences are below the default `1e-4` relative tolerance. The top-level `summary.by_suite` entry reports `max_abs_diff` and `max_rel_diff` so future runs can be checked quickly without manually scanning every child JSON payload.
+
+For the local validation run after adding `summary`, the examples suite reported `runs: 4`, `ok: 4`, `failed: 0`, `max_abs_diff: 1.1920928955078125e-07`, and `max_rel_diff: 2.2725155155996827e-06`.
 
 ## Notes
 
