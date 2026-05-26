@@ -66,6 +66,7 @@ numbered order unless you are looking for a specific topic.
 | 55 | [FWI Waveform Alias Cleanup](./55-fwi-waveform-alias-cleanup.md) | Remove unused waveform aliases from acoustic/elastic batch loops while preserving record-level loss construction. |
 | 56 | [FWI Wavefield Input Helper](./56-fwi-wavefield-input-helper.md) | Share small record-to-wavefield selection helpers while preserving acoustic/elastic loss semantics. |
 | 57 | [FWI Forward Batch Record](./57-fwi-forward-batch-record.md) | Introduce a per-batch forward record so shot selection and propagator output move together through FWI loops. |
+| 58 | [FWI Loss Input Record](./58-fwi-loss-input-record.md) | Move raw synthetic/observed loss-input pairing into the data contract layer while preserving transform and misfit behavior. |
 
 ## Current Direction
 

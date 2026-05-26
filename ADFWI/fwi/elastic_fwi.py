@@ -38,9 +38,8 @@ from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
-    elastic_component_loss_inputs,
+    elastic_loss_inputs,
     elastic_observed_components,
-    elastic_synthetic_components,
     normalize_elastic_component_weights,
     evaluate_misfit_loss,
     normalize_waveform,
@@ -447,18 +446,18 @@ class ElasticFWI(torch.nn.Module):
                 accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
 
                 # misfits
-                synthetic_components = elastic_synthetic_components(forward_batch.record_waveform)
                 component_losses = []
-                for component, synthetic_component, observed_component, component_weight in elastic_component_loss_inputs(
-                    synthetic_components,
+                for loss_input in elastic_loss_inputs(
+                    forward_batch.record_waveform,
                     self.obs_components,
                     self.inversion_component,
                     self.component_weights,
+                    forward_batch.shot_index,
                 ):
                     synthetic_waveform, observed_waveform = self._prepare_loss_pair(
-                        synthetic_component,
-                        observed_component[forward_batch.shot_index],
-                        forward_batch.shot_index,
+                        loss_input.synthetic,
+                        loss_input.observed,
+                        loss_input.shot_index,
                         cutoff_freq,
                         self.propagator.dt,
                     )
@@ -469,7 +468,7 @@ class ElasticFWI(torch.nn.Module):
                         self.loss_fn,
                         apply_transforms=False,
                     )
-                    component_losses.append(component_loss * component_weight)
+                    component_losses.append(component_loss * loss_input.weight)
                 data_loss = sum_weighted_losses(component_losses, device=self.device)
                 
                 # regularization

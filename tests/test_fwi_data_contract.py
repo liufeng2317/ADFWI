@@ -4,11 +4,14 @@ import torch
 
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
+    LossInput,
+    acoustic_pressure_loss_input,
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
     build_transform_context,
     prepare_fwi_loss_pair,
     elastic_component_loss_inputs,
+    elastic_loss_inputs,
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
@@ -172,6 +175,45 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertNotIn("src_x", context)
         self.assertNotIn("rcv_x", context)
         self.assertNotIn("data_mask", context)
+
+    def test_acoustic_pressure_loss_input_selects_observed_shots(self):
+        shot_index = torch.tensor([0, 2])
+        record = {"p": torch.full((2, 3, 2), 1.0)}
+        observed = torch.arange(3 * 3 * 2, dtype=torch.float32).reshape(3, 3, 2)
+
+        loss_input = acoustic_pressure_loss_input(record, observed, shot_index)
+
+        self.assertIsInstance(loss_input, LossInput)
+        self.assertEqual(loss_input.component, "pressure")
+        self.assertIs(loss_input.synthetic, record["p"])
+        self.assertTrue(torch.equal(loss_input.observed, observed[shot_index]))
+        self.assertIs(loss_input.shot_index, shot_index)
+        self.assertEqual(loss_input.weight, 1.0)
+
+    def test_elastic_loss_inputs_select_active_components_and_observed_shots(self):
+        shot_index = torch.tensor([1])
+        record = {
+            "txx": torch.full((1, 2, 2), 1.0),
+            "tzz": torch.full((1, 2, 2), 2.0),
+            "vx": torch.full((1, 2, 2), 3.0),
+            "vz": torch.full((1, 2, 2), 4.0),
+        }
+        observed_components = {
+            "pressure": torch.arange(3 * 2 * 2, dtype=torch.float32).reshape(3, 2, 2),
+            "vx": torch.full((3, 2, 2), 5.0),
+            "vz": torch.full((3, 2, 2), 6.0),
+        }
+
+        inputs = elastic_loss_inputs(record, observed_components, ["vz", "pressure"], {"pressure": 2.0, "vz": 0.5}, shot_index)
+
+        self.assertEqual([item.component for item in inputs], ["pressure", "vz"])
+        self.assertTrue(torch.equal(inputs[0].synthetic, torch.full((1, 2, 2), -3.0)))
+        self.assertTrue(torch.equal(inputs[0].observed, observed_components["pressure"][shot_index]))
+        self.assertEqual(inputs[0].weight, 2.0)
+        self.assertIs(inputs[0].shot_index, shot_index)
+        self.assertIs(inputs[1].synthetic, record["vz"])
+        self.assertTrue(torch.equal(inputs[1].observed, observed_components["vz"][shot_index]))
+        self.assertEqual(inputs[1].weight, 0.5)
 
     def test_prepare_fwi_loss_pair_matches_manual_context_path(self):
         shot_index = torch.tensor([0, 1])
