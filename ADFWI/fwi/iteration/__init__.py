@@ -9,8 +9,10 @@ from .epoch import apply_epoch_update_step
 from .loss import (
     AcousticBatchStepResult,
     BatchLoss,
+    ElasticBatchStepResult,
     apply_acoustic_batch_loss_step,
     apply_batch_loss_step,
+    apply_elastic_batch_loss_step,
     build_batch_loss,
 )
 from .progress import finalize_epoch_progress, set_batch_description
@@ -20,7 +22,9 @@ __all__ = [
     "AcousticBatchStepResult",
     "BatchLoss",
     "BatchRange",
+    "ElasticBatchStepResult",
     "apply_acoustic_batch_loss_step",
+    "apply_elastic_batch_loss_step",
     "apply_epoch_update_step",
     "apply_batch_loss_step",
     "build_batch_loss",

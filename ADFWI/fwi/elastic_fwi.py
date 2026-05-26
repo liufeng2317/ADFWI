@@ -17,9 +17,6 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
-    accumulate_named_wavefields,
-    elastic_forward_batch,
-    elastic_gradient_wavefields,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -33,14 +30,11 @@ from ADFWI.fwi.runtime import (
     tensor_to_numpy,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.iteration import apply_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
+from ADFWI.fwi.iteration import apply_elastic_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.data import (
-    ELASTIC_COMPONENTS,
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
-    elastic_loss_inputs,
     elastic_observed_components,
-    evaluate_loss_inputs,
     normalize_elastic_component_weights,
     evaluate_misfit_loss,
     normalize_waveform,
@@ -435,45 +429,28 @@ class ElasticFWI(torch.nn.Module):
             accumulated_wavefields = {}
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
-                # forward simulation
-                forward_batch = elastic_forward_batch(
-                    self.propagator,
-                    batch_range,
+                # forward simulation and batch loss
+                batch_result = apply_elastic_batch_loss_step(
+                    epoch_loss_scalar=loss_epoch,
+                    accumulated_wavefields=accumulated_wavefields,
+                    propagator=self.propagator,
+                    batch_range=batch_range,
                     fd_order=fd_order,
                     checkpoint_segments=checkpoint_segments,
-                )
-                batch_wavefields = elastic_gradient_wavefields(forward_batch.record_waveform, self.inversion_component)
-                accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
-
-                # misfits
-                loss_evaluation = evaluate_loss_inputs(
-                    elastic_loss_inputs(
-                        forward_batch.record_waveform,
-                        self.obs_components,
-                        self.inversion_component,
-                        self.component_weights,
-                        forward_batch.shot_index,
-                    ),
+                    observed_components=self.obs_components,
+                    inversion_components=self.inversion_component,
+                    component_weights=self.component_weights,
                     prepare_loss_pair=self._prepare_loss_pair,
                     loss_fn=self.loss_fn,
                     normalization=self.waveform_normalize,
-                    function_fallback="call",
                     cutoff_freq=cutoff_freq,
-                    propagator_dt=self.propagator.dt,
+                    regularization_loss_fn=self.calculate_model_regularization_loss if self.regularization_fn is not None else None,
+                    progress_bar=pbar_batch,
+                    batch_count=len(batch_ranges),
                     device=self.device,
                 )
-                data_loss = loss_evaluation.data_loss
-                
-                # regularization
-                regularization_loss = self.calculate_model_regularization_loss() if self.regularization_fn is not None else None
-                loss_epoch = apply_batch_loss_step(
-                    loss_epoch,
-                    data_loss,
-                    regularization_loss,
-                    progress_bar=pbar_batch,
-                    batch_range=batch_range,
-                    batch_count=len(batch_ranges),
-                )
+                loss_epoch = batch_result.epoch_loss_scalar
+                accumulated_wavefields = batch_result.accumulated_wavefields
             
             # gradient process
             gradient_wavefield = select_elastic_gradient_wavefield(accumulated_wavefields)

@@ -6,6 +6,7 @@ import torch
 from ADFWI.fwi.iteration import (
     apply_acoustic_batch_loss_step,
     apply_batch_loss_step,
+    apply_elastic_batch_loss_step,
     apply_epoch_update_step,
     build_batch_loss,
     finalize_epoch_progress,
@@ -61,6 +62,11 @@ class DummyApplyLoss(torch.autograd.Function):
         return grad_output * 2.0 * (synthetic - observed), None
 
 
+class DummyCallableLoss:
+    def __call__(self, synthetic, observed):
+        return torch.sum((synthetic - observed) ** 2)
+
+
 class DummyAcousticPropagator:
     def __init__(self, synthetic, forward_wavefield):
         self.synthetic = synthetic
@@ -74,6 +80,17 @@ class DummyAcousticPropagator:
             "p": self.synthetic,
             "forward_wavefield_p": self.forward_wavefield,
         }
+
+
+class DummyElasticPropagator:
+    def __init__(self, record):
+        self.record = record
+        self.dt = 0.004
+        self.calls = []
+
+    def forward(self, *, fd_order, shot_index, checkpoint_segments):
+        self.calls.append((fd_order, shot_index, checkpoint_segments))
+        return self.record
 
 
 class TestFWIIterationHelpers(unittest.TestCase):
@@ -194,6 +211,67 @@ class TestFWIIterationHelpers(unittest.TestCase):
         np.testing.assert_array_equal(result.accumulated_wavefield, np.array([[3.0, 4.0]], dtype=np.float32))
         self.assertEqual(propagator.calls, [(batch_range.shot_index, 3)])
         self.assertEqual(prepare_calls, [(batch_range.shot_index, 8.0, 0.002)])
+        self.assertEqual(progress_bar.description, "Shot:0 to 1")
+
+    def test_apply_elastic_batch_loss_step_runs_component_losses_and_wavefield_accumulation(self):
+        txx = torch.tensor([[[1.0]]], requires_grad=True)
+        tzz = torch.tensor([[[2.0]]], requires_grad=True)
+        vz = torch.tensor([[[4.0]]], requires_grad=True)
+        record = {
+            "txx": txx,
+            "tzz": tzz,
+            "vx": torch.tensor([[[3.0]]], requires_grad=True),
+            "vz": vz,
+            "forward_wavefield_txx": torch.tensor([[1.0, 2.0]]),
+            "forward_wavefield_tzz": torch.tensor([[3.0, 4.0]]),
+            "forward_wavefield_vx": torch.tensor([[5.0, 6.0]]),
+            "forward_wavefield_vz": torch.tensor([[7.0, 8.0]]),
+            "forward_wavefield_txz": torch.tensor([[9.0, 10.0]]),
+        }
+        observed_components = {
+            "pressure": torch.zeros((1, 1, 1)),
+            "vx": torch.zeros((1, 1, 1)),
+            "vz": torch.zeros((1, 1, 1)),
+        }
+        propagator = DummyElasticPropagator(record)
+        regularization = torch.tensor(0.5, requires_grad=True)
+        batch_range = list(iter_batch_ranges(1, None))[0]
+        progress_bar = DummyProgressBar()
+        prepare_calls = []
+
+        def prepare_pair(synthetic_waveform, observed_waveform, *, shot_index, cutoff_freq, propagator_dt):
+            prepare_calls.append((shot_index, cutoff_freq, propagator_dt))
+            return synthetic_waveform, observed_waveform
+
+        result = apply_elastic_batch_loss_step(
+            epoch_loss_scalar=2.0,
+            accumulated_wavefields={},
+            propagator=propagator,
+            batch_range=batch_range,
+            fd_order=6,
+            checkpoint_segments=3,
+            observed_components=observed_components,
+            inversion_components=["pressure", "vz"],
+            component_weights={"pressure": 2.0, "vz": 0.5},
+            prepare_loss_pair=prepare_pair,
+            loss_fn=DummyCallableLoss(),
+            normalization=False,
+            cutoff_freq=8.0,
+            regularization_loss_fn=lambda: regularization,
+            progress_bar=progress_bar,
+            batch_count=1,
+            device=torch.device("cpu"),
+        )
+
+        self.assertEqual(result.epoch_loss_scalar, 28.5)
+        self.assertTrue(torch.equal(txx.grad, torch.tensor([[[12.0]]])))
+        self.assertTrue(torch.equal(tzz.grad, torch.tensor([[[12.0]]])))
+        self.assertTrue(torch.equal(vz.grad, torch.tensor([[[4.0]]])))
+        self.assertEqual(float(regularization.grad.item()), 1.0)
+        self.assertEqual(propagator.calls, [(6, batch_range.shot_index, 3)])
+        self.assertEqual(prepare_calls, [(batch_range.shot_index, 8.0, 0.004), (batch_range.shot_index, 8.0, 0.004)])
+        np.testing.assert_array_equal(result.accumulated_wavefields["pressure"], np.array([[-4.0, -6.0]], dtype=np.float32))
+        np.testing.assert_array_equal(result.accumulated_wavefields["vz"], np.array([[7.0, 8.0]], dtype=np.float32))
         self.assertEqual(progress_bar.description, "Shot:0 to 1")
 
     def test_apply_epoch_update_step_preserves_update_order_without_closure(self):
