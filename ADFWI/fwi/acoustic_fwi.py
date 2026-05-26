@@ -18,6 +18,7 @@ from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
     accumulate_wavefield,
+    acoustic_pressure_waveforms,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -334,8 +335,7 @@ class AcousticFWI(torch.nn.Module):
                 # forward simulation
                 shot_index  = batch_range.shot_index
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                rcv_p = record_waveform["p"]
-                forward_wavefield_p = record_waveform["forward_wavefield_p"]
+                rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(record_waveform)
                 forw = accumulate_wavefield(forw, forward_wavefield_p)
                 
                 # misfit
@@ -399,8 +399,7 @@ class AcousticFWI(torch.nn.Module):
                     # forward simulation
                     shot_index  = batch_range.shot_index
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                    rcv_p = record_waveform["p"]
-                    forward_wavefield_p = record_waveform["forward_wavefield_p"]
+                    rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(record_waveform)
                     self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
                     
                     # misfit

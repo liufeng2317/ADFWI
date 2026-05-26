@@ -64,6 +64,7 @@ numbered order unless you are looking for a specific topic.
 | 53 | [FWI Iteration Epoch Finalization Helper](./53-fwi-iteration-epoch-finalization.md) | Share epoch cache/progress finalization while keeping model-specific result saving in FWI drivers. |
 | 54 | [FWI Batch Range Cleanup](./54-fwi-batch-range-cleanup.md) | Remove stale batch-bound locals from acoustic/elastic iteration loops while preserving shot selection and progress metadata. |
 | 55 | [FWI Waveform Alias Cleanup](./55-fwi-waveform-alias-cleanup.md) | Remove unused waveform aliases from acoustic/elastic batch loops while preserving record-level loss construction. |
+| 56 | [FWI Wavefield Input Helper](./56-fwi-wavefield-input-helper.md) | Share small record-to-wavefield selection helpers while preserving acoustic/elastic loss semantics. |
 
 ## Current Direction
 

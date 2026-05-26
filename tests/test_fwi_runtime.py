@@ -5,8 +5,10 @@ import numpy as np
 import torch
 
 from ADFWI.fwi.runtime import (
+    acoustic_pressure_waveforms,
     accumulate_named_wavefields,
     accumulate_wavefield,
+    elastic_gradient_wavefields,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -164,6 +166,36 @@ class FWIRuntimeTests(unittest.TestCase):
         tensor.data.add_(10.0)
 
         self.assertEqual(snapshot.tolist(), [1.0, 2.0])
+
+    def test_acoustic_pressure_waveforms_selects_loss_and_gradient_inputs(self):
+        pressure = torch.tensor([[1.0]])
+        forward_pressure = torch.tensor([[2.0]])
+        record = {
+            "p": pressure,
+            "u": torch.tensor([[3.0]]),
+            "forward_wavefield_p": forward_pressure,
+            "forward_wavefield_u": torch.tensor([[4.0]]),
+        }
+
+        rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(record)
+
+        self.assertIs(rcv_p, pressure)
+        self.assertIs(forward_wavefield_p, forward_pressure)
+
+    def test_elastic_gradient_wavefields_selects_configured_components(self):
+        record = {
+            "forward_wavefield_txx": torch.tensor([[1.0, 2.0]]),
+            "forward_wavefield_tzz": torch.tensor([[3.0, 4.0]]),
+            "forward_wavefield_vx": torch.tensor([[5.0, 6.0]]),
+            "forward_wavefield_vz": torch.tensor([[7.0, 8.0]]),
+            "forward_wavefield_txz": torch.tensor([[9.0, 10.0]]),
+        }
+
+        wavefields = elastic_gradient_wavefields(record, ["pressure", "vz"])
+
+        self.assertEqual(set(wavefields), {"pressure", "vz"})
+        self.assertTrue(torch.equal(wavefields["pressure"], torch.tensor([[-4.0, -6.0]])))
+        self.assertIs(wavefields["vz"], record["forward_wavefield_vz"])
 
     def test_wavefield_helpers_accumulate_detached_numpy_arrays(self):
         first = torch.tensor([[1.0, 2.0]], requires_grad=True)

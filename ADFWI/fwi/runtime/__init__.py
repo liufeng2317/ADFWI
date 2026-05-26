@@ -12,8 +12,10 @@ from .cache import (
 from .gradient import process_named_parameter_gradients, process_parameter_gradient
 from .regularization import calculate_regularization_loss
 from .wavefield import (
+    acoustic_pressure_waveforms,
     accumulate_named_wavefields,
     accumulate_wavefield,
+    elastic_gradient_wavefields,
     select_elastic_gradient_wavefield,
     wavefield_to_numpy,
 )
@@ -21,7 +23,9 @@ from .wavefield import (
 __all__ = [
     "accumulate_named_wavefields",
     "accumulate_wavefield",
+    "acoustic_pressure_waveforms",
     "align_regularization_backend",
+    "elastic_gradient_wavefields",
     "append_epoch_loss",
     "append_model_snapshots",
     "append_required_gradient_snapshots",

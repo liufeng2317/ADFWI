@@ -18,6 +18,7 @@ from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
     accumulate_named_wavefields,
+    elastic_gradient_wavefields,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -437,17 +438,7 @@ class ElasticFWI(torch.nn.Module):
                 # forward simulation
                 shot_index      = batch_range.shot_index
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                forward_wavefield_txx = record_waveform["forward_wavefield_txx"]
-                forward_wavefield_tzz = record_waveform["forward_wavefield_tzz"]
-                forward_wavefield_vx = record_waveform["forward_wavefield_vx"]
-                forward_wavefield_vz = record_waveform["forward_wavefield_vz"]
-                batch_wavefields = {}
-                if "pressure" in self.inversion_component:
-                    batch_wavefields["pressure"] = -(forward_wavefield_txx + forward_wavefield_tzz)
-                if "vx" in self.inversion_component:
-                    batch_wavefields["vx"] = forward_wavefield_vx
-                if "vz" in self.inversion_component:
-                    batch_wavefields["vz"] = forward_wavefield_vz
+                batch_wavefields = elastic_gradient_wavefields(record_waveform, self.inversion_component)
                 accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
 
                 # misfits

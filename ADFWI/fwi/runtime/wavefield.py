@@ -28,6 +28,25 @@ def accumulate_named_wavefields(accumulators, wavefields):
     return accumulators
 
 
+def acoustic_pressure_waveforms(record_waveform):
+    """Return acoustic pressure data used by loss and gradient processing."""
+    return record_waveform["p"], record_waveform["forward_wavefield_p"]
+
+
+def elastic_gradient_wavefields(record_waveform, inversion_components):
+    """Return elastic forward wavefields selected for gradient processing."""
+    wavefields = {}
+    if "pressure" in inversion_components:
+        wavefields["pressure"] = -(
+            record_waveform["forward_wavefield_txx"] + record_waveform["forward_wavefield_tzz"]
+        )
+    if "vx" in inversion_components:
+        wavefields["vx"] = record_waveform["forward_wavefield_vx"]
+    if "vz" in inversion_components:
+        wavefields["vz"] = record_waveform["forward_wavefield_vz"]
+    return wavefields
+
+
 def select_elastic_gradient_wavefield(accumulated_wavefields):
     """Select the legacy elastic wavefield passed to ``GradProcessor``.
 
