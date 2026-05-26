@@ -164,6 +164,7 @@ conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites publ
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,misfit --devices cpu,npu:0 --misfits L2,StudentT
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites examples --devices cpu,npu:0 --example-problems acoustic,elastic
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic --case-run-forward --case-shot-index 0
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,compare-mini --devices cpu,npu:0 --compare-cases trace-missing
 ```
 

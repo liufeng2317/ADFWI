@@ -4,8 +4,8 @@
 The suite is intended for new CPU/NPU/CUDA machines. It starts with the
 lightweight public backend API check and can optionally run tensor-level misfit
 checks, acoustic/elastic forward checks, user-facing minimal examples,
-read-only real-case checks, and mini-inversion CPU-vs-device comparisons. It writes no notebooks, figures,
-wavefields, or example outputs.
+read-only real-case checks, and mini-inversion CPU-vs-device comparisons.
+It writes no notebooks, figures, wavefields, or example outputs.
 """
 
 from __future__ import annotations
@@ -243,6 +243,59 @@ def command_for_case_check(case: str, device: str, args: argparse.Namespace) -> 
     return cmd
 
 
+def case_forward_norm(run: Dict[str, Any]) -> float | None:
+    try:
+        forward = run["result"]["single_shot_forward"]
+        if forward is None:
+            return None
+        return float(forward["pressure"]["norm"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def compare_case_forward_runs(runs: List[Dict[str, Any]], args: argparse.Namespace) -> List[Dict[str, Any]]:
+    comparisons = []
+    if not args.case_run_forward:
+        return comparisons
+    for case in args.case_checks:
+        case_runs = [run for run in runs if run.get("case_check") == case and run["status"] == "ok"]
+        reference = next((run for run in case_runs if run.get("device_request") == "cpu"), None)
+        if reference is None and case_runs:
+            reference = case_runs[0]
+        if reference is None:
+            continue
+        reference_norm = case_forward_norm(reference)
+        for run in case_runs:
+            if run is reference:
+                continue
+            value = case_forward_norm(run)
+            failed = reference_norm is None or value is None
+            metric: Dict[str, Any] = {"metric": "single_shot_forward.pressure.norm"}
+            if failed:
+                metric["status"] = "missing"
+            else:
+                abs_diff = abs(value - reference_norm)
+                rel_diff = abs_diff / max(abs(reference_norm), args.case_forward_atol)
+                failed = abs_diff > args.case_forward_atol and rel_diff > args.case_forward_rtol
+                metric.update({
+                    "reference": reference_norm,
+                    "value": value,
+                    "abs_diff": abs_diff,
+                    "rel_diff": rel_diff,
+                    "status": "failed" if failed else "ok",
+                })
+            comparisons.append({
+                "case_check": case,
+                "reference_device": reference.get("device_request"),
+                "device": run.get("device_request"),
+                "rtol": args.case_forward_rtol,
+                "atol": args.case_forward_atol,
+                "status": "failed" if failed else "ok",
+                "metrics": [metric],
+            })
+    return comparisons
+
+
 def run_case_checks(args: argparse.Namespace) -> Dict[str, Any]:
     runs = []
     for case in args.case_checks:
@@ -251,13 +304,16 @@ def run_case_checks(args: argparse.Namespace) -> Dict[str, Any]:
             run["case_check"] = case
             run["device_request"] = device
             runs.append(run)
+    comparisons = compare_case_forward_runs(runs, args)
     failed = [run for run in runs if run["status"] == "failed" or (run["status"] == "unavailable" and not args.skip_unavailable)]
+    failed.extend(compare for compare in comparisons if compare["status"] == "failed")
     return {
         "suite": "case-checks",
         "status": "failed" if failed else "ok",
         "devices": args.devices,
         "case_checks": args.case_checks,
         "runs": runs,
+        "comparisons": comparisons,
     }
 
 
@@ -284,7 +340,7 @@ def summarize_report(report: Dict[str, Any]) -> Dict[str, Any]:
         "failed": counts["failed"],
         "unavailable": counts["unavailable"],
     }
-    if report["suite"] == "examples":
+    if report["suite"] in {"examples", "case-checks"}:
         comparisons = report.get("comparisons", [])
         metric_rows = [metric for comparison in comparisons for metric in comparison.get("metrics", [])]
         summary["comparisons"] = len(comparisons)
@@ -373,6 +429,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--case-model-file", default="init_model.npz", choices=("init_model.npz", "true_model.npz"))
     parser.add_argument("--case-run-forward", action="store_true", help="run optional forward checks inside real-case check scripts")
     parser.add_argument("--case-shot-index", type=int, default=0, help="shot index used by optional real-case forward checks")
+    parser.add_argument("--case-forward-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device real-case forward metrics")
+    parser.add_argument("--case-forward-atol", type=float, default=1e-6, help="absolute tolerance for CPU-vs-device real-case forward metrics")
     return parser
 
 

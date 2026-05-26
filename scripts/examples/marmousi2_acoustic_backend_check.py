@@ -149,6 +149,7 @@ def tensor_summary(value: torch.Tensor) -> Dict[str, Any]:
         "finite": bool(torch.isfinite(detached).all().item()),
         "min": float(detached.min().cpu().item()),
         "max": float(detached.max().cpu().item()),
+        "norm": float(torch.linalg.norm(detached.reshape(-1)).cpu().item()),
     }
 
 
@@ -167,12 +168,18 @@ def maybe_run_forward(propagator: AcousticPropagator, backend, args: argparse.Na
         backend.synchronize()
     seconds = time.perf_counter() - start
     pressure = record["p"].detach()
-    if not torch.isfinite(pressure).all():
+    expected_shape = [1, propagator.nt, propagator.rcv_n]
+    pressure_summary = tensor_summary(pressure)
+    if pressure_summary["shape"] != expected_shape:
+        raise RuntimeError(f"single-shot forward pressure shape {pressure_summary['shape']} != {expected_shape}")
+    if not pressure_summary["finite"]:
         raise RuntimeError("single-shot forward pressure contains NaN or Inf")
+    if not math.isfinite(pressure_summary["norm"]) or pressure_summary["norm"] <= 0.0:
+        raise RuntimeError(f"single-shot forward pressure norm is invalid: {pressure_summary['norm']}")
     return {
         "shot_index": args.shot_index,
         "seconds": seconds,
-        "pressure": tensor_summary(pressure),
+        "pressure": pressure_summary,
     }
 
 

@@ -97,6 +97,7 @@ The same check can be launched through the layered smoke runner:
 
 ```bash
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic --case-run-forward --case-shot-index 0
 ```
 
 ## Extending Toward A Real Case
