@@ -20,6 +20,7 @@ from ADFWI.fwi.runtime import (
     append_epoch_loss,
     append_model_snapshots,
     append_required_gradient_snapshots,
+    calculate_model_regularization_loss,
     calculate_regularization_loss,
     parameter_specs,
     process_named_parameter_gradients,
@@ -144,6 +145,27 @@ class FWIRuntimeTests(unittest.TestCase):
         self.assertEqual(float(loss.item()), 0.0)
         self.assertEqual((regularization.alphax, regularization.alphaz), (0.0, 0.0))
         self.assertEqual(regularization.calls, [])
+
+    def test_calculate_model_regularization_loss_sums_ordered_parameters_and_weights(self):
+        model = SimpleNamespace(
+            vp=torch.ones((1, 1), requires_grad=True),
+            rho=torch.full((1, 1), 2.0, requires_grad=True),
+            frozen=torch.full((1, 1), 3.0, requires_grad=False),
+        )
+        regularization = DummyRegularization()
+
+        loss = calculate_model_regularization_loss(
+            model,
+            ["vp", "rho", "frozen"],
+            [1.0, 2.0, 3.0],
+            [0.5, 1.5, 4.0],
+            regularization,
+        )
+
+        expected_vp = torch.sum(model.vp * 1.0) + torch.sum(model.vp * 0.5 * 0.1)
+        expected_rho = torch.sum(model.rho * 2.0) + torch.sum(model.rho * 1.5 * 0.1)
+        self.assertTrue(torch.equal(loss, expected_vp + expected_rho))
+        self.assertEqual(regularization.calls, [(1.0, 0.5), (2.0, 1.5)])
 
     def test_cache_helpers_record_loss_and_model_snapshots(self):
         owner = SimpleNamespace(iter_loss=[], iter_vp=[], iter_rho=[], cache_iter_index=[])

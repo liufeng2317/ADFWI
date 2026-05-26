@@ -71,6 +71,7 @@ numbered order unless you are looking for a specific topic.
 | 60 | [Acoustic Batch Loss Step Helper](./60-acoustic-batch-loss-step.md) | Share the acoustic per-batch forward/loss/backward body between closure and non-closure optimizer paths. |
 | 61 | [Elastic Batch Loss Step Helper](./61-elastic-batch-loss-step.md) | Share the elastic per-batch forward/component-loss/backward body while preserving component and wavefield semantics. |
 | 62 | [FWI Parameter Spec Helpers](./62-fwi-parameter-spec-helpers.md) | Centralize acoustic/elastic parameter names and gradient processor index specs while keeping model choices explicit. |
+| 63 | [FWI Model Regularization Sum Helper](./63-fwi-model-regularization-sum.md) | Share ordered model-parameter regularization summation for acoustic and elastic drivers. |
 
 ## Current Direction
 

@@ -25,3 +25,23 @@ def calculate_regularization_loss(model_param, weight_x, weight_z, regularizatio
         if regularization_fn.alphax > 0 or regularization_fn.alphaz > 0:
             regularization_loss = regularization_fn.forward(model_param)
     return regularization_loss
+
+
+def calculate_model_regularization_loss(model, parameter_names, weights_x, weights_z, regularization_fn):
+    """Sum regularization losses for an ordered list of model parameters.
+
+    ``parameter_names`` owns the physical parameter order selected by the FWI
+    driver. The weight lists are indexed with the same order to preserve the
+    historical AcousticFWI and ElasticFWI behavior.
+    """
+
+    regularization_loss = None
+    for idx, name in enumerate(parameter_names):
+        parameter_loss = calculate_regularization_loss(
+            getattr(model, name),
+            weights_x[idx],
+            weights_z[idx],
+            regularization_fn,
+        )
+        regularization_loss = parameter_loss if regularization_loss is None else regularization_loss + parameter_loss
+    return regularization_loss

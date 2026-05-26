@@ -23,6 +23,7 @@ from ADFWI.fwi.runtime import (
     append_epoch_loss,
     append_model_snapshots,
     append_required_gradient_snapshots,
+    calculate_model_regularization_loss,
     calculate_regularization_loss,
     process_named_parameter_gradients,
     process_parameter_gradient,
@@ -245,16 +246,13 @@ class AcousticFWI(torch.nn.Module):
         return calculate_regularization_loss(model_param, weight_x, weight_z, regularization_fn)
 
     def calculate_model_regularization_loss(self):
-        regularization_loss = None
-        for idx, name in enumerate(acoustic_parameter_names()):
-            parameter_loss = self.calculate_regularization_loss(
-                getattr(self.model, name),
-                self.regularization_weights_x[idx],
-                self.regularization_weights_z[idx],
-                self.regularization_fn,
-            )
-            regularization_loss = parameter_loss if regularization_loss is None else regularization_loss + parameter_loss
-        return regularization_loss
+        return calculate_model_regularization_loss(
+            self.model,
+            acoustic_parameter_names(),
+            self.regularization_weights_x,
+            self.regularization_weights_z,
+            self.regularization_fn,
+        )
 
     # gradient precondition
     def process_gradient(self, parameter,forw,idx=None):
