@@ -3,7 +3,18 @@ from types import SimpleNamespace
 
 import torch
 
-from ADFWI.fwi.runtime import align_regularization_backend, validate_model_propagator_devices
+from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, validate_model_propagator_devices
+
+
+class DummyRegularization:
+    def __init__(self):
+        self.alphax = None
+        self.alphaz = None
+        self.calls = []
+
+    def forward(self, model_param):
+        self.calls.append((self.alphax, self.alphaz))
+        return torch.sum(model_param * self.alphax) + torch.sum(model_param * self.alphaz * 0.1)
 
 
 class FWIRuntimeTests(unittest.TestCase):
@@ -42,6 +53,36 @@ class FWIRuntimeTests(unittest.TestCase):
 
     def test_align_regularization_backend_accepts_none(self):
         self.assertIsNone(align_regularization_backend(None, torch.device("cpu"), torch.float32))
+
+    def test_calculate_regularization_loss_matches_legacy_formula(self):
+        param = torch.ones((2, 2), requires_grad=True)
+        regularization = DummyRegularization()
+
+        loss = calculate_regularization_loss(param, 2.0, 3.0, regularization)
+
+        expected = torch.sum(param * 2.0) + torch.sum(param * 3.0 * 0.1)
+        self.assertTrue(torch.equal(loss, expected))
+        self.assertEqual(regularization.calls, [(2.0, 3.0)])
+
+    def test_calculate_regularization_loss_skips_disabled_parameter(self):
+        param = torch.ones((2, 2), requires_grad=False)
+        regularization = DummyRegularization()
+
+        loss = calculate_regularization_loss(param, 2.0, 3.0, regularization)
+
+        self.assertEqual(float(loss.item()), 0.0)
+        self.assertEqual(loss.device, param.device)
+        self.assertEqual(regularization.calls, [])
+
+    def test_calculate_regularization_loss_skips_zero_weights(self):
+        param = torch.ones((2, 2), requires_grad=True)
+        regularization = DummyRegularization()
+
+        loss = calculate_regularization_loss(param, 0.0, 0.0, regularization)
+
+        self.assertEqual(float(loss.item()), 0.0)
+        self.assertEqual((regularization.alphax, regularization.alphaz), (0.0, 0.0))
+        self.assertEqual(regularization.calls, [])
 
 
 if __name__ == "__main__":

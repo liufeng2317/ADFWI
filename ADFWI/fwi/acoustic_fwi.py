@@ -16,7 +16,7 @@ from ADFWI.propagator  import AcousticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.runtime import align_regularization_backend, validate_model_propagator_devices
+from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, validate_model_propagator_devices
 from ADFWI.fwi.data import build_fwi_data_transform_pipeline, build_fwi_transform_context, evaluate_misfit_loss, normalize_waveform, prepare_fwi_loss_pair
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.transforms import DataTransformPipeline
@@ -223,16 +223,7 @@ class AcousticFWI(torch.nn.Module):
         """
         Generalized function to calculate regularization loss for a given parameter.
         """
-        regularization_loss = torch.tensor(0.0, device=model_param.device)
-        # Check if the parameter requires gradient
-        if model_param.requires_grad:
-            # Set the regularization weights for x and z directions
-            regularization_fn.alphax = weight_x
-            regularization_fn.alphaz = weight_z
-            # Calculate regularization loss if any weight is greater than zero
-            if regularization_fn.alphax > 0 or regularization_fn.alphaz > 0:
-                regularization_loss = regularization_fn.forward(model_param)
-        return regularization_loss
+        return calculate_regularization_loss(model_param, weight_x, weight_z, regularization_fn)
 
     def calculate_model_regularization_loss(self):
         regularization_loss_vp = self.calculate_regularization_loss(
