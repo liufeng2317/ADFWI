@@ -134,6 +134,13 @@ The acoustic example configures `ADFWI.set_backend(...)`, builds a tiny acoustic
 
 See `scripts/examples/README.md` for the researcher-facing example guide and migration notes for adapting the minimal scripts toward real cases.
 
+A read-only Marmousi2 acoustic case check is also available:
+
+```bash
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device cpu
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device npu:0
+```
+
 ## Smoke Test Commands
 
 Backend public API and integration tests:

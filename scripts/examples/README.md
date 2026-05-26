@@ -31,6 +31,7 @@ conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --devi
 | --- | --- | --- | --- |
 | `minimal_acoustic_fwi_backend.py` | Acoustic pressure modeling | One `AcousticFWI` iteration updating `vp` | JSON only |
 | `minimal_elastic_fwi_backend.py` | Isotropic elastic modeling, pressure component | One `ElasticFWI` iteration updating `vp` | JSON only |
+| `marmousi2_acoustic_backend_check.py` | Existing Marmousi2 acoustic case | Rebuild model, survey, observed data, and propagator; optional one-shot forward | JSON only |
 
 Both examples:
 
@@ -80,6 +81,17 @@ The runner reports a top-level `summary`. For the `examples` suite, check:
 - `summary.by_suite[].max_rel_diff`
 
 The detailed `reports` block remains available when you need per-script loss, gradient norm, update norm, timing, dtype, and device information.
+
+## Check The Existing Marmousi2 Case
+
+The Marmousi2 check script is a bridge from minimal examples to the real notebook case. By default it is read-only: it loads the existing model and observed waveform files, rebuilds ADFWI objects, initializes the propagator, and prints a JSON summary. It does not rewrite notebook outputs or `examples/acoustic/.../data` files.
+
+```bash
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device cpu
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_backend_check.py --device npu:0
+```
+
+Use `--run-forward --shot-index 0` only when you intentionally want to run one selected shot through the acoustic propagator. The default mode is intended for fast case integrity checks before heavier benchmark or inversion runs.
 
 ## Extending Toward A Real Case
 
