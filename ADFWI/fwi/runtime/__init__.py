@@ -9,6 +9,7 @@ from .cache import (
     snapshot_model_parameters,
     tensor_to_numpy,
 )
+from .forward import ForwardBatchRecord, acoustic_forward_batch, elastic_forward_batch
 from .gradient import process_named_parameter_gradients, process_parameter_gradient
 from .regularization import calculate_regularization_loss
 from .wavefield import (
@@ -26,6 +27,9 @@ __all__ = [
     "acoustic_pressure_waveforms",
     "align_regularization_backend",
     "elastic_gradient_wavefields",
+    "ForwardBatchRecord",
+    "acoustic_forward_batch",
+    "elastic_forward_batch",
     "append_epoch_loss",
     "append_model_snapshots",
     "append_required_gradient_snapshots",

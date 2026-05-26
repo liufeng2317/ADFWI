@@ -18,6 +18,7 @@ from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
     accumulate_wavefield,
+    acoustic_forward_batch,
     acoustic_pressure_waveforms,
     align_regularization_backend,
     append_epoch_loss,
@@ -333,13 +334,12 @@ class AcousticFWI(torch.nn.Module):
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
-                shot_index  = batch_range.shot_index
-                record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(record_waveform)
+                forward_batch = acoustic_forward_batch(self.propagator, batch_range, checkpoint_segments)
+                rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(forward_batch.record_waveform)
                 forw = accumulate_wavefield(forw, forward_wavefield_p)
                 
                 # misfit
-                syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
+                syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[forward_batch.shot_index], forward_batch.shot_index, cutoff_freq, self.propagator.dt)
                 data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                 
                 # regularization
@@ -397,13 +397,12 @@ class AcousticFWI(torch.nn.Module):
                 pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
                 for batch_range in pbar_batch:
                     # forward simulation
-                    shot_index  = batch_range.shot_index
-                    record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                    rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(record_waveform)
+                    forward_batch = acoustic_forward_batch(self.propagator, batch_range, checkpoint_segments)
+                    rcv_p, forward_wavefield_p = acoustic_pressure_waveforms(forward_batch.record_waveform)
                     self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
                     
                     # misfit
-                    syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[shot_index], shot_index, cutoff_freq, self.propagator.dt)
+                    syn_p, obs_p = self._prepare_loss_pair(rcv_p, self.obs_p[forward_batch.shot_index], forward_batch.shot_index, cutoff_freq, self.propagator.dt)
                     data_loss = self.calculate_loss(syn_p, obs_p, self.waveform_normalize, self.loss_fn, apply_transforms=False)
                     
                     # regularization

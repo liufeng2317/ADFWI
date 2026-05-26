@@ -1,0 +1,32 @@
+"""Per-batch forward execution helpers for FWI drivers."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ForwardBatchRecord:
+    """Forward output and shot selection for one FWI batch."""
+
+    shot_index: object
+    record_waveform: object
+
+
+def acoustic_forward_batch(propagator, batch_range, checkpoint_segments):
+    """Run one acoustic forward batch and keep its shot selection with the record."""
+    shot_index = batch_range.shot_index
+    record_waveform = propagator.forward(
+        shot_index=shot_index,
+        checkpoint_segments=checkpoint_segments,
+    )
+    return ForwardBatchRecord(shot_index=shot_index, record_waveform=record_waveform)
+
+
+def elastic_forward_batch(propagator, batch_range, *, fd_order, checkpoint_segments):
+    """Run one elastic forward batch and keep its shot selection with the record."""
+    shot_index = batch_range.shot_index
+    record_waveform = propagator.forward(
+        fd_order=fd_order,
+        shot_index=shot_index,
+        checkpoint_segments=checkpoint_segments,
+    )
+    return ForwardBatchRecord(shot_index=shot_index, record_waveform=record_waveform)

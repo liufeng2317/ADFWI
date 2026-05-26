@@ -18,6 +18,7 @@ from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
     accumulate_named_wavefields,
+    elastic_forward_batch,
     elastic_gradient_wavefields,
     align_regularization_backend,
     append_epoch_loss,
@@ -436,13 +437,17 @@ class ElasticFWI(torch.nn.Module):
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
-                shot_index      = batch_range.shot_index
-                record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                batch_wavefields = elastic_gradient_wavefields(record_waveform, self.inversion_component)
+                forward_batch = elastic_forward_batch(
+                    self.propagator,
+                    batch_range,
+                    fd_order=fd_order,
+                    checkpoint_segments=checkpoint_segments,
+                )
+                batch_wavefields = elastic_gradient_wavefields(forward_batch.record_waveform, self.inversion_component)
                 accumulate_named_wavefields(accumulated_wavefields, batch_wavefields)
 
                 # misfits
-                synthetic_components = elastic_synthetic_components(record_waveform)
+                synthetic_components = elastic_synthetic_components(forward_batch.record_waveform)
                 component_losses = []
                 for component, synthetic_component, observed_component, component_weight in elastic_component_loss_inputs(
                     synthetic_components,
@@ -452,8 +457,8 @@ class ElasticFWI(torch.nn.Module):
                 ):
                     synthetic_waveform, observed_waveform = self._prepare_loss_pair(
                         synthetic_component,
-                        observed_component[shot_index],
-                        shot_index,
+                        observed_component[forward_batch.shot_index],
+                        forward_batch.shot_index,
                         cutoff_freq,
                         self.propagator.dt,
                     )

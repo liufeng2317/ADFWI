@@ -65,6 +65,7 @@ numbered order unless you are looking for a specific topic.
 | 54 | [FWI Batch Range Cleanup](./54-fwi-batch-range-cleanup.md) | Remove stale batch-bound locals from acoustic/elastic iteration loops while preserving shot selection and progress metadata. |
 | 55 | [FWI Waveform Alias Cleanup](./55-fwi-waveform-alias-cleanup.md) | Remove unused waveform aliases from acoustic/elastic batch loops while preserving record-level loss construction. |
 | 56 | [FWI Wavefield Input Helper](./56-fwi-wavefield-input-helper.md) | Share small record-to-wavefield selection helpers while preserving acoustic/elastic loss semantics. |
+| 57 | [FWI Forward Batch Record](./57-fwi-forward-batch-record.md) | Introduce a per-batch forward record so shot selection and propagator output move together through FWI loops. |
 
 ## Current Direction
 

@@ -5,9 +5,12 @@ import numpy as np
 import torch
 
 from ADFWI.fwi.runtime import (
+    ForwardBatchRecord,
+    acoustic_forward_batch,
     acoustic_pressure_waveforms,
     accumulate_named_wavefields,
     accumulate_wavefield,
+    elastic_forward_batch,
     elastic_gradient_wavefields,
     align_regularization_backend,
     append_epoch_loss,
@@ -166,6 +169,42 @@ class FWIRuntimeTests(unittest.TestCase):
         tensor.data.add_(10.0)
 
         self.assertEqual(snapshot.tolist(), [1.0, 2.0])
+
+    def test_acoustic_forward_batch_keeps_shot_index_with_record(self):
+        batch_range = SimpleNamespace(shot_index=torch.tensor([1, 3]))
+        calls = []
+
+        class Propagator:
+            def forward(self, *, shot_index, checkpoint_segments):
+                calls.append((shot_index, checkpoint_segments))
+                return {"p": torch.tensor([[1.0]])}
+
+        result = acoustic_forward_batch(Propagator(), batch_range, checkpoint_segments=2)
+
+        self.assertIsInstance(result, ForwardBatchRecord)
+        self.assertIs(result.shot_index, batch_range.shot_index)
+        self.assertEqual(result.record_waveform["p"].tolist(), [[1.0]])
+        self.assertEqual(calls, [(batch_range.shot_index, 2)])
+
+    def test_elastic_forward_batch_preserves_fd_order_and_shot_index(self):
+        batch_range = SimpleNamespace(shot_index=torch.tensor([0]))
+        calls = []
+
+        class Propagator:
+            def forward(self, *, fd_order, shot_index, checkpoint_segments):
+                calls.append((fd_order, shot_index, checkpoint_segments))
+                return {"txx": torch.tensor([[2.0]])}
+
+        result = elastic_forward_batch(
+            Propagator(),
+            batch_range,
+            fd_order=4,
+            checkpoint_segments=3,
+        )
+
+        self.assertIs(result.shot_index, batch_range.shot_index)
+        self.assertEqual(result.record_waveform["txx"].tolist(), [[2.0]])
+        self.assertEqual(calls, [(4, batch_range.shot_index, 3)])
 
     def test_acoustic_pressure_waveforms_selects_loss_and_gradient_inputs(self):
         pressure = torch.tensor([[1.0]])
