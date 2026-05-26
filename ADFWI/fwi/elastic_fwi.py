@@ -22,6 +22,8 @@ from ADFWI.fwi.runtime import (
     append_model_snapshots,
     append_required_gradient_snapshots,
     calculate_regularization_loss,
+    elastic_gradient_parameter_specs,
+    elastic_parameter_names,
     process_named_parameter_gradients,
     process_parameter_gradient,
     select_elastic_gradient_wavefield,
@@ -236,12 +238,8 @@ class ElasticFWI(torch.nn.Module):
         return calculate_regularization_loss(model_param, weight_x, weight_z, regularization_fn)
     
     def calculate_model_regularization_loss(self):
-        parameter_names = ["vp", "vs", "rho"]
-        if isinstance(self.model, AnisotropicElasticModel):
-            parameter_names.extend(["eps", "delta", "gamma"])
-
         regularization_loss = None
-        for idx, name in enumerate(parameter_names):
+        for idx, name in enumerate(elastic_parameter_names(include_anisotropic=isinstance(self.model, AnisotropicElasticModel))):
             parameter_loss = self.calculate_regularization_loss(
                 getattr(self.model, name),
                 self.regularization_weights_x[idx],
@@ -364,9 +362,7 @@ class ElasticFWI(torch.nn.Module):
         """
             Save model parameters and gradients if caching is enabled.
         """
-        param_names = ["vp", "vs", "rho"]
-        anisotropic_params = ["eps", "delta", "gamma"] if isinstance(self.model, AnisotropicElasticModel) else []
-        all_param_names = param_names + anisotropic_params
+        all_param_names = elastic_parameter_names(include_anisotropic=isinstance(self.model, AnisotropicElasticModel))
 
         append_epoch_loss(self, loss_epoch)
         if should_cache_epoch(epoch_id, self.cache_result_epoch):
@@ -454,12 +450,9 @@ class ElasticFWI(torch.nn.Module):
             
             # gradient process
             gradient_wavefield = select_elastic_gradient_wavefield(accumulated_wavefields)
-            gradient_parameter_specs = [("vp", 0), ("vs", 1), ("rho", 2)]
-            if isinstance(self.model, AnisotropicElasticModel):
-                gradient_parameter_specs.extend([("eps", 3), ("delta", 4)])
             process_named_parameter_gradients(
                 self.model,
-                gradient_parameter_specs,
+                elastic_gradient_parameter_specs(include_anisotropic=isinstance(self.model, AnisotropicElasticModel)),
                 self.process_gradient,
                 forw=gradient_wavefield,
             )

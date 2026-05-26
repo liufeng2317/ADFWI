@@ -10,7 +10,15 @@ from .cache import (
     tensor_to_numpy,
 )
 from .forward import ForwardBatchRecord, acoustic_forward_batch, elastic_forward_batch
-from .gradient import process_named_parameter_gradients, process_parameter_gradient
+from .gradient import (
+    acoustic_gradient_parameter_specs,
+    acoustic_parameter_names,
+    elastic_gradient_parameter_specs,
+    elastic_parameter_names,
+    parameter_specs,
+    process_named_parameter_gradients,
+    process_parameter_gradient,
+)
 from .regularization import calculate_regularization_loss
 from .wavefield import (
     acoustic_pressure_waveforms,
@@ -25,8 +33,12 @@ __all__ = [
     "accumulate_named_wavefields",
     "accumulate_wavefield",
     "acoustic_pressure_waveforms",
+    "acoustic_gradient_parameter_specs",
+    "acoustic_parameter_names",
     "align_regularization_backend",
     "elastic_gradient_wavefields",
+    "elastic_gradient_parameter_specs",
+    "elastic_parameter_names",
     "ForwardBatchRecord",
     "acoustic_forward_batch",
     "elastic_forward_batch",
@@ -34,6 +46,7 @@ __all__ = [
     "append_model_snapshots",
     "append_required_gradient_snapshots",
     "calculate_regularization_loss",
+    "parameter_specs",
     "process_named_parameter_gradients",
     "process_parameter_gradient",
     "select_elastic_gradient_wavefield",

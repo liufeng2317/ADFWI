@@ -6,17 +6,22 @@ import torch
 
 from ADFWI.fwi.runtime import (
     ForwardBatchRecord,
+    acoustic_gradient_parameter_specs,
     acoustic_forward_batch,
+    acoustic_parameter_names,
     acoustic_pressure_waveforms,
     accumulate_named_wavefields,
     accumulate_wavefield,
     elastic_forward_batch,
+    elastic_gradient_parameter_specs,
     elastic_gradient_wavefields,
+    elastic_parameter_names,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
     append_required_gradient_snapshots,
     calculate_regularization_loss,
+    parameter_specs,
     process_named_parameter_gradients,
     process_parameter_gradient,
     select_elastic_gradient_wavefield,
@@ -58,6 +63,22 @@ class DummyGradientProcessor:
 
 
 class FWIRuntimeTests(unittest.TestCase):
+    def test_parameter_specs_assigns_legacy_list_indices(self):
+        self.assertEqual(parameter_specs(["a", "b"], start_index=3), [("a", 3), ("b", 4)])
+
+    def test_acoustic_parameter_helpers_preserve_vp_rho_order(self):
+        self.assertEqual(acoustic_parameter_names(), ["vp", "rho"])
+        self.assertEqual(acoustic_gradient_parameter_specs(), [("vp", 0), ("rho", 1)])
+
+    def test_elastic_parameter_helpers_preserve_isotropic_and_anisotropic_contracts(self):
+        self.assertEqual(elastic_parameter_names(), ["vp", "vs", "rho"])
+        self.assertEqual(elastic_gradient_parameter_specs(), [("vp", 0), ("vs", 1), ("rho", 2)])
+        self.assertEqual(elastic_parameter_names(include_anisotropic=True), ["vp", "vs", "rho", "eps", "delta", "gamma"])
+        self.assertEqual(
+            elastic_gradient_parameter_specs(include_anisotropic=True),
+            [("vp", 0), ("vs", 1), ("rho", 2), ("eps", 3), ("delta", 4)],
+        )
+
     def test_validate_model_propagator_devices_allows_matching_devices(self):
         model = SimpleNamespace(device=torch.device("cpu"))
         propagator = SimpleNamespace(device=torch.device("cpu"))

@@ -17,6 +17,8 @@ from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
 from ADFWI.fwi.runtime import (
+    acoustic_gradient_parameter_specs,
+    acoustic_parameter_names,
     align_regularization_backend,
     append_epoch_loss,
     append_model_snapshots,
@@ -243,19 +245,16 @@ class AcousticFWI(torch.nn.Module):
         return calculate_regularization_loss(model_param, weight_x, weight_z, regularization_fn)
 
     def calculate_model_regularization_loss(self):
-        regularization_loss_vp = self.calculate_regularization_loss(
-            self.model.vp,
-            self.regularization_weights_x[0],
-            self.regularization_weights_z[0],
-            self.regularization_fn,
-        )
-        regularization_loss_rho = self.calculate_regularization_loss(
-            self.model.rho,
-            self.regularization_weights_x[1],
-            self.regularization_weights_z[1],
-            self.regularization_fn,
-        )
-        return regularization_loss_vp + regularization_loss_rho
+        regularization_loss = None
+        for idx, name in enumerate(acoustic_parameter_names()):
+            parameter_loss = self.calculate_regularization_loss(
+                getattr(self.model, name),
+                self.regularization_weights_x[idx],
+                self.regularization_weights_z[idx],
+                self.regularization_fn,
+            )
+            regularization_loss = parameter_loss if regularization_loss is None else regularization_loss + parameter_loss
+        return regularization_loss
 
     # gradient precondition
     def process_gradient(self, parameter,forw,idx=None):
@@ -359,7 +358,7 @@ class AcousticFWI(torch.nn.Module):
             # gradient process
             process_named_parameter_gradients(
                 self.model,
-                [("vp", 0), ("rho", 1)],
+                acoustic_gradient_parameter_specs(),
                 self.process_gradient,
                 forw=forw,
             )
@@ -422,7 +421,7 @@ class AcousticFWI(torch.nn.Module):
                 # gradient process
                 process_named_parameter_gradients(
                     self.model,
-                    [("vp", 0), ("rho", 1)],
+                    acoustic_gradient_parameter_specs(),
                     self.process_gradient,
                     forw=self.forw,
                 )
