@@ -437,8 +437,10 @@ class ElasticFWI(torch.nn.Module):
                 # forward simulation
                 shot_index      = batch_range.shot_index
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]
-                forward_wavefield_txx,forward_wavefield_tzz,forward_wavefield_txz,forward_wavefield_vx,forward_wavefield_vz = record_waveform["forward_wavefield_txx"],record_waveform["forward_wavefield_tzz"],record_waveform["forward_wavefield_txz"],record_waveform["forward_wavefield_vx"],record_waveform["forward_wavefield_vz"]
+                forward_wavefield_txx = record_waveform["forward_wavefield_txx"]
+                forward_wavefield_tzz = record_waveform["forward_wavefield_tzz"]
+                forward_wavefield_vx = record_waveform["forward_wavefield_vx"]
+                forward_wavefield_vz = record_waveform["forward_wavefield_vz"]
                 batch_wavefields = {}
                 if "pressure" in self.inversion_component:
                     batch_wavefields["pressure"] = -(forward_wavefield_txx + forward_wavefield_tzz)

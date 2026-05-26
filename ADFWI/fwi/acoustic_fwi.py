@@ -334,8 +334,8 @@ class AcousticFWI(torch.nn.Module):
                 # forward simulation
                 shot_index  = batch_range.shot_index
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
-                forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
+                rcv_p = record_waveform["p"]
+                forward_wavefield_p = record_waveform["forward_wavefield_p"]
                 forw = accumulate_wavefield(forw, forward_wavefield_p)
                 
                 # misfit
@@ -399,8 +399,8 @@ class AcousticFWI(torch.nn.Module):
                     # forward simulation
                     shot_index  = batch_range.shot_index
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
-                    rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
-                    forward_wavefield_p,forward_wavefield_u,forward_wavefield_w = record_waveform["forward_wavefield_p"],record_waveform["forward_wavefield_u"],record_waveform["forward_wavefield_w"]
+                    rcv_p = record_waveform["p"]
+                    forward_wavefield_p = record_waveform["forward_wavefield_p"]
                     self.forw = accumulate_wavefield(self.forw, forward_wavefield_p)
                     
                     # misfit
