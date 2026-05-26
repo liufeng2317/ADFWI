@@ -16,6 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
+from ADFWI.fwi.runtime import align_regularization_backend, validate_model_propagator_devices
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
@@ -95,8 +96,8 @@ class ElasticFWI(torch.nn.Module):
         self.gradient_processor         = gradient_processor
         self.device                     = self.propagator.device
         self.dtype                      = self.propagator.dtype 
-        self._validate_device_consistency()
-        self._align_regularization_backend()
+        validate_model_propagator_devices(self.model, self.propagator)
+        align_regularization_backend(self.regularization_fn, self.device, self.dtype)
         
         # Real-Case settings: for trace missing, partial data missing
         receiver_masks = self.propagator.receiver_masks
@@ -156,26 +157,6 @@ class ElasticFWI(torch.nn.Module):
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
         return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
-    def _validate_device_consistency(self):
-        if self.model.device != self.propagator.device:
-            raise ValueError(
-                f"Model device {self.model.device} and propagator device {self.propagator.device} are inconsistent. "
-                "Create them with the same backend or configure ADFWI.backends before constructing them."
-            )
-
-    def _align_regularization_backend(self):
-        if self.regularization_fn is None:
-            return
-
-        self.regularization_fn.device = self.device
-        self.regularization_fn.dtype = self.dtype
-        for name, value in vars(self.regularization_fn).items():
-            if not torch.is_tensor(value):
-                continue
-            to_kwargs = {"device": self.device}
-            if value.is_floating_point() or value.is_complex():
-                to_kwargs["dtype"] = self.dtype
-            setattr(self.regularization_fn, name, value.to(**to_kwargs))
 
     def _normalize(self, data):
         return normalize_waveform(data)
