@@ -435,8 +435,6 @@ class ElasticFWI(torch.nn.Module):
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
-                begin_index     = batch_range.begin
-                end_index       = batch_range.end
                 shot_index      = batch_range.shot_index
                 record_waveform = self.propagator.forward(fd_order=fd_order,shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_txx,rcv_tzz,rcv_txz,rcv_vx,rcv_vz = record_waveform["txx"],record_waveform["tzz"],record_waveform["txz"],record_waveform["vx"],record_waveform["vz"]

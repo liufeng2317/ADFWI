@@ -332,8 +332,6 @@ class AcousticFWI(torch.nn.Module):
             pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
             for batch_range in pbar_batch:
                 # forward simulation
-                begin_index = batch_range.begin
-                end_index   = batch_range.end
                 shot_index  = batch_range.shot_index
                 record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                 rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
@@ -399,8 +397,6 @@ class AcousticFWI(torch.nn.Module):
                 pbar_batch = tqdm(batch_ranges,position=1,leave=False,colour='red',ncols=80)
                 for batch_range in pbar_batch:
                     # forward simulation
-                    begin_index = batch_range.begin
-                    end_index   = batch_range.end
                     shot_index  = batch_range.shot_index
                     record_waveform = self.propagator.forward(shot_index=shot_index,checkpoint_segments=checkpoint_segments)
                     rcv_p,rcv_u,rcv_w = record_waveform["p"],record_waveform["u"],record_waveform["w"]
