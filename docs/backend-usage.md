@@ -134,6 +134,14 @@ conda run -n adfwi python scripts/smoke/backend_public_api_smoke.py --device cpu
 conda run -n adfwi python scripts/smoke/backend_public_api_smoke.py --device npu:0
 ```
 
+Layered backend smoke suite:
+
+```bash
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public --devices cpu,npu:0
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,misfit --devices cpu,npu:0 --misfits L2,StudentT
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,compare-mini --devices cpu,npu:0 --compare-cases trace-missing
+```
+
 Acoustic smoke tests:
 
 ```bash
