@@ -16,7 +16,7 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, validate_model_propagator_devices
+from ADFWI.fwi.runtime import align_regularization_backend, calculate_regularization_loss, process_parameter_gradient, validate_model_propagator_devices
 from ADFWI.fwi.iteration import build_batch_loss, iter_batch_ranges, set_batch_description
 from ADFWI.fwi.data import (
     ELASTIC_COMPONENTS,
@@ -244,17 +244,15 @@ class ElasticFWI(torch.nn.Module):
     
     # gradient precondition
     def process_gradient(self, parameter, forw, idx=None):
-        with torch.no_grad():
-            grads = parameter.grad.cpu().detach().numpy()
-            vmax = np.max(parameter.cpu().detach().numpy())
-            # Apply gradient processor
-            if isinstance(self.gradient_processor, GradProcessor):
-                grads = self.gradient_processor.forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
-            else:
-                grads = self.gradient_processor[idx].forward(nz=self.model.nz, nx=self.model.nx, vmax=vmax, grad=grads, forw=forw)
-            # Convert grads back to tensor and assign
-            grads_tensor = numpy2tensor(grads, dtype=self.propagator.dtype).to(self.propagator.device)
-            parameter.grad = grads_tensor
+        process_parameter_gradient(
+            parameter,
+            self.gradient_processor,
+            model=self.model,
+            propagator=self.propagator,
+            forw=forw,
+            idx=idx,
+            processor_type=GradProcessor,
+        )
         return
 
     def save_vp_vs_rho_fig(self,epoch_id,vp,vs,rho):
