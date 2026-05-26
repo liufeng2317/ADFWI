@@ -1,6 +1,6 @@
 """Data transform pipeline utilities for FWI workflows."""
 
-from .amplitude import TraceNormalize
+from .amplitude import TraceNormalize, normalize_waveform
 from .base import DataTransform, DataTransformPipeline
 from .filters import LegacyLowPassFilter, LowPassFilter
 from .masks import DataMask, ReceiverMask
@@ -17,5 +17,6 @@ __all__ = [
     "LowPassFilter",
     "ReceiverMask",
     "TraceNormalize",
+    "normalize_waveform",
     "select_or_mask_receivers",
 ]

@@ -1,18 +1,12 @@
-"""Waveform normalization helpers shared by FWI data paths and transforms."""
+"""Backward-compatible waveform normalization import surface.
+
+The canonical waveform-amplitude normalization formula lives next to the
+`TraceNormalize` transform in ``ADFWI.fwi.transforms.amplitude``. This module is
+kept so existing imports from ``ADFWI.fwi.normalization`` continue to work.
+"""
 
 from __future__ import annotations
 
-import torch
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 
-
-def normalize_waveform(data: torch.Tensor, dim: int = 1) -> torch.Tensor:
-    """Normalize each waveform trace by its maximum absolute amplitude.
-
-    All-zero traces keep a denominator of 1 so they remain zero and do not
-    introduce NaNs.
-    """
-
-    zero_trace = torch.sum(torch.abs(data), dim=dim, keepdim=True) == 0
-    max_value = torch.max(torch.abs(data), dim=dim, keepdim=True).values
-    max_value = max_value.masked_fill(zero_trace, 1)
-    return data / max_value
+__all__ = ["normalize_waveform"]

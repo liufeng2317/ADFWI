@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from ADFWI.fwi.normalization import normalize_waveform
-from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LowPassFilter, ReceiverMask, TraceNormalize
+from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LowPassFilter, ReceiverMask, TraceNormalize, normalize_waveform as transform_normalize_waveform
 
 
 class DataTransformTests(unittest.TestCase):
@@ -31,6 +31,11 @@ class DataTransformTests(unittest.TestCase):
         synthetic, observed = self._waveforms()
         with self.assertRaises(ValueError):
             DataTransformPipeline()(synthetic, observed[:, :, :2])
+
+    def test_transform_package_exports_waveform_normalization(self):
+        data = torch.tensor([[[0.0, 2.0], [2.0, -4.0]]])
+
+        self.assertTrue(torch.equal(transform_normalize_waveform(data), normalize_waveform(data)))
 
     def test_trace_normalize_reuses_shared_waveform_normalization(self):
         synthetic, observed = self._waveforms()
