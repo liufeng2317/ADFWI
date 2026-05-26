@@ -132,6 +132,8 @@ conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --devi
 
 The acoustic example configures `ADFWI.set_backend(...)`, builds a tiny acoustic true/initial model pair, synthesizes observed data in memory, runs one AcousticFWI iteration, and prints a JSON summary. The elastic example mirrors the same pattern with an isotropic ElasticFWI pressure-component inversion.
 
+See `scripts/examples/README.md` for the researcher-facing example guide and migration notes for adapting the minimal scripts toward real cases.
+
 ## Smoke Test Commands
 
 Backend public API and integration tests:
