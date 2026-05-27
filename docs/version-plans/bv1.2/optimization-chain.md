@@ -130,9 +130,11 @@ numerical method, record the drift and tolerance in
    moved to canonical bv1.2 imports.
 16. Keep waveform operations owned by `ADFWI.fwi.transforms`; avoid exporting
    transform helpers through data-contract packages.
-17. Validate the torch-native gradient processor through smoothing and
+17. Route active FWI iteration imports to owner modules before narrowing the
+   package-level `ADFWI.fwi.iteration` aggregation surface.
+18. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-18. Convert example options into a small reproducible configuration layer once
+19. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-19. Defer deeper propagator-level performance work, such as checkpointing or
+20. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

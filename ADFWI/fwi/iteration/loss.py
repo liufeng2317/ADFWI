@@ -15,6 +15,7 @@ from ADFWI.fwi.runtime import (
     elastic_forward_batch,
     elastic_gradient_wavefields,
 )
+from .progress import set_batch_description
 
 
 @dataclass(frozen=True)
@@ -72,8 +73,6 @@ def apply_batch_loss_step(
     regularization, add the detached scalar to the epoch total, run backward,
     and update the legacy progress label when batch metadata is provided.
     """
-    from .progress import set_batch_description
-
     batch_loss = build_batch_loss(data_loss, regularization_loss)
     epoch_loss_scalar = epoch_loss_scalar + batch_loss.scalar
     batch_loss.tensor.backward()

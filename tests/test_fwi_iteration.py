@@ -3,16 +3,15 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.iteration import (
+from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
+from ADFWI.fwi.iteration.loss import (
     apply_acoustic_batch_loss_step,
     apply_batch_loss_step,
     apply_elastic_batch_loss_step,
-    apply_epoch_update_step,
     build_batch_loss,
-    finalize_epoch_progress,
-    iter_batch_ranges,
-    set_batch_description,
 )
+from ADFWI.fwi.iteration.progress import finalize_epoch_progress, set_batch_description
+from ADFWI.fwi.iteration.range import iter_batch_ranges
 
 
 class DummyProgressBar:

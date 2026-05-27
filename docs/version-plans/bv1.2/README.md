@@ -105,6 +105,7 @@ numbered order unless you are looking for a specific topic.
 | 94 | [Remove Thin Compatibility Shims](./94-remove-thin-compat-shims.md) | Remove old normalization and multiScaleProcessing import shims in favor of canonical bv1.2 APIs. |
 | 95 | [Remove Transform Waveform Shim](./95-remove-transform-waveform-shim.md) | Remove the unused `ADFWI.fwi.transforms.waveform` re-export module. |
 | 96 | [Remove Data Normalize Re-Export](./96-remove-data-normalize-reexport.md) | Remove `ADFWI.fwi.data.normalize_waveform` in favor of transform-layer canonical imports. |
+| 97 | [Iteration Owner Imports](./97-iteration-owner-imports.md) | Route active FWI iteration imports to owner modules before narrowing package-level re-exports. |
 
 ## Current Direction
 
@@ -148,3 +149,6 @@ numbered order unless you are looking for a specific topic.
   to canonical bv1.2 import paths.
 - Keep waveform operations owned by `ADFWI.fwi.transforms`; the data package
   should expose data-contract helpers rather than waveform operation aliases.
+- Route active FWI drivers and tests to owner modules under
+  `ADFWI.fwi.iteration` before deciding whether package-level iteration
+  re-exports should remain public in `bv1.2`.

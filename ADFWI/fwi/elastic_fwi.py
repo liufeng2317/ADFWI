@@ -33,7 +33,6 @@ from ADFWI.fwi.runtime import (
     tensor_to_numpy,
     validate_model_propagator_devices,
 )
-from ADFWI.fwi.iteration import apply_elastic_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.data import (
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
@@ -43,6 +42,10 @@ from ADFWI.fwi.data import (
     prepare_fwi_loss_pair,
     prepare_loss_pair,
 )
+from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
+from ADFWI.fwi.iteration.loss import apply_elastic_batch_loss_step
+from ADFWI.fwi.iteration.progress import finalize_epoch_progress
+from ADFWI.fwi.iteration.range import iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.utils       import numpy2tensor

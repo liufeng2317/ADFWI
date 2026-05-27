@@ -37,7 +37,10 @@ from ADFWI.fwi.data import (
     evaluate_misfit_loss,
     prepare_fwi_loss_pair,
 )
-from ADFWI.fwi.iteration import apply_acoustic_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
+from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
+from ADFWI.fwi.iteration.loss import apply_acoustic_batch_loss_step
+from ADFWI.fwi.iteration.progress import finalize_epoch_progress
+from ADFWI.fwi.iteration.range import iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.fwi.optimizer import NLCG
