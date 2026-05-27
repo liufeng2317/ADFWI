@@ -123,6 +123,21 @@ def finite_positive(value: float, label: str) -> None:
         raise RuntimeError(f"{label} must be finite and positive, got {value}")
 
 
+def summarize_losses(losses):
+    initial_loss = losses[0]
+    final_loss = losses[-1]
+    loss_delta = final_loss - initial_loss
+    return {
+        "initial_loss": initial_loss,
+        "loss": final_loss,
+        "loss_history": losses,
+        "loss_min": min(losses),
+        "loss_max": max(losses),
+        "loss_delta": loss_delta,
+        "loss_relative_delta": loss_delta / max(abs(initial_loss), 1e-30),
+    }
+
+
 def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     backend = configure_backend(args)
     torch.manual_seed(args.seed)
@@ -187,7 +202,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     for idx, value in enumerate(losses):
         finite_positive(value, f"loss[{idx}]")
 
-    loss = float(fwi.iter_loss[-1])
+    loss_summary = summarize_losses(losses)
+    loss = loss_summary["loss"]
     grad_norm = tensor_norm(model.vp.grad)
     update_norm = tensor_norm(model.vp.detach() - initial_vp)
     finite_positive(loss, "loss")
@@ -221,11 +237,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "misfit": loss_name,
             "waveform_normalize": args.waveform_normalize,
             "seconds": seconds,
-            "loss": loss,
-            "initial_loss": losses[0],
-            "loss_history": losses,
-            "loss_min": min(losses),
-            "loss_max": max(losses),
+            **loss_summary,
             "vp_grad_norm": grad_norm,
             "vp_update_norm": update_norm,
         },
