@@ -9,21 +9,30 @@ from ADFWI.propagator import GradProcessor, TorchGradProcessor
 
 
 class TorchGradProcessorTests(unittest.TestCase):
-    def test_torch_processor_matches_legacy_norm_only(self):
-        grad = np.array([[1.0, -2.0, 0.5], [3.0, -4.0, 2.5]], dtype=np.float32)
-        legacy = GradProcessor(norm_grad=True, forw_illumination=False)
-        torch_processor = TorchGradProcessor(norm_grad=True, forw_illumination=False)
+    def assert_torch_matches_legacy(self, grad, *, vmax=2500.0, forw=None, rtol=1e-5, atol=2e-3, **processor_kwargs):
+        legacy = GradProcessor(**processor_kwargs)
+        torch_processor = TorchGradProcessor(**processor_kwargs)
 
-        expected = legacy.forward(nx=3, nz=2, vmax=2500.0, grad=grad.copy(), forw=None)
+        expected = legacy.forward(
+            nx=grad.shape[1],
+            nz=grad.shape[0],
+            vmax=vmax,
+            grad=grad.copy(),
+            forw=None if forw is None else forw.copy(),
+        )
         actual = torch_processor.forward_torch(
-            nx=3,
-            nz=2,
-            vmax=torch.tensor(2500.0),
+            nx=grad.shape[1],
+            nz=grad.shape[0],
+            vmax=torch.tensor(vmax),
             grad=torch.tensor(grad),
-            forw=None,
+            forw=None if forw is None else torch.tensor(forw),
         ).cpu().numpy()
 
-        np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6)
+        np.testing.assert_allclose(actual, expected, rtol=rtol, atol=atol)
+
+    def test_torch_processor_matches_legacy_norm_only(self):
+        grad = np.array([[1.0, -2.0, 0.5], [3.0, -4.0, 2.5]], dtype=np.float32)
+        self.assert_torch_matches_legacy(grad, norm_grad=True, forw_illumination=False, rtol=1e-6, atol=1e-6)
 
     def test_torch_processor_matches_legacy_marine_mute_mask_and_norm(self):
         grad = np.arange(1, 17, dtype=np.float32).reshape(4, 4)
@@ -31,31 +40,58 @@ class TorchGradProcessorTests(unittest.TestCase):
             [[1.0, 0.0, 1.0, 1.0], [1.0, 1.0, 0.0, 1.0], [0.5, 1.0, 1.0, 0.5], [1.0, 1.0, 1.0, 1.0]],
             dtype=np.float32,
         )
-        legacy = GradProcessor(
+        self.assert_torch_matches_legacy(
+            grad,
+            vmax=3000.0,
             grad_mute=1,
             grad_mask=mask,
             norm_grad=True,
             forw_illumination=False,
             marine_or_land="marine",
+            rtol=1e-6,
+            atol=1e-6,
         )
-        torch_processor = TorchGradProcessor(
-            grad_mute=1,
-            grad_mask=mask,
+
+    def test_torch_processor_matches_legacy_marine_smoothing(self):
+        grad = np.arange(1, 37, dtype=np.float32).reshape(6, 6)
+
+        self.assert_torch_matches_legacy(
+            grad,
+            grad_mute=2,
+            grad_smooth=1,
+            grad_mask=None,
             norm_grad=True,
             forw_illumination=False,
             marine_or_land="marine",
         )
 
-        expected = legacy.forward(nx=4, nz=4, vmax=3000.0, grad=grad.copy(), forw=None)
-        actual = torch_processor.forward_torch(
-            nx=4,
-            nz=4,
-            vmax=torch.tensor(3000.0),
-            grad=torch.tensor(grad),
-            forw=None,
-        ).cpu().numpy()
+    def test_torch_processor_matches_legacy_land_mute_and_smoothing(self):
+        grad = np.arange(1, 37, dtype=np.float32).reshape(6, 6)
 
-        np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6)
+        self.assert_torch_matches_legacy(
+            grad,
+            grad_mute=2,
+            grad_smooth=1,
+            grad_mask=None,
+            norm_grad=True,
+            forw_illumination=False,
+            marine_or_land="land",
+        )
+
+    def test_torch_processor_matches_legacy_forward_illumination(self):
+        grad = np.arange(1, 37, dtype=np.float32).reshape(6, 6)
+        forw = np.linspace(0.2, 2.0, 36, dtype=np.float32).reshape(6, 6)
+
+        self.assert_torch_matches_legacy(
+            grad,
+            forw=forw,
+            grad_mute=0,
+            grad_smooth=0,
+            grad_mask=None,
+            norm_grad=True,
+            forw_illumination=True,
+            marine_or_land="land",
+        )
 
     def test_runtime_dispatches_torch_processor_without_changing_dtype_or_device(self):
         param = torch.tensor([[2.0, 4.0], [6.0, 8.0]], dtype=torch.float64, requires_grad=True)

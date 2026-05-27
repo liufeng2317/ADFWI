@@ -146,8 +146,8 @@ numerical method, record the drift and tolerance in
    package import syntax.
 23. Continue auditing example notebooks for stale comments, but avoid executing
    heavy notebooks unless a changed cell needs runtime validation.
-24. Validate the torch-native gradient processor through smoothing and
-   illumination branches before considering any default-path migration.
+24. Treat torch-native gradient processing as the next convergence-focused
+   optimization path: parity first, timing second, fixed Marmousi2 gate third.
 25. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
 26. Defer deeper propagator-level performance work, such as checkpointing or

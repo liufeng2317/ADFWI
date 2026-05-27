@@ -115,6 +115,7 @@ numbered order unless you are looking for a specific topic.
 | 104 | [Example Import Surface Audit](./104-example-import-surface-audit.md) | Update examples and sphinx API sources that still referenced removed import shims. |
 | 105 | [Import Surface Policy Test](./105-import-surface-policy-test.md) | Add a tracked-file regression test for removed shims and namespace-only import surfaces. |
 | 106 | [Broaden Import Surface Policy](./106-import-surface-policy-broaden.md) | Catch alternate namespace-only package imports in the import-surface policy test. |
+| 107 | [Torch Gradient Parity Convergence](./107-torch-gradient-parity-convergence.md) | Fix legacy land taper compatibility and expand legacy-vs-torch gradient processor parity tests. |
 
 ## Current Direction
 
@@ -179,3 +180,5 @@ numbered order unless you are looking for a specific topic.
   import-surface cleanup.
 - Keep the import-surface policy broad enough to catch equivalent `import ...`
   and `from ADFWI.fwi import ...` forms, not only direct helper imports.
+- Shift from broad cleanup to convergence-focused optimization: strengthen
+  torch gradient parity and timing gates before changing default FWI paths.

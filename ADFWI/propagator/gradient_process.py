@@ -71,6 +71,15 @@ def _torch_smooth2d(Z, span=10):
     return (smoothed / normalizer).reshape_as(work).to(dtype=original_dtype)
 
 
+def _hamming_window(length):
+    """Return the NumPy Hamming window used by the legacy taper path."""
+    if hasattr(scipy.signal, "windows") and hasattr(scipy.signal.windows, "hamming"):
+        return scipy.signal.windows.hamming(length, sym=True)
+    if hasattr(scipy.signal, "hamming"):
+        return scipy.signal.hamming(length)
+    return np.hamming(length)
+
+
 def grad_taper_torch(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine', *, device=None, dtype=None):
     """Torch version of grad_taper that keeps masks on the active device."""
     device = torch.device("cpu") if device is None else device
@@ -101,7 +110,7 @@ def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine'):
             
     # for the land gradient damping, use the small threds
     else:
-        H = scipy.signal.hamming(tapersize*2)  # gaussian window
+        H = _hamming_window(tapersize*2)  # gaussian window
         H = H[tapersize:]
         taper = np.zeros((nz, nx))
         for ix in range(nz):
