@@ -197,6 +197,13 @@ conda run -n adfwi python scripts/smoke/misfit_backend_smoke.py --device cpu
 conda run -n adfwi python scripts/smoke/misfit_backend_smoke.py --device npu:0
 ```
 
+Benchmark legacy versus torch gradient processing:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device cpu --warmup 1 --repeat 3 --gradient-processors legacy,torch
+conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device npu:0 --warmup 1 --repeat 3 --gradient-processors legacy,torch
+```
+
 
 ## Public API Stability
 

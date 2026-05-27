@@ -81,6 +81,7 @@ conda run -n adfwi python -m unittest tests/test_data_transforms.py tests/test_f
 conda run -n adfwi python -m unittest tests/test_receiver_selection.py tests/test_torch_grad_processor.py
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,misfit,examples --devices cpu,npu:0
 conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device cpu --warmup 1 --repeat 3
+conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device cpu --warmup 1 --repeat 3 --gradient-processors legacy,torch
 ```
 
 For changes touching FWI core data, loss, gradient, regularization, or iteration
@@ -92,9 +93,8 @@ numerical method, record the drift and tolerance in
 
 1. Use the examples smoke profile with `--example-gradient-processors legacy,torch`
    to collect standard-size CPU/NPU legacy-vs-torch drift before larger runs.
-2. Extend `scripts/benchmark/acoustic_backend_benchmark.py` to compare legacy
-   and torch-native gradient processing runtime and memory on larger acoustic
-   grids.
+2. Run `scripts/benchmark/acoustic_backend_benchmark.py` with
+   `--gradient-processors legacy,torch` on NPU and larger acoustic grids.
 3. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 4. Convert example options into a small reproducible configuration layer once

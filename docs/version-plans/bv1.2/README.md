@@ -82,6 +82,7 @@ numbered order unless you are looking for a specific topic.
 | 71 | [Example Torch Gradient Option](./71-example-torch-gradient-option.md) | Expose opt-in TorchGradProcessor in minimal examples and the examples smoke suite with CPU/NPU drift checks. |
 | 72 | [Optimization Chain Documentation](./72-optimization-chain-doc.md) | Add a top-level optimization chain diagram and summary under `docs/`. |
 | 73 | [Example Gradient Processor Comparison](./73-example-gradient-processor-comparison.md) | Let the examples smoke suite run legacy and torch gradient processors together and report drift. |
+| 74 | [Acoustic Benchmark Gradient Processors](./74-acoustic-benchmark-gradient-processors.md) | Extend the acoustic benchmark to time and compare legacy versus torch gradient processors. |
 
 ## Current Direction
 
@@ -89,4 +90,4 @@ numbered order unless you are looking for a specific topic.
 - Continue moving waveform preprocessing into transform pipelines.
 - Preserve FWI numerical behavior first; introduce pure torch/NPU-native
   alternatives only when their numerical differences are explicitly accepted.
-- Use smoke tests and small focused unit tests before replacing legacy branches.
+- Use smoke tests and benchmark comparisons before replacing legacy branches.
