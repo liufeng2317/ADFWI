@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Run a reduced Marmousi2 acoustic inversion smoke with the bv1.2 backend API.
 
-This script is a small, no-output inversion check for the existing Marmousi2
+This script is a small inversion check for the existing Marmousi2
 acoustic case. It reads the saved model and observed waveform files, selects a
 small shot/time subset, runs a configurable number of AcousticFWI iterations,
-and prints a JSON summary. It writes no notebooks, figures, wavefields,
-inversion outputs, or data files.
+and prints a JSON summary. When `--output-dir` is set, it also writes compact
+JSON, CSV, and PNG artifacts for full-case comparison.
 """
 
 from __future__ import annotations
@@ -321,6 +321,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         "subset": {
             "shot_count": args.shot_count,
             "nt_samples": args.nt_samples,
+            "checkpoint_segments": args.checkpoint_segments,
             "receivers": survey.receiver.num,
             "dt": survey.source.dt,
         },

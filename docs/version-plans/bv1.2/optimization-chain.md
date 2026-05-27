@@ -113,9 +113,11 @@ numerical method, record the drift and tolerance in
 8. Use the fixed 3-shot and 5-shot full-case gates to validate concrete code,
    workflow, or convergence changes instead of running larger exploratory
    shot-count tests.
-9. Validate the torch-native gradient processor through smoothing and
+9. Use `scripts/benchmark/compare_full_case_outputs.py` to compare saved
+   full-case summaries instead of manually parsing JSON after each run.
+10. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-10. Convert example options into a small reproducible configuration layer once
+11. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-11. Defer deeper propagator-level performance work, such as checkpointing or
+12. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

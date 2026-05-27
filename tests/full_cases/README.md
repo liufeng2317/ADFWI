@@ -42,6 +42,15 @@ When `ADFWI_FULL_CASE_OUTPUT_DIR` is set, the underlying script writes:
 - `loss_curve.png`
 - `vp_initial_final_delta.png`
 
+Saved full-case outputs can be compared without manual JSON parsing:
+
+```bash
+conda run -n adfwi python scripts/benchmark/compare_full_case_outputs.py \
+  tests/full_cases/outputs/marmousi2_npu_shot3_ckpt10_iter10 \
+  tests/full_cases/outputs/marmousi2_npu_shot5_ckpt10_iter10 \
+  --labels shot3,shot5
+```
+
 The latest local visual check can be generated with:
 
 ```bash
