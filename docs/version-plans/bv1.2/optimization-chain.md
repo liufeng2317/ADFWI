@@ -102,9 +102,12 @@ numerical method, record the drift and tolerance in
    notebook-like inversion settings.
 4. Use `tests/full_cases/` as the gate for forward-plus-inversion real-case
    validation before larger optimization changes.
-5. Validate the torch-native gradient processor through smoothing and
+5. Test full-length synthetic-true Marmousi2 with more shots before changing
+   checkpoint defaults; `checkpoint_segments=1` did not materially improve the
+   1-shot gate.
+6. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-6. Convert example options into a small reproducible configuration layer once
+7. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-7. Defer deeper propagator-level performance work, such as checkpointing or
+8. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

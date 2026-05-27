@@ -90,6 +90,7 @@ numbered order unless you are looking for a specific topic.
 | 79 | [Marmousi2 Synthetic Observation Check](./79-marmousi2-synthetic-observation-check.md) | Generate true-model observations with current code and validate notebook-like inversion settings. |
 | 80 | [Full-Case Test Suite](./80-full-case-test-suite.md) | Add opt-in full-case tests for forward-plus-inversion real-case validation. |
 | 81 | [Full-Case Output Artifacts](./81-full-case-output-artifacts.md) | Save JSON, CSV, and PNG artifacts from opt-in Marmousi2 full-case runs for visual inspection. |
+| 82 | [Marmousi2 NPU Checkpoint-1 10-Iteration Test](./82-marmousi2-npu-checkpoint1-10iter.md) | Compare full-case NPU runtime and loss behavior with `checkpoint_segments=1`. |
 
 ## Current Direction
 
