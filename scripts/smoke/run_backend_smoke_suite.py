@@ -418,6 +418,8 @@ def command_for_case_inversion(case: str, device: str, args: argparse.Namespace)
         str(args.case_inversion_shot_count),
         "--nt-samples",
         str(args.case_inversion_nt_samples),
+        "--iterations",
+        str(args.case_inversion_iterations),
         "--misfit",
         args.case_inversion_misfit,
         "--lr",
@@ -640,6 +642,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--case-inversion-shot-count", type=int, default=1, help="shot count used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-nt-samples", type=int, default=300, help="time samples used by reduced real-case inversion checks")
+    parser.add_argument("--case-inversion-iterations", type=int, default=1, help="iteration count used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-misfit", default="safe-squared-l2", choices=("safe-squared-l2", "legacy-l2"), help="misfit used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-lr", type=float, default=1e12, help="optimizer learning rate used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-dt-for-loss", type=float, default=1.0, help="dt/weight passed to the reduced inversion loss")

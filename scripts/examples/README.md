@@ -100,6 +100,7 @@ Run the reduced inversion smoke when you want to verify the real-case backward a
 ```bash
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device cpu --shot-count 1 --nt-samples 300
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300 --iterations 10
 ```
 
 The reduced inversion script uses the package-level `Misfit_waveform_SquaredL2(reduction="mean")` through the `safe-squared-l2` option by default. The legacy waveform L2 misfit is available with `--misfit legacy-l2` for diagnostics, but it can produce NaN gradients on this reduced window because its square-root form is singular at zero residual.
@@ -110,6 +111,7 @@ The same real-case checks can be launched through the layered smoke runner:
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic --case-run-forward --case-shot-index 0
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-inversion --devices cpu,npu:0
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-inversion --devices npu:0 --case-inversion-iterations 10
 ```
 
 ## Choosing Low-Pass Filtering

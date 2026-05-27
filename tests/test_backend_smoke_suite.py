@@ -87,6 +87,33 @@ class BackendSmokeSuiteTests(unittest.TestCase):
         self.assertEqual(comparison["gradient_processor"], "torch")
         self.assertTrue(all(metric["status"] == "ok" for metric in comparison["metrics"]))
 
+    def test_case_inversion_command_passes_iteration_count(self):
+        args = SimpleNamespace(
+            prefer="npu,cpu",
+            dtype="float32",
+            seed=20240523,
+            case_model_file="init_model.npz",
+            checkpoint_segments=1,
+            case_inversion_shot_count=1,
+            case_inversion_nt_samples=300,
+            case_inversion_iterations=10,
+            case_inversion_misfit="safe-squared-l2",
+            case_inversion_lr=1e12,
+            case_inversion_dt_for_loss=1.0,
+            case_inversion_grad_mute_top=12,
+            fallback_cpu=False,
+            case_inversion_norm_grad=False,
+            case_inversion_forw_illumination=False,
+            case_inversion_auto_update_rho=False,
+            case_inversion_waveform_normalize=False,
+        )
+
+        cmd = suite.command_for_case_inversion("marmousi2-acoustic-reduced", "cpu", args)
+
+        self.assertIn("--iterations", cmd)
+        index = cmd.index("--iterations")
+        self.assertEqual(cmd[index + 1], "10")
+
 
 if __name__ == "__main__":
     unittest.main()

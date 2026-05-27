@@ -3,9 +3,9 @@
 
 This script is a small, no-output inversion check for the existing Marmousi2
 acoustic case. It reads the saved model and observed waveform files, selects a
-small shot/time subset, runs one AcousticFWI iteration, and prints a JSON
-summary. It writes no notebooks, figures, wavefields, inversion outputs, or data
-files.
+small shot/time subset, runs a configurable number of AcousticFWI iterations,
+and prints a JSON summary. It writes no notebooks, figures, wavefields,
+inversion outputs, or data files.
 """
 
 from __future__ import annotations
@@ -171,7 +171,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         backend.synchronize()
     start = time.perf_counter()
     with progress_context:
-        fwi.forward(iteration=1, batch_size=args.shot_count, checkpoint_segments=args.checkpoint_segments)
+        fwi.forward(iteration=args.iterations, batch_size=args.shot_count, checkpoint_segments=args.checkpoint_segments)
     if backend.name in {"cuda", "npu"}:
         backend.synchronize()
     seconds = time.perf_counter() - start
@@ -180,6 +180,12 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         raise RuntimeError("AcousticFWI did not record an iteration loss")
     if model.vp.grad is None:
         raise RuntimeError("model.vp.grad is None after reduced Marmousi2 inversion")
+
+    losses = [float(value) for value in fwi.iter_loss]
+    if len(losses) < args.iterations:
+        raise RuntimeError(f"expected at least {args.iterations} recorded losses, got {len(losses)}")
+    for idx, value in enumerate(losses):
+        finite_positive(value, f"loss[{idx}]")
 
     loss = float(fwi.iter_loss[-1])
     grad_norm = tensor_norm(model.vp.grad)
@@ -209,13 +215,17 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "nabc": model.nabc,
         },
         "inversion": {
-            "iterations": 1,
+            "iterations": args.iterations,
             "optimizer": "SGD",
             "lr": args.lr,
             "misfit": loss_name,
             "waveform_normalize": args.waveform_normalize,
             "seconds": seconds,
             "loss": loss,
+            "initial_loss": losses[0],
+            "loss_history": losses,
+            "loss_min": min(losses),
+            "loss_max": max(losses),
             "vp_grad_norm": grad_norm,
             "vp_update_norm": update_norm,
         },
@@ -237,6 +247,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--abc-jerjan-alpha", type=float, default=0.007)
     parser.add_argument("--shot-count", type=int, default=1)
     parser.add_argument("--nt-samples", type=int, default=300)
+    parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--lr", type=float, default=1e12)
     parser.add_argument("--dt-for-loss", type=float, default=1.0)
@@ -253,6 +264,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if args.iterations <= 0:
+        parser.error("--iterations must be positive")
     try:
         result = run_smoke(args)
     except BackendUnavailableError as exc:

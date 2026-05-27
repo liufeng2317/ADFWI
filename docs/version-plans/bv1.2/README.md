@@ -83,6 +83,7 @@ numbered order unless you are looking for a specific topic.
 | 72 | [Optimization Chain Documentation](./72-optimization-chain-doc.md) | Add a top-level optimization chain diagram and summary under `docs/`. |
 | 73 | [Example Gradient Processor Comparison](./73-example-gradient-processor-comparison.md) | Let the examples smoke suite run legacy and torch gradient processors together and report drift. |
 | 74 | [Acoustic Benchmark Gradient Processors](./74-acoustic-benchmark-gradient-processors.md) | Extend the acoustic benchmark to time and compare legacy versus torch gradient processors. |
+| 75 | [Marmousi2 Iteration Smoke Control](./75-marmousi2-iteration-smoke-control.md) | Add configurable reduced real-case iteration counts and validate a multi-iteration Marmousi2 smoke. |
 
 ## Current Direction
 
