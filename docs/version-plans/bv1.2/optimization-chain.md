@@ -124,9 +124,11 @@ numerical method, record the drift and tolerance in
 13. Use torch/NPU operator-level profiling on the fixed `shot3` baseline,
    because Python profiling shows most time in autograd backward and
    checkpointed propagator execution rather than Python bookkeeping.
-14. Validate the torch-native gradient processor through smoothing and
+14. Start compatibility cleanup with thin shim deprecation and canonical import
+   guidance before deleting any legacy import surface.
+15. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-15. Convert example options into a small reproducible configuration layer once
+16. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-16. Defer deeper propagator-level performance work, such as checkpointing or
+17. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

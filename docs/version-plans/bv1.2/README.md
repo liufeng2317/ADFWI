@@ -101,6 +101,7 @@ numbered order unless you are looking for a specific topic.
 | 90 | [Marmousi2 Preset Post-Run Compare](./90-marmousi2-preset-postrun-compare.md) | Let preset full-case runs compare against saved baselines automatically after completion. |
 | 91 | [Marmousi2 Preset Python Profiling Option](./91-marmousi2-preset-python-profile.md) | Add optional cProfile wrapping to fixed full-case presets before deeper performance work. |
 | 92 | [Marmousi2 Shot3 Python Profile Run](./92-marmousi2-shot3-python-profile-run.md) | Run the fixed shot3 baseline under cProfile and identify autograd/propagator paths as the next profiling target. |
+| 93 | [Compatibility Cleanup Audit](./93-compatibility-cleanup-audit.md) | Audit retained compatibility shims and legacy numerical paths before staged cleanup. |
 
 ## Current Direction
 
@@ -135,3 +136,5 @@ numbered order unless you are looking for a specific topic.
 - Python profiling shows the fixed shot3 baseline is dominated by autograd
   backward and checkpointed propagator execution, so next performance work
   should use torch/NPU operator-level profiling.
+- Start compatibility cleanup with low-risk shim deprecation; do not remove or
+  replace legacy numerical paths without focused tests and full-case comparison.
