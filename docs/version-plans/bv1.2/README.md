@@ -114,6 +114,7 @@ numbered order unless you are looking for a specific topic.
 | 103 | [Data Facade User Documentation](./103-data-facade-user-doc.md) | Document the public `ADFWI.fwi.data` facade and namespace-only internal helper packages. |
 | 104 | [Example Import Surface Audit](./104-example-import-surface-audit.md) | Update examples and sphinx API sources that still referenced removed import shims. |
 | 105 | [Import Surface Policy Test](./105-import-surface-policy-test.md) | Add a tracked-file regression test for removed shims and namespace-only import surfaces. |
+| 106 | [Broaden Import Surface Policy](./106-import-surface-policy-broaden.md) | Catch alternate namespace-only package imports in the import-surface policy test. |
 
 ## Current Direction
 
@@ -176,3 +177,5 @@ numbered order unless you are looking for a specific topic.
   paths after removing compatibility shims.
 - Use `tests/test_import_surface_policy.py` as the lightweight guard for future
   import-surface cleanup.
+- Keep the import-surface policy broad enough to catch equivalent `import ...`
+  and `from ADFWI.fwi import ...` forms, not only direct helper imports.

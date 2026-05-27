@@ -142,7 +142,8 @@ numerical method, record the drift and tolerance in
 21. Keep examples and sphinx API sources aligned with canonical bv1.2 imports
    after compatibility shim removal.
 22. Use the import-surface policy test to prevent removed shims and
-   namespace-only aggregation imports from reappearing.
+   namespace-only aggregation imports from reappearing, including alternate
+   package import syntax.
 23. Continue auditing example notebooks for stale comments, but avoid executing
    heavy notebooks unless a changed cell needs runtime validation.
 24. Validate the torch-native gradient processor through smoothing and
