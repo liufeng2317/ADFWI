@@ -118,6 +118,7 @@ numbered order unless you are looking for a specific topic.
 | 107 | [Torch Gradient Parity Convergence](./107-torch-gradient-parity-convergence.md) | Fix legacy land taper compatibility and expand legacy-vs-torch gradient processor parity tests. |
 | 108 | [Gradient Processor Timing Gate](./108-gradient-processor-timing-gate.md) | Add a focused JSON benchmark for legacy-vs-torch gradient processor parity and timing. |
 | 109 | [Gradient Processor Stage Diagnostics](./109-gradient-processor-stage-diagnostics.md) | Isolate NPU gradient processor drift by smoothing, normalization, and illumination stages. |
+| 110 | [Gradient Processor NPU Tolerance Profile](./110-gradient-processor-npu-tolerance-profile.md) | Add an explicit NPU float32 tolerance profile while keeping strict parity as the default. |
 
 ## Current Direction
 
@@ -187,3 +188,5 @@ numbered order unless you are looking for a specific topic.
 - NPU gradient processor drift is localized to the float32 `conv2d` smoothing
   stage and then amplified by `vmax` normalization; keep `TorchGradProcessor`
   opt-in until the NPU tolerance or a dedicated smoothing alternative is chosen.
+- Use `--tolerance-profile npu-float32` only for intentional NPU
+  `TorchGradProcessor` comparisons; the benchmark default remains strict.

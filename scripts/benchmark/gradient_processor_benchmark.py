@@ -27,6 +27,12 @@ from scripts.smoke.acoustic_backend_smoke import parse_dtype
 
 
 PROCESSOR_CASES = ("norm", "marine_smooth", "land_smooth", "illumination")
+STRICT_RTOL = 1e-5
+STRICT_ATOL = 2e-3
+TOLERANCE_PROFILES = {
+    "strict": {"rtol": STRICT_RTOL, "atol": STRICT_ATOL},
+    "npu-float32": {"rtol": 2e-4, "atol": 5e-1},
+}
 
 
 def git_metadata() -> Dict[str, Any]:
@@ -83,6 +89,20 @@ def summarize(values: list[float]) -> Dict[str, float]:
         "max": float(max(values)),
         "mean": float(sum(values) / len(values)),
     }
+
+
+def parse_tolerance_profile(value: str) -> str:
+    if value not in TOLERANCE_PROFILES:
+        supported = ", ".join(sorted(TOLERANCE_PROFILES))
+        raise argparse.ArgumentTypeError(f"unsupported tolerance profile: {value}; supported: {supported}")
+    return value
+
+
+def resolve_tolerances(args: argparse.Namespace) -> Tuple[float, float]:
+    profile = TOLERANCE_PROFILES[args.tolerance_profile]
+    rtol = profile["rtol"] if args.compare_rtol is None else args.compare_rtol
+    atol = profile["atol"] if args.compare_atol is None else args.compare_atol
+    return float(rtol), float(atol)
 
 
 def case_config(name: str, grad: np.ndarray, forw: Optional[np.ndarray]) -> Dict[str, Any]:
@@ -170,7 +190,18 @@ def time_torch(
     return result.detach().cpu().numpy(), elapsed
 
 
-def run_case(args: argparse.Namespace, backend, name: str, grad_np, forw_np, grad_torch, forw_torch) -> Dict[str, Any]:
+def run_case(
+    args: argparse.Namespace,
+    backend,
+    name: str,
+    grad_np,
+    forw_np,
+    grad_torch,
+    forw_torch,
+    *,
+    compare_rtol: float,
+    compare_atol: float,
+) -> Dict[str, Any]:
     config = case_config(name, grad_np, forw_np)
     processor_kwargs = config["processor_kwargs"]
     case_forw_np = config["forw"]
@@ -228,12 +259,12 @@ def run_case(args: argparse.Namespace, backend, name: str, grad_np, forw_np, gra
 
     abs_diffs = [float(np.max(np.abs(torch_result - legacy_result))) for legacy_result, torch_result in zip(legacy_results, torch_results)]
     rel_diffs = [
-        abs_diff / max(float(np.max(np.abs(legacy_result))), args.compare_atol)
+        abs_diff / max(float(np.max(np.abs(legacy_result))), compare_atol)
         for abs_diff, legacy_result in zip(abs_diffs, legacy_results)
     ]
     max_abs_diff = max(abs_diffs)
     max_rel_diff = max(rel_diffs)
-    failed = max_abs_diff > args.compare_atol and max_rel_diff > args.compare_rtol
+    failed = max_abs_diff > compare_atol and max_rel_diff > compare_rtol
 
     legacy_times = [run["legacy_seconds"] for run in runs]
     torch_times = [run["torch_seconds"] for run in runs]
@@ -244,8 +275,8 @@ def run_case(args: argparse.Namespace, backend, name: str, grad_np, forw_np, gra
         "case": name,
         "status": "failed" if failed else "ok",
         "processor_kwargs": processor_kwargs,
-        "rtol": args.compare_rtol,
-        "atol": args.compare_atol,
+        "rtol": compare_rtol,
+        "atol": compare_atol,
         "max_abs_diff": max_abs_diff,
         "max_rel_diff": max_rel_diff,
         "legacy_seconds": summarize(legacy_times),
@@ -263,9 +294,20 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     grad_np, forw_np, grad_torch, forw_torch = make_inputs(args, backend)
+    compare_rtol, compare_atol = resolve_tolerances(args)
 
     cases = [
-        run_case(args, backend, name, grad_np, forw_np, grad_torch, forw_torch)
+        run_case(
+            args,
+            backend,
+            name,
+            grad_np,
+            forw_np,
+            grad_torch,
+            forw_torch,
+            compare_rtol=compare_rtol,
+            compare_atol=compare_atol,
+        )
         for name in args.cases
     ]
     status = "failed" if any(case["status"] != "ok" for case in cases) else "ok"
@@ -287,8 +329,9 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
             "nx": args.nx,
             "nz": args.nz,
             "vmax": args.vmax,
-            "compare_rtol": args.compare_rtol,
-            "compare_atol": args.compare_atol,
+            "tolerance_profile": args.tolerance_profile,
+            "compare_rtol": compare_rtol,
+            "compare_atol": compare_atol,
         },
         "cases": cases,
     }
@@ -316,8 +359,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--nx", type=int, default=64)
     parser.add_argument("--nz", type=int, default=48)
     parser.add_argument("--vmax", type=float, default=2500.0)
-    parser.add_argument("--compare-rtol", type=float, default=1e-5)
-    parser.add_argument("--compare-atol", type=float, default=2e-3)
+    parser.add_argument(
+        "--tolerance-profile",
+        type=parse_tolerance_profile,
+        default="strict",
+        help="strict keeps CPU-level parity; npu-float32 accepts known NPU smoothing drift",
+    )
+    parser.add_argument("--compare-rtol", type=float, default=None, help="override the selected tolerance profile rtol")
+    parser.add_argument("--compare-atol", type=float, default=None, help="override the selected tolerance profile atol")
     parser.add_argument("--output", help="optional JSON report path")
     return parser
 
