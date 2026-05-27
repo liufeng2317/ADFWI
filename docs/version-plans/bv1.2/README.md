@@ -117,6 +117,7 @@ numbered order unless you are looking for a specific topic.
 | 106 | [Broaden Import Surface Policy](./106-import-surface-policy-broaden.md) | Catch alternate namespace-only package imports in the import-surface policy test. |
 | 107 | [Torch Gradient Parity Convergence](./107-torch-gradient-parity-convergence.md) | Fix legacy land taper compatibility and expand legacy-vs-torch gradient processor parity tests. |
 | 108 | [Gradient Processor Timing Gate](./108-gradient-processor-timing-gate.md) | Add a focused JSON benchmark for legacy-vs-torch gradient processor parity and timing. |
+| 109 | [Gradient Processor Stage Diagnostics](./109-gradient-processor-stage-diagnostics.md) | Isolate NPU gradient processor drift by smoothing, normalization, and illumination stages. |
 
 ## Current Direction
 
@@ -183,3 +184,6 @@ numbered order unless you are looking for a specific topic.
   and `from ADFWI.fwi import ...` forms, not only direct helper imports.
 - Shift from broad cleanup to convergence-focused optimization: strengthen
   torch gradient parity and timing gates before changing default FWI paths.
+- NPU gradient processor drift is localized to the float32 `conv2d` smoothing
+  stage and then amplified by `vmax` normalization; keep `TorchGradProcessor`
+  opt-in until the NPU tolerance or a dedicated smoothing alternative is chosen.
