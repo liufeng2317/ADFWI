@@ -85,7 +85,7 @@ git diff --check
 
 ## Next Step
 
-Design the next NPU baseline as a compromise between the full notebook and the
-tiny smoke, for example 5-10 shots and 1000-1500 samples with Adam `lr=10`,
-waveform normalization, and checkpointing enabled. Use that to decide whether a
-100-iteration baseline is informative enough before running it.
+Design the next NPU baseline around full-length waveforms. A follow-up
+synthetic-true observation check showed that the 300-sample window is not
+representative, while 3000 samples with current-code true-model observations
+does produce stable loss decrease.

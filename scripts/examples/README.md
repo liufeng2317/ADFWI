@@ -101,9 +101,15 @@ Run the reduced inversion smoke when you want to verify the real-case backward a
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device cpu --shot-count 1 --nt-samples 300
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300 --iterations 10
+conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 3000 --observed-source synthetic-true --iterations 2 --optimizer adam --lr 10 --scheduler-step-size 200 --scheduler-gamma 0.75 --misfit legacy-l2 --waveform-normalize --auto-update-rho --checkpoint-segments 10
 ```
 
 The reduced inversion script uses the package-level `Misfit_waveform_SquaredL2(reduction="mean")` through the `safe-squared-l2` option by default. The legacy waveform L2 misfit is available with `--misfit legacy-l2` for diagnostics, but it can produce NaN gradients on this reduced window because its square-root form is singular at zero residual.
+
+Use `--observed-source synthetic-true` when you want the script to generate
+observed data from the saved true Marmousi2 model with the current code instead
+of reading `data/waveform/obs_data.npz`. This is slower, but it avoids ambiguity
+about whether saved observations match the active propagator path.
 
 The same real-case checks can be launched through the layered smoke runner:
 

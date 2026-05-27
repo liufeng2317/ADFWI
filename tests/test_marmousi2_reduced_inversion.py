@@ -50,6 +50,27 @@ class Marmousi2ReducedInversionTests(unittest.TestCase):
         self.assertIsInstance(optimizer, case_script.torch.optim.Adam)
         self.assertEqual(optimizer.param_groups[0]["lr"], 10.0)
 
+    def test_build_case_model_can_disable_training_for_synthetic_observations(self):
+        model_npz = {
+            "vp": case_script.np.ones((2, 3), dtype=case_script.np.float32) * 1500.0,
+            "rho": case_script.np.ones((2, 3), dtype=case_script.np.float32) * 1900.0,
+            "vp_bound": case_script.np.array([1400.0, 2200.0], dtype=case_script.np.float32),
+            "rho_bound": case_script.np.array([1500.0, 2500.0], dtype=case_script.np.float32),
+            "ox": 0.0,
+            "oz": 0.0,
+            "nx": 3,
+            "nz": 2,
+            "dx": 10.0,
+            "dz": 10.0,
+            "free_surface": False,
+            "nabc": 1,
+        }
+        args = SimpleNamespace(abc_type="PML", abc_jerjan_alpha=0.007)
+
+        model = case_script.build_case_model(model_npz, args, vp_grad=False, auto_update_rho=False)
+
+        self.assertFalse(model.get_requires_grad("vp"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -95,8 +95,9 @@ numerical method, record the drift and tolerance in
    to collect standard-size CPU/NPU legacy-vs-torch drift before larger runs.
 2. Run `scripts/benchmark/acoustic_backend_benchmark.py` with
    `--gradient-processors legacy,torch` on NPU and larger acoustic grids.
-3. Prepare a medium Marmousi2 NPU baseline closer to the notebook settings
-   before running a 100-iteration reduced baseline.
+3. Build the next Marmousi2 NPU baseline around full-length synthetic-true
+   observations because the 300-sample reduced window is not representative of
+   notebook-like inversion settings.
 4. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 5. Convert example options into a small reproducible configuration layer once

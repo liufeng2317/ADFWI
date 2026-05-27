@@ -67,7 +67,7 @@ def build_optimizer(model, args: argparse.Namespace):
     raise ValueError(f"unsupported optimizer: {args.optimizer}")
 
 
-def build_inversion_model(model_npz: Any, args: argparse.Namespace) -> AcousticModel:
+def build_case_model(model_npz: Any, args: argparse.Namespace, *, vp_grad: bool, auto_update_rho: bool) -> AcousticModel:
     vp = np.asarray(model_npz["vp"], dtype=np.float32)
     rho = np.asarray(model_npz["rho"], dtype=np.float32)
     return AcousticModel(
@@ -81,14 +81,18 @@ def build_inversion_model(model_npz: Any, args: argparse.Namespace) -> AcousticM
         rho,
         vp_bound=optional_bound(model_npz["vp_bound"]),
         rho_bound=optional_bound(model_npz["rho_bound"]),
-        vp_grad=True,
+        vp_grad=vp_grad,
         rho_grad=False,
-        auto_update_rho=args.auto_update_rho,
+        auto_update_rho=auto_update_rho,
         free_surface=bool(model_npz["free_surface"]),
         abc_type=args.abc_type,
         abc_jerjan_alpha=args.abc_jerjan_alpha,
         nabc=int(model_npz["nabc"]),
     )
+
+
+def build_inversion_model(model_npz: Any, args: argparse.Namespace) -> AcousticModel:
+    return build_case_model(model_npz, args, vp_grad=True, auto_update_rho=args.auto_update_rho)
 
 
 def subset_obs_npz(obs_npz: Any, *, shot_count: int, nt_samples: int) -> Dict[str, Any]:
@@ -121,6 +125,25 @@ def build_observed_data(survey, obs_npz: Any, *, shot_count: int, nt_samples: in
     if "p" not in obs_data.data:
         raise RuntimeError("Marmousi2 observed data does not contain pressure key 'p'")
     return obs_data
+
+
+def synthesize_observed_data(true_model_npz: Any, survey, args: argparse.Namespace, backend) -> tuple[SeismicData, float]:
+    true_model = build_case_model(true_model_npz, args, vp_grad=False, auto_update_rho=False)
+    true_propagator = AcousticPropagator(true_model, survey)
+    if backend.name in {"cuda", "npu"}:
+        backend.synchronize()
+    start = time.perf_counter()
+    with torch.no_grad():
+        observed_record = true_propagator.forward(
+            shot_index=np.arange(args.shot_count),
+            checkpoint_segments=args.checkpoint_segments,
+        )
+    if backend.name in {"cuda", "npu"}:
+        backend.synchronize()
+    seconds = time.perf_counter() - start
+    obs_data = SeismicData(survey)
+    obs_data.record_data(observed_record)
+    return obs_data, seconds
 
 
 def tensor_norm(value: torch.Tensor) -> float:
@@ -163,7 +186,14 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     obs_subset = subset_obs_npz(obs_npz, shot_count=args.shot_count, nt_samples=args.nt_samples)
 
     survey = build_survey(obs_subset, f0=args.f0)
-    obs_data = build_observed_data(survey, obs_npz, shot_count=args.shot_count, nt_samples=args.nt_samples)
+    observed_forward_seconds = None
+    if args.observed_source == "saved":
+        obs_data = build_observed_data(survey, obs_npz, shot_count=args.shot_count, nt_samples=args.nt_samples)
+    elif args.observed_source == "synthetic-true":
+        true_model_npz = load_npz(case_dir / "data" / "model" / "true_model.npz")
+        obs_data, observed_forward_seconds = synthesize_observed_data(true_model_npz, survey, args, backend)
+    else:
+        raise ValueError(f"unsupported observed source: {args.observed_source}")
     model = build_inversion_model(model_npz, args)
     initial_vp = model.vp.detach().clone()
     propagator = AcousticPropagator(model, survey)
@@ -235,6 +265,10 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "receivers": survey.receiver.num,
             "dt": survey.source.dt,
         },
+        "observed": {
+            "source": args.observed_source,
+            "synthetic_true_forward_seconds": observed_forward_seconds,
+        },
         "model": {
             "vp": tensor_summary(model.vp),
             "rho": tensor_summary(model.rho),
@@ -276,6 +310,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--abc-jerjan-alpha", type=float, default=0.007)
     parser.add_argument("--shot-count", type=int, default=1)
     parser.add_argument("--nt-samples", type=int, default=300)
+    parser.add_argument("--observed-source", choices=("saved", "synthetic-true"), default="saved")
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--optimizer", choices=("sgd", "adam"), default="sgd")

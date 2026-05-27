@@ -97,6 +97,7 @@ class BackendSmokeSuiteTests(unittest.TestCase):
             case_inversion_shot_count=1,
             case_inversion_nt_samples=300,
             case_inversion_iterations=10,
+            case_inversion_observed_source="synthetic-true",
             case_inversion_optimizer="adam",
             case_inversion_misfit="safe-squared-l2",
             case_inversion_lr=10.0,
@@ -116,6 +117,9 @@ class BackendSmokeSuiteTests(unittest.TestCase):
         self.assertIn("--iterations", cmd)
         index = cmd.index("--iterations")
         self.assertEqual(cmd[index + 1], "10")
+        self.assertIn("--observed-source", cmd)
+        index = cmd.index("--observed-source")
+        self.assertEqual(cmd[index + 1], "synthetic-true")
         self.assertIn("--optimizer", cmd)
         index = cmd.index("--optimizer")
         self.assertEqual(cmd[index + 1], "adam")
