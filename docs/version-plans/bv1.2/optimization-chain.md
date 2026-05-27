@@ -135,8 +135,8 @@ numerical method, record the drift and tolerance in
 18. Treat `ADFWI.fwi.runtime` as a namespace package; import concrete helpers
    from `backend`, `cache`, `forward`, `gradient`, `regularization`, and
    `wavefield`.
-19. Audit `ADFWI.fwi.data` separately because it is closer to the public FWI
-   data-contract API than the internal runtime/iteration helper packages.
+19. Keep active FWI internals on `ADFWI.fwi.data` owner modules, then decide
+   separately whether the package-level data contract remains a public user API.
 20. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 21. Convert example options into a small reproducible configuration layer once

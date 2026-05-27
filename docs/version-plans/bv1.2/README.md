@@ -109,6 +109,7 @@ numbered order unless you are looking for a specific topic.
 | 98 | [Remove Iteration Re-Exports](./98-remove-iteration-reexports.md) | Remove broad `ADFWI.fwi.iteration` helper re-exports after active code moved to owner modules. |
 | 99 | [Runtime Owner Imports](./99-runtime-owner-imports.md) | Route active FWI runtime imports to backend/cache/forward/gradient/regularization/wavefield owner modules. |
 | 100 | [Remove Runtime Re-Exports](./100-remove-runtime-reexports.md) | Remove broad `ADFWI.fwi.runtime` helper re-exports after active code moved to owner modules. |
+| 101 | [Data Owner Imports](./101-data-owner-imports.md) | Route active FWI data-contract imports to components/inputs/loss/pipeline/preparation owner modules. |
 
 ## Current Direction
 
@@ -161,3 +162,5 @@ numbered order unless you are looking for a specific topic.
   `ADFWI.fwi.runtime` should remain a broad aggregation surface.
 - Treat `ADFWI.fwi.runtime` as a namespace package in bv1.2; import concrete
   helpers from backend/cache/forward/gradient/regularization/wavefield modules.
+- Keep active FWI internals on `ADFWI.fwi.data` owner modules while separately
+  deciding whether the package-level data contract remains user-facing.

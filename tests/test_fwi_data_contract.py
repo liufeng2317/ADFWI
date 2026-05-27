@@ -2,25 +2,18 @@ import unittest
 
 import torch
 
-from ADFWI.fwi.data import (
+from ADFWI.fwi.data.components import (
     ELASTIC_COMPONENTS,
-    LossInput,
-    acoustic_pressure_loss_input,
-    build_fwi_data_transform_pipeline,
-    build_fwi_transform_context,
-    build_transform_context,
-    prepare_fwi_loss_pair,
     elastic_component_loss_inputs,
-    elastic_loss_inputs,
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
-    evaluate_loss_inputs,
-    evaluate_misfit_loss,
     normalize_elastic_component_weights,
-    prepare_loss_pair,
-    sum_weighted_losses,
 )
+from ADFWI.fwi.data.inputs import LossInput, acoustic_pressure_loss_input, elastic_loss_inputs
+from ADFWI.fwi.data.loss import evaluate_loss_inputs, evaluate_misfit_loss, sum_weighted_losses
+from ADFWI.fwi.data.pipeline import build_fwi_data_transform_pipeline
+from ADFWI.fwi.data.preparation import build_fwi_transform_context, build_transform_context, prepare_fwi_loss_pair, prepare_loss_pair
 from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
