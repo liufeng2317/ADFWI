@@ -9,7 +9,12 @@ TEXT_SUFFIXES = {".py", ".md", ".rst", ".ipynb"}
 
 FORBIDDEN_IMPORT_SURFACES = (
     "ADFWI.fwi.data",
+    "ADFWI.fwi.iteration.components",
+    "ADFWI.fwi.iteration.misfit",
     "ADFWI.fwi.iteration.observations",
+    "ADFWI.fwi.iteration.pairs",
+    "ADFWI.fwi.iteration.preparation",
+    "ADFWI.fwi.iteration.range",
     "ADFWI.fwi.multiScaleProcessing",
     "ADFWI.fwi.normalization",
     "ADFWI.fwi.transforms.waveform",

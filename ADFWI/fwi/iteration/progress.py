@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .range import BatchRange
+from .batches import BatchRange
 
 
 def set_batch_description(progress_bar, batch_range: BatchRange, batch_count: int) -> None:

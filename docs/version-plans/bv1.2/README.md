@@ -125,7 +125,7 @@ numbered order unless you are looking for a specific topic.
 | 114 | [Marmousi2 Shot3 Illumination Trajectory](./114-marmousi2-shot3-illumination-trajectory.md) | Validate a 3-shot, 10-iteration NPU illumination trajectory for legacy versus torch gradient processors. |
 | 115 | [Torch Gradient Status And Next Direction](./115-torch-gradient-status-and-next-direction.md) | Mark TorchGradProcessor as NPU-validated opt-in and redirect later work away from more gradient tests. |
 | 116 | [FWI Data Context Helper](./116-fwi-data-context-helper.md) | Extract shot-scoped transform-context selection inside FWI data preparation without changing behavior. |
-| 117 | [Merge Data Helpers Into Iteration Pre-Misfit Modules](./117-merge-data-helpers-into-iteration-pre-misfit.md) | Remove the misleading `ADFWI.fwi.data` package and move its helpers into iteration-owned pre-misfit modules. |
+| 117 | [Merge Data Helpers Into Iteration Loss](./117-merge-data-helpers-into-iteration-loss.md) | Remove the misleading `ADFWI.fwi.data` package and move its helpers into iteration-owned batch loss construction. |
 
 ## Current Direction
 
@@ -167,9 +167,9 @@ numbered order unless you are looking for a specific topic.
   import shims while preserving explicit legacy numerical methods.
 - Continue removing pure re-export modules when active code has already moved
   to canonical bv1.2 import paths.
-- Keep waveform operations owned by `ADFWI.fwi.transforms`; iteration
-  observation helpers should only orchestrate pre-misfit pairing and transform
-  execution.
+- Keep waveform operations owned by `ADFWI.fwi.transforms`; `iteration.loss`
+  should only orchestrate loss-input pairing, transform execution, misfit
+  dispatch, and batch backward steps.
 - Route active FWI drivers and tests to owner modules under
   `ADFWI.fwi.iteration` before deciding whether package-level iteration
   re-exports should remain public in `bv1.2`.
@@ -179,8 +179,8 @@ numbered order unless you are looking for a specific topic.
   `ADFWI.fwi.runtime` should remain a broad aggregation surface.
 - Treat `ADFWI.fwi.runtime` as a namespace package in bv1.2; import concrete
   helpers from backend/cache/forward/gradient/regularization/wavefield modules.
-- Treat the former FWI data-contract helpers as iteration-owned pre-misfit
-  modules: `components`, `pairs`, `preparation`, and `misfit`.
+- Treat the former FWI data-contract helpers as part of `ADFWI.fwi.iteration.loss`.
+- Treat `ADFWI.fwi.iteration.batches` as the owner of shot batch scheduling.
 - Keep examples and generated API sources aligned with canonical bv1.2 import
   paths after removing compatibility shims.
 - Use `tests/test_import_surface_policy.py` as the lightweight guard for future
@@ -210,6 +210,6 @@ numbered order unless you are looking for a specific topic.
   Stop expanding gradient-processor tests unless gradient post-processing code
   changes; move next optimization toward operator profiling, release
   stabilization, or reusable real-case configuration.
-- Keep further iteration pre-misfit cleanup behavior-preserving; do not change
+- Keep further iteration loss cleanup behavior-preserving; do not change
   receiver selection order, transform order, or loss-input shapes without a
   numerical comparison.

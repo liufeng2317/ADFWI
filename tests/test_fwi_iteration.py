@@ -11,7 +11,7 @@ from ADFWI.fwi.iteration.loss import (
     build_batch_loss,
 )
 from ADFWI.fwi.iteration.progress import finalize_epoch_progress, set_batch_description
-from ADFWI.fwi.iteration.range import iter_batch_ranges
+from ADFWI.fwi.iteration.batches import iter_batch_ranges
 
 
 class DummyProgressBar:

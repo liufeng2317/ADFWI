@@ -1,4 +1,4 @@
-# Merge Data Helpers Into Iteration Pre-Misfit Modules
+# Merge Data Helpers Into Iteration Loss
 
 ## Goal
 
@@ -19,14 +19,11 @@ than it really was and overlapped with the real mathematical losses in
 
 ## Change
 
-Moved the previous `ADFWI.fwi.data` modules into iteration-owned pre-misfit
-modules:
+Moved the previous `ADFWI.fwi.data` modules into the iteration-owned batch loss
+module:
 
 ```text
-ADFWI/fwi/iteration/components.py
-ADFWI/fwi/iteration/pairs.py
-ADFWI/fwi/iteration/preparation.py
-ADFWI/fwi/iteration/misfit.py
+ADFWI/fwi/iteration/loss.py
 ```
 
 Removed:
@@ -40,7 +37,7 @@ Renamed the focused contract test:
 
 ```text
 tests/test_fwi_data_contract.py
--> tests/test_fwi_iteration_pre_misfit.py
+-> tests/test_fwi_iteration_loss.py
 ```
 
 Updated active imports in:
@@ -50,6 +47,8 @@ Updated active imports in:
 - `ADFWI/fwi/iteration/loss.py`
 
 The import-surface policy now treats `ADFWI.fwi.data` as removed.
+It also guards against recreating the short-lived split modules
+`ADFWI.fwi.iteration.components`, `pairs`, `preparation`, and `misfit`.
 
 ## Numerical Scope
 
@@ -71,16 +70,12 @@ iteration/runtime tests.
 
 ```bash
 conda run -n adfwi python -m unittest \
-  tests/test_fwi_iteration_pre_misfit.py \
+  tests/test_fwi_iteration_loss.py \
   tests/test_fwi_iteration.py \
   tests/test_fwi_runtime.py \
   tests/test_import_surface_policy.py
 
 conda run -n adfwi python -m py_compile \
-  ADFWI/fwi/iteration/components.py \
-  ADFWI/fwi/iteration/pairs.py \
-  ADFWI/fwi/iteration/preparation.py \
-  ADFWI/fwi/iteration/misfit.py \
   ADFWI/fwi/iteration/loss.py \
   ADFWI/fwi/acoustic_fwi.py \
   ADFWI/fwi/elastic_fwi.py
@@ -89,6 +84,5 @@ conda run -n adfwi python -m py_compile \
 ## Next Direction
 
 Do not recreate a separate data facade in `bv1.2`. If this area needs more
-cleanup, keep the stages aligned with the FWI iteration flow: component
-selection, pair construction, pre-misfit preparation, misfit evaluation, then
-batch optimization.
+cleanup, keep it inside `ADFWI.fwi.iteration.loss` unless a measured complexity
+problem appears. Shot batch scheduling belongs to `ADFWI.fwi.iteration.batches`.

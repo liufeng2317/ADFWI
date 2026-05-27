@@ -1,4 +1,4 @@
-"""Shot batch ranges for FWI iteration loops."""
+"""Shot batch scheduling for FWI iteration loops."""
 
 from __future__ import annotations
 
