@@ -46,3 +46,14 @@ def iter_batch_ranges(n_shots: int, batch_size: Optional[int] = None) -> Iterato
     for batch, begin in enumerate(range(0, n_shots, batch_size)):
         end = min(begin + batch_size, n_shots)
         yield BatchRange(batch=batch, begin=begin, end=end, shot_index=np.arange(begin, end))
+
+
+def set_batch_description(progress_bar, batch_range: BatchRange, batch_count: int) -> None:
+    """Set a legacy single-batch shot range description on a tqdm bar.
+
+    The historical FWI loops only displayed the shot range when there was a
+    single batch. Keeping that rule here preserves progress output while moving
+    iteration bookkeeping out of acoustic/elastic code.
+    """
+    if batch_count == 1:
+        progress_bar.set_description(f"Shot:{batch_range.begin} to {batch_range.end}")

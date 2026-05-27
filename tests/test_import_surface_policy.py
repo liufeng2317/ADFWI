@@ -14,6 +14,7 @@ FORBIDDEN_IMPORT_SURFACES = (
     "ADFWI.fwi.iteration.observations",
     "ADFWI.fwi.iteration.pairs",
     "ADFWI.fwi.iteration.preparation",
+    "ADFWI.fwi.iteration.progress",
     "ADFWI.fwi.iteration.range",
     "ADFWI.fwi.multiScaleProcessing",
     "ADFWI.fwi.normalization",

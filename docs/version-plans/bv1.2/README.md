@@ -169,18 +169,20 @@ numbered order unless you are looking for a specific topic.
   to canonical bv1.2 import paths.
 - Keep waveform operations owned by `ADFWI.fwi.transforms`; `iteration.loss`
   should only orchestrate loss-input pairing, transform execution, misfit
-  dispatch, and batch backward steps.
+  dispatch, and weighted loss construction.
 - Route active FWI drivers and tests to owner modules under
   `ADFWI.fwi.iteration` before deciding whether package-level iteration
   re-exports should remain public in `bv1.2`.
 - Treat `ADFWI.fwi.iteration` as a namespace package in bv1.2; import concrete
-  helpers from `range`, `loss`, `progress`, and `epoch`.
+  helpers from `batches`, `loss`, `step`, and `epoch`.
 - Route active runtime imports to owner modules before deciding whether
   `ADFWI.fwi.runtime` should remain a broad aggregation surface.
 - Treat `ADFWI.fwi.runtime` as a namespace package in bv1.2; import concrete
   helpers from backend/cache/forward/gradient/regularization/wavefield modules.
 - Treat the former FWI data-contract helpers as part of `ADFWI.fwi.iteration.loss`.
 - Treat `ADFWI.fwi.iteration.batches` as the owner of shot batch scheduling.
+- Treat `ADFWI.fwi.iteration.step` as the owner of one-batch
+  forward/loss/backward execution.
 - Keep examples and generated API sources aligned with canonical bv1.2 import
   paths after removing compatibility shims.
 - Use `tests/test_import_surface_policy.py` as the lightweight guard for future

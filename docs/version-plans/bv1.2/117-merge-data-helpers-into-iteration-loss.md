@@ -19,11 +19,17 @@ than it really was and overlapped with the real mathematical losses in
 
 ## Change
 
-Moved the previous `ADFWI.fwi.data` modules into the iteration-owned batch loss
-module:
+Moved the previous `ADFWI.fwi.data` modules into the iteration-owned loss
+construction module:
 
 ```text
 ADFWI/fwi/iteration/loss.py
+```
+
+One-batch forward/loss/backward execution is separated into:
+
+```text
+ADFWI/fwi/iteration/step.py
 ```
 
 Removed:
@@ -45,6 +51,7 @@ Updated active imports in:
 - `ADFWI/fwi/acoustic_fwi.py`
 - `ADFWI/fwi/elastic_fwi.py`
 - `ADFWI/fwi/iteration/loss.py`
+- `ADFWI/fwi/iteration/step.py`
 
 The import-surface policy now treats `ADFWI.fwi.data` as removed.
 It also guards against recreating the short-lived split modules
@@ -77,6 +84,9 @@ conda run -n adfwi python -m unittest \
 
 conda run -n adfwi python -m py_compile \
   ADFWI/fwi/iteration/loss.py \
+  ADFWI/fwi/iteration/step.py \
+  ADFWI/fwi/iteration/batches.py \
+  ADFWI/fwi/iteration/epoch.py \
   ADFWI/fwi/acoustic_fwi.py \
   ADFWI/fwi/elastic_fwi.py
 ```

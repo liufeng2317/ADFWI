@@ -34,9 +34,8 @@ from ADFWI.fwi.runtime.gradient import (
 from ADFWI.fwi.runtime.regularization import calculate_model_regularization_loss, calculate_regularization_loss
 from ADFWI.fwi.runtime.wavefield import select_elastic_gradient_wavefield
 from ADFWI.fwi.iteration.batches import iter_batch_ranges
-from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
+from ADFWI.fwi.iteration.epoch import apply_epoch_update_step, finalize_epoch_progress
 from ADFWI.fwi.iteration.loss import (
-    apply_elastic_batch_loss_step,
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
     elastic_observed_components,
@@ -45,7 +44,7 @@ from ADFWI.fwi.iteration.loss import (
     prepare_fwi_loss_pair,
     prepare_loss_pair,
 )
-from ADFWI.fwi.iteration.progress import finalize_epoch_progress
+from ADFWI.fwi.iteration.step import apply_elastic_batch_loss_step
 from ADFWI.fwi.transforms import DataTransformPipeline
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.utils       import numpy2tensor

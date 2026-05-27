@@ -61,7 +61,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | Backend/device | Added centralized backend configuration, diagnostics, dtype/device handling, and FWI constructor guards. | Users configure CPU/CUDA/NPU once through the backend API before building models/FWI drivers. | `tests/test_backends.py`, `tests/test_backend_integration.py`, backend smoke scripts. |
 | User-facing examples | Added minimal acoustic/elastic backend examples and a layered smoke runner. | Script examples are reproducible entry points for backend checks, not notebook replacements. | `scripts/smoke/run_backend_smoke_suite.py`, `scripts/examples/README.md`. |
-| Iteration loss construction | Moved the former FWI data-contract helpers into `ADFWI.fwi.iteration.loss`. | One module now owns loss-input records, component selection, pre-loss pair preparation, misfit dispatch, weighting, and batch backward steps. | `tests/test_fwi_iteration_loss.py`. |
+| Iteration loss construction | Moved the former FWI data-contract helpers into `ADFWI.fwi.iteration.loss`. | `loss.py` owns loss-input records, component selection, pre-loss pair preparation, misfit dispatch, and weighting; `step.py` owns one-batch forward/loss/backward execution. | `tests/test_fwi_iteration_loss.py`, `tests/test_fwi_iteration.py`. |
 | Transform pipeline | Moved mute, masks, receiver selection, normalization, and low-pass behavior into transform-owned modules. | Receiver selection runs before transform pipelines; transform order is part of the numerical contract. | `tests/test_data_transforms.py`, receiver-selection tests, low-pass comparisons. |
 | Runtime helpers | Extracted shared backend checks, cache, wavefield collection, gradient dispatch, and regularization helpers. | Acoustic/elastic drivers still own physical parameter choices; helpers own repeated execution details. | `tests/test_fwi_runtime.py`, mini-inversion smoke tests. |
 | Iteration helpers | Extracted batch ranges, loss accumulation, progress, epoch update, and epoch finalization helpers. | FWI loops are shorter but still readable as inversion workflows. | Iteration/runtime unit tests and acoustic/elastic FWI smoke paths. |
@@ -76,8 +76,10 @@ flowchart TD
 | `ADFWI/backends/` | Backend/device/dtype selection and diagnostics. |
 | `ADFWI/fwi/transforms/` | Waveform operations: receiver selection, masks, mute, normalization, low-pass. |
 | `ADFWI/fwi/iteration/` | Namespace package for batch scheduling, loss, epoch, and progress helpers. Import concrete helpers from owner modules. |
-| `ADFWI/fwi/iteration/batches.py` | Shot batch scheduling and `BatchRange` records. |
-| `ADFWI/fwi/iteration/loss.py` | Loss-input records, component selection, pre-loss pair preparation, misfit dispatch, weighted loss accumulation, and batch backward steps. |
+| `ADFWI/fwi/iteration/batches.py` | Shot batch scheduling, `BatchRange` records, and batch progress labels. |
+| `ADFWI/fwi/iteration/loss.py` | Loss-input records, component selection, pre-loss pair preparation, misfit dispatch, and weighted loss accumulation. |
+| `ADFWI/fwi/iteration/step.py` | One-batch acoustic/elastic forward, loss evaluation, regularization merge, backward, and wavefield accumulation. |
+| `ADFWI/fwi/iteration/epoch.py` | Epoch optimizer/scheduler/model update plus epoch progress/cache finalization. |
 | `ADFWI/fwi/runtime/` | Namespace package for backend/cache/forward/gradient/regularization/wavefield helpers. |
 | `ADFWI/fwi/multiscale/` | Explicit legacy-compatible multiscale low-pass implementation. |
 | `ADFWI/propagator/gradient_process.py` | Legacy `GradProcessor` and opt-in `TorchGradProcessor`. |
