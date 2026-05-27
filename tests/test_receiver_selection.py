@@ -65,6 +65,27 @@ class ReceiverSelectionTests(unittest.TestCase):
         self.assertEqual(actual.dtype, synthetic.dtype)
         self.assertEqual(actual.device, synthetic.device)
 
+    def test_trace_missing_accepts_non_float_mask_inputs(self):
+        synthetic = torch.arange(2 * 4 * 4, dtype=torch.float32).reshape(2, 4, 4)
+        observed = torch.zeros((2, 4, 2), dtype=torch.float32)
+        receiver_mask = [[1, 0, 1, 0], [0, 1, 0, 1]]
+
+        actual = select_or_mask_receivers(synthetic, observed, receiver_mask)
+
+        self.assertEqual(actual.shape, observed.shape)
+        self.assertTrue(torch.equal(actual[0, :, 0], synthetic[0, :, 0]))
+        self.assertTrue(torch.equal(actual[0, :, 1], synthetic[0, :, 2]))
+        self.assertTrue(torch.equal(actual[1, :, 0], synthetic[1, :, 1]))
+        self.assertTrue(torch.equal(actual[1, :, 1], synthetic[1, :, 3]))
+
+    def test_trace_missing_rejects_observed_receiver_count_mismatch(self):
+        synthetic = torch.arange(1 * 4 * 3, dtype=torch.float32).reshape(1, 4, 3)
+        observed = torch.zeros((1, 4, 2), dtype=torch.float32)
+        receiver_mask = torch.tensor([[0, 1, 0]], dtype=torch.float32)
+
+        with self.assertRaisesRegex(ValueError, "active receiver count"):
+            select_or_mask_receivers(synthetic, observed, receiver_mask)
+
 
 if __name__ == "__main__":
     unittest.main()

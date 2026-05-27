@@ -74,6 +74,7 @@ numbered order unless you are looking for a specific topic.
 | 63 | [FWI Model Regularization Sum Helper](./63-fwi-model-regularization-sum.md) | Share ordered model-parameter regularization summation for acoustic and elastic drivers. |
 | 64 | [Legacy Low-Pass Ownership Comments](./64-legacy-lowpass-ownership-comments.md) | Clarify multiscale low-pass implementation ownership and compatibility imports without changing numerical behavior. |
 | 65 | [Low-Pass User Guidance](./65-lowpass-user-guidance.md) | Add user-facing guidance for choosing legacy-compatible versus pure torch low-pass filtering. |
+| 66 | [Receiver Selection Torch Indexing](./66-receiver-selection-torch-indexing.md) | Keep trace-missing receiver selection on the active torch device while preserving legacy receiver order. |
 
 ## Current Direction
 
