@@ -7,12 +7,11 @@ from typing import Any
 
 from ADFWI.fwi.data.inputs import acoustic_pressure_loss_input, elastic_loss_inputs
 from ADFWI.fwi.data.loss import evaluate_loss_inputs
-from ADFWI.fwi.runtime import (
-    acoustic_forward_batch,
+from ADFWI.fwi.runtime.forward import acoustic_forward_batch, elastic_forward_batch
+from ADFWI.fwi.runtime.wavefield import (
     acoustic_pressure_waveforms,
     accumulate_named_wavefields,
     accumulate_wavefield,
-    elastic_forward_batch,
     elastic_gradient_wavefields,
 )
 from .progress import set_batch_description

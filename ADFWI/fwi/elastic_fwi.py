@@ -16,23 +16,23 @@ from ADFWI.propagator  import ElasticPropagator,GradProcessor
 from ADFWI.survey      import SeismicData
 from ADFWI.fwi.misfit  import Misfit
 from ADFWI.fwi.regularization import Regularization
-from ADFWI.fwi.runtime import (
-    align_regularization_backend,
+from ADFWI.fwi.runtime.backend import align_regularization_backend, validate_model_propagator_devices
+from ADFWI.fwi.runtime.cache import (
     append_epoch_loss,
     append_model_snapshots,
     append_required_gradient_snapshots,
-    calculate_model_regularization_loss,
-    calculate_regularization_loss,
+    should_cache_epoch,
+    snapshot_model_parameters,
+    tensor_to_numpy,
+)
+from ADFWI.fwi.runtime.gradient import (
     elastic_gradient_parameter_specs,
     elastic_parameter_names,
     process_named_parameter_gradients,
     process_parameter_gradient,
-    select_elastic_gradient_wavefield,
-    should_cache_epoch,
-    snapshot_model_parameters,
-    tensor_to_numpy,
-    validate_model_propagator_devices,
 )
+from ADFWI.fwi.runtime.regularization import calculate_model_regularization_loss, calculate_regularization_loss
+from ADFWI.fwi.runtime.wavefield import select_elastic_gradient_wavefield
 from ADFWI.fwi.data import (
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,

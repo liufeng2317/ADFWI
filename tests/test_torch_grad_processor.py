@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 
-from ADFWI.fwi.runtime import process_parameter_gradient
+from ADFWI.fwi.runtime.gradient import process_parameter_gradient
 from ADFWI.propagator import GradProcessor, TorchGradProcessor
 
 

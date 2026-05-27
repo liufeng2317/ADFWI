@@ -132,9 +132,12 @@ numerical method, record the drift and tolerance in
    transform helpers through data-contract packages.
 17. Treat `ADFWI.fwi.iteration` as a namespace package; import concrete
    helpers from `range`, `loss`, `progress`, and `epoch`.
-18. Validate the torch-native gradient processor through smoothing and
+18. Route active runtime imports to `backend`, `cache`, `forward`, `gradient`,
+   `regularization`, and `wavefield` owner modules before narrowing
+   `ADFWI.fwi.runtime`.
+19. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-19. Convert example options into a small reproducible configuration layer once
+20. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-20. Defer deeper propagator-level performance work, such as checkpointing or
+21. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.
