@@ -2,6 +2,9 @@
 
 This document records the bv1.2 user-facing backend API for CPU, CUDA GPU, and NPU execution.
 
+For the broader bv1.2 optimization map, see
+[ADFWI bv1.2 Optimization Chain](./optimization-chain.md).
+
 ## Recommended Public Entry Points
 
 For research scripts and notebooks, prefer the top-level `ADFWI` API:
