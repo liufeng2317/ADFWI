@@ -48,7 +48,7 @@ flowchart TD
 | `ADFWI/fwi/regularization/` | Model prior / smoothness constraint | Defines model-space penalties used together with data misfit. |
 | `ADFWI/fwi/iteration/` | Inversion bookkeeping | Encodes batch ranges, batch loss tensor/scalar handling, and progress descriptions. |
 | `ADFWI/fwi/runtime/` | Shared execution rules | Holds acoustic/elastic shared runtime helpers: backend checks, regularization dispatch, gradient processor dispatch. It should not introduce new physics. |
-| `ADFWI/fwi/multiscale/` | Multiscale inversion strategy | Owns legacy low-pass filtering helpers used by frequency-continuation style workflows. |
+| `ADFWI/fwi/multiscale/` | Multiscale inversion strategy | Owns legacy low-pass filtering helpers used by frequency-continuation style workflows; use this path for legacy-compatible FWI filtering, and treat pure torch low-pass as a deliberate numerical-method change. |
 | `ADFWI/backends/` | Device and dtype policy | Selects and describes CPU/CUDA/NPU execution backend for user-facing device control. |
 
 ## Current Design Assessment

@@ -111,6 +111,31 @@ conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-inversion --devices cpu,npu:0
 ```
 
+## Choosing Low-Pass Filtering
+
+For existing FWI workflows that pass `cutoff_freq` into `AcousticFWI` or
+`ElasticFWI`, keep the default legacy-compatible path. The default transform
+pipeline routes `cutoff_freq` through `LegacyLowPassFilter`, which delegates to
+the historical `ADFWI.fwi.multiscale.legacy_lowpass.lpass` implementation and
+preserves the old Butterworth/filtfilt forward and backward behavior.
+
+Use the pure torch `LowPassFilter` only when you intentionally want a different,
+differentiable low-pass method. It is useful for new experiments and
+transform-level CPU/NPU checks, but it is not a drop-in numerical replacement
+for legacy FWI results.
+
+Quick rule:
+
+| Goal | Recommended path |
+| --- | --- |
+| Reproduce old FWI examples or compare against legacy notebooks | `cutoff_freq` in the FWI driver, or `LegacyLowPassFilter` |
+| Build a new differentiable transform experiment | `LowPassFilter` |
+| Change an existing benchmark from legacy to torch low-pass | Treat as a numerical-method change and rerun benchmark comparisons |
+
+The low-pass decision and validation history are recorded in
+`docs/version-plans/bv1.2/04-lowpass-filter-comparison.md`. The focused tests are
+`tests/test_multiscale_compat.py` and `tests/test_lowpass_transform_comparison.py`.
+
 ## Extending Toward A Real Case
 
 When adapting a minimal script to a real example such as Marmousi2, keep the same outer structure and replace the synthetic pieces gradually:
