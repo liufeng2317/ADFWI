@@ -41,6 +41,12 @@ def write_summary(path: Path, seconds: float, loss_history, *, gradient_processo
             "loss_max": max(loss_history),
             "loss_history": loss_history,
             "gradient_processor": gradient_processor,
+            "grad_smooth": 2,
+            "grad_mute": 0,
+            "grad_mute_top": 12,
+            "marine_or_land": "land",
+            "norm_grad": False,
+            "forw_illumination": False,
             "vp_grad_norm": 0.25,
             "vp_update_norm": 100.0,
         },
@@ -66,6 +72,7 @@ class FullCaseOutputCompareTests(unittest.TestCase):
         self.assertEqual(report["runs"][0]["seconds_per_iteration"], 20.0 / 3.0)
         self.assertEqual(report["runs"][0]["gradient_processor"], "legacy")
         self.assertEqual(report["runs"][1]["gradient_processor"], "torch")
+        self.assertEqual(report["runs"][1]["grad_smooth"], 2)
         self.assertTrue(report["runs"][1]["loss_monotonic_nonincreasing"])
         comparison = report["comparisons"][0]
         self.assertEqual(comparison["label"], "candidate")

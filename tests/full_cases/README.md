@@ -78,6 +78,7 @@ ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_GRADIENT_PROCESSOR=torch conda run -n adf
 
 conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
   --gradient-processor torch \
+  --grad-smooth 2 \
   --output-dir tests/full_cases/outputs/marmousi2_torch_candidate \
   --compare-to tests/full_cases/outputs/marmousi2_npu_shot3_ckpt10_iter10 \
   --compare-labels legacy,torch

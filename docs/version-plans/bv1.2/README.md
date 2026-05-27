@@ -120,6 +120,7 @@ numbered order unless you are looking for a specific topic.
 | 109 | [Gradient Processor Stage Diagnostics](./109-gradient-processor-stage-diagnostics.md) | Isolate NPU gradient processor drift by smoothing, normalization, and illumination stages. |
 | 110 | [Gradient Processor NPU Tolerance Profile](./110-gradient-processor-npu-tolerance-profile.md) | Add an explicit NPU float32 tolerance profile while keeping strict parity as the default. |
 | 111 | [Marmousi2 Torch Gradient Opt-In](./111-marmousi2-torch-gradient-opt-in.md) | Wire TorchGradProcessor into fixed Marmousi2 full-case entry points without changing the default. |
+| 112 | [Marmousi2 Gradient Stress Gates](./112-marmousi2-gradient-stress-gates.md) | Add real-case gradient stress controls and validate smoothing/illumination torch paths on NPU. |
 
 ## Current Direction
 
@@ -194,3 +195,7 @@ numbered order unless you are looking for a specific topic.
 - Marmousi2 full-case entry points now accept `--gradient-processor torch`,
   but default to legacy; the first full-length one-iteration NPU smoke matches
   legacy exactly under the current mask-only gradient settings.
+- Real Marmousi2 one-iteration NPU stress gates for `--grad-smooth 2` and
+  `--forw-illumination` show no loss drift and only about `1e-6` relative
+  gradient/update drift, so the next decision point is a short multi-iteration
+  trajectory comparison rather than more single-step diagnostics.

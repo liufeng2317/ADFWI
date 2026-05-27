@@ -104,6 +104,12 @@ def summarize_run(label: str, input_path: Path, summary: Dict[str, Any]) -> Dict
         "loss_history": loss_history,
         "loss_monotonic_nonincreasing": is_monotonic_nonincreasing(loss_history),
         "gradient_processor": inversion.get("gradient_processor"),
+        "grad_smooth": inversion.get("grad_smooth"),
+        "grad_mute": inversion.get("grad_mute"),
+        "grad_mute_top": inversion.get("grad_mute_top"),
+        "marine_or_land": inversion.get("marine_or_land"),
+        "norm_grad": inversion.get("norm_grad"),
+        "forw_illumination": inversion.get("forw_illumination"),
         "vp_grad_norm": finite_float(inversion.get("vp_grad_norm")),
         "vp_update_norm": finite_float(inversion.get("vp_update_norm")),
     }

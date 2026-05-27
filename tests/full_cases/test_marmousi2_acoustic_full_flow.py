@@ -41,6 +41,11 @@ def full_flow_command():
     lr = env_float("ADFWI_FULL_CASE_LR", 10.0)
     checkpoint_segments = env_int("ADFWI_FULL_CASE_CHECKPOINT_SEGMENTS", 10)
     gradient_processor = os.environ.get("ADFWI_FULL_CASE_GRADIENT_PROCESSOR", "legacy")
+    grad_smooth = env_int("ADFWI_FULL_CASE_GRAD_SMOOTH", 0)
+    grad_mute = env_int("ADFWI_FULL_CASE_GRAD_MUTE", 0)
+    marine_or_land = os.environ.get("ADFWI_FULL_CASE_MARINE_OR_LAND", "land")
+    norm_grad = env_flag("ADFWI_FULL_CASE_NORM_GRAD")
+    forw_illumination = env_flag("ADFWI_FULL_CASE_FORW_ILLUMINATION")
     output_dir = os.environ.get("ADFWI_FULL_CASE_OUTPUT_DIR")
 
     cmd = [
@@ -73,6 +78,16 @@ def full_flow_command():
         "--gradient-processor",
         gradient_processor,
     ]
+    if grad_smooth:
+        cmd.extend(["--grad-smooth", str(grad_smooth)])
+    if grad_mute:
+        cmd.extend(["--grad-mute", str(grad_mute)])
+    if marine_or_land != "land":
+        cmd.extend(["--marine-or-land", marine_or_land])
+    if norm_grad:
+        cmd.append("--norm-grad")
+    if forw_illumination:
+        cmd.append("--forw-illumination")
     if output_dir:
         cmd.extend(["--output-dir", output_dir])
     return cmd
@@ -92,11 +107,26 @@ class Marmousi2AcousticFullFlowTests(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "legacy")
 
     def test_full_flow_command_accepts_torch_gradient_processor(self):
-        with mock.patch.dict(os.environ, {"ADFWI_FULL_CASE_GRADIENT_PROCESSOR": "torch"}):
+        with mock.patch.dict(
+            os.environ,
+            {
+                "ADFWI_FULL_CASE_GRADIENT_PROCESSOR": "torch",
+                "ADFWI_FULL_CASE_GRAD_SMOOTH": "2",
+                "ADFWI_FULL_CASE_GRAD_MUTE": "2",
+                "ADFWI_FULL_CASE_MARINE_OR_LAND": "marine",
+                "ADFWI_FULL_CASE_NORM_GRAD": "1",
+                "ADFWI_FULL_CASE_FORW_ILLUMINATION": "1",
+            },
+        ):
             cmd = full_flow_command()
 
         self.assertIn("--gradient-processor", cmd)
         self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "torch")
+        self.assertEqual(cmd[cmd.index("--grad-smooth") + 1], "2")
+        self.assertEqual(cmd[cmd.index("--grad-mute") + 1], "2")
+        self.assertEqual(cmd[cmd.index("--marine-or-land") + 1], "marine")
+        self.assertIn("--norm-grad", cmd)
+        self.assertIn("--forw-illumination", cmd)
 
     @unittest.skipUnless(env_flag("ADFWI_RUN_FULL_CASES"), "set ADFWI_RUN_FULL_CASES=1 to run full Marmousi2 case")
     def test_marmousi2_synthetic_true_forward_and_inversion(self):

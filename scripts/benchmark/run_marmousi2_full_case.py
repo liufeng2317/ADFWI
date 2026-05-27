@@ -71,8 +71,13 @@ def build_command(
     output_dir: Path,
     python: str,
     gradient_processor: str = "legacy",
+    grad_smooth: int = 0,
+    grad_mute: int = 0,
+    marine_or_land: str = "land",
+    norm_grad: bool = False,
+    forw_illumination: bool = False,
 ) -> List[str]:
-    return [
+    command = [
         python,
         str(INVERSION_SCRIPT),
         "--device",
@@ -104,6 +109,17 @@ def build_command(
         "--output-dir",
         str(output_dir),
     ]
+    if grad_smooth:
+        command.extend(["--grad-smooth", str(grad_smooth)])
+    if grad_mute:
+        command.extend(["--grad-mute", str(grad_mute)])
+    if marine_or_land != "land":
+        command.extend(["--marine-or-land", marine_or_land])
+    if norm_grad:
+        command.append("--norm-grad")
+    if forw_illumination:
+        command.append("--forw-illumination")
+    return command
 
 
 def build_compare_command(args: argparse.Namespace, *, output_dir: Path) -> Optional[List[str]]:
@@ -153,6 +169,11 @@ def build_plan(args: argparse.Namespace) -> Dict[str, object]:
         output_dir=output_dir,
         python=args.python,
         gradient_processor=args.gradient_processor,
+        grad_smooth=args.grad_smooth,
+        grad_mute=args.grad_mute,
+        marine_or_land=args.marine_or_land,
+        norm_grad=args.norm_grad,
+        forw_illumination=args.forw_illumination,
     )
     profile_output = profile_output_path(args, output_dir=output_dir)
     command = build_profiled_command(base_command, python=args.python, profile_output=profile_output)
@@ -166,6 +187,11 @@ def build_plan(args: argparse.Namespace) -> Dict[str, object]:
         "profile": args.profile,
         "profile_output": None if profile_output is None else str(profile_output),
         "gradient_processor": args.gradient_processor,
+        "grad_smooth": args.grad_smooth,
+        "grad_mute": args.grad_mute,
+        "marine_or_land": args.marine_or_land,
+        "norm_grad": args.norm_grad,
+        "forw_illumination": args.forw_illumination,
         "base_command": base_command,
         "base_command_text": " ".join(base_command),
         "command": command,
@@ -185,6 +211,11 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Print the preset plan without running the inversion")
     parser.add_argument("--list-presets", action="store_true", help="Print available presets and exit")
     parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy", help="Gradient processor implementation passed to the inversion script")
+    parser.add_argument("--grad-smooth", type=int, default=0, help="Gradient smoothing span passed to the inversion script")
+    parser.add_argument("--grad-mute", type=int, default=0, help="Gradient mute/taper size passed to the inversion script")
+    parser.add_argument("--marine-or-land", choices=("marine", "offshore", "land", "onshore"), default="land", help="Gradient processor environment for taper/smoothing rules")
+    parser.add_argument("--norm-grad", action="store_true", help="Enable gradient normalization in the inversion script")
+    parser.add_argument("--forw-illumination", action="store_true", help="Enable forward-illumination preconditioning in the inversion script")
     parser.add_argument("--profile", action="store_true", help="Run the preset under Python cProfile")
     parser.add_argument("--profile-output", type=Path, help="cProfile output path; defaults to output_dir/python_profile.prof")
     parser.add_argument("--compare-to", type=Path, help="Optional baseline output directory or summary.json to compare after the run")

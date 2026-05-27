@@ -70,9 +70,12 @@ def build_optimizer(model, args: argparse.Namespace):
 
 def build_gradient_processor(args: argparse.Namespace, grad_mask: np.ndarray):
     processor_kwargs = {
+        "grad_mute": args.grad_mute,
+        "grad_smooth": args.grad_smooth,
         "grad_mask": grad_mask,
         "norm_grad": args.norm_grad,
         "forw_illumination": args.forw_illumination,
+        "marine_or_land": args.marine_or_land,
     }
     if args.gradient_processor == "legacy":
         return GradProcessor(**processor_kwargs)
@@ -357,6 +360,12 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "waveform_normalize": args.waveform_normalize,
             "auto_update_rho": args.auto_update_rho,
             "gradient_processor": args.gradient_processor,
+            "norm_grad": args.norm_grad,
+            "forw_illumination": args.forw_illumination,
+            "grad_mute": args.grad_mute,
+            "grad_smooth": args.grad_smooth,
+            "grad_mute_top": args.grad_mute_top,
+            "marine_or_land": args.marine_or_land,
             "seconds": seconds,
             **loss_summary,
             "vp_grad_norm": grad_norm,
@@ -393,6 +402,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dt-for-loss", type=float, default=1.0)
     parser.add_argument("--misfit", default="safe-squared-l2", choices=("safe-squared-l2", "legacy-l2"))
     parser.add_argument("--grad-mute-top", type=int, default=12)
+    parser.add_argument("--grad-mute", type=int, default=0)
+    parser.add_argument("--grad-smooth", type=int, default=0)
+    parser.add_argument("--marine-or-land", choices=("marine", "offshore", "land", "onshore"), default="land")
     parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy")
     parser.add_argument("--norm-grad", action="store_true")
     parser.add_argument("--forw-illumination", action="store_true")

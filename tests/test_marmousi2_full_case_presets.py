@@ -60,10 +60,20 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
             output_dir=Path("tests/full_cases/outputs/custom"),
             python="python",
             gradient_processor="torch",
+            grad_smooth=2,
+            grad_mute=2,
+            marine_or_land="marine",
+            norm_grad=True,
+            forw_illumination=True,
         )
 
         self.assertIn("--gradient-processor", cmd)
         self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "torch")
+        self.assertEqual(cmd[cmd.index("--grad-smooth") + 1], "2")
+        self.assertEqual(cmd[cmd.index("--grad-mute") + 1], "2")
+        self.assertEqual(cmd[cmd.index("--marine-or-land") + 1], "marine")
+        self.assertIn("--norm-grad", cmd)
+        self.assertIn("--forw-illumination", cmd)
 
     def test_cli_dry_run_outputs_plan_without_running(self):
         proc = subprocess.run(
@@ -76,6 +86,9 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
                 "tests/full_cases/outputs/dry_run",
                 "--gradient-processor",
                 "torch",
+                "--grad-smooth",
+                "2",
+                "--forw-illumination",
             ],
             cwd=str(REPO_ROOT),
             text=True,
@@ -89,8 +102,12 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
         self.assertEqual(report["preset"]["name"], "shot3")
         self.assertEqual(report["output_dir"], "tests/full_cases/outputs/dry_run")
         self.assertEqual(report["gradient_processor"], "torch")
+        self.assertEqual(report["grad_smooth"], 2)
+        self.assertTrue(report["forw_illumination"])
         self.assertIn("--output-dir", report["command"])
         self.assertEqual(report["command"][report["command"].index("--gradient-processor") + 1], "torch")
+        self.assertEqual(report["command"][report["command"].index("--grad-smooth") + 1], "2")
+        self.assertIn("--forw-illumination", report["command"])
         self.assertIsNone(report["compare_command"])
 
     def test_cli_dry_run_includes_compare_command(self):
