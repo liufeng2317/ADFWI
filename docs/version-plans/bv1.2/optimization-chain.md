@@ -130,8 +130,8 @@ numerical method, record the drift and tolerance in
    moved to canonical bv1.2 imports.
 16. Keep waveform operations owned by `ADFWI.fwi.transforms`; avoid exporting
    transform helpers through data-contract packages.
-17. Route active FWI iteration imports to owner modules before narrowing the
-   package-level `ADFWI.fwi.iteration` aggregation surface.
+17. Treat `ADFWI.fwi.iteration` as a namespace package; import concrete
+   helpers from `range`, `loss`, `progress`, and `epoch`.
 18. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 19. Convert example options into a small reproducible configuration layer once

@@ -106,6 +106,7 @@ numbered order unless you are looking for a specific topic.
 | 95 | [Remove Transform Waveform Shim](./95-remove-transform-waveform-shim.md) | Remove the unused `ADFWI.fwi.transforms.waveform` re-export module. |
 | 96 | [Remove Data Normalize Re-Export](./96-remove-data-normalize-reexport.md) | Remove `ADFWI.fwi.data.normalize_waveform` in favor of transform-layer canonical imports. |
 | 97 | [Iteration Owner Imports](./97-iteration-owner-imports.md) | Route active FWI iteration imports to owner modules before narrowing package-level re-exports. |
+| 98 | [Remove Iteration Re-Exports](./98-remove-iteration-reexports.md) | Remove broad `ADFWI.fwi.iteration` helper re-exports after active code moved to owner modules. |
 
 ## Current Direction
 
@@ -152,3 +153,5 @@ numbered order unless you are looking for a specific topic.
 - Route active FWI drivers and tests to owner modules under
   `ADFWI.fwi.iteration` before deciding whether package-level iteration
   re-exports should remain public in `bv1.2`.
+- Treat `ADFWI.fwi.iteration` as a namespace package in bv1.2; import concrete
+  helpers from `range`, `loss`, `progress`, and `epoch`.
