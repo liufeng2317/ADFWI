@@ -71,6 +71,7 @@ The layered smoke runner can execute both examples and compare CPU against NPU n
 
 ```bash
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites examples --devices cpu,npu:0 --example-problems acoustic,elastic
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites examples --devices cpu,npu:0 --example-problems acoustic,elastic --example-gradient-processors legacy,torch
 ```
 
 The runner reports a top-level `summary`. For the `examples` suite, check:
@@ -150,6 +151,8 @@ conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --devi
 
 Treat this as an optimization option. Compare `loss`, `vp_grad_norm`, and
 `vp_update_norm` against the legacy default before using it in larger cases.
+The smoke-suite command above with `--example-gradient-processors legacy,torch`
+does this comparison per problem and per device.
 
 ## Extending Toward A Real Case
 

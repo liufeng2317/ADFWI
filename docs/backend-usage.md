@@ -3,7 +3,7 @@
 This document records the bv1.2 user-facing backend API for CPU, CUDA GPU, and NPU execution.
 
 For the broader bv1.2 optimization map, see
-[ADFWI bv1.2 Optimization Chain](./optimization-chain.md).
+[ADFWI bv1.2 Optimization Chain](./version-plans/bv1.2/optimization-chain.md).
 
 ## Recommended Public Entry Points
 
@@ -167,6 +167,7 @@ Layered backend smoke suite:
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public --devices cpu,npu:0
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,misfit --devices cpu,npu:0 --misfits L2,SquaredL2,StudentT
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites examples --devices cpu,npu:0 --example-problems acoustic,elastic
+conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites examples --devices cpu,npu:0 --example-problems acoustic,elastic --example-gradient-processors legacy,torch
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-checks --devices cpu,npu:0 --case-checks marmousi2-acoustic --case-run-forward --case-shot-index 0
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites case-inversion --devices cpu,npu:0

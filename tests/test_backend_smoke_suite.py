@@ -37,6 +37,56 @@ class BackendSmokeSuiteTests(unittest.TestCase):
         index = cmd.index("--gradient-processor")
         self.assertEqual(cmd[index + 1], "torch")
 
+    def test_example_command_accepts_explicit_gradient_processor(self):
+        args = SimpleNamespace(
+            prefer="npu,cpu",
+            dtype="float32",
+            checkpoint_segments=1,
+            seed=20240523,
+            fallback_cpu=False,
+            example_gradient_processor="legacy",
+        )
+
+        cmd = suite.command_for_example("acoustic", "cpu", args, "torch")
+
+        index = cmd.index("--gradient-processor")
+        self.assertEqual(cmd[index + 1], "torch")
+
+    def test_example_gradient_processor_comparison_reports_metric_drift(self):
+        args = SimpleNamespace(
+            devices=["cpu"],
+            example_problems=["acoustic"],
+            example_gradient_processors=["legacy", "torch"],
+            example_gradient_rtol=1e-6,
+            example_gradient_atol=1e-12,
+        )
+        runs = [
+            {
+                "status": "ok",
+                "problem": "acoustic",
+                "device_request": "cpu",
+                "gradient_processor": "legacy",
+                "result": {"inversion": {"loss": 1.0, "vp_grad_norm": 2.0, "vp_update_norm": 3.0}},
+            },
+            {
+                "status": "ok",
+                "problem": "acoustic",
+                "device_request": "cpu",
+                "gradient_processor": "torch",
+                "result": {"inversion": {"loss": 1.0, "vp_grad_norm": 2.0, "vp_update_norm": 3.0}},
+            },
+        ]
+
+        comparisons = suite.compare_example_gradient_processors(runs, args)
+
+        self.assertEqual(len(comparisons), 1)
+        comparison = comparisons[0]
+        self.assertEqual(comparison["comparison_type"], "gradient_processor")
+        self.assertEqual(comparison["status"], "ok")
+        self.assertEqual(comparison["reference_gradient_processor"], "legacy")
+        self.assertEqual(comparison["gradient_processor"], "torch")
+        self.assertTrue(all(metric["status"] == "ok" for metric in comparison["metrics"]))
+
 
 if __name__ == "__main__":
     unittest.main()

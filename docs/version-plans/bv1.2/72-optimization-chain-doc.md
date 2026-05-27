@@ -9,7 +9,8 @@ torch-native opt-in work connect.
 
 ## Change
 
-- Added `docs/optimization-chain.md` with a Mermaid chain diagram.
+- Added `docs/version-plans/bv1.2/optimization-chain.md` with a Mermaid chain
+  diagram.
 - Summarized the main optimization layers, code landing points, validation
   commands, and next optimization direction.
 - Linked the new page from `docs/backend-usage.md` so backend users can find

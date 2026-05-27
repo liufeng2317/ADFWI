@@ -90,8 +90,8 @@ numerical method, record the drift and tolerance in
 
 ## Next Optimization Direction
 
-1. Add a standard-size example smoke profile that runs both legacy and
-   `TorchGradProcessor` paths on CPU/NPU and records loss/gradient drift.
+1. Use the examples smoke profile with `--example-gradient-processors legacy,torch`
+   to collect standard-size CPU/NPU legacy-vs-torch drift before larger runs.
 2. Extend `scripts/benchmark/acoustic_backend_benchmark.py` to compare legacy
    and torch-native gradient processing runtime and memory on larger acoustic
    grids.

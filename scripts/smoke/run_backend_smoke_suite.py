@@ -59,6 +59,10 @@ def parse_suites(value: str) -> List[str]:
     return parse_csv(value, label="suite", choices=SUITES)
 
 
+def parse_example_gradient_processors(value: str) -> List[str]:
+    return parse_csv(value, label="example gradient processor", choices=("legacy", "torch"))
+
+
 def extract_json(stdout: str) -> Dict[str, Any]:
     start = stdout.find("{")
     if start < 0:
@@ -127,7 +131,8 @@ def run_single_device_suite(suite: str, args: argparse.Namespace) -> Dict[str, A
     }
 
 
-def command_for_example(problem: str, device: str, args: argparse.Namespace) -> List[str]:
+def command_for_example(problem: str, device: str, args: argparse.Namespace, gradient_processor: str | None = None) -> List[str]:
+    processor = gradient_processor if gradient_processor is not None else args.example_gradient_processor
     cmd = [
         sys.executable,
         str(EXAMPLE_DIR / EXAMPLE_SCRIPT_BY_PROBLEM[problem]),
@@ -142,7 +147,7 @@ def command_for_example(problem: str, device: str, args: argparse.Namespace) -> 
         "--seed",
         str(args.seed),
         "--gradient-processor",
-        args.example_gradient_processor,
+        processor,
     ]
     if args.fallback_cpu:
         cmd.append("--fallback-cpu")
@@ -160,46 +165,113 @@ def compare_example_runs(runs: List[Dict[str, Any]], args: argparse.Namespace) -
     comparisons = []
     metrics = ("loss", "vp_grad_norm", "vp_update_norm")
     for problem in args.example_problems:
-        problem_runs = [run for run in runs if run.get("problem") == problem and run["status"] == "ok"]
-        reference = next((run for run in problem_runs if run.get("device_request") == "cpu"), None)
-        if reference is None and problem_runs:
-            reference = problem_runs[0]
-        if reference is None:
-            continue
-        reference_device = reference.get("device_request")
-        for run in problem_runs:
-            if run is reference:
+        for processor in args.example_gradient_processors:
+            problem_runs = [
+                run
+                for run in runs
+                if run.get("problem") == problem
+                and run.get("gradient_processor") == processor
+                and run["status"] == "ok"
+            ]
+            reference = next((run for run in problem_runs if run.get("device_request") == "cpu"), None)
+            if reference is None and problem_runs:
+                reference = problem_runs[0]
+            if reference is None:
                 continue
-            metric_reports = []
-            failed = False
-            for metric in metrics:
-                ref_value = example_metric(reference, metric)
-                value = example_metric(run, metric)
-                if ref_value is None or value is None:
-                    failed = True
-                    metric_reports.append({"metric": metric, "status": "missing"})
+            reference_device = reference.get("device_request")
+            for run in problem_runs:
+                if run is reference:
                     continue
-                abs_diff = abs(value - ref_value)
-                rel_diff = abs_diff / max(abs(ref_value), args.example_atol)
-                metric_failed = abs_diff > args.example_atol and rel_diff > args.example_rtol
-                failed = failed or metric_failed
-                metric_reports.append({
-                    "metric": metric,
-                    "reference": ref_value,
-                    "value": value,
-                    "abs_diff": abs_diff,
-                    "rel_diff": rel_diff,
-                    "status": "failed" if metric_failed else "ok",
+                metric_reports = []
+                failed = False
+                for metric in metrics:
+                    ref_value = example_metric(reference, metric)
+                    value = example_metric(run, metric)
+                    if ref_value is None or value is None:
+                        failed = True
+                        metric_reports.append({"metric": metric, "status": "missing"})
+                        continue
+                    abs_diff = abs(value - ref_value)
+                    rel_diff = abs_diff / max(abs(ref_value), args.example_atol)
+                    metric_failed = abs_diff > args.example_atol and rel_diff > args.example_rtol
+                    failed = failed or metric_failed
+                    metric_reports.append({
+                        "metric": metric,
+                        "reference": ref_value,
+                        "value": value,
+                        "abs_diff": abs_diff,
+                        "rel_diff": rel_diff,
+                        "status": "failed" if metric_failed else "ok",
+                    })
+                comparisons.append({
+                    "comparison_type": "device",
+                    "problem": problem,
+                    "gradient_processor": processor,
+                    "reference_device": reference_device,
+                    "device": run.get("device_request"),
+                    "rtol": args.example_rtol,
+                    "atol": args.example_atol,
+                    "status": "failed" if failed else "ok",
+                    "metrics": metric_reports,
                 })
-            comparisons.append({
-                "problem": problem,
-                "reference_device": reference_device,
-                "device": run.get("device_request"),
-                "rtol": args.example_rtol,
-                "atol": args.example_atol,
-                "status": "failed" if failed else "ok",
-                "metrics": metric_reports,
-            })
+    return comparisons
+
+
+def compare_example_gradient_processors(runs: List[Dict[str, Any]], args: argparse.Namespace) -> List[Dict[str, Any]]:
+    comparisons = []
+    if len(args.example_gradient_processors) < 2 or "legacy" not in args.example_gradient_processors:
+        return comparisons
+    metrics = ("loss", "vp_grad_norm", "vp_update_norm")
+    for problem in args.example_problems:
+        for device in args.devices:
+            device_runs = [
+                run
+                for run in runs
+                if run.get("problem") == problem
+                and run.get("device_request") == device
+                and run["status"] == "ok"
+            ]
+            reference = next((run for run in device_runs if run.get("gradient_processor") == "legacy"), None)
+            if reference is None:
+                continue
+            for processor in args.example_gradient_processors:
+                if processor == "legacy":
+                    continue
+                run = next((item for item in device_runs if item.get("gradient_processor") == processor), None)
+                if run is None:
+                    continue
+                metric_reports = []
+                failed = False
+                for metric in metrics:
+                    ref_value = example_metric(reference, metric)
+                    value = example_metric(run, metric)
+                    if ref_value is None or value is None:
+                        failed = True
+                        metric_reports.append({"metric": metric, "status": "missing"})
+                        continue
+                    abs_diff = abs(value - ref_value)
+                    rel_diff = abs_diff / max(abs(ref_value), args.example_gradient_atol)
+                    metric_failed = abs_diff > args.example_gradient_atol and rel_diff > args.example_gradient_rtol
+                    failed = failed or metric_failed
+                    metric_reports.append({
+                        "metric": metric,
+                        "reference": ref_value,
+                        "value": value,
+                        "abs_diff": abs_diff,
+                        "rel_diff": rel_diff,
+                        "status": "failed" if metric_failed else "ok",
+                    })
+                comparisons.append({
+                    "comparison_type": "gradient_processor",
+                    "problem": problem,
+                    "device": device,
+                    "reference_gradient_processor": "legacy",
+                    "gradient_processor": processor,
+                    "rtol": args.example_gradient_rtol,
+                    "atol": args.example_gradient_atol,
+                    "status": "failed" if failed else "ok",
+                    "metrics": metric_reports,
+                })
     return comparisons
 
 
@@ -207,11 +279,14 @@ def run_examples(args: argparse.Namespace) -> Dict[str, Any]:
     runs = []
     for problem in args.example_problems:
         for device in args.devices:
-            run = run_command(command_for_example(problem, device, args), include_stderr=args.include_stderr)
-            run["problem"] = problem
-            run["device_request"] = device
-            runs.append(run)
+            for processor in args.example_gradient_processors:
+                run = run_command(command_for_example(problem, device, args, processor), include_stderr=args.include_stderr)
+                run["problem"] = problem
+                run["device_request"] = device
+                run["gradient_processor"] = processor
+                runs.append(run)
     comparisons = compare_example_runs(runs, args)
+    comparisons.extend(compare_example_gradient_processors(runs, args))
     failed = [run for run in runs if run["status"] == "failed" or (run["status"] == "unavailable" and not args.skip_unavailable)]
     failed.extend(compare for compare in comparisons if compare["status"] == "failed")
     return {
@@ -219,6 +294,7 @@ def run_examples(args: argparse.Namespace) -> Dict[str, Any]:
         "status": "failed" if failed else "ok",
         "devices": args.devices,
         "problems": args.example_problems,
+        "gradient_processors": args.example_gradient_processors,
         "runs": runs,
         "comparisons": comparisons,
     }
@@ -540,8 +616,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="comma-separated user-facing examples to run when --suites includes examples",
     )
     parser.add_argument("--example-gradient-processor", choices=("legacy", "torch"), default="legacy", help="gradient processor implementation passed to minimal example scripts")
+    parser.add_argument("--example-gradient-processors", type=parse_example_gradient_processors, default=None, help="comma-separated gradient processors for examples; use legacy,torch to compare both paths")
     parser.add_argument("--example-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device example metrics")
     parser.add_argument("--example-atol", type=float, default=1e-8, help="absolute tolerance for CPU-vs-device example metrics")
+    parser.add_argument("--example-gradient-rtol", type=float, default=1e-6, help="relative tolerance for legacy-vs-torch example gradient processor metrics")
+    parser.add_argument("--example-gradient-atol", type=float, default=1e-12, help="absolute tolerance for legacy-vs-torch example gradient processor metrics")
     parser.add_argument(
         "--case-checks",
         type=lambda value: parse_csv(value, label="case check", choices=tuple(CASE_CHECK_SCRIPT_BY_CASE)),
@@ -577,6 +656,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if args.example_gradient_processors is None:
+        args.example_gradient_processors = [args.example_gradient_processor]
 
     reports = []
     for suite in args.suites:

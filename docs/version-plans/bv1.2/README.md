@@ -81,6 +81,7 @@ numbered order unless you are looking for a specific topic.
 | 70 | [Acoustic Torch Gradient Smoke](./70-acoustic-torch-gradient-smoke.md) | Add an opt-in TorchGradProcessor path to the acoustic mini-inversion smoke with legacy drift checks. |
 | 71 | [Example Torch Gradient Option](./71-example-torch-gradient-option.md) | Expose opt-in TorchGradProcessor in minimal examples and the examples smoke suite with CPU/NPU drift checks. |
 | 72 | [Optimization Chain Documentation](./72-optimization-chain-doc.md) | Add a top-level optimization chain diagram and summary under `docs/`. |
+| 73 | [Example Gradient Processor Comparison](./73-example-gradient-processor-comparison.md) | Let the examples smoke suite run legacy and torch gradient processors together and report drift. |
 
 ## Current Direction
 
