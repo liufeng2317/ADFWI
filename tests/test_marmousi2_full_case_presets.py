@@ -104,6 +104,30 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
         self.assertIn("tests/full_cases/outputs/candidate", compare_command)
         self.assertIn("--fail-on-loss-drift", compare_command)
 
+    def test_cli_dry_run_includes_profile_command(self):
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "shot3",
+                "--dry-run",
+                "--profile",
+                "--output-dir",
+                "tests/full_cases/outputs/profile_candidate",
+            ],
+            cwd=str(REPO_ROOT),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(proc.returncode, 0, msg=proc.stderr)
+        report = json.loads(proc.stdout)
+        self.assertTrue(report["profile"])
+        self.assertEqual(report["profile_output"], "tests/full_cases/outputs/profile_candidate/python_profile.prof")
+        self.assertEqual(report["command"][1:4], ["-m", "cProfile", "-o"])
+        self.assertIn(str(runner.INVERSION_SCRIPT), report["command"])
+
     def test_cli_lists_presets(self):
         proc = subprocess.run(
             [sys.executable, str(SCRIPT), "shot3", "--list-presets"],

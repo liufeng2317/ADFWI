@@ -70,6 +70,17 @@ conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
   --compare-labels baseline,candidate
 ```
 
+Python-side profiling can be enabled for a fixed preset when the target is FWI
+bookkeeping overhead rather than NPU operator timing:
+
+```bash
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
+  --profile \
+  --output-dir tests/full_cases/outputs/marmousi2_profiled \
+  --compare-to tests/full_cases/outputs/marmousi2_npu_shot3_ckpt10_iter10 \
+  --compare-labels baseline,profiled
+```
+
 The latest local visual check can be generated with:
 
 ```bash

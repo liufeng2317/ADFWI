@@ -119,9 +119,11 @@ numerical method, record the drift and tolerance in
    and `shot5` baselines through stable presets.
 11. Use preset `--compare-to` for post-run baseline comparison after future
    code or workflow optimizations.
-12. Validate the torch-native gradient processor through smoothing and
+12. Use preset `--profile` for a Python-side FWI bookkeeping pass before
+   changing core performance paths.
+13. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-13. Convert example options into a small reproducible configuration layer once
+14. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-14. Defer deeper propagator-level performance work, such as checkpointing or
+15. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

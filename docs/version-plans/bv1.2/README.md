@@ -99,6 +99,7 @@ numbered order unless you are looking for a specific topic.
 | 88 | [Full-Case Output Compare Tool](./88-full-case-output-compare-tool.md) | Add a saved-output comparison CLI for fixed Marmousi2 full-case baselines. |
 | 89 | [Marmousi2 Full-Case Preset Runner](./89-marmousi2-full-case-presets.md) | Add reusable preset commands for the fixed 3-shot and 5-shot Marmousi2 full-case baselines. |
 | 90 | [Marmousi2 Preset Post-Run Compare](./90-marmousi2-preset-postrun-compare.md) | Let preset full-case runs compare against saved baselines automatically after completion. |
+| 91 | [Marmousi2 Preset Python Profiling Option](./91-marmousi2-preset-python-profile.md) | Add optional cProfile wrapping to fixed full-case presets before deeper performance work. |
 
 ## Current Direction
 
@@ -128,3 +129,5 @@ numbered order unless you are looking for a specific topic.
   and 5-shot baselines without manually copying long commands.
 - Use preset `--compare-to` when validating future optimizations so every run
   can immediately compare against a saved baseline.
+- Use preset `--profile` to separate Python-side FWI overhead from propagator
+  and NPU runtime before changing core performance paths.

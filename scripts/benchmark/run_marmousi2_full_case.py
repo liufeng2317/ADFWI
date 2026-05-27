@@ -121,10 +121,26 @@ def build_compare_command(args: argparse.Namespace, *, output_dir: Path) -> Opti
     return command
 
 
+def profile_output_path(args: argparse.Namespace, *, output_dir: Path) -> Optional[Path]:
+    if not args.profile:
+        return None
+    if args.profile_output is not None:
+        return args.profile_output
+    return output_dir / "python_profile.prof"
+
+
+def build_profiled_command(command: List[str], *, python: str, profile_output: Optional[Path]) -> List[str]:
+    if profile_output is None:
+        return command
+    return [python, "-m", "cProfile", "-o", str(profile_output), *command[1:]]
+
+
 def build_plan(args: argparse.Namespace) -> Dict[str, object]:
     preset = PRESETS[args.preset]
     output_dir = args.output_dir if args.output_dir is not None else default_output_dir(preset, args.device)
-    command = build_command(preset, device=args.device, output_dir=output_dir, python=args.python)
+    base_command = build_command(preset, device=args.device, output_dir=output_dir, python=args.python)
+    profile_output = profile_output_path(args, output_dir=output_dir)
+    command = build_profiled_command(base_command, python=args.python, profile_output=profile_output)
     compare_command = build_compare_command(args, output_dir=output_dir)
     return {
         "status": "ok",
@@ -132,6 +148,10 @@ def build_plan(args: argparse.Namespace) -> Dict[str, object]:
         "device": args.device,
         "output_dir": str(output_dir),
         "overwrite": args.overwrite,
+        "profile": args.profile,
+        "profile_output": None if profile_output is None else str(profile_output),
+        "base_command": base_command,
+        "base_command_text": " ".join(base_command),
         "command": command,
         "command_text": " ".join(command),
         "compare_command": compare_command,
@@ -148,6 +168,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--overwrite", action="store_true", help="Remove an existing output directory before running")
     parser.add_argument("--dry-run", action="store_true", help="Print the preset plan without running the inversion")
     parser.add_argument("--list-presets", action="store_true", help="Print available presets and exit")
+    parser.add_argument("--profile", action="store_true", help="Run the preset under Python cProfile")
+    parser.add_argument("--profile-output", type=Path, help="cProfile output path; defaults to output_dir/python_profile.prof")
     parser.add_argument("--compare-to", type=Path, help="Optional baseline output directory or summary.json to compare after the run")
     parser.add_argument("--compare-labels", default="baseline,candidate", help="Labels passed to compare_full_case_outputs.py")
     parser.add_argument("--fail-on-loss-drift", action="store_true", help="Fail when the post-run comparison exceeds loss tolerances")
