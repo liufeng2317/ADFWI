@@ -210,6 +210,7 @@ Opt-in full-case forward-plus-inversion test:
 ```bash
 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
 ADFWI_RUN_FULL_CASES=1 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_OUTPUT_DIR=tests/full_cases/outputs/marmousi2_latest conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
 ```
 
 

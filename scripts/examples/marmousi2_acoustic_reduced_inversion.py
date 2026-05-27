@@ -11,6 +11,7 @@ inversion outputs, or data files.
 from __future__ import annotations
 
 import argparse
+import csv
 import io
 import json
 import math
@@ -175,6 +176,64 @@ def summarize_losses(losses):
     }
 
 
+def write_outputs(output_dir: Path, report: Dict[str, Any], initial_vp: torch.Tensor, final_vp: torch.Tensor, losses) -> Dict[str, str]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    summary_path = output_dir / "summary.json"
+    loss_csv_path = output_dir / "loss_history.csv"
+    loss_png_path = output_dir / "loss_curve.png"
+    vp_png_path = output_dir / "vp_initial_final_delta.png"
+
+    summary_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    with loss_csv_path.open("w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["iteration", "loss"])
+        for idx, value in enumerate(losses):
+            writer.writerow([idx, value])
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(np.arange(len(losses)), losses, color="black", linewidth=1.8)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    plt.title("Marmousi2 Reduced Inversion Loss")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(loss_png_path, dpi=150)
+    plt.close()
+
+    initial = initial_vp.detach().cpu().numpy()
+    final = final_vp.detach().cpu().numpy()
+    delta = final - initial
+    vmin = float(min(initial.min(), final.min()))
+    vmax = float(max(initial.max(), final.max()))
+    dmax = float(np.max(np.abs(delta)))
+
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), constrained_layout=True)
+    im0 = axes[0].imshow(initial, cmap="jet_r", vmin=vmin, vmax=vmax)
+    axes[0].set_title("Initial vp")
+    im1 = axes[1].imshow(final, cmap="jet_r", vmin=vmin, vmax=vmax)
+    axes[1].set_title("Final vp")
+    im2 = axes[2].imshow(delta, cmap="coolwarm", vmin=-dmax, vmax=dmax)
+    axes[2].set_title("Final - initial")
+    for ax in axes:
+        ax.set_xlabel("x index")
+        ax.set_ylabel("z index")
+    fig.colorbar(im0, ax=axes[:2], shrink=0.82, label="vp")
+    fig.colorbar(im2, ax=axes[2], shrink=0.82, label="delta vp")
+    fig.savefig(vp_png_path, dpi=150)
+    plt.close(fig)
+
+    return {
+        "summary_json": str(summary_path),
+        "loss_history_csv": str(loss_csv_path),
+        "loss_curve_png": str(loss_png_path),
+        "vp_initial_final_delta_png": str(vp_png_path),
+    }
+
+
 def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     backend = configure_backend(args)
     torch.manual_seed(args.seed)
@@ -254,7 +313,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     finite_positive(grad_norm, "vp_grad_norm")
     finite_positive(update_norm, "vp_update_norm")
 
-    return {
+    report = {
         "status": "ok",
         "case": "Marmousi2 acoustic reduced inversion",
         "case_dir": str(case_dir),
@@ -294,6 +353,9 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         },
         "seed": args.seed,
     }
+    if args.output_dir is not None:
+        report["outputs"] = write_outputs(args.output_dir, report, initial_vp, model.vp.detach(), losses)
+    return report
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -325,6 +387,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--auto-update-rho", action="store_true")
     parser.add_argument("--waveform-normalize", action="store_true")
     parser.add_argument("--show-progress", action="store_true")
+    parser.add_argument("--output-dir", type=Path, help="optional directory for JSON, CSV, and PNG outputs")
     return parser
 
 

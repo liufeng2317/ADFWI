@@ -39,8 +39,9 @@ def full_flow_command():
     iterations = env_int("ADFWI_FULL_CASE_ITERATIONS", 2)
     lr = env_float("ADFWI_FULL_CASE_LR", 10.0)
     checkpoint_segments = env_int("ADFWI_FULL_CASE_CHECKPOINT_SEGMENTS", 10)
+    output_dir = os.environ.get("ADFWI_FULL_CASE_OUTPUT_DIR")
 
-    return [
+    cmd = [
         sys.executable,
         str(SCRIPT),
         "--device",
@@ -68,6 +69,9 @@ def full_flow_command():
         "--checkpoint-segments",
         str(checkpoint_segments),
     ]
+    if output_dir:
+        cmd.extend(["--output-dir", output_dir])
+    return cmd
 
 
 class Marmousi2AcousticFullFlowTests(unittest.TestCase):
@@ -108,6 +112,12 @@ class Marmousi2AcousticFullFlowTests(unittest.TestCase):
         self.assertLess(inversion["loss_relative_delta"], 0.0)
         self.assertGreater(inversion["vp_grad_norm"], 0.0)
         self.assertGreater(inversion["vp_update_norm"], 0.0)
+
+        output_dir = os.environ.get("ADFWI_FULL_CASE_OUTPUT_DIR")
+        if output_dir:
+            outputs = report["outputs"]
+            for path in outputs.values():
+                self.assertTrue(Path(path).exists(), path)
 
 
 if __name__ == "__main__":

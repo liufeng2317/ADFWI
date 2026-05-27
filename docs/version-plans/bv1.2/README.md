@@ -89,6 +89,7 @@ numbered order unless you are looking for a specific topic.
 | 78 | [Marmousi2 Notebook Settings Check](./78-marmousi2-notebook-settings-check.md) | Compare reduced real-case settings against the original Marmousi2 notebook configuration. |
 | 79 | [Marmousi2 Synthetic Observation Check](./79-marmousi2-synthetic-observation-check.md) | Generate true-model observations with current code and validate notebook-like inversion settings. |
 | 80 | [Full-Case Test Suite](./80-full-case-test-suite.md) | Add opt-in full-case tests for forward-plus-inversion real-case validation. |
+| 81 | [Full-Case Output Artifacts](./81-full-case-output-artifacts.md) | Save JSON, CSV, and PNG artifacts from opt-in Marmousi2 full-case runs for visual inspection. |
 
 ## Current Direction
 

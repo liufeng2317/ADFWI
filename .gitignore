@@ -5,6 +5,7 @@
 .history/
 .gitignore
 __pycache__/
+tests/full_cases/outputs/
 docs/CodeBooks/
 log/
 backup/

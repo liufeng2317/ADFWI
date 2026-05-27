@@ -19,6 +19,7 @@ Useful overrides:
 ```bash
 ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_DEVICE=npu:0 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
 ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_ITERATIONS=5 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_OUTPUT_DIR=tests/full_cases/outputs/marmousi2_latest conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
 ```
 
 Default parameters are intentionally close to the Marmousi2 notebook while still
@@ -33,3 +34,17 @@ small enough for a gate:
 - misfit: legacy L2
 - waveform normalization: enabled
 - checkpoint segments: 10
+
+When `ADFWI_FULL_CASE_OUTPUT_DIR` is set, the underlying script writes:
+
+- `summary.json`
+- `loss_history.csv`
+- `loss_curve.png`
+- `vp_initial_final_delta.png`
+
+The latest local visual check can be generated with:
+
+```bash
+rm -rf tests/full_cases/outputs/marmousi2_latest
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_OUTPUT_DIR=tests/full_cases/outputs/marmousi2_latest conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+```
