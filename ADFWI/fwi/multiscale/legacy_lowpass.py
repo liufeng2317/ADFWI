@@ -1,10 +1,14 @@
 """Legacy multiscale low-pass filtering helpers.
 
-This module preserves the historical SciPy ``filtfilt`` low-pass path used by
-``ADFWI.fwi.multiScaleProcessing.lpass`` and ``LegacyLowPassFilter``. The
-implementation intentionally keeps the legacy NumPy/SciPy round trip because
-previous bv1.2 comparisons showed that the pure torch FIR path is not a
-numerical drop-in replacement for inversion.
+This module is the implementation owner for the historical
+``ADFWI.fwi.multiScaleProcessing`` low-pass API. It preserves the SciPy
+``filtfilt`` forward path and matching adjoint-style backward path used by old
+FWI scripts and by ``LegacyLowPassFilter``.
+
+The implementation intentionally keeps the CPU NumPy/SciPy round trip. Previous
+bv1.2 comparisons showed that the pure torch FIR ``LowPassFilter`` is useful and
+differentiable, but it is not a numerical drop-in replacement for inversion
+cases that rely on this legacy Butterworth path.
 """
 
 from __future__ import annotations
@@ -13,71 +17,21 @@ import numpy as np
 import torch
 from scipy.signal import butter, filtfilt
 
-##################################################################################
-#                   multi-frequency processing
-##################################################################################
-# def lowpass(x1, highcut, fn, order=1, axis=1, show=False):
-#     x = copy.deepcopy(x1)
-#     # Zero padding
-#     padding = 512
-#     x = np.hstack((x, np.zeros((x.shape[0], padding, x.shape[2]))))
-#     nt = x.shape[axis]
-#     # Bring the data to frequency domain
-#     x_fft = fft.fft(x, n=nt, axis=axis)
-#     # Calculate the highcut btween 0 to 1
-#     scaled_highcut = 2*highcut/fn
-#     # Generate the filter
-#     b, a = butter(order, scaled_highcut, btype='lowpass', output="ba")
-#     # Get the frequency response
-#     w, h1 = freqz(b, a, worN=nt, whole=True)
-#     h = np.diag(h1)
-#     # Apply the filter in the frequency domain
-#     fd = h @ x_fft
-#     #Double filtering by the conjugate to make up the shift
-#     h = np.diag(np.conjugate(h1))
-#     fd = h @ fd
-#     # Bring back to time domaine
-#     f_inv = fft.ifft(fd, n=nt, axis=axis).real
-#     f_inv = f_inv[:, :-padding, :]
-#     return f_inv
-
-# def adj_lowpass(x, highcut, fn, order, axis=1):
-#     # Zero padding
-#     padding = 512
-#     x = np.hstack((x, np.zeros((x.shape[0], padding, x.shape[2]))))
-#     nt = x.shape[axis]
-#     # Bring the data to frequency domain
-#     x_fft = np.fft.fft(x, n=nt, axis=axis)
-#     # Calculate the highcut btween 0 to 1
-#     scaled_highcut = 2*highcut / fn
-#     # Generate the filter
-#     b, a = butter(order, scaled_highcut, btype='lowpass', output="ba")
-#     # Get the frequency response
-#     w, h = freqz(b, a, worN=nt, whole=True)
-#     # Get the conjugate of the filter
-#     h_c = np.diag(np.conjugate(h))
-#     # Apply the adjoint filter in the frequency domain
-#     fd = h_c @ x_fft
-#     # Double filtering by the conjugate to make up the shift
-#     h_c = np.diag(h)
-#     fd = h_c @ fd
-#     # Bring back to time domaine
-#     adj_f_inv = np.fft.ifft(fd, axis=axis).real
-#     adj_f_inv = adj_f_inv[:, :-padding, :]
-#     return adj_f_inv
-
 def lowpass(x, highcut, fn, order=1, axis=1):
-    """
-    Apply low-pass filter in the time domain using filtfilt (zero-phase filtering).
-    
-    Parameters:
-    x (np.ndarray): Input signal (3D array: [nsrc, nt, nrcv]).
-    highcut (float): High cutoff frequency in Hz.
-    fn (float): Sampling frequency in Hz.
-    order (int): Order of the Butterworth filter.
-    
-    Returns:
-    np.ndarray: Low-pass filtered signal.
+    """Apply the legacy Butterworth low-pass filter with SciPy ``filtfilt``.
+
+    Parameters
+    ----------
+    x:
+        NumPy array shaped ``[shot, time, receiver]``.
+    highcut:
+        Cutoff frequency in Hz.
+    fn:
+        Sampling frequency in Hz.
+    order:
+        Butterworth filter order.
+    axis:
+        Time axis. Historical ADFWI callers use ``axis=1``.
     """
     # Nyquist frequency
     nyquist = 0.5 * fn
@@ -96,18 +50,7 @@ def lowpass(x, highcut, fn, order=1, axis=1):
 
 
 def adj_lowpass(x, highcut, fn, order=1, axis=1):
-    """
-    Apply adjoint low-pass filter in the time domain.
-    
-    Parameters:
-    x (np.ndarray): Input signal (3D array: [nsrc, nt, nrcv]).
-    highcut (float): High cutoff frequency in Hz.
-    fn (float): Sampling frequency in Hz.
-    order (int): Order of the Butterworth filter.
-    
-    Returns:
-    np.ndarray: Adjoint low-pass filtered signal.
-    """
+    """Apply the legacy adjoint-style low-pass used by ``Lfilter.backward``."""
     # Nyquist frequency
     nyquist = 0.5 * fn
     # Normalized cutoff frequency
@@ -123,6 +66,8 @@ def adj_lowpass(x, highcut, fn, order=1, axis=1):
     return adj_filtered
 
 def data2d_to_3d(data1_2d, data2_2d, ns, nr):
+    """Restore flattened ``[time, shot * receiver]`` data to 3D torch tensors."""
+
     nt = data1_2d.shape[0]
     
     data1_3d = torch.empty((ns, nt, nr))
@@ -135,6 +80,8 @@ def data2d_to_3d(data1_2d, data2_2d, ns, nr):
 
 
 def data3d_to_2d(data1_3d, data2_3d):
+    """Flatten ``[shot, time, receiver]`` torch tensors for legacy SciPy calls."""
+
     ns, nt, nr = data2_3d.shape
     x1_2d = torch.empty((nt, ns*nr))
     x2_2d = torch.empty((nt, ns*nr))
@@ -146,15 +93,20 @@ def data3d_to_2d(data1_3d, data2_3d):
 
             
 def lpass(x1, x2, highcut, fn):
-    """
-        fn is the sampling frequency
-    """
+    """Apply the legacy autograd low-pass filter to a synthetic/observed pair."""
+
     x1_filtered, x2_filtered = Lfilter.apply(x1, x2, highcut, fn)
     return x1_filtered, x2_filtered
 
 
 
 class Lfilter(torch.autograd.Function):
+    """Autograd wrapper around the legacy CPU NumPy/SciPy low-pass path.
+
+    Inputs are detached, filtered through SciPy on CPU, then restored to the
+    original device. The backward pass applies ``adj_lowpass`` to preserve the
+    historical custom-gradient behavior.
+    """
     
     @staticmethod
     def forward(ctx, x1, x2, highcut, fn):

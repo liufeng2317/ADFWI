@@ -72,6 +72,7 @@ numbered order unless you are looking for a specific topic.
 | 61 | [Elastic Batch Loss Step Helper](./61-elastic-batch-loss-step.md) | Share the elastic per-batch forward/component-loss/backward body while preserving component and wavefield semantics. |
 | 62 | [FWI Parameter Spec Helpers](./62-fwi-parameter-spec-helpers.md) | Centralize acoustic/elastic parameter names and gradient processor index specs while keeping model choices explicit. |
 | 63 | [FWI Model Regularization Sum Helper](./63-fwi-model-regularization-sum.md) | Share ordered model-parameter regularization summation for acoustic and elastic drivers. |
+| 64 | [Legacy Low-Pass Ownership Comments](./64-legacy-lowpass-ownership-comments.md) | Clarify multiscale low-pass implementation ownership and compatibility imports without changing numerical behavior. |
 
 ## Current Direction
 

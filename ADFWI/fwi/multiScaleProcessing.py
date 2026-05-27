@@ -1,8 +1,9 @@
 """Backward-compatible legacy multiscale processing imports.
 
-The implementation now lives in ``ADFWI.fwi.multiscale.legacy_lowpass``. This
-module is kept so existing imports from ``ADFWI.fwi.multiScaleProcessing`` keep
-working.
+The implementation lives in ``ADFWI.fwi.multiscale.legacy_lowpass``. This
+module intentionally contains only re-exports so existing imports from
+``ADFWI.fwi.multiScaleProcessing`` keep working while new code can import from
+the package-style ``ADFWI.fwi.multiscale`` namespace.
 """
 
 from __future__ import annotations
