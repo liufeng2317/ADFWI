@@ -79,6 +79,7 @@ numbered order unless you are looking for a specific topic.
 | 68 | [Torch Gradient Processor](./68-torch-gradient-processor.md) | Add an opt-in torch-native gradient processor while preserving legacy GradProcessor behavior. |
 | 69 | [Compatibility Shim Import Cleanup](./69-compat-shim-import-cleanup.md) | Route internal imports to canonical owners while keeping thin compatibility shims for old scripts. |
 | 70 | [Acoustic Torch Gradient Smoke](./70-acoustic-torch-gradient-smoke.md) | Add an opt-in TorchGradProcessor path to the acoustic mini-inversion smoke with legacy drift checks. |
+| 71 | [Example Torch Gradient Option](./71-example-torch-gradient-option.md) | Expose opt-in TorchGradProcessor in minimal examples and the examples smoke suite with CPU/NPU drift checks. |
 
 ## Current Direction
 

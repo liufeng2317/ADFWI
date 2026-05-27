@@ -136,6 +136,21 @@ The low-pass decision and validation history are recorded in
 `docs/version-plans/bv1.2/04-lowpass-filter-comparison.md`. The focused tests are
 `tests/test_multiscale_compat.py` and `tests/test_lowpass_transform_comparison.py`.
 
+## Choosing Gradient Processing
+
+The minimal acoustic and elastic examples default to the legacy `GradProcessor`,
+which preserves the historical CPU NumPy/SciPy gradient post-processing path.
+Use `--gradient-processor torch` to opt into `TorchGradProcessor` for
+device-native gradient post-processing experiments:
+
+```bash
+conda run -n adfwi python scripts/examples/minimal_acoustic_fwi_backend.py --device cpu --gradient-processor torch
+conda run -n adfwi python scripts/examples/minimal_elastic_fwi_backend.py --device cpu --gradient-processor torch
+```
+
+Treat this as an optimization option. Compare `loss`, `vp_grad_norm`, and
+`vp_update_norm` against the legacy default before using it in larger cases.
+
 ## Extending Toward A Real Case
 
 When adapting a minimal script to a real example such as Marmousi2, keep the same outer structure and replace the synthetic pieces gradually:

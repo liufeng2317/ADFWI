@@ -32,7 +32,7 @@ from ADFWI.backends import BackendUnavailableError
 from ADFWI.fwi import ElasticFWI
 from ADFWI.fwi.misfit import Misfit_waveform_L2
 from ADFWI.model import IsotropicElasticModel
-from ADFWI.propagator import ElasticPropagator, GradProcessor
+from ADFWI.propagator import ElasticPropagator, GradProcessor, TorchGradProcessor
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
@@ -150,7 +150,12 @@ def run_example(args: argparse.Namespace) -> Dict[str, Any]:
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1.0)
     loss_fn = Misfit_waveform_L2(dt=args.dt)
-    gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
+    if args.gradient_processor == "legacy":
+        gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
+    elif args.gradient_processor == "torch":
+        gradient_processor = TorchGradProcessor(norm_grad=False, forw_illumination=False)
+    else:
+        raise ValueError(f"unsupported gradient processor: {args.gradient_processor}")
 
     fwi = ElasticFWI(
         propagator,
@@ -231,6 +236,7 @@ def run_example(args: argparse.Namespace) -> Dict[str, Any]:
             "loss": loss,
             "vp_grad_norm": vp_grad_norm,
             "vp_update_norm": vp_update_norm,
+            "gradient_processor": args.gradient_processor,
         },
     }
 
@@ -244,6 +250,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--fd-order", type=int, default=4, choices=(4, 6, 8, 10))
     parser.add_argument("--show-progress", action="store_true", help="show ElasticFWI tqdm progress bars")
+    parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy", help="gradient processor implementation for post-backward model gradients")
     parser.add_argument("--seed", type=int, default=20240523)
     parser.add_argument("--lr", type=float, default=1e5)
     parser.add_argument("--nx", type=int, default=24)

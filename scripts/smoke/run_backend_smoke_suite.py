@@ -141,6 +141,8 @@ def command_for_example(problem: str, device: str, args: argparse.Namespace) -> 
         str(args.checkpoint_segments),
         "--seed",
         str(args.seed),
+        "--gradient-processor",
+        args.example_gradient_processor,
     ]
     if args.fallback_cpu:
         cmd.append("--fallback-cpu")
@@ -537,6 +539,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=parse_csv("acoustic,elastic", label="example problem", choices=tuple(EXAMPLE_SCRIPT_BY_PROBLEM)),
         help="comma-separated user-facing examples to run when --suites includes examples",
     )
+    parser.add_argument("--example-gradient-processor", choices=("legacy", "torch"), default="legacy", help="gradient processor implementation passed to minimal example scripts")
     parser.add_argument("--example-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device example metrics")
     parser.add_argument("--example-atol", type=float, default=1e-8, help="absolute tolerance for CPU-vs-device example metrics")
     parser.add_argument(
