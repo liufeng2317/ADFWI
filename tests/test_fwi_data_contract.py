@@ -218,6 +218,16 @@ class FWIDataContractTests(unittest.TestCase):
         self.assertNotIn("rcv_x", context)
         self.assertNotIn("data_mask", context)
 
+    def test_build_fwi_transform_context_prefers_propagator_dt(self):
+        context = build_fwi_transform_context(
+            shot_index=torch.tensor([0]),
+            cutoff_freq=None,
+            propagator_dt=0.003,
+            default_dt=0.002,
+        )
+
+        self.assertEqual(context["dt"], 0.003)
+
     def test_acoustic_pressure_loss_input_selects_observed_shots(self):
         shot_index = torch.tensor([0, 2])
         record = {"p": torch.full((2, 3, 2), 1.0)}

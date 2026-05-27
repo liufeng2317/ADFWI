@@ -33,15 +33,16 @@ flowchart TD
     SmokeSuite --> PerfPrep[Performance preparation path\nbenchmark + torch-native opt-in routes\nrecords 66-71]
     PerfPrep --> ReceiverIndex[Receiver selection stays on torch device\nrecord 66]
     PerfPrep --> Benchmark[Reproducible acoustic benchmark scaffold\nrecord 67]
-    PerfPrep --> TorchGrad[Opt-in TorchGradProcessor\nrecords 68, 70-71]
+    PerfPrep --> TorchGrad[Opt-in TorchGradProcessor\nrecords 68, 70-71, 107-115]
+    TorchGrad --> TorchGradStatus[NPU-validated opt-in\nstrict default preserved\nrecords 107-115]
 
     ReceiverIndex --> Next[Next optimization direction]
     Benchmark --> Next
-    TorchGrad --> Next
+    TorchGradStatus --> Next
 
-    Next --> LargerSmoke[Standard-size example smoke with\nlegacy vs torch gradient processor]
-    Next --> RuntimeBench[Runtime/memory benchmark comparison\nCPU/NPU, legacy vs torch]
-    Next --> WiderTorch[Broader torch-native validation\nsmoothing and illumination branches]
+    Next --> OperatorProfile[Operator-level profiling on fixed\nMarmousi2 NPU baselines]
+    Next --> DataContract[FWI data-contract cleanup\nwithout numerical changes]
+    Next --> ConfigLayer[Reusable real-case configuration\nfor repeated gates]
 ```
 
 ## Layered Summary
@@ -54,7 +55,7 @@ flowchart TD
 | Iteration/runtime | Reduce acoustic/elastic duplication without hiding the inversion story. | Batch range/loss/progress helpers, cache/wavefield helpers, epoch finalization, parameter specs. | FWI drivers remain readable algorithm drivers with shared execution details factored out. | FWI runtime tests and mini-inversion smoke scripts. |
 | Numerical policy | Preserve legacy numerical behavior unless drift is measured and accepted. | Legacy-compatible low-pass ownership, stable L2 notes, compatibility shim cleanup. | Structural cleanup does not silently change inversion results. | Low-pass comparisons, smoke drift checks, focused numerical unit tests. |
 | Smoke/benchmark tooling | Make optimization measurable before deeper performance changes. | Layered smoke runner, minimal acoustic/elastic examples, Marmousi2 checks, acoustic benchmark scaffold. | Backend and FWI changes have repeatable commands for CPU/NPU checks. | `scripts/smoke/run_backend_smoke_suite.py`, `scripts/benchmark/acoustic_backend_benchmark.py`. |
-| Torch-native opt-ins | Introduce performance-oriented torch paths without replacing legacy defaults. | Torch receiver indexing, `TorchGradProcessor`, example and smoke flags. | New paths can be tested against legacy numerics before becoming defaults. | `tests/test_receiver_selection.py`, `tests/test_torch_grad_processor.py`, acoustic gradient smoke. |
+| Torch-native opt-ins | Introduce performance-oriented torch paths without replacing legacy defaults. | Torch receiver indexing, `TorchGradProcessor`, example/smoke/full-case flags, NPU tolerance profile. | `TorchGradProcessor` is NPU-validated for current Marmousi2 mask-only, smoothing, and illumination gates, but remains opt-in. | `tests/test_receiver_selection.py`, `tests/test_torch_grad_processor.py`, gradient benchmarks, Marmousi2 full-case comparisons. |
 
 ## Current Code Landing Points
 
@@ -146,11 +147,13 @@ numerical method, record the drift and tolerance in
    package import syntax.
 23. Continue auditing example notebooks for stale comments, but avoid executing
    heavy notebooks unless a changed cell needs runtime validation.
-24. Treat torch-native gradient processing as the next convergence-focused
-   optimization path: parity first, timing second, fixed Marmousi2 gate third.
-   Use `scripts/benchmark/gradient_processor_benchmark.py` as the cheap timing
-   gate before full-case runs.
-25. Convert example options into a small reproducible configuration layer once
+24. Treat torch-native gradient processing as converged for now: the
+   `TorchGradProcessor` path is NPU-validated as opt-in, while legacy remains
+   the default.
+25. Do not expand gradient-processor trajectory tests unless gradient
+   post-processing code changes or a default-path migration is being considered.
+26. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-26. Defer deeper propagator-level performance work, such as checkpointing or
-   compile-oriented kernels, until the current benchmark baseline is populated.
+27. Start deeper propagator-level performance work, such as operator profiling
+   of checkpointed forward/backward kernels, from the fixed `shot3` NPU
+   baseline rather than additional gradient-processor gates.

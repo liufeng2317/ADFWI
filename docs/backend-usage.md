@@ -205,6 +205,12 @@ conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --devi
 conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device npu:0 --warmup 1 --repeat 3 --gradient-processors legacy,torch
 ```
 
+`TorchGradProcessor` is currently an opt-in optimization path. It has been
+validated on NPU for the current Marmousi2 mask-only, smoothing, and illumination
+gates, but the default gradient processor remains the legacy NumPy/SciPy path.
+Use torch gradient processing when a script explicitly benchmarks or validates
+the device-native path.
+
 Opt-in full-case forward-plus-inversion test:
 
 ```bash

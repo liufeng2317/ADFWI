@@ -123,6 +123,8 @@ numbered order unless you are looking for a specific topic.
 | 112 | [Marmousi2 Gradient Stress Gates](./112-marmousi2-gradient-stress-gates.md) | Add real-case gradient stress controls and validate smoothing/illumination torch paths on NPU. |
 | 113 | [Marmousi2 Shot3 Smoothing Trajectory](./113-marmousi2-shot3-smoothing-trajectory.md) | Validate a 3-shot, 10-iteration NPU smoothing trajectory for legacy versus torch gradient processors. |
 | 114 | [Marmousi2 Shot3 Illumination Trajectory](./114-marmousi2-shot3-illumination-trajectory.md) | Validate a 3-shot, 10-iteration NPU illumination trajectory for legacy versus torch gradient processors. |
+| 115 | [Torch Gradient Status And Next Direction](./115-torch-gradient-status-and-next-direction.md) | Mark TorchGradProcessor as NPU-validated opt-in and redirect later work away from more gradient tests. |
+| 116 | [FWI Data Context Helper](./116-fwi-data-context-helper.md) | Extract shot-scoped transform-context selection inside FWI data preparation without changing behavior. |
 
 ## Current Direction
 
@@ -206,3 +208,9 @@ numbered order unless you are looking for a specific topic.
   `3e-6` and final update-norm relative drift around `1e-5`.
 - The 3-shot, 10-iteration `--forw-illumination` NPU trajectory is also stable,
   with identical final loss and final update-norm relative drift around `1e-7`.
+- Treat `TorchGradProcessor` as NPU-validated opt-in, not as the default path.
+  Stop expanding gradient-processor tests unless gradient post-processing code
+  changes; move next optimization toward operator profiling, FWI data-contract
+  cleanup, or reusable real-case configuration.
+- Continue FWI data-contract cleanup with small owner-module changes that
+  preserve receiver selection order, transform order, and loss-input shapes.

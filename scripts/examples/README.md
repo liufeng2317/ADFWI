@@ -162,6 +162,11 @@ Treat this as an optimization option. Compare `loss`, `vp_grad_norm`, and
 The smoke-suite command above with `--example-gradient-processors legacy,torch`
 does this comparison per problem and per device.
 
+For bv1.2, `TorchGradProcessor` is NPU-validated as an explicit opt-in path for
+the current Marmousi2 mask-only, smoothing, and illumination gates. The default
+remains the legacy `GradProcessor`; use the torch option when intentionally
+benchmarking or validating the device-native gradient path.
+
 ## Extending Toward A Real Case
 
 When adapting a minimal script to a real example such as Marmousi2, keep the same outer structure and replace the synthetic pieces gradually:

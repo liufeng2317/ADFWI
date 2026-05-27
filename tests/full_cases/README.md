@@ -84,6 +84,11 @@ conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
   --compare-labels legacy,torch
 ```
 
+Current bv1.2 status: `TorchGradProcessor` is NPU-validated as an opt-in path
+for the saved Marmousi2 mask-only, smoothing, and illumination gates. Keep
+legacy as the default unless a run is explicitly comparing or benchmarking the
+torch-native gradient path.
+
 Python-side profiling can be enabled for a fixed preset when the target is FWI
 bookkeeping overhead rather than NPU operator timing:
 

@@ -9,6 +9,31 @@ import torch
 from ADFWI.fwi.transforms import DataTransformPipeline, select_or_mask_receivers
 
 
+def _shot_scoped_context_values(
+    *,
+    shot_index: Any,
+    receiver_masks_2d: Any = None,
+    src_x: Any = None,
+    rcv_x: Any = None,
+    data_masks: Optional[torch.Tensor] = None,
+) -> dict[str, Any]:
+    """Return transform context values that are meaningful only per shot batch."""
+
+    if shot_index is None:
+        return {}
+
+    values: dict[str, Any] = {}
+    if receiver_masks_2d is not None:
+        values["receiver_mask"] = receiver_masks_2d[shot_index]
+    if src_x is not None:
+        values["src_x"] = src_x.cpu()[shot_index]
+    if rcv_x is not None:
+        values["rcv_x"] = rcv_x.cpu()
+    if data_masks is not None:
+        values["data_mask"] = data_masks[shot_index]
+    return values
+
+
 def build_transform_context(
     *,
     shot_index: Any = None,
@@ -73,19 +98,13 @@ def build_fwi_transform_context(
     when a shot index is available.
     """
 
-    data_mask = None
-    receiver_mask = None
-    src_x_context = None
-    rcv_x_context = None
-    if shot_index is not None:
-        if receiver_masks_2d is not None:
-            receiver_mask = receiver_masks_2d[shot_index]
-        if src_x is not None:
-            src_x_context = src_x.cpu()[shot_index]
-        if rcv_x is not None:
-            rcv_x_context = rcv_x.cpu()
-        if data_masks is not None:
-            data_mask = data_masks[shot_index]
+    shot_context = _shot_scoped_context_values(
+        shot_index=shot_index,
+        receiver_masks_2d=receiver_masks_2d,
+        src_x=src_x,
+        rcv_x=rcv_x,
+        data_masks=data_masks,
+    )
 
     return build_transform_context(
         shot_index=shot_index,
@@ -94,10 +113,10 @@ def build_fwi_transform_context(
         late_window=late_window,
         offset_mute_threshold=offset_mute_threshold,
         dx=dx,
-        receiver_mask=receiver_mask,
-        src_x=src_x_context,
-        rcv_x=rcv_x_context,
-        data_mask=data_mask,
+        receiver_mask=shot_context.get("receiver_mask"),
+        src_x=shot_context.get("src_x"),
+        rcv_x=shot_context.get("rcv_x"),
+        data_mask=shot_context.get("data_mask"),
     )
 
 
