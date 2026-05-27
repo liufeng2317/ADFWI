@@ -111,6 +111,7 @@ numbered order unless you are looking for a specific topic.
 | 100 | [Remove Runtime Re-Exports](./100-remove-runtime-reexports.md) | Remove broad `ADFWI.fwi.runtime` helper re-exports after active code moved to owner modules. |
 | 101 | [Data Owner Imports](./101-data-owner-imports.md) | Route active FWI data-contract imports to components/inputs/loss/pipeline/preparation owner modules. |
 | 102 | [Data Public Facade](./102-data-public-facade.md) | Keep `ADFWI.fwi.data` as a deliberate public facade while internals use owner modules. |
+| 103 | [Data Facade User Documentation](./103-data-facade-user-doc.md) | Document the public `ADFWI.fwi.data` facade and namespace-only internal helper packages. |
 
 ## Current Direction
 
@@ -167,3 +168,5 @@ numbered order unless you are looking for a specific topic.
   deciding whether the package-level data contract remains user-facing.
 - Keep `ADFWI.fwi.data` as the stable public data-contract facade; framework
   internals should continue importing from owner modules.
+- Document public facade imports separately from internal owner-module imports
+  so custom workflows and framework code follow different, intentional paths.
