@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -39,6 +40,7 @@ def full_flow_command():
     iterations = env_int("ADFWI_FULL_CASE_ITERATIONS", 2)
     lr = env_float("ADFWI_FULL_CASE_LR", 10.0)
     checkpoint_segments = env_int("ADFWI_FULL_CASE_CHECKPOINT_SEGMENTS", 10)
+    gradient_processor = os.environ.get("ADFWI_FULL_CASE_GRADIENT_PROCESSOR", "legacy")
     output_dir = os.environ.get("ADFWI_FULL_CASE_OUTPUT_DIR")
 
     cmd = [
@@ -68,6 +70,8 @@ def full_flow_command():
         "--auto-update-rho",
         "--checkpoint-segments",
         str(checkpoint_segments),
+        "--gradient-processor",
+        gradient_processor,
     ]
     if output_dir:
         cmd.extend(["--output-dir", output_dir])
@@ -84,6 +88,15 @@ class Marmousi2AcousticFullFlowTests(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("--optimizer") + 1], "adam")
         self.assertIn("--misfit", cmd)
         self.assertEqual(cmd[cmd.index("--misfit") + 1], "legacy-l2")
+        self.assertIn("--gradient-processor", cmd)
+        self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "legacy")
+
+    def test_full_flow_command_accepts_torch_gradient_processor(self):
+        with mock.patch.dict(os.environ, {"ADFWI_FULL_CASE_GRADIENT_PROCESSOR": "torch"}):
+            cmd = full_flow_command()
+
+        self.assertIn("--gradient-processor", cmd)
+        self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "torch")
 
     @unittest.skipUnless(env_flag("ADFWI_RUN_FULL_CASES"), "set ADFWI_RUN_FULL_CASES=1 to run full Marmousi2 case")
     def test_marmousi2_synthetic_true_forward_and_inversion(self):
@@ -104,6 +117,7 @@ class Marmousi2AcousticFullFlowTests(unittest.TestCase):
         inversion = report["inversion"]
         self.assertEqual(inversion["optimizer"], "Adam")
         self.assertEqual(inversion["misfit"], "legacy-l2")
+        self.assertEqual(inversion["gradient_processor"], os.environ.get("ADFWI_FULL_CASE_GRADIENT_PROCESSOR", "legacy"))
         self.assertTrue(inversion["waveform_normalize"])
         self.assertTrue(inversion["auto_update_rho"])
         self.assertEqual(len(inversion["loss_history"]), inversion["iterations"])

@@ -37,7 +37,7 @@ from ADFWI.backends import BackendUnavailableError
 from ADFWI.fwi import AcousticFWI
 from ADFWI.fwi.misfit import Misfit_waveform_L2, Misfit_waveform_SquaredL2
 from ADFWI.model import AcousticModel
-from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.propagator import AcousticPropagator, GradProcessor, TorchGradProcessor
 from ADFWI.survey import SeismicData
 
 from marmousi2_acoustic_backend_check import (
@@ -66,6 +66,19 @@ def build_optimizer(model, args: argparse.Namespace):
     if args.optimizer == "adam":
         return torch.optim.Adam(model.parameters(), lr=args.lr), "Adam"
     raise ValueError(f"unsupported optimizer: {args.optimizer}")
+
+
+def build_gradient_processor(args: argparse.Namespace, grad_mask: np.ndarray):
+    processor_kwargs = {
+        "grad_mask": grad_mask,
+        "norm_grad": args.norm_grad,
+        "forw_illumination": args.forw_illumination,
+    }
+    if args.gradient_processor == "legacy":
+        return GradProcessor(**processor_kwargs)
+    if args.gradient_processor == "torch":
+        return TorchGradProcessor(**processor_kwargs)
+    raise ValueError(f"unsupported gradient processor: {args.gradient_processor}")
 
 
 def build_case_model(model_npz: Any, args: argparse.Namespace, *, vp_grad: bool, auto_update_rho: bool) -> AcousticModel:
@@ -260,11 +273,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     grad_mask = np.ones((model.nz, model.nx), dtype=np.float32)
     if args.grad_mute_top > 0:
         grad_mask[: args.grad_mute_top, :] = 0.0
-    gradient_processor = GradProcessor(
-        grad_mask=grad_mask,
-        norm_grad=args.norm_grad,
-        forw_illumination=args.forw_illumination,
-    )
+    gradient_processor = build_gradient_processor(args, grad_mask)
 
     optimizer, optimizer_name = build_optimizer(model, args)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.scheduler_step_size, gamma=args.scheduler_gamma)
@@ -347,6 +356,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "misfit": loss_name,
             "waveform_normalize": args.waveform_normalize,
             "auto_update_rho": args.auto_update_rho,
+            "gradient_processor": args.gradient_processor,
             "seconds": seconds,
             **loss_summary,
             "vp_grad_norm": grad_norm,
@@ -383,6 +393,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dt-for-loss", type=float, default=1.0)
     parser.add_argument("--misfit", default="safe-squared-l2", choices=("safe-squared-l2", "legacy-l2"))
     parser.add_argument("--grad-mute-top", type=int, default=12)
+    parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy")
     parser.add_argument("--norm-grad", action="store_true")
     parser.add_argument("--forw-illumination", action="store_true")
     parser.add_argument("--auto-update-rho", action="store_true")

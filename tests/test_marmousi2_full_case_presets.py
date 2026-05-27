@@ -49,6 +49,21 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
         self.assertIn("--auto-update-rho", cmd)
         self.assertEqual(cmd[cmd.index("--checkpoint-segments") + 1], "10")
         self.assertEqual(cmd[cmd.index("--shot-count") + 1], "5")
+        self.assertIn("--gradient-processor", cmd)
+        self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "legacy")
+
+    def test_build_command_accepts_torch_gradient_processor(self):
+        preset = runner.PRESETS["shot3"]
+        cmd = runner.build_command(
+            preset,
+            device="npu:0",
+            output_dir=Path("tests/full_cases/outputs/custom"),
+            python="python",
+            gradient_processor="torch",
+        )
+
+        self.assertIn("--gradient-processor", cmd)
+        self.assertEqual(cmd[cmd.index("--gradient-processor") + 1], "torch")
 
     def test_cli_dry_run_outputs_plan_without_running(self):
         proc = subprocess.run(
@@ -59,6 +74,8 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
                 "--dry-run",
                 "--output-dir",
                 "tests/full_cases/outputs/dry_run",
+                "--gradient-processor",
+                "torch",
             ],
             cwd=str(REPO_ROOT),
             text=True,
@@ -71,7 +88,9 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
         self.assertEqual(report["status"], "ok")
         self.assertEqual(report["preset"]["name"], "shot3")
         self.assertEqual(report["output_dir"], "tests/full_cases/outputs/dry_run")
+        self.assertEqual(report["gradient_processor"], "torch")
         self.assertIn("--output-dir", report["command"])
+        self.assertEqual(report["command"][report["command"].index("--gradient-processor") + 1], "torch")
         self.assertIsNone(report["compare_command"])
 
     def test_cli_dry_run_includes_compare_command(self):

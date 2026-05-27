@@ -70,6 +70,19 @@ conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
   --compare-labels baseline,candidate
 ```
 
+The full-case script and preset runner also accept an explicit gradient
+processor choice. The default remains the legacy NumPy/SciPy processor.
+
+```bash
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_GRADIENT_PROCESSOR=torch conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
+  --gradient-processor torch \
+  --output-dir tests/full_cases/outputs/marmousi2_torch_candidate \
+  --compare-to tests/full_cases/outputs/marmousi2_npu_shot3_ckpt10_iter10 \
+  --compare-labels legacy,torch
+```
+
 Python-side profiling can be enabled for a fixed preset when the target is FWI
 bookkeeping overhead rather than NPU operator timing:
 

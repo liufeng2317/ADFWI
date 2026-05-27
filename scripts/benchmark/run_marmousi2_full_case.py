@@ -64,7 +64,14 @@ def default_output_dir(preset: Marmousi2Preset, device: str) -> Path:
     return DEFAULT_OUTPUT_ROOT / f"{preset.output_name}_{device_name}"
 
 
-def build_command(preset: Marmousi2Preset, *, device: str, output_dir: Path, python: str) -> List[str]:
+def build_command(
+    preset: Marmousi2Preset,
+    *,
+    device: str,
+    output_dir: Path,
+    python: str,
+    gradient_processor: str = "legacy",
+) -> List[str]:
     return [
         python,
         str(INVERSION_SCRIPT),
@@ -92,6 +99,8 @@ def build_command(preset: Marmousi2Preset, *, device: str, output_dir: Path, pyt
         "--auto-update-rho",
         "--checkpoint-segments",
         str(preset.checkpoint_segments),
+        "--gradient-processor",
+        gradient_processor,
         "--output-dir",
         str(output_dir),
     ]
@@ -138,7 +147,13 @@ def build_profiled_command(command: List[str], *, python: str, profile_output: O
 def build_plan(args: argparse.Namespace) -> Dict[str, object]:
     preset = PRESETS[args.preset]
     output_dir = args.output_dir if args.output_dir is not None else default_output_dir(preset, args.device)
-    base_command = build_command(preset, device=args.device, output_dir=output_dir, python=args.python)
+    base_command = build_command(
+        preset,
+        device=args.device,
+        output_dir=output_dir,
+        python=args.python,
+        gradient_processor=args.gradient_processor,
+    )
     profile_output = profile_output_path(args, output_dir=output_dir)
     command = build_profiled_command(base_command, python=args.python, profile_output=profile_output)
     compare_command = build_compare_command(args, output_dir=output_dir)
@@ -150,6 +165,7 @@ def build_plan(args: argparse.Namespace) -> Dict[str, object]:
         "overwrite": args.overwrite,
         "profile": args.profile,
         "profile_output": None if profile_output is None else str(profile_output),
+        "gradient_processor": args.gradient_processor,
         "base_command": base_command,
         "base_command_text": " ".join(base_command),
         "command": command,
@@ -168,6 +184,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--overwrite", action="store_true", help="Remove an existing output directory before running")
     parser.add_argument("--dry-run", action="store_true", help="Print the preset plan without running the inversion")
     parser.add_argument("--list-presets", action="store_true", help="Print available presets and exit")
+    parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy", help="Gradient processor implementation passed to the inversion script")
     parser.add_argument("--profile", action="store_true", help="Run the preset under Python cProfile")
     parser.add_argument("--profile-output", type=Path, help="cProfile output path; defaults to output_dir/python_profile.prof")
     parser.add_argument("--compare-to", type=Path, help="Optional baseline output directory or summary.json to compare after the run")

@@ -119,6 +119,7 @@ numbered order unless you are looking for a specific topic.
 | 108 | [Gradient Processor Timing Gate](./108-gradient-processor-timing-gate.md) | Add a focused JSON benchmark for legacy-vs-torch gradient processor parity and timing. |
 | 109 | [Gradient Processor Stage Diagnostics](./109-gradient-processor-stage-diagnostics.md) | Isolate NPU gradient processor drift by smoothing, normalization, and illumination stages. |
 | 110 | [Gradient Processor NPU Tolerance Profile](./110-gradient-processor-npu-tolerance-profile.md) | Add an explicit NPU float32 tolerance profile while keeping strict parity as the default. |
+| 111 | [Marmousi2 Torch Gradient Opt-In](./111-marmousi2-torch-gradient-opt-in.md) | Wire TorchGradProcessor into fixed Marmousi2 full-case entry points without changing the default. |
 
 ## Current Direction
 
@@ -190,3 +191,6 @@ numbered order unless you are looking for a specific topic.
   opt-in until the NPU tolerance or a dedicated smoothing alternative is chosen.
 - Use `--tolerance-profile npu-float32` only for intentional NPU
   `TorchGradProcessor` comparisons; the benchmark default remains strict.
+- Marmousi2 full-case entry points now accept `--gradient-processor torch`,
+  but default to legacy; the first full-length one-iteration NPU smoke matches
+  legacy exactly under the current mask-only gradient settings.
