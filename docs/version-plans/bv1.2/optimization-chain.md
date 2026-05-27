@@ -126,9 +126,11 @@ numerical method, record the drift and tolerance in
    checkpointed propagator execution rather than Python bookkeeping.
 14. Remove thin historical import shims in `bv1.2` now that `bv1.1` remains the
    compatibility branch; keep actual legacy numerical methods explicit.
-15. Validate the torch-native gradient processor through smoothing and
+15. Continue removing pure re-export compatibility modules once active code has
+   moved to canonical bv1.2 imports.
+16. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-16. Convert example options into a small reproducible configuration layer once
+17. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-17. Defer deeper propagator-level performance work, such as checkpointing or
+18. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

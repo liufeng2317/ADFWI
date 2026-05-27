@@ -103,6 +103,7 @@ numbered order unless you are looking for a specific topic.
 | 92 | [Marmousi2 Shot3 Python Profile Run](./92-marmousi2-shot3-python-profile-run.md) | Run the fixed shot3 baseline under cProfile and identify autograd/propagator paths as the next profiling target. |
 | 93 | [Compatibility Cleanup Audit](./93-compatibility-cleanup-audit.md) | Audit retained compatibility shims and legacy numerical paths before staged cleanup. |
 | 94 | [Remove Thin Compatibility Shims](./94-remove-thin-compat-shims.md) | Remove old normalization and multiScaleProcessing import shims in favor of canonical bv1.2 APIs. |
+| 95 | [Remove Transform Waveform Shim](./95-remove-transform-waveform-shim.md) | Remove the unused `ADFWI.fwi.transforms.waveform` re-export module. |
 
 ## Current Direction
 
@@ -142,3 +143,5 @@ numbered order unless you are looking for a specific topic.
   comparison.
 - Because `bv1.1` is retained for legacy compatibility, `bv1.2` now removes thin
   import shims while preserving explicit legacy numerical methods.
+- Continue removing pure re-export modules when active code has already moved
+  to canonical bv1.2 import paths.
