@@ -94,6 +94,7 @@ numbered order unless you are looking for a specific topic.
 | 83 | [Marmousi2 NPU 3-Shot Checkpoint-1 Test](./83-marmousi2-npu-shot3-checkpoint1.md) | Validate a 3-shot full-length NPU gate with `checkpoint_segments=1` and compare per-iteration efficiency. |
 | 84 | [Marmousi2 NPU 3-Shot 10-Iteration Gate](./84-marmousi2-npu-shot3-10iter.md) | Confirm stable 3-shot NPU efficiency and monotonic loss over 10 full-length iterations. |
 | 85 | [Marmousi2 NPU 3-Shot Checkpoint-10 Comparison](./85-marmousi2-npu-shot3-checkpoint10.md) | Compare 3-shot full-case checkpoint segmentation and select the faster current NPU benchmark baseline. |
+| 86 | [Marmousi2 NPU 5-Shot Checkpoint-10 Gate](./86-marmousi2-npu-shot5-checkpoint10.md) | Probe the next NPU throughput step with a 5-shot full-length checkpoint-10 benchmark. |
 
 ## Current Direction
 
@@ -112,3 +113,6 @@ numbered order unless you are looking for a specific topic.
 - Treat the 3-shot, 10-iteration, `checkpoint_segments=10` run as the current
   full-case NPU baseline because it is faster than `checkpoint_segments=1` with
   equivalent loss behavior.
+- Use 5-shot, 10-iteration, `checkpoint_segments=10` as the current throughput
+  stress baseline; it remains stable and only slightly slower per iteration than
+  the 3-shot run.

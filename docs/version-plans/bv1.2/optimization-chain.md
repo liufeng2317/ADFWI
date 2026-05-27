@@ -103,14 +103,16 @@ numerical method, record the drift and tolerance in
 4. Use `tests/full_cases/` as the gate for forward-plus-inversion real-case
    validation before larger optimization changes.
 5. Treat the 3-shot, 10-iteration, full-length synthetic-true Marmousi2 NPU gate
-   with `checkpoint_segments=10` as the current efficiency baseline; it
-   preserved monotonic loss and averaged about `31.36s/iteration`, compared
-   with about `34.29s/iteration` for the same run with `checkpoint_segments=1`.
-6. Next increase the shot count, such as to 5 shots, while keeping
-   `checkpoint_segments=10` to find the NPU throughput and memory knee.
-7. Validate the torch-native gradient processor through smoothing and
+   with `checkpoint_segments=10` as the fastest current per-iteration baseline;
+   it preserved monotonic loss and averaged about `31.36s/iteration`.
+6. Treat the 5-shot, 10-iteration, `checkpoint_segments=10` run as the current
+   throughput stress baseline; it remained stable at about `31.86s/iteration`
+   with higher NPU memory allocation.
+7. Next increase the shot count again, such as to 7 shots, while keeping
+   `checkpoint_segments=10` to locate the NPU throughput and memory knee.
+8. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-8. Convert example options into a small reproducible configuration layer once
+9. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-9. Defer deeper propagator-level performance work, such as checkpointing or
+10. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.
