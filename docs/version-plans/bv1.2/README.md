@@ -77,6 +77,7 @@ numbered order unless you are looking for a specific topic.
 | 66 | [Receiver Selection Torch Indexing](./66-receiver-selection-torch-indexing.md) | Keep trace-missing receiver selection on the active torch device while preserving legacy receiver order. |
 | 67 | [Acoustic Benchmark Scaffold](./67-acoustic-benchmark-scaffold.md) | Add a reproducible tiny acoustic benchmark JSON runner before performance-oriented changes. |
 | 68 | [Torch Gradient Processor](./68-torch-gradient-processor.md) | Add an opt-in torch-native gradient processor while preserving legacy GradProcessor behavior. |
+| 69 | [Compatibility Shim Import Cleanup](./69-compat-shim-import-cleanup.md) | Route internal imports to canonical owners while keeping thin compatibility shims for old scripts. |
 
 ## Current Direction
 

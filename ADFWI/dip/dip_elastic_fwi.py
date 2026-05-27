@@ -22,10 +22,9 @@ from ADFWI.fwi.regularization import Regularization
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
-from ADFWI.fwi.multiScaleProcessing import lpass
+from ADFWI.fwi.multiscale import lpass
 from ADFWI.utils.first_arrivel_picking import apply_mute
 from ADFWI.utils.offset_mute import mute_offset
-from ADFWI.fwi.multiScaleProcessing import lpass
 
 class DIP_ElasticFWI(torch.nn.Module):
     """Elastic Full waveform inversion class

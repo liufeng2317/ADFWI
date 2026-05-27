@@ -19,7 +19,7 @@ from ADFWI.fwi.misfit               import Misfit,Misfit_NIM
 from ADFWI.fwi.regularization       import Regularization
 from ADFWI.utils                    import numpy2tensor
 from ADFWI.view                     import plot_model
-from ADFWI.fwi.multiScaleProcessing import lpass
+from ADFWI.fwi.multiscale import lpass
 
 from ADFWI.utils.first_arrivel_picking import apply_mute
 from ADFWI.utils.offset_mute import mute_offset

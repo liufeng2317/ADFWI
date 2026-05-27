@@ -11,7 +11,7 @@ The package keeps the historical ``ADFWI.fwi.data`` import surface stable while
 organizing implementation by responsibility.
 """
 
-from ADFWI.fwi.normalization import normalize_waveform
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 
 from .components import (
     ELASTIC_COMPONENTS,

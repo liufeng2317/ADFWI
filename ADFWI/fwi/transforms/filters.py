@@ -153,6 +153,6 @@ class LegacyLowPassFilter(DataTransform):
         if cutoff_freq is None or sampling_frequency is None:
             return synthetic, observed
 
-        from ADFWI.fwi.multiScaleProcessing import lpass
+        from ADFWI.fwi.multiscale import lpass
 
         return lpass(synthetic, observed, cutoff_freq, int(round(sampling_frequency)))
