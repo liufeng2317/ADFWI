@@ -58,6 +58,15 @@ def build_loss(args: argparse.Namespace):
         return Misfit_waveform_L2(dt=args.dt_for_loss), "legacy-l2"
     raise ValueError(f"unsupported misfit: {args.misfit}")
 
+
+def build_optimizer(model, args: argparse.Namespace):
+    if args.optimizer == "sgd":
+        return torch.optim.SGD(model.parameters(), lr=args.lr), "SGD"
+    if args.optimizer == "adam":
+        return torch.optim.Adam(model.parameters(), lr=args.lr), "Adam"
+    raise ValueError(f"unsupported optimizer: {args.optimizer}")
+
+
 def build_inversion_model(model_npz: Any, args: argparse.Namespace) -> AcousticModel:
     vp = np.asarray(model_npz["vp"], dtype=np.float32)
     rho = np.asarray(model_npz["rho"], dtype=np.float32)
@@ -123,6 +132,11 @@ def finite_positive(value: float, label: str) -> None:
         raise RuntimeError(f"{label} must be finite and positive, got {value}")
 
 
+def finite_value(value: float, label: str) -> None:
+    if not math.isfinite(value):
+        raise RuntimeError(f"{label} must be finite, got {value}")
+
+
 def summarize_losses(losses):
     initial_loss = losses[0]
     final_loss = losses[-1]
@@ -163,8 +177,8 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         forw_illumination=args.forw_illumination,
     )
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1.0)
+    optimizer, optimizer_name = build_optimizer(model, args)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.scheduler_step_size, gamma=args.scheduler_gamma)
     loss_fn, loss_name = build_loss(args)
 
     fwi = AcousticFWI(
@@ -200,13 +214,13 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     if len(losses) < args.iterations:
         raise RuntimeError(f"expected at least {args.iterations} recorded losses, got {len(losses)}")
     for idx, value in enumerate(losses):
-        finite_positive(value, f"loss[{idx}]")
+        finite_value(value, f"loss[{idx}]")
 
     loss_summary = summarize_losses(losses)
     loss = loss_summary["loss"]
     grad_norm = tensor_norm(model.vp.grad)
     update_norm = tensor_norm(model.vp.detach() - initial_vp)
-    finite_positive(loss, "loss")
+    finite_value(loss, "loss")
     finite_positive(grad_norm, "vp_grad_norm")
     finite_positive(update_norm, "vp_update_norm")
 
@@ -232,10 +246,13 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
         },
         "inversion": {
             "iterations": args.iterations,
-            "optimizer": "SGD",
+            "optimizer": optimizer_name,
             "lr": args.lr,
+            "scheduler_step_size": args.scheduler_step_size,
+            "scheduler_gamma": args.scheduler_gamma,
             "misfit": loss_name,
             "waveform_normalize": args.waveform_normalize,
+            "auto_update_rho": args.auto_update_rho,
             "seconds": seconds,
             **loss_summary,
             "vp_grad_norm": grad_norm,
@@ -261,7 +278,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--nt-samples", type=int, default=300)
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--checkpoint-segments", type=int, default=1)
+    parser.add_argument("--optimizer", choices=("sgd", "adam"), default="sgd")
     parser.add_argument("--lr", type=float, default=1e12)
+    parser.add_argument("--scheduler-step-size", type=int, default=1)
+    parser.add_argument("--scheduler-gamma", type=float, default=1.0)
     parser.add_argument("--dt-for-loss", type=float, default=1.0)
     parser.add_argument("--misfit", default="safe-squared-l2", choices=("safe-squared-l2", "legacy-l2"))
     parser.add_argument("--grad-mute-top", type=int, default=12)

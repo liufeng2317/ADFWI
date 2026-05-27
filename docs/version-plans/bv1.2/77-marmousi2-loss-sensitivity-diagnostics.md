@@ -20,7 +20,9 @@ Default 10-iteration NPU gate:
 | final_loss | 4.9887585191754624e-06 |
 | vp_update_norm | 0.4906421899795532 |
 
-Higher-learning-rate sensitivity check:
+Higher-learning-rate sensitivity check. This is not a recommended inversion
+setting; it is only a diagnostic to prove that the reduced loss path responds
+when the model update is made large:
 
 ```bash
 conda run -n adfwi python scripts/examples/marmousi2_acoustic_reduced_inversion.py --device npu:0 --shot-count 1 --nt-samples 300 --iterations 10 --lr 1e14
@@ -69,6 +71,6 @@ git diff --check
 
 ## Next Step
 
-For the 100-iteration baseline, record both default `lr=1e12` and a sensitivity
-run such as `lr=1e14`, or choose a more informative reduced window before using
-loss decrease as the primary success criterion.
+Do not use `lr=1e14` as a real-case recommendation. Compare against the original
+Marmousi2 notebook settings first, then choose a more informative reduced window
+before using loss decrease as the primary success criterion.

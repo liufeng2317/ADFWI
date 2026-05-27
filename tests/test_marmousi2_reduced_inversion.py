@@ -2,6 +2,8 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +34,21 @@ class Marmousi2ReducedInversionTests(unittest.TestCase):
         self.assertEqual(summary["loss_max"], 10.0)
         self.assertEqual(summary["loss_delta"], -1.0)
         self.assertEqual(summary["loss_relative_delta"], -0.1)
+
+    def test_finite_value_accepts_negative_legacy_loss(self):
+        case_script.finite_value(-1228.7, "legacy_l2_loss")
+
+    def test_build_optimizer_supports_notebook_adam_setting(self):
+        model = Mock()
+        param = case_script.torch.nn.Parameter(case_script.torch.ones(()))
+        model.parameters.return_value = [param]
+        args = SimpleNamespace(optimizer="adam", lr=10.0)
+
+        optimizer, name = case_script.build_optimizer(model, args)
+
+        self.assertEqual(name, "Adam")
+        self.assertIsInstance(optimizer, case_script.torch.optim.Adam)
+        self.assertEqual(optimizer.param_groups[0]["lr"], 10.0)
 
 
 if __name__ == "__main__":

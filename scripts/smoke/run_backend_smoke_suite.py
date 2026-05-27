@@ -420,10 +420,16 @@ def command_for_case_inversion(case: str, device: str, args: argparse.Namespace)
         str(args.case_inversion_nt_samples),
         "--iterations",
         str(args.case_inversion_iterations),
+        "--optimizer",
+        args.case_inversion_optimizer,
         "--misfit",
         args.case_inversion_misfit,
         "--lr",
         str(args.case_inversion_lr),
+        "--scheduler-step-size",
+        str(args.case_inversion_scheduler_step_size),
+        "--scheduler-gamma",
+        str(args.case_inversion_scheduler_gamma),
         "--dt-for-loss",
         str(args.case_inversion_dt_for_loss),
         "--grad-mute-top",
@@ -643,8 +649,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--case-inversion-shot-count", type=int, default=1, help="shot count used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-nt-samples", type=int, default=300, help="time samples used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-iterations", type=int, default=1, help="iteration count used by reduced real-case inversion checks")
+    parser.add_argument("--case-inversion-optimizer", default="sgd", choices=("sgd", "adam"), help="optimizer used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-misfit", default="safe-squared-l2", choices=("safe-squared-l2", "legacy-l2"), help="misfit used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-lr", type=float, default=1e12, help="optimizer learning rate used by reduced real-case inversion checks")
+    parser.add_argument("--case-inversion-scheduler-step-size", type=int, default=1, help="scheduler step size used by reduced real-case inversion checks")
+    parser.add_argument("--case-inversion-scheduler-gamma", type=float, default=1.0, help="scheduler gamma used by reduced real-case inversion checks")
     parser.add_argument("--case-inversion-dt-for-loss", type=float, default=1.0, help="dt/weight passed to the reduced inversion loss")
     parser.add_argument("--case-inversion-grad-mute-top", type=int, default=12, help="number of top model rows muted in reduced inversion gradient")
     parser.add_argument("--case-inversion-rtol", type=float, default=1e-4, help="relative tolerance for CPU-vs-device reduced inversion metrics")

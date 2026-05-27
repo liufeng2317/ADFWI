@@ -86,6 +86,7 @@ numbered order unless you are looking for a specific topic.
 | 75 | [Marmousi2 Iteration Smoke Control](./75-marmousi2-iteration-smoke-control.md) | Add configurable reduced real-case iteration counts and validate a multi-iteration Marmousi2 smoke. |
 | 76 | [Marmousi2 NPU 10-Iteration Gate](./76-marmousi2-npu-10-iteration-gate.md) | Record the first reduced Marmousi2 10-iteration real-case gate on NPU. |
 | 77 | [Marmousi2 Loss Sensitivity Diagnostics](./77-marmousi2-loss-sensitivity-diagnostics.md) | Explain unchanged reduced-case loss and add explicit loss-delta reporting. |
+| 78 | [Marmousi2 Notebook Settings Check](./78-marmousi2-notebook-settings-check.md) | Compare reduced real-case settings against the original Marmousi2 notebook configuration. |
 
 ## Current Direction
 
