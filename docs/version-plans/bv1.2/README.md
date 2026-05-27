@@ -113,6 +113,7 @@ numbered order unless you are looking for a specific topic.
 | 102 | [Data Public Facade](./102-data-public-facade.md) | Keep `ADFWI.fwi.data` as a deliberate public facade while internals use owner modules. |
 | 103 | [Data Facade User Documentation](./103-data-facade-user-doc.md) | Document the public `ADFWI.fwi.data` facade and namespace-only internal helper packages. |
 | 104 | [Example Import Surface Audit](./104-example-import-surface-audit.md) | Update examples and sphinx API sources that still referenced removed import shims. |
+| 105 | [Import Surface Policy Test](./105-import-surface-policy-test.md) | Add a tracked-file regression test for removed shims and namespace-only import surfaces. |
 
 ## Current Direction
 
@@ -173,3 +174,5 @@ numbered order unless you are looking for a specific topic.
   so custom workflows and framework code follow different, intentional paths.
 - Keep examples and generated API sources aligned with canonical bv1.2 import
   paths after removing compatibility shims.
+- Use `tests/test_import_surface_policy.py` as the lightweight guard for future
+  import-surface cleanup.

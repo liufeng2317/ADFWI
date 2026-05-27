@@ -141,11 +141,13 @@ numerical method, record the drift and tolerance in
    separately from internal owner-module imports.
 21. Keep examples and sphinx API sources aligned with canonical bv1.2 imports
    after compatibility shim removal.
-22. Continue auditing example notebooks for stale comments, but avoid executing
+22. Use the import-surface policy test to prevent removed shims and
+   namespace-only aggregation imports from reappearing.
+23. Continue auditing example notebooks for stale comments, but avoid executing
    heavy notebooks unless a changed cell needs runtime validation.
-23. Validate the torch-native gradient processor through smoothing and
+24. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-24. Convert example options into a small reproducible configuration layer once
+25. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-25. Defer deeper propagator-level performance work, such as checkpointing or
+26. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.
