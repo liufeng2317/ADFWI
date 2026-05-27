@@ -36,8 +36,8 @@ from ADFWI.fwi.runtime.wavefield import select_elastic_gradient_wavefield
 from ADFWI.fwi.iteration.batches import iter_batch_ranges
 from ADFWI.fwi.iteration.epoch import apply_epoch_update_step, finalize_epoch_progress
 from ADFWI.fwi.iteration.loss import (
-    build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
+    build_loss_transform_pipeline,
     elastic_observed_components,
     evaluate_misfit_loss,
     normalize_elastic_component_weights,
@@ -169,7 +169,7 @@ class ElasticFWI(torch.nn.Module):
         self.component_weights = normalize_elastic_component_weights(self.inversion_component, component_weights)
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
-        return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
+        return build_loss_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
 
     def _normalize(self, data):

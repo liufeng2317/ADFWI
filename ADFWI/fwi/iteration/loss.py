@@ -1,4 +1,8 @@
-"""Batch loss construction and evaluation helpers for FWI iteration loops."""
+"""Batch loss construction and evaluation helpers for FWI iteration loops.
+
+This module stops at producing loss tensors and detached scalar loss values.
+The one-batch forward/backward execution lives in ``ADFWI.fwi.iteration.step``.
+"""
 
 from __future__ import annotations
 
@@ -21,6 +25,9 @@ from ADFWI.fwi.transforms.amplitude import normalize_waveform
 
 
 ELASTIC_COMPONENTS = ("pressure", "vx", "vz")
+
+
+# Loss records
 
 
 @dataclass(frozen=True)
@@ -58,6 +65,9 @@ class BatchLoss:
 
     tensor: Any
     scalar: float
+
+
+# Elastic component bookkeeping
 
 
 def elastic_pressure(txx: torch.Tensor, tzz: torch.Tensor) -> torch.Tensor:
@@ -134,6 +144,9 @@ def normalize_elastic_component_weights(
     return weights
 
 
+# Loss input construction
+
+
 def acoustic_pressure_loss_input(
     record_waveform: Mapping[str, torch.Tensor],
     observed_pressure: Any,
@@ -178,11 +191,11 @@ def elastic_loss_inputs(
     return inputs
 
 
-def build_fwi_data_transform_pipeline(
-    data_transform_pipeline: Optional[DataTransformPipeline],
+def build_loss_transform_pipeline(
+    extra_transform_pipeline: Optional[DataTransformPipeline],
     waveform_normalize: bool,
 ) -> tuple[DataTransformPipeline, bool]:
-    """Build the legacy-compatible default FWI transform pipeline."""
+    """Build the legacy-compatible transform pipeline used before loss evaluation."""
 
     offset_mute = LegacyOffsetMute(required=False)
     late_mute = LegacyLateWindowMute(required=False)
@@ -190,13 +203,16 @@ def build_fwi_data_transform_pipeline(
     data_mask = DataMask(required=False, apply_to="synthetic")
     transforms = [offset_mute, late_mute, lowpass, data_mask]
 
-    if data_transform_pipeline is not None:
-        return DataTransformPipeline(transforms + [data_transform_pipeline]), waveform_normalize
+    if extra_transform_pipeline is not None:
+        return DataTransformPipeline(transforms + [extra_transform_pipeline]), waveform_normalize
 
     if waveform_normalize:
         transforms.append(TraceNormalize())
         waveform_normalize = False
     return DataTransformPipeline(transforms), waveform_normalize
+
+
+# Loss pair preparation
 
 
 def _shot_scoped_context_values(
@@ -356,6 +372,9 @@ def prepare_fwi_loss_pair(
     )
 
 
+# Misfit dispatch and weighted loss evaluation
+
+
 def sum_weighted_losses(losses: Sequence[torch.Tensor], *, device: Any = None) -> torch.Tensor:
     """Sum loss tensors while preserving autograd links."""
 
@@ -436,6 +455,9 @@ def evaluate_loss_inputs(
         data_loss=sum_weighted_losses(weighted_losses, device=device),
         component_losses=component_losses,
     )
+
+
+# Batch loss merge
 
 
 def build_batch_loss(data_loss, regularization_loss=None) -> BatchLoss:

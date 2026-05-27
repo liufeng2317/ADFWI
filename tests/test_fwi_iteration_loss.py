@@ -6,8 +6,8 @@ from ADFWI.fwi.iteration.loss import (
     ELASTIC_COMPONENTS,
     LossInput,
     acoustic_pressure_loss_input,
-    build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
+    build_loss_transform_pipeline,
     build_transform_context,
     elastic_component_loss_inputs,
     elastic_loss_inputs,
@@ -44,8 +44,8 @@ class DummyApplyLoss(torch.autograd.Function):
 
 
 class FWIIterationLossTests(unittest.TestCase):
-    def test_build_fwi_data_transform_pipeline_adds_legacy_transforms_and_normalize(self):
-        pipeline, waveform_normalize = build_fwi_data_transform_pipeline(None, True)
+    def test_build_loss_transform_pipeline_adds_legacy_transforms_and_normalize(self):
+        pipeline, waveform_normalize = build_loss_transform_pipeline(None, True)
 
         self.assertFalse(waveform_normalize)
         self.assertIsInstance(pipeline, DataTransformPipeline)
@@ -163,10 +163,10 @@ class FWIIterationLossTests(unittest.TestCase):
         self.assertTrue(torch.equal(normalized, expected))
         self.assertFalse(torch.isnan(normalized).any())
 
-    def test_build_fwi_data_transform_pipeline_appends_custom_pipeline(self):
+    def test_build_loss_transform_pipeline_appends_custom_pipeline(self):
         custom_pipeline = DataTransformPipeline([TraceNormalize()])
 
-        pipeline, waveform_normalize = build_fwi_data_transform_pipeline(custom_pipeline, True)
+        pipeline, waveform_normalize = build_loss_transform_pipeline(custom_pipeline, True)
 
         self.assertTrue(waveform_normalize)
         self.assertIsInstance(pipeline.transforms[0], LegacyOffsetMute)

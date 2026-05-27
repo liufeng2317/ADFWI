@@ -126,6 +126,7 @@ numbered order unless you are looking for a specific topic.
 | 115 | [Torch Gradient Status And Next Direction](./115-torch-gradient-status-and-next-direction.md) | Mark TorchGradProcessor as NPU-validated opt-in and redirect later work away from more gradient tests. |
 | 116 | [FWI Data Context Helper](./116-fwi-data-context-helper.md) | Extract shot-scoped transform-context selection inside FWI data preparation without changing behavior. |
 | 117 | [Merge Data Helpers Into Iteration Loss](./117-merge-data-helpers-into-iteration-loss.md) | Remove the misleading `ADFWI.fwi.data` package and move its helpers into iteration-owned batch loss construction. |
+| 118 | [Iteration Loss Readability Pass](./118-iteration-loss-readability-pass.md) | Clarify `iteration/loss.py` sections and rename the loss transform pipeline builder away from old data wording. |
 
 ## Current Direction
 

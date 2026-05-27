@@ -34,8 +34,8 @@ from ADFWI.fwi.runtime.regularization import calculate_model_regularization_loss
 from ADFWI.fwi.iteration.batches import iter_batch_ranges
 from ADFWI.fwi.iteration.epoch import apply_epoch_update_step, finalize_epoch_progress
 from ADFWI.fwi.iteration.loss import (
-    build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
+    build_loss_transform_pipeline,
     evaluate_misfit_loss,
     prepare_fwi_loss_pair,
 )
@@ -169,7 +169,7 @@ class AcousticFWI(torch.nn.Module):
         self.save_fig_path  = save_fig_path
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
-        return build_fwi_data_transform_pipeline(data_transform_pipeline, waveform_normalize)
+        return build_loss_transform_pipeline(data_transform_pipeline, waveform_normalize)
 
 
     def _normalize(self, data):
