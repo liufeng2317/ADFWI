@@ -8,6 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 TEXT_SUFFIXES = {".py", ".md", ".rst", ".ipynb"}
 
 FORBIDDEN_IMPORT_SURFACES = (
+    "ADFWI.fwi.data",
     "ADFWI.fwi.multiScaleProcessing",
     "ADFWI.fwi.normalization",
     "ADFWI.fwi.transforms.waveform",
@@ -19,22 +20,11 @@ FORBIDDEN_IMPORT_SURFACES = (
     "import ADFWI.fwi.runtime",
 )
 
-DATA_FACADE_MARKERS = (
-    "from ADFWI.fwi.data import",
-    "ADFWI.fwi.data import",
-    "import ADFWI.fwi.data",
-)
-
 HISTORICAL_DOC_PREFIXES = (
     "docs/version-plans/",
 )
 
 POLICY_TEST_PATH = "tests/test_import_surface_policy.py"
-
-DATA_FACADE_ALLOWED_PATHS = {
-    "docs/backend-usage.md",
-    "tests/test_fwi_data_public_api.py",
-}
 
 
 def tracked_text_files():
@@ -47,8 +37,9 @@ def tracked_text_files():
     )
     for relpath in result.stdout.splitlines():
         path = Path(relpath)
-        if path.suffix in TEXT_SUFFIXES:
-            yield relpath, REPO_ROOT / relpath
+        fullpath = REPO_ROOT / relpath
+        if path.suffix in TEXT_SUFFIXES and fullpath.exists():
+            yield relpath, fullpath
 
 
 def is_historical_doc(relpath):
@@ -71,19 +62,6 @@ class ImportSurfacePolicyTests(unittest.TestCase):
                     violations.append(f"{relpath}: {marker}")
 
         self.assertEqual(violations, [])
-
-    def test_data_facade_is_only_used_by_public_docs_and_api_tests(self):
-        violations = []
-        for relpath, path in tracked_text_files():
-            if is_historical_doc(relpath) or is_policy_definition(relpath) or relpath in DATA_FACADE_ALLOWED_PATHS:
-                continue
-            text = path.read_text(errors="ignore")
-            for marker in DATA_FACADE_MARKERS:
-                if marker in text:
-                    violations.append(f"{relpath}: {marker}")
-
-        self.assertEqual(violations, [])
-
 
 if __name__ == "__main__":
     unittest.main()

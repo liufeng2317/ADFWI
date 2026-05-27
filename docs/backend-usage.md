@@ -220,28 +220,18 @@ ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_OUTPUT_DIR=tests/full_cases/outputs/marmo
 ```
 
 
-## FWI Data Contract API
+## FWI Iteration Internals
 
-Use `ADFWI.fwi.data` as the stable public entry point when custom scripts need
-to prepare synthetic/observed waveform pairs before a misfit, build the default
-FWI transform pipeline, or configure elastic component weights:
+`ADFWI.fwi.iteration` and `ADFWI.fwi.runtime` are namespace packages in bv1.2.
+Import helpers from owner modules only, for example
+`ADFWI.fwi.iteration.range`, `ADFWI.fwi.iteration.observations`, or
+`ADFWI.fwi.runtime.gradient`.
 
-```python
-from ADFWI.fwi.data import (
-    build_fwi_data_transform_pipeline,
-    prepare_fwi_loss_pair,
-    normalize_elastic_component_weights,
-)
-```
-
-The package-level facade is intended for notebooks, examples, and custom
-research workflows. Framework internals use owner modules such as
-`ADFWI.fwi.data.preparation`, `ADFWI.fwi.data.loss`, and
-`ADFWI.fwi.data.components` so implementation dependencies remain explicit.
-
-By contrast, `ADFWI.fwi.iteration` and `ADFWI.fwi.runtime` are namespace
-packages in bv1.2. Import their helpers from owner modules only, for example
-`ADFWI.fwi.iteration.range` or `ADFWI.fwi.runtime.gradient`.
+The previous FWI data facade has been removed because those helpers were not a
+data-loading API. Synthetic/observed waveform pairing, elastic component
+selection, transform context construction, and misfit dispatch now belong to
+`ADFWI.fwi.iteration.observations`, which is part of the internal FWI iteration
+implementation.
 
 ## Public API Stability
 

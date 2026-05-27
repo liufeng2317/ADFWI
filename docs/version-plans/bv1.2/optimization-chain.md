@@ -14,7 +14,7 @@ Detailed engineering records remain in `docs/version-plans/bv1.2/`.
 The main framework optimization goals have been completed:
 
 - CPU/CUDA/NPU backend selection is explicit and shared.
-- FWI data preparation has a structured data-contract layer.
+- FWI observation/misfit preparation is merged into the iteration layer.
 - Acoustic and elastic FWI loops share runtime and iteration helpers.
 - Historical compatibility shims have been removed or narrowed.
 - Real Marmousi2 NPU full-case gates exist for forward-plus-inversion checks.
@@ -34,13 +34,13 @@ flowchart TD
     Goal --> Backend[1. Backend foundation\nADFWI.backends + ADFWI.set_backend\nrecords 01, 35-37]
     Backend --> PublicAPI[2. User-facing scripts and docs\nminimal examples + backend smoke suite\nrecords 36-41]
 
-    Goal --> DataLayer[3. FWI data contract\nloss inputs + transform context + component weights\nrecords 03, 05-08, 15-24, 26, 28, 58-59, 101-103, 116]
-    DataLayer --> Transforms[4. Transform ownership\nmute/mask/receiver selection/normalize/low-pass\nrecords 03-07, 19, 21, 28, 64-66, 95-96]
+    Goal --> ObservationPrep[3. Iteration observation preparation\nloss inputs + transform context + component weights\nrecords 03, 05-08, 15-24, 26, 28, 58-59, 101-103, 116-117]
+    ObservationPrep --> Transforms[4. Transform ownership\nmute/mask/receiver selection/normalize/low-pass\nrecords 03-07, 19, 21, 28, 64-66, 95-96]
 
     Goal --> RuntimeLoop[5. Runtime and iteration structure\nshared backend/cache/wavefield/gradient/regularization + batch helpers\nrecords 10-14, 27, 29, 31-32, 48-63, 97-100]
     RuntimeLoop --> Drivers[6. Acoustic/elastic drivers\nremain physical workflow owners\nrecords 50-63]
 
-    DataLayer --> NumericalPolicy[7. Numerical compatibility policy\nlegacy behavior first, drift measured before acceptance\nrecords 04, 30, 46, 64-65, 107-110]
+    ObservationPrep --> NumericalPolicy[7. Numerical compatibility policy\nlegacy behavior first, drift measured before acceptance\nrecords 04, 30, 46, 64-65, 107-110]
     Transforms --> NumericalPolicy
     RuntimeLoop --> NumericalPolicy
 
@@ -61,7 +61,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | Backend/device | Added centralized backend configuration, diagnostics, dtype/device handling, and FWI constructor guards. | Users configure CPU/CUDA/NPU once through the backend API before building models/FWI drivers. | `tests/test_backends.py`, `tests/test_backend_integration.py`, backend smoke scripts. |
 | User-facing examples | Added minimal acoustic/elastic backend examples and a layered smoke runner. | Script examples are reproducible entry points for backend checks, not notebook replacements. | `scripts/smoke/run_backend_smoke_suite.py`, `scripts/examples/README.md`. |
-| Data contract | Split FWI data responsibilities into components, inputs, loss, pipeline, and preparation owner modules. | `ADFWI.fwi.data` remains a deliberate public facade; internals import owner modules directly. | `tests/test_fwi_data_contract.py`, `tests/test_fwi_data_public_api.py`. |
+| Iteration observation preparation | Merged the former FWI data-contract helpers into one iteration-owned observation/misfit-preparation module. | `ADFWI.fwi.iteration.observations` owns synthetic/observed pairing, component weights, transform context, and misfit dispatch used inside batch steps. | `tests/test_fwi_iteration_observations.py`. |
 | Transform pipeline | Moved mute, masks, receiver selection, normalization, and low-pass behavior into transform-owned modules. | Receiver selection runs before transform pipelines; transform order is part of the numerical contract. | `tests/test_data_transforms.py`, receiver-selection tests, low-pass comparisons. |
 | Runtime helpers | Extracted shared backend checks, cache, wavefield collection, gradient dispatch, and regularization helpers. | Acoustic/elastic drivers still own physical parameter choices; helpers own repeated execution details. | `tests/test_fwi_runtime.py`, mini-inversion smoke tests. |
 | Iteration helpers | Extracted batch ranges, loss accumulation, progress, epoch update, and epoch finalization helpers. | FWI loops are shorter but still readable as inversion workflows. | Iteration/runtime unit tests and acoustic/elastic FWI smoke paths. |
@@ -75,8 +75,8 @@ flowchart TD
 | --- | --- |
 | `ADFWI/backends/` | Backend/device/dtype selection and diagnostics. |
 | `ADFWI/fwi/transforms/` | Waveform operations: receiver selection, masks, mute, normalization, low-pass. |
-| `ADFWI/fwi/data/` | Public data-contract facade plus owner modules for components, inputs, loss, pipeline, and preparation. |
 | `ADFWI/fwi/iteration/` | Namespace package for batch/epoch/progress helpers. Import concrete helpers from owner modules. |
+| `ADFWI/fwi/iteration/observations.py` | Iteration-owned synthetic/observed pairing, component selection, transform context, and misfit dispatch. |
 | `ADFWI/fwi/runtime/` | Namespace package for backend/cache/forward/gradient/regularization/wavefield helpers. |
 | `ADFWI/fwi/multiscale/` | Explicit legacy-compatible multiscale low-pass implementation. |
 | `ADFWI/propagator/gradient_process.py` | Legacy `GradProcessor` and opt-in `TorchGradProcessor`. |
@@ -132,7 +132,7 @@ Lightweight stabilization checks:
 
 ```bash
 conda run -n adfwi python -m unittest tests/test_backends.py tests/test_backend_integration.py
-conda run -n adfwi python -m unittest tests/test_data_transforms.py tests/test_fwi_data_contract.py tests/test_fwi_data_public_api.py
+conda run -n adfwi python -m unittest tests/test_data_transforms.py tests/test_fwi_iteration_observations.py
 conda run -n adfwi python -m unittest tests/test_fwi_runtime.py tests/test_import_surface_policy.py
 conda run -n adfwi python -m unittest tests/test_receiver_selection.py tests/test_torch_grad_processor.py
 conda run -n adfwi python -m unittest tests/test_marmousi2_full_case_presets.py tests/test_full_case_output_compare.py
@@ -186,4 +186,4 @@ stabilization, not open-ended optimization:
 3. Use fixed Marmousi2 3-shot/5-shot gates only to validate concrete changes.
 4. If performance work resumes, start from operator-level profiling of the fixed
    `shot3` NPU baseline.
-5. If data-contract work resumes, keep it small and behavior-preserving.
+5. If iteration-observation work resumes, keep it small and behavior-preserving.

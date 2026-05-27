@@ -5,8 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ADFWI.fwi.data.inputs import acoustic_pressure_loss_input, elastic_loss_inputs
-from ADFWI.fwi.data.loss import evaluate_loss_inputs
 from ADFWI.fwi.runtime.forward import acoustic_forward_batch, elastic_forward_batch
 from ADFWI.fwi.runtime.wavefield import (
     acoustic_pressure_waveforms,
@@ -14,6 +12,7 @@ from ADFWI.fwi.runtime.wavefield import (
     accumulate_wavefield,
     elastic_gradient_wavefields,
 )
+from .observations import acoustic_pressure_loss_input, elastic_loss_inputs, evaluate_loss_inputs
 from .progress import set_batch_description
 
 
