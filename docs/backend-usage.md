@@ -205,6 +205,13 @@ conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --devi
 conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device npu:0 --warmup 1 --repeat 3 --gradient-processors legacy,torch
 ```
 
+Opt-in full-case forward-plus-inversion test:
+
+```bash
+conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+ADFWI_RUN_FULL_CASES=1 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+```
+
 
 ## Public API Stability
 

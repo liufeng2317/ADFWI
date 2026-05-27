@@ -88,6 +88,7 @@ numbered order unless you are looking for a specific topic.
 | 77 | [Marmousi2 Loss Sensitivity Diagnostics](./77-marmousi2-loss-sensitivity-diagnostics.md) | Explain unchanged reduced-case loss and add explicit loss-delta reporting. |
 | 78 | [Marmousi2 Notebook Settings Check](./78-marmousi2-notebook-settings-check.md) | Compare reduced real-case settings against the original Marmousi2 notebook configuration. |
 | 79 | [Marmousi2 Synthetic Observation Check](./79-marmousi2-synthetic-observation-check.md) | Generate true-model observations with current code and validate notebook-like inversion settings. |
+| 80 | [Full-Case Test Suite](./80-full-case-test-suite.md) | Add opt-in full-case tests for forward-plus-inversion real-case validation. |
 
 ## Current Direction
 
@@ -98,3 +99,5 @@ numbered order unless you are looking for a specific topic.
 - Use smoke tests and benchmark comparisons before replacing legacy branches.
 - Use NPU for reduced real-case multi-iteration gates; keep CPU real-case checks
   short because the 300-sample path is slow.
+- Keep heavy forward-plus-inversion real-case tests under `tests/full_cases/`
+  and require explicit opt-in.

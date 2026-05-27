@@ -82,6 +82,8 @@ conda run -n adfwi python -m unittest tests/test_receiver_selection.py tests/tes
 conda run -n adfwi python scripts/smoke/run_backend_smoke_suite.py --suites public,misfit,examples --devices cpu,npu:0
 conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device cpu --warmup 1 --repeat 3
 conda run -n adfwi python scripts/benchmark/acoustic_backend_benchmark.py --device cpu --warmup 1 --repeat 3 --gradient-processors legacy,torch
+conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+ADFWI_RUN_FULL_CASES=1 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
 ```
 
 For changes touching FWI core data, loss, gradient, regularization, or iteration
@@ -98,9 +100,11 @@ numerical method, record the drift and tolerance in
 3. Build the next Marmousi2 NPU baseline around full-length synthetic-true
    observations because the 300-sample reduced window is not representative of
    notebook-like inversion settings.
-4. Validate the torch-native gradient processor through smoothing and
+4. Use `tests/full_cases/` as the gate for forward-plus-inversion real-case
+   validation before larger optimization changes.
+5. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-5. Convert example options into a small reproducible configuration layer once
+6. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-6. Defer deeper propagator-level performance work, such as checkpointing or
+7. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

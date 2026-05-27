@@ -1,0 +1,35 @@
+# Full-Case Integration Tests
+
+This directory contains heavier end-to-end tests that exercise real example
+cases. They are not part of the default lightweight unit-test path.
+
+Run explicitly from the repository root:
+
+```bash
+ADFWI_RUN_FULL_CASES=1 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+```
+
+The Marmousi2 acoustic full-flow test generates observed data from the saved
+true model with the current code, then runs a short inversion using notebook-like
+settings. It validates forward generation, inversion loss history, gradient
+processing, and model update in one command.
+
+Useful overrides:
+
+```bash
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_DEVICE=npu:0 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+ADFWI_RUN_FULL_CASES=1 ADFWI_FULL_CASE_ITERATIONS=5 conda run -n adfwi python -m unittest tests/full_cases/test_marmousi2_acoustic_full_flow.py
+```
+
+Default parameters are intentionally close to the Marmousi2 notebook while still
+small enough for a gate:
+
+- device: `npu:0`
+- shot count: 1
+- time samples: 3000
+- iterations: 2
+- observed data: generated from `true_model.npz` in memory
+- optimizer: Adam, `lr=10`
+- misfit: legacy L2
+- waveform normalization: enabled
+- checkpoint segments: 10
