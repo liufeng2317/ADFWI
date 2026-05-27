@@ -100,6 +100,7 @@ numbered order unless you are looking for a specific topic.
 | 89 | [Marmousi2 Full-Case Preset Runner](./89-marmousi2-full-case-presets.md) | Add reusable preset commands for the fixed 3-shot and 5-shot Marmousi2 full-case baselines. |
 | 90 | [Marmousi2 Preset Post-Run Compare](./90-marmousi2-preset-postrun-compare.md) | Let preset full-case runs compare against saved baselines automatically after completion. |
 | 91 | [Marmousi2 Preset Python Profiling Option](./91-marmousi2-preset-python-profile.md) | Add optional cProfile wrapping to fixed full-case presets before deeper performance work. |
+| 92 | [Marmousi2 Shot3 Python Profile Run](./92-marmousi2-shot3-python-profile-run.md) | Run the fixed shot3 baseline under cProfile and identify autograd/propagator paths as the next profiling target. |
 
 ## Current Direction
 
@@ -131,3 +132,6 @@ numbered order unless you are looking for a specific topic.
   can immediately compare against a saved baseline.
 - Use preset `--profile` to separate Python-side FWI overhead from propagator
   and NPU runtime before changing core performance paths.
+- Python profiling shows the fixed shot3 baseline is dominated by autograd
+  backward and checkpointed propagator execution, so next performance work
+  should use torch/NPU operator-level profiling.
