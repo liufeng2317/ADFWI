@@ -108,11 +108,14 @@ numerical method, record the drift and tolerance in
 6. Treat the 5-shot, 10-iteration, `checkpoint_segments=10` run as the current
    throughput stress baseline; it remained stable at about `31.86s/iteration`
    with higher NPU memory allocation.
-7. Next increase the shot count again, such as to 7 shots, while keeping
-   `checkpoint_segments=10` to locate the NPU throughput and memory knee.
-8. Validate the torch-native gradient processor through smoothing and
+7. Stop the shot-count sweep for now; locating the exact NPU throughput or
+   memory knee is not worth the additional runtime at this stage.
+8. Use the fixed 3-shot and 5-shot full-case gates to validate concrete code,
+   workflow, or convergence changes instead of running larger exploratory
+   shot-count tests.
+9. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-9. Convert example options into a small reproducible configuration layer once
+10. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-10. Defer deeper propagator-level performance work, such as checkpointing or
+11. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.
