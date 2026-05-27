@@ -102,12 +102,12 @@ numerical method, record the drift and tolerance in
    notebook-like inversion settings.
 4. Use `tests/full_cases/` as the gate for forward-plus-inversion real-case
    validation before larger optimization changes.
-5. Use the 3-shot full-length synthetic-true Marmousi2 NPU gate as the next
-   efficiency baseline; the 2-iteration check with `checkpoint_segments=1`
-   improved from about `38.60s/iteration` at 1 shot to about
-   `34.23s/iteration` at 3 shots.
-6. Run a 10-iteration 3-shot gate before changing checkpoint defaults or moving
-   to larger shot counts.
+5. Treat the 3-shot, 10-iteration, full-length synthetic-true Marmousi2 NPU gate
+   as the current efficiency baseline; it preserved monotonic loss and averaged
+   about `34.29s/iteration`, compared with about `38.60s/iteration` for the
+   1-shot 10-iteration gate.
+6. Next compare either larger shot counts, such as 5 shots, or checkpoint
+   segmentation variants at the same 3-shot, 10-iteration configuration.
 7. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 8. Convert example options into a small reproducible configuration layer once

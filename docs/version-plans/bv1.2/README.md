@@ -92,6 +92,7 @@ numbered order unless you are looking for a specific topic.
 | 81 | [Full-Case Output Artifacts](./81-full-case-output-artifacts.md) | Save JSON, CSV, and PNG artifacts from opt-in Marmousi2 full-case runs for visual inspection. |
 | 82 | [Marmousi2 NPU Checkpoint-1 10-Iteration Test](./82-marmousi2-npu-checkpoint1-10iter.md) | Compare full-case NPU runtime and loss behavior with `checkpoint_segments=1`. |
 | 83 | [Marmousi2 NPU 3-Shot Checkpoint-1 Test](./83-marmousi2-npu-shot3-checkpoint1.md) | Validate a 3-shot full-length NPU gate with `checkpoint_segments=1` and compare per-iteration efficiency. |
+| 84 | [Marmousi2 NPU 3-Shot 10-Iteration Gate](./84-marmousi2-npu-shot3-10iter.md) | Confirm stable 3-shot NPU efficiency and monotonic loss over 10 full-length iterations. |
 
 ## Current Direction
 
@@ -107,3 +108,6 @@ numbered order unless you are looking for a specific topic.
 - Use 3-shot full-length NPU gates as the next realistic benchmark step because
   they run faster per iteration than the 1-shot gate while preserving stable
   synthetic-true loss behavior.
+- Treat the 3-shot, 10-iteration, `checkpoint_segments=1` run as the current
+  full-case NPU baseline before testing larger shot counts or checkpoint
+  segmentation variants.
