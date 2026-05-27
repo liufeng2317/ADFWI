@@ -40,11 +40,11 @@ from ADFWI.fwi.data import (
     elastic_observed_components,
     normalize_elastic_component_weights,
     evaluate_misfit_loss,
-    normalize_waveform,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
 )
 from ADFWI.fwi.transforms import DataTransformPipeline
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 

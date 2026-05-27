@@ -18,12 +18,12 @@ from ADFWI.fwi.data import (
     evaluate_loss_inputs,
     evaluate_misfit_loss,
     normalize_elastic_component_weights,
-    normalize_waveform,
     prepare_loss_pair,
     sum_weighted_losses,
 )
 from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.fwi.transforms.receivers import select_or_mask_receivers
 
 

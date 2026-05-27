@@ -128,9 +128,11 @@ numerical method, record the drift and tolerance in
    compatibility branch; keep actual legacy numerical methods explicit.
 15. Continue removing pure re-export compatibility modules once active code has
    moved to canonical bv1.2 imports.
-16. Validate the torch-native gradient processor through smoothing and
+16. Keep waveform operations owned by `ADFWI.fwi.transforms`; avoid exporting
+   transform helpers through data-contract packages.
+17. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-17. Convert example options into a small reproducible configuration layer once
+18. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-18. Defer deeper propagator-level performance work, such as checkpointing or
+19. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

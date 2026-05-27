@@ -35,11 +35,11 @@ from ADFWI.fwi.data import (
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
     evaluate_misfit_loss,
-    normalize_waveform,
     prepare_fwi_loss_pair,
 )
 from ADFWI.fwi.iteration import apply_acoustic_batch_loss_step, apply_epoch_update_step, finalize_epoch_progress, iter_batch_ranges
 from ADFWI.fwi.transforms import DataTransformPipeline
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
