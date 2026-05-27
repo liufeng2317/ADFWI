@@ -60,6 +60,16 @@ conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 --o
 conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot5 --overwrite
 ```
 
+A preset run can also compare its output against a saved baseline immediately
+after the inversion finishes:
+
+```bash
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 \
+  --output-dir tests/full_cases/outputs/marmousi2_candidate \
+  --compare-to tests/full_cases/outputs/marmousi2_npu_shot3_ckpt10_iter10 \
+  --compare-labels baseline,candidate
+```
+
 The latest local visual check can be generated with:
 
 ```bash

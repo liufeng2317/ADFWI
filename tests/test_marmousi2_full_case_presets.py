@@ -72,6 +72,37 @@ class Marmousi2FullCasePresetTests(unittest.TestCase):
         self.assertEqual(report["preset"]["name"], "shot3")
         self.assertEqual(report["output_dir"], "tests/full_cases/outputs/dry_run")
         self.assertIn("--output-dir", report["command"])
+        self.assertIsNone(report["compare_command"])
+
+    def test_cli_dry_run_includes_compare_command(self):
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "shot3",
+                "--dry-run",
+                "--output-dir",
+                "tests/full_cases/outputs/candidate",
+                "--compare-to",
+                "tests/full_cases/outputs/baseline",
+                "--compare-labels",
+                "baseline,candidate",
+                "--fail-on-loss-drift",
+            ],
+            cwd=str(REPO_ROOT),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(proc.returncode, 0, msg=proc.stderr)
+        report = json.loads(proc.stdout)
+        compare_command = report["compare_command"]
+        self.assertIsNotNone(compare_command)
+        self.assertIn(str(runner.COMPARE_SCRIPT), compare_command)
+        self.assertIn("tests/full_cases/outputs/baseline", compare_command)
+        self.assertIn("tests/full_cases/outputs/candidate", compare_command)
+        self.assertIn("--fail-on-loss-drift", compare_command)
 
     def test_cli_lists_presets(self):
         proc = subprocess.run(

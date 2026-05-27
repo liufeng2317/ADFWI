@@ -117,9 +117,11 @@ numerical method, record the drift and tolerance in
    full-case summaries instead of manually parsing JSON after each run.
 10. Use `scripts/benchmark/run_marmousi2_full_case.py` to rerun fixed `shot3`
    and `shot5` baselines through stable presets.
-11. Validate the torch-native gradient processor through smoothing and
+11. Use preset `--compare-to` for post-run baseline comparison after future
+   code or workflow optimizations.
+12. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-12. Convert example options into a small reproducible configuration layer once
+13. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-13. Defer deeper propagator-level performance work, such as checkpointing or
+14. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INVERSION_SCRIPT = REPO_ROOT / "scripts" / "examples" / "marmousi2_acoustic_reduced_inversion.py"
+COMPARE_SCRIPT = REPO_ROOT / "scripts" / "benchmark" / "compare_full_case_outputs.py"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "tests" / "full_cases" / "outputs"
 
 
@@ -96,10 +97,35 @@ def build_command(preset: Marmousi2Preset, *, device: str, output_dir: Path, pyt
     ]
 
 
+def build_compare_command(args: argparse.Namespace, *, output_dir: Path) -> Optional[List[str]]:
+    if args.compare_to is None:
+        return None
+    command = [
+        args.python,
+        str(COMPARE_SCRIPT),
+        str(args.compare_to),
+        str(output_dir),
+        "--labels",
+        args.compare_labels,
+    ]
+    if args.fail_on_loss_drift:
+        command.extend(
+            [
+                "--fail-on-loss-drift",
+                "--loss-abs-tol",
+                str(args.loss_abs_tol),
+                "--loss-rel-tol",
+                str(args.loss_rel_tol),
+            ]
+        )
+    return command
+
+
 def build_plan(args: argparse.Namespace) -> Dict[str, object]:
     preset = PRESETS[args.preset]
     output_dir = args.output_dir if args.output_dir is not None else default_output_dir(preset, args.device)
     command = build_command(preset, device=args.device, output_dir=output_dir, python=args.python)
+    compare_command = build_compare_command(args, output_dir=output_dir)
     return {
         "status": "ok",
         "preset": asdict(preset),
@@ -108,6 +134,8 @@ def build_plan(args: argparse.Namespace) -> Dict[str, object]:
         "overwrite": args.overwrite,
         "command": command,
         "command_text": " ".join(command),
+        "compare_command": compare_command,
+        "compare_command_text": None if compare_command is None else " ".join(compare_command),
     }
 
 
@@ -120,6 +148,11 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--overwrite", action="store_true", help="Remove an existing output directory before running")
     parser.add_argument("--dry-run", action="store_true", help="Print the preset plan without running the inversion")
     parser.add_argument("--list-presets", action="store_true", help="Print available presets and exit")
+    parser.add_argument("--compare-to", type=Path, help="Optional baseline output directory or summary.json to compare after the run")
+    parser.add_argument("--compare-labels", default="baseline,candidate", help="Labels passed to compare_full_case_outputs.py")
+    parser.add_argument("--fail-on-loss-drift", action="store_true", help="Fail when the post-run comparison exceeds loss tolerances")
+    parser.add_argument("--loss-abs-tol", type=float, default=1e-5)
+    parser.add_argument("--loss-rel-tol", type=float, default=1e-8)
     return parser.parse_args(argv)
 
 
@@ -163,7 +196,18 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(proc.stdout, end="")
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
-    return proc.returncode
+    if proc.returncode != 0:
+        return proc.returncode
+
+    compare_command = plan["compare_command"]
+    if compare_command is None:
+        return 0
+    compare_proc = subprocess.run(compare_command, cwd=str(REPO_ROOT), text=True, capture_output=True, check=False)
+    if compare_proc.stdout:
+        print(compare_proc.stdout, end="")
+    if compare_proc.stderr:
+        print(compare_proc.stderr, end="", file=sys.stderr)
+    return compare_proc.returncode
 
 
 if __name__ == "__main__":

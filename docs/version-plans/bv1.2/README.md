@@ -98,6 +98,7 @@ numbered order unless you are looking for a specific topic.
 | 87 | [Marmousi2 Benchmark Direction Adjustment](./87-marmousi2-benchmark-direction-adjustment.md) | Stop the shot-count sweep and use existing 3-shot/5-shot gates as fixed baselines for later optimization. |
 | 88 | [Full-Case Output Compare Tool](./88-full-case-output-compare-tool.md) | Add a saved-output comparison CLI for fixed Marmousi2 full-case baselines. |
 | 89 | [Marmousi2 Full-Case Preset Runner](./89-marmousi2-full-case-presets.md) | Add reusable preset commands for the fixed 3-shot and 5-shot Marmousi2 full-case baselines. |
+| 90 | [Marmousi2 Preset Post-Run Compare](./90-marmousi2-preset-postrun-compare.md) | Let preset full-case runs compare against saved baselines automatically after completion. |
 
 ## Current Direction
 
@@ -125,3 +126,5 @@ numbered order unless you are looking for a specific topic.
   full-case outputs after future code or workflow changes.
 - Use `scripts/benchmark/run_marmousi2_full_case.py` to rerun the fixed 3-shot
   and 5-shot baselines without manually copying long commands.
+- Use preset `--compare-to` when validating future optimizations so every run
+  can immediately compare against a saved baseline.
