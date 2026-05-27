@@ -122,6 +122,7 @@ numbered order unless you are looking for a specific topic.
 | 111 | [Marmousi2 Torch Gradient Opt-In](./111-marmousi2-torch-gradient-opt-in.md) | Wire TorchGradProcessor into fixed Marmousi2 full-case entry points without changing the default. |
 | 112 | [Marmousi2 Gradient Stress Gates](./112-marmousi2-gradient-stress-gates.md) | Add real-case gradient stress controls and validate smoothing/illumination torch paths on NPU. |
 | 113 | [Marmousi2 Shot3 Smoothing Trajectory](./113-marmousi2-shot3-smoothing-trajectory.md) | Validate a 3-shot, 10-iteration NPU smoothing trajectory for legacy versus torch gradient processors. |
+| 114 | [Marmousi2 Shot3 Illumination Trajectory](./114-marmousi2-shot3-illumination-trajectory.md) | Validate a 3-shot, 10-iteration NPU illumination trajectory for legacy versus torch gradient processors. |
 
 ## Current Direction
 
@@ -203,3 +204,5 @@ numbered order unless you are looking for a specific topic.
 - The 3-shot, 10-iteration `--grad-smooth 2` NPU trajectory is stable for
   legacy versus torch gradient processors, with final-loss relative drift around
   `3e-6` and final update-norm relative drift around `1e-5`.
+- The 3-shot, 10-iteration `--forw-illumination` NPU trajectory is also stable,
+  with identical final loss and final update-norm relative drift around `1e-7`.
