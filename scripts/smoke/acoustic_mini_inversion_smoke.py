@@ -41,7 +41,7 @@ from ADFWI.fwi.misfit import (
     Misfit_weighted_L1_and_L2,
 )
 from ADFWI.model import AcousticModel
-from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.propagator import AcousticPropagator, GradProcessor, TorchGradProcessor
 from ADFWI.survey import Receiver, SeismicData, Source, Survey
 
 
@@ -215,7 +215,12 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
     propagator = AcousticPropagator(model, survey)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1.0)
-    gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
+    if args.gradient_processor == "legacy":
+        gradient_processor = GradProcessor(norm_grad=False, forw_illumination=False)
+    elif args.gradient_processor == "torch":
+        gradient_processor = TorchGradProcessor(norm_grad=False, forw_illumination=False)
+    else:
+        raise ValueError(f"unsupported gradient processor: {args.gradient_processor}")
     loss_fn = build_loss_fn(args.misfit, args.dt)
 
     data_transform_pipeline = None
@@ -306,6 +311,7 @@ def run_smoke(args: argparse.Namespace) -> Dict[str, Any]:
             "receiver_mask_mode": args.receiver_mask_mode,
             "mute_offset": args.mute_offset,
             "mute_late_window": args.mute_late_window,
+            "gradient_processor": args.gradient_processor,
         },
     }
 
@@ -325,6 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mute-offset", type=float, default=None, help="optional offset mute threshold in meters")
     parser.add_argument("--mute-late-window", type=float, default=None, help="optional first-arrival late mute window in seconds")
     parser.add_argument("--show-progress", action="store_true", help="show AcousticFWI tqdm progress bars")
+    parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy", help="gradient processor implementation for post-backward model gradients")
     parser.add_argument("--seed", type=int, default=20240523)
     parser.add_argument("--lr", type=float, default=None, help="optimizer learning rate; defaults are chosen per misfit")
     parser.add_argument("--nx", type=int, default=24)
