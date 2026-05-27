@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from ADFWI.fwi.multiScaleProcessing import lpass
+from ADFWI.fwi.multiscale import lpass
 from ADFWI.fwi.transforms import LegacyLowPassFilter, LowPassFilter
 
 

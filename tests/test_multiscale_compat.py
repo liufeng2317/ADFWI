@@ -2,7 +2,6 @@ import unittest
 
 import torch
 
-from ADFWI.fwi import multiScaleProcessing as legacy
 from ADFWI.fwi.multiscale import (
     Lfilter,
     adj_lowpass,
@@ -13,14 +12,14 @@ from ADFWI.fwi.multiscale import (
 )
 
 
-class MultiscaleCompatibilityTests(unittest.TestCase):
-    def test_legacy_multiscale_module_reexports_new_package_objects(self):
-        self.assertIs(legacy.Lfilter, Lfilter)
-        self.assertIs(legacy.adj_lowpass, adj_lowpass)
-        self.assertIs(legacy.data2d_to_3d, data2d_to_3d)
-        self.assertIs(legacy.data3d_to_2d, data3d_to_2d)
-        self.assertIs(legacy.lowpass, lowpass)
-        self.assertIs(legacy.lpass, lpass)
+class MultiscaleCanonicalImportTests(unittest.TestCase):
+    def test_multiscale_package_exports_legacy_lowpass_objects(self):
+        self.assertTrue(callable(Lfilter))
+        self.assertTrue(callable(adj_lowpass))
+        self.assertTrue(callable(data2d_to_3d))
+        self.assertTrue(callable(data3d_to_2d))
+        self.assertTrue(callable(lowpass))
+        self.assertTrue(callable(lpass))
 
     def test_data2d_3d_round_trip_keeps_values(self):
         ns, nt, nr = 2, 4, 3

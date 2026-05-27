@@ -124,8 +124,8 @@ numerical method, record the drift and tolerance in
 13. Use torch/NPU operator-level profiling on the fixed `shot3` baseline,
    because Python profiling shows most time in autograd backward and
    checkpointed propagator execution rather than Python bookkeeping.
-14. Start compatibility cleanup with thin shim deprecation and canonical import
-   guidance before deleting any legacy import surface.
+14. Remove thin historical import shims in `bv1.2` now that `bv1.1` remains the
+   compatibility branch; keep actual legacy numerical methods explicit.
 15. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 16. Convert example options into a small reproducible configuration layer once

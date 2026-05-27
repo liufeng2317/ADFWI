@@ -3,7 +3,6 @@ import unittest
 import numpy as np
 import torch
 
-from ADFWI.fwi.normalization import normalize_waveform
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LowPassFilter, ReceiverMask, TraceNormalize, normalize_waveform as transform_normalize_waveform
 from ADFWI.fwi.transforms.amplitude import normalize_waveform as canonical_normalize_waveform
 
@@ -36,17 +35,16 @@ class DataTransformTests(unittest.TestCase):
     def test_transform_package_exports_waveform_normalization(self):
         data = torch.tensor([[[0.0, 2.0], [2.0, -4.0]]])
 
-        self.assertIs(normalize_waveform, canonical_normalize_waveform)
         self.assertIs(transform_normalize_waveform, canonical_normalize_waveform)
-        self.assertTrue(torch.equal(transform_normalize_waveform(data), normalize_waveform(data)))
+        self.assertTrue(torch.equal(transform_normalize_waveform(data), canonical_normalize_waveform(data)))
 
     def test_trace_normalize_reuses_shared_waveform_normalization(self):
         synthetic, observed = self._waveforms()
 
         out_syn, out_obs = TraceNormalize()(synthetic, observed)
 
-        self.assertTrue(torch.equal(out_syn, normalize_waveform(synthetic)))
-        self.assertTrue(torch.equal(out_obs, normalize_waveform(observed)))
+        self.assertTrue(torch.equal(out_syn, canonical_normalize_waveform(synthetic)))
+        self.assertTrue(torch.equal(out_obs, canonical_normalize_waveform(observed)))
 
     def test_trace_normalize_respects_custom_dimension(self):
         synthetic = torch.tensor([[[1.0, -3.0], [2.0, 6.0]]])
@@ -54,8 +52,8 @@ class DataTransformTests(unittest.TestCase):
 
         out_syn, out_obs = TraceNormalize(dim=2)(synthetic, observed)
 
-        self.assertTrue(torch.equal(out_syn, normalize_waveform(synthetic, dim=2)))
-        self.assertTrue(torch.equal(out_obs, normalize_waveform(observed, dim=2)))
+        self.assertTrue(torch.equal(out_syn, canonical_normalize_waveform(synthetic, dim=2)))
+        self.assertTrue(torch.equal(out_obs, canonical_normalize_waveform(observed, dim=2)))
 
     def test_trace_normalize_preserves_zero_traces(self):
         synthetic, observed = self._waveforms()

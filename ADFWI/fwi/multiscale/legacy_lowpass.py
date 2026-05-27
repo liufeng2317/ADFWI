@@ -1,9 +1,10 @@
 """Legacy multiscale low-pass filtering helpers.
 
-This module is the implementation owner for the historical
-``ADFWI.fwi.multiScaleProcessing`` low-pass API. It preserves the SciPy
-``filtfilt`` forward path and matching adjoint-style backward path used by old
-FWI scripts and by ``LegacyLowPassFilter``.
+This module is the implementation owner for the historical multiscale low-pass
+behavior that previously lived behind the root-level ``multiScaleProcessing``
+module. It preserves the SciPy ``filtfilt`` forward path and matching
+adjoint-style backward path used by old FWI scripts and by
+``LegacyLowPassFilter``.
 
 The implementation intentionally keeps the CPU NumPy/SciPy round trip. Previous
 bv1.2 comparisons showed that the pure torch FIR ``LowPassFilter`` is useful and

@@ -60,7 +60,7 @@ class MuteTransformComparisonTests(unittest.TestCase):
             synthetic[i] = apply_mute(late_window, synthetic_temp[i], dt)
             observed[i] = apply_mute(late_window, observed_temp[i], dt)
 
-        from ADFWI.fwi.multiScaleProcessing import lpass
+        from ADFWI.fwi.multiscale import lpass
 
         synthetic, observed = lpass(synthetic, observed, cutoff_freq, int(round(1.0 / dt)))
         synthetic = synthetic * data_mask

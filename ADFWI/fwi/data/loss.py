@@ -8,7 +8,7 @@ from typing import Any, Callable, Sequence
 import torch
 
 from ADFWI.fwi.misfit import Misfit, Misfit_NIM
-from ADFWI.fwi.normalization import normalize_waveform
+from ADFWI.fwi.transforms.amplitude import normalize_waveform
 
 from .inputs import LossInput
 
