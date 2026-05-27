@@ -98,25 +98,32 @@ def process_parameter_gradient(
     ``propagator.dtype`` on ``propagator.device``.
     """
     with torch.no_grad():
+        if processor_type is not None and isinstance(gradient_processor, processor_type):
+            processor = gradient_processor
+        else:
+            processor = gradient_processor[idx]
+
+        if hasattr(processor, "forward_torch"):
+            vmax = torch.max(parameter.detach())
+            parameter.grad = processor.forward_torch(
+                nz=model.nz,
+                nx=model.nx,
+                vmax=vmax,
+                grad=parameter.grad.detach(),
+                forw=forw,
+            ).to(device=propagator.device, dtype=propagator.dtype)
+            return
+
         grads = parameter.grad.cpu().detach().numpy()
         vmax = np.max(parameter.cpu().detach().numpy())
 
-        if processor_type is not None and isinstance(gradient_processor, processor_type):
-            grads = gradient_processor.forward(
-                nz=model.nz,
-                nx=model.nx,
-                vmax=vmax,
-                grad=grads,
-                forw=forw,
-            )
-        else:
-            grads = gradient_processor[idx].forward(
-                nz=model.nz,
-                nx=model.nx,
-                vmax=vmax,
-                grad=grads,
-                forw=forw,
-            )
+        grads = processor.forward(
+            nz=model.nz,
+            nx=model.nx,
+            vmax=vmax,
+            grad=grads,
+            forw=forw,
+        )
 
         parameter.grad = numpy2tensor(grads, dtype=propagator.dtype).to(propagator.device)
 

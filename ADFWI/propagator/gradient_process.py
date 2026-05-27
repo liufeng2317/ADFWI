@@ -10,6 +10,8 @@
 import scipy.signal as _signal
 import scipy
 import numpy as np
+import torch
+import torch.nn.functional as F
 
 def gauss2(X, Y, mu, sigma, normalize=True):
     ''' Evaluates Gaussian over points of X,Y
@@ -47,6 +49,47 @@ def smooth2d(Z, span=10):
     Z = Z/W
 
     return Z
+
+def _torch_smooth2d(Z, span=10):
+    """Torch equivalent of smooth2d for device-native gradient processing."""
+    if span <= 0:
+        return Z
+    original_dtype = Z.dtype
+    work_dtype = Z.dtype if Z.is_floating_point() else torch.float32
+    work = Z.to(dtype=work_dtype)
+    coords = torch.linspace(-2.0 * span, 2.0 * span, 2 * span + 1, device=Z.device, dtype=work_dtype)
+    Y, X = torch.meshgrid(coords, coords, indexing="ij")
+    sigma2 = float(span * span)
+    kernel = torch.exp(-0.5 * (X * X + Y * Y) / sigma2)
+    kernel = kernel / kernel.sum()
+    kernel = kernel.reshape(1, 1, kernel.shape[0], kernel.shape[1])
+    data = work.reshape(1, 1, work.shape[0], work.shape[1])
+    weight = torch.ones_like(data)
+    padding = kernel.shape[-1] // 2
+    smoothed = F.conv2d(data, kernel, padding=padding)
+    normalizer = F.conv2d(weight, kernel, padding=padding)
+    return (smoothed / normalizer).reshape_as(work).to(dtype=original_dtype)
+
+
+def grad_taper_torch(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine', *, device=None, dtype=None):
+    """Torch version of grad_taper that keeps masks on the active device."""
+    device = torch.device("cpu") if device is None else device
+    dtype = torch.float32 if dtype is None else dtype
+    if marine_or_land in ['marine', 'Offshore']:
+        taper = torch.ones((nz, nx), device=device, dtype=dtype)
+        taper[:tapersize, :] = 0.0
+    else:
+        H = torch.hamming_window(tapersize * 2, periodic=False, device=device, dtype=dtype)
+        H = H[tapersize:]
+        taper = torch.zeros((nz, nx), device=device, dtype=dtype)
+        taper[:, :tapersize] = H.reshape(1, -1)
+        taper = _torch_smooth2d(taper, span=tapersize // 2)
+        taper = taper / taper.max()
+        taper = taper * (1 - thred)
+        taper = -taper + 1
+        taper = taper * taper
+    return taper
+
 
 def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine'):
     ''' Gradient taper
@@ -133,3 +176,60 @@ class GradProcessor():
         if self.norm_grad:
             grad = vmax * grad/ abs(grad).max()        
         return grad
+
+class TorchGradProcessor(GradProcessor):
+    """Device-native gradient processor compatible with GradProcessor settings.
+
+    The legacy GradProcessor remains NumPy/SciPy based. This subclass exposes a
+    forward_torch method used by the FWI runtime to avoid CPU round-trips when a
+    torch-native path is explicitly requested.
+    """
+
+    def forward_torch(self, nx, nz, vmax, grad, forw=None):
+        with torch.no_grad():
+            processed = grad.clone()
+            vmax_tensor = torch.as_tensor(vmax, device=processed.device, dtype=processed.dtype)
+
+            if self.grad_mute > 0:
+                if self.marine_or_land.lower() in ['marine', 'offshore']:
+                    grad_thred = 0.0
+                elif self.marine_or_land.lower() in ['land', 'onshore']:
+                    grad_thred = 0.001
+                else:
+                    raise ValueError('not supported modeling marine_or_land: %s' % (self.marine_or_land))
+                processed = processed * grad_taper_torch(
+                    nz,
+                    nx,
+                    tapersize=self.grad_mute,
+                    thred=grad_thred,
+                    marine_or_land=self.marine_or_land,
+                    device=processed.device,
+                    dtype=processed.dtype,
+                )
+
+            if self.grad_mask is not None:
+                grad_mask = torch.as_tensor(self.grad_mask, device=processed.device, dtype=processed.dtype)
+                if tuple(grad_mask.shape) != tuple(processed.shape):
+                    raise ValueError('Wrong size of grad mask: the size of the mask should be identical to the size of vp model')
+                processed = processed * grad_mask
+
+            if self.forw_illumination and forw is not None:
+                forw_tensor = torch.as_tensor(forw, device=processed.device, dtype=processed.dtype)
+                span = 40 if min(nz, nx) > 40 else int(min(nz, nx) / 2)
+                forw_tensor = _torch_smooth2d(forw_tensor, span)
+                epsilon = torch.as_tensor(0.0001, device=processed.device, dtype=processed.dtype)
+                precond = forw_tensor / torch.max(forw_tensor + 1e-5)
+                precond = torch.clamp(precond, min=epsilon)
+                processed = processed / torch.pow(precond, 2)
+
+            if self.grad_smooth > 0:
+                if self.marine_or_land in ['marine', 'offshore']:
+                    smoothed = processed.clone()
+                    smoothed[self.grad_mute:, :] = _torch_smooth2d(smoothed[self.grad_mute:, :], span=self.grad_smooth)
+                    processed = smoothed
+                else:
+                    processed = _torch_smooth2d(processed, span=self.grad_smooth)
+
+            if self.norm_grad:
+                processed = vmax_tensor * processed / torch.max(torch.abs(processed))
+            return processed
