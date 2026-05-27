@@ -51,6 +51,15 @@ conda run -n adfwi python scripts/benchmark/compare_full_case_outputs.py \
   --labels shot3,shot5
 ```
 
+The fixed Marmousi2 NPU baselines can be run through presets instead of a long
+environment-variable command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 --dry-run
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 --overwrite
+conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot5 --overwrite
+```
+
 The latest local visual check can be generated with:
 
 ```bash

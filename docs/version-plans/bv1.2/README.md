@@ -97,6 +97,7 @@ numbered order unless you are looking for a specific topic.
 | 86 | [Marmousi2 NPU 5-Shot Checkpoint-10 Gate](./86-marmousi2-npu-shot5-checkpoint10.md) | Probe the next NPU throughput step with a 5-shot full-length checkpoint-10 benchmark. |
 | 87 | [Marmousi2 Benchmark Direction Adjustment](./87-marmousi2-benchmark-direction-adjustment.md) | Stop the shot-count sweep and use existing 3-shot/5-shot gates as fixed baselines for later optimization. |
 | 88 | [Full-Case Output Compare Tool](./88-full-case-output-compare-tool.md) | Add a saved-output comparison CLI for fixed Marmousi2 full-case baselines. |
+| 89 | [Marmousi2 Full-Case Preset Runner](./89-marmousi2-full-case-presets.md) | Add reusable preset commands for the fixed 3-shot and 5-shot Marmousi2 full-case baselines. |
 
 ## Current Direction
 
@@ -122,3 +123,5 @@ numbered order unless you are looking for a specific topic.
   5-shot full-case gates to validate concrete code or workflow optimizations.
 - Use `scripts/benchmark/compare_full_case_outputs.py` to compare saved
   full-case outputs after future code or workflow changes.
+- Use `scripts/benchmark/run_marmousi2_full_case.py` to rerun the fixed 3-shot
+  and 5-shot baselines without manually copying long commands.
