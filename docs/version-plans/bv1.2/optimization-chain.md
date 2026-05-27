@@ -95,8 +95,8 @@ numerical method, record the drift and tolerance in
    to collect standard-size CPU/NPU legacy-vs-torch drift before larger runs.
 2. Run `scripts/benchmark/acoustic_backend_benchmark.py` with
    `--gradient-processors legacy,torch` on NPU and larger acoustic grids.
-3. Use reduced Marmousi2 `--iterations 10` on NPU as the first real-case
-   multi-iteration gate before considering 100-iteration baselines.
+3. Prepare a reduced Marmousi2 `--iterations 100` NPU baseline with JSON output
+   capture after the 10-iteration gate passed.
 4. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
 5. Convert example options into a small reproducible configuration layer once
