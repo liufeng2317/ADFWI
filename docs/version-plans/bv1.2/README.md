@@ -116,6 +116,7 @@ numbered order unless you are looking for a specific topic.
 | 105 | [Import Surface Policy Test](./105-import-surface-policy-test.md) | Add a tracked-file regression test for removed shims and namespace-only import surfaces. |
 | 106 | [Broaden Import Surface Policy](./106-import-surface-policy-broaden.md) | Catch alternate namespace-only package imports in the import-surface policy test. |
 | 107 | [Torch Gradient Parity Convergence](./107-torch-gradient-parity-convergence.md) | Fix legacy land taper compatibility and expand legacy-vs-torch gradient processor parity tests. |
+| 108 | [Gradient Processor Timing Gate](./108-gradient-processor-timing-gate.md) | Add a focused JSON benchmark for legacy-vs-torch gradient processor parity and timing. |
 
 ## Current Direction
 

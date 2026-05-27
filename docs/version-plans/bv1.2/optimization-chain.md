@@ -148,6 +148,8 @@ numerical method, record the drift and tolerance in
    heavy notebooks unless a changed cell needs runtime validation.
 24. Treat torch-native gradient processing as the next convergence-focused
    optimization path: parity first, timing second, fixed Marmousi2 gate third.
+   Use `scripts/benchmark/gradient_processor_benchmark.py` as the cheap timing
+   gate before full-case runs.
 25. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
 26. Defer deeper propagator-level performance work, such as checkpointing or
