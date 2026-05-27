@@ -135,11 +135,12 @@ numerical method, record the drift and tolerance in
 18. Treat `ADFWI.fwi.runtime` as a namespace package; import concrete helpers
    from `backend`, `cache`, `forward`, `gradient`, `regularization`, and
    `wavefield`.
-19. Keep active FWI internals on `ADFWI.fwi.data` owner modules, then decide
-   separately whether the package-level data contract remains a public user API.
-20. Validate the torch-native gradient processor through smoothing and
+19. Keep active FWI internals on `ADFWI.fwi.data` owner modules while retaining
+   `ADFWI.fwi.data` as the stable public data-contract facade.
+20. Document the recommended public facade imports for custom FWI workflows.
+21. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-21. Convert example options into a small reproducible configuration layer once
+22. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-22. Defer deeper propagator-level performance work, such as checkpointing or
+23. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.

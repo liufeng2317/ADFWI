@@ -1,4 +1,4 @@
-"""FWI data contract helpers before misfit evaluation.
+"""Public FWI data-contract facade before misfit evaluation.
 
 This package is the FWI-layer data contract: it aligns synthetic and observed
 waveform pairs before they enter a misfit. It may orchestrate receiver
@@ -7,8 +7,10 @@ bookkeeping. Concrete waveform operations stay in ``ADFWI.fwi.transforms``;
 misfit formulas stay in ``ADFWI.fwi.misfit``; propagator execution stays in
 ``ADFWI.propagator``.
 
-The package keeps the historical ``ADFWI.fwi.data`` import surface stable while
-organizing implementation by responsibility.
+Use ``ADFWI.fwi.data`` as the stable user-facing import surface for data
+contract helpers. Framework internals should import from owner modules such as
+``ADFWI.fwi.data.preparation`` or ``ADFWI.fwi.data.loss`` to keep dependencies
+explicit.
 """
 
 from .components import (
@@ -30,23 +32,27 @@ from .preparation import (
 )
 
 __all__ = [
+    # Records and constants
     "ELASTIC_COMPONENTS",
     "ComponentLoss",
     "LossInput",
     "LossEvaluation",
+    # Pipeline and pair preparation
     "build_fwi_data_transform_pipeline",
     "build_fwi_transform_context",
     "build_transform_context",
+    "prepare_fwi_loss_pair",
+    "prepare_loss_pair",
+    # Loss inputs and evaluation
     "acoustic_pressure_loss_input",
     "elastic_component_loss_inputs",
     "elastic_loss_inputs",
+    "evaluate_loss_inputs",
+    "evaluate_misfit_loss",
+    "sum_weighted_losses",
+    # Elastic component helpers
     "elastic_observed_components",
     "elastic_pressure",
     "elastic_synthetic_components",
-    "evaluate_loss_inputs",
-    "evaluate_misfit_loss",
     "normalize_elastic_component_weights",
-    "prepare_fwi_loss_pair",
-    "prepare_loss_pair",
-    "sum_weighted_losses",
 ]
