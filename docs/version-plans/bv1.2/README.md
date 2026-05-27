@@ -112,6 +112,7 @@ numbered order unless you are looking for a specific topic.
 | 101 | [Data Owner Imports](./101-data-owner-imports.md) | Route active FWI data-contract imports to components/inputs/loss/pipeline/preparation owner modules. |
 | 102 | [Data Public Facade](./102-data-public-facade.md) | Keep `ADFWI.fwi.data` as a deliberate public facade while internals use owner modules. |
 | 103 | [Data Facade User Documentation](./103-data-facade-user-doc.md) | Document the public `ADFWI.fwi.data` facade and namespace-only internal helper packages. |
+| 104 | [Example Import Surface Audit](./104-example-import-surface-audit.md) | Update examples and sphinx API sources that still referenced removed import shims. |
 
 ## Current Direction
 
@@ -170,3 +171,5 @@ numbered order unless you are looking for a specific topic.
   internals should continue importing from owner modules.
 - Document public facade imports separately from internal owner-module imports
   so custom workflows and framework code follow different, intentional paths.
+- Keep examples and generated API sources aligned with canonical bv1.2 import
+  paths after removing compatibility shims.

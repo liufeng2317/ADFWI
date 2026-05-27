@@ -108,7 +108,7 @@ class LegacyLowPassFilter(DataTransform):
     """Apply the legacy SciPy/autograd low-pass path through a transform.
 
     This transform is intended for precision-preserving migration of existing
-    FWI workflows. It delegates to ``multiScaleProcessing.lpass`` and therefore
+    FWI workflows. It delegates to ``ADFWI.fwi.multiscale.lpass`` and therefore
     matches the legacy numerical behavior, including its custom backward path,
     but it is not a pure torch/NPU-native implementation.
     """

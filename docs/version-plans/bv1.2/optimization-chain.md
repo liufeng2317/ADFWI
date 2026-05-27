@@ -139,11 +139,13 @@ numerical method, record the drift and tolerance in
    `ADFWI.fwi.data` as the stable public data-contract facade.
 20. Document the recommended public facade imports for custom FWI workflows
    separately from internal owner-module imports.
-21. Audit examples and notebooks for stale import comments after the public API
-   policy is settled.
-22. Validate the torch-native gradient processor through smoothing and
+21. Keep examples and sphinx API sources aligned with canonical bv1.2 imports
+   after compatibility shim removal.
+22. Continue auditing example notebooks for stale comments, but avoid executing
+   heavy notebooks unless a changed cell needs runtime validation.
+23. Validate the torch-native gradient processor through smoothing and
    illumination branches before considering any default-path migration.
-23. Convert example options into a small reproducible configuration layer once
+24. Convert example options into a small reproducible configuration layer once
    the benchmark dimensions and smoke profiles stabilize.
-24. Defer deeper propagator-level performance work, such as checkpointing or
+25. Defer deeper propagator-level performance work, such as checkpointing or
    compile-oriented kernels, until the current benchmark baseline is populated.
