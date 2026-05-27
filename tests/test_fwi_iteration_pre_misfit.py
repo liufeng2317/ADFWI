@@ -2,24 +2,22 @@ import unittest
 
 import torch
 
-from ADFWI.fwi.iteration.observations import (
+from ADFWI.fwi.iteration.components import (
     ELASTIC_COMPONENTS,
-    LossInput,
-    acoustic_pressure_loss_input,
-    build_fwi_data_transform_pipeline,
-    build_fwi_transform_context,
-    build_transform_context,
     elastic_component_loss_inputs,
-    elastic_loss_inputs,
     elastic_observed_components,
     elastic_pressure,
     elastic_synthetic_components,
-    evaluate_loss_inputs,
-    evaluate_misfit_loss,
     normalize_elastic_component_weights,
+)
+from ADFWI.fwi.iteration.misfit import evaluate_loss_inputs, evaluate_misfit_loss, sum_weighted_losses
+from ADFWI.fwi.iteration.pairs import LossInput, acoustic_pressure_loss_input, elastic_loss_inputs
+from ADFWI.fwi.iteration.preparation import (
+    build_fwi_data_transform_pipeline,
+    build_fwi_transform_context,
+    build_transform_context,
     prepare_fwi_loss_pair,
     prepare_loss_pair,
-    sum_weighted_losses,
 )
 from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
@@ -43,7 +41,7 @@ class DummyApplyLoss(torch.autograd.Function):
         return torch.sum(torch.abs(synthetic - observed))
 
 
-class FWIIterationObservationTests(unittest.TestCase):
+class FWIIterationPreMisfitTests(unittest.TestCase):
     def test_build_fwi_data_transform_pipeline_adds_legacy_transforms_and_normalize(self):
         pipeline, waveform_normalize = build_fwi_data_transform_pipeline(None, True)
 

@@ -125,7 +125,7 @@ numbered order unless you are looking for a specific topic.
 | 114 | [Marmousi2 Shot3 Illumination Trajectory](./114-marmousi2-shot3-illumination-trajectory.md) | Validate a 3-shot, 10-iteration NPU illumination trajectory for legacy versus torch gradient processors. |
 | 115 | [Torch Gradient Status And Next Direction](./115-torch-gradient-status-and-next-direction.md) | Mark TorchGradProcessor as NPU-validated opt-in and redirect later work away from more gradient tests. |
 | 116 | [FWI Data Context Helper](./116-fwi-data-context-helper.md) | Extract shot-scoped transform-context selection inside FWI data preparation without changing behavior. |
-| 117 | [Merge Data Helpers Into Iteration Observations](./117-merge-data-helpers-into-iteration-observations.md) | Remove the misleading `ADFWI.fwi.data` package and merge its pre-misfit helpers into iteration observations. |
+| 117 | [Merge Data Helpers Into Iteration Pre-Misfit Modules](./117-merge-data-helpers-into-iteration-pre-misfit.md) | Remove the misleading `ADFWI.fwi.data` package and move its helpers into iteration-owned pre-misfit modules. |
 
 ## Current Direction
 
@@ -179,8 +179,8 @@ numbered order unless you are looking for a specific topic.
   `ADFWI.fwi.runtime` should remain a broad aggregation surface.
 - Treat `ADFWI.fwi.runtime` as a namespace package in bv1.2; import concrete
   helpers from backend/cache/forward/gradient/regularization/wavefield modules.
-- Treat the former FWI data-contract helpers as iteration-owned observation
-  preparation in `ADFWI.fwi.iteration.observations`.
+- Treat the former FWI data-contract helpers as iteration-owned pre-misfit
+  modules: `components`, `pairs`, `preparation`, and `misfit`.
 - Keep examples and generated API sources aligned with canonical bv1.2 import
   paths after removing compatibility shims.
 - Use `tests/test_import_surface_policy.py` as the lightweight guard for future
@@ -210,6 +210,6 @@ numbered order unless you are looking for a specific topic.
   Stop expanding gradient-processor tests unless gradient post-processing code
   changes; move next optimization toward operator profiling, release
   stabilization, or reusable real-case configuration.
-- Keep further iteration-observation cleanup behavior-preserving; do not change
+- Keep further iteration pre-misfit cleanup behavior-preserving; do not change
   receiver selection order, transform order, or loss-input shapes without a
   numerical comparison.

@@ -33,10 +33,10 @@ from ADFWI.fwi.runtime.gradient import (
 from ADFWI.fwi.runtime.regularization import calculate_model_regularization_loss, calculate_regularization_loss
 from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
 from ADFWI.fwi.iteration.loss import apply_acoustic_batch_loss_step
-from ADFWI.fwi.iteration.observations import (
+from ADFWI.fwi.iteration.misfit import evaluate_misfit_loss
+from ADFWI.fwi.iteration.preparation import (
     build_fwi_data_transform_pipeline,
     build_fwi_transform_context,
-    evaluate_misfit_loss,
     prepare_fwi_loss_pair,
 )
 from ADFWI.fwi.iteration.progress import finalize_epoch_progress

@@ -12,7 +12,8 @@ from ADFWI.fwi.runtime.wavefield import (
     accumulate_wavefield,
     elastic_gradient_wavefields,
 )
-from .observations import acoustic_pressure_loss_input, elastic_loss_inputs, evaluate_loss_inputs
+from .misfit import evaluate_loss_inputs
+from .pairs import acoustic_pressure_loss_input, elastic_loss_inputs
 from .progress import set_batch_description
 
 
