@@ -245,3 +245,5 @@ numbered order unless you are looking for a specific topic.
 - [130 - Marmousi2 Validation Script Notebook Parity](./130-marmousi2-validation-script-notebook-parity.md):
   make the validation script execute the same direct ADFWI workflow as the
   minimal notebooks.
+- [131 - Marmousi2 Validation Script Modules](./131-marmousi2-validation-script-modules.md):
+  split validation scripts into separate forward-modeling and inversion modules.

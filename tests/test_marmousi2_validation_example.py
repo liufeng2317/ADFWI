@@ -6,8 +6,10 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "scripts" / "run_validation.py"
-NOTEBOOK_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "notebooks"
+VALIDATION_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12"
+SCRIPT_DIR = VALIDATION_DIR / "scripts"
+SCRIPT = SCRIPT_DIR / "run_validation.py"
+NOTEBOOK_DIR = VALIDATION_DIR / "notebooks"
 
 
 class Marmousi2ValidationExampleTests(unittest.TestCase):
@@ -27,7 +29,8 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
 
         self.assertEqual(payload["status"], "ok")
         self.assertEqual([stage["stage"] for stage in payload["stages"]], ["check", "forward", "inversion10"])
-        self.assertIn("notebook-equivalent", payload["stages"][1]["description"])
+        self.assertIn("forward_modeling.py", payload["stages"][1]["description"])
+        self.assertIn("inversion.py", payload["stages"][2]["description"])
         self.assertEqual(payload["stages"][0]["parameters"]["device"], "cpu")
         self.assertEqual(payload["stages"][0]["parameters"]["f0"], 5.0)
         self.assertEqual(payload["stages"][1]["parameters"]["checkpoint_segments"], 1)
@@ -50,6 +53,14 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
         self.assertTrue((NOTEBOOK_DIR / "01_forward_modeling.ipynb").exists())
         self.assertTrue((NOTEBOOK_DIR / "02_inversion.ipynb").exists())
         self.assertFalse((NOTEBOOK_DIR / "marmousi2_acoustic_bv12_validation.ipynb").exists())
+
+    def test_forward_and_inversion_scripts_are_separate(self):
+        self.assertTrue((SCRIPT_DIR / "forward_modeling.py").exists())
+        self.assertTrue((SCRIPT_DIR / "inversion.py").exists())
+        text = SCRIPT.read_text()
+        self.assertIn("from forward_modeling import", text)
+        self.assertIn("from inversion import", text)
+        self.assertNotIn("scripts/examples", text)
 
     def test_notebooks_define_case_setup_inline(self):
         for notebook in ("01_forward_modeling.ipynb", "02_inversion.ipynb"):

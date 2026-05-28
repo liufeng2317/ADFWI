@@ -14,6 +14,8 @@ current `bv1.2` framework with reproducible script and Jupyter entry points.
 
 ```text
 scripts/       Python command-line validation entry point
+  forward_modeling.py
+  inversion.py
   run_validation.py
 notebooks/     Jupyter validation entry points
   01_forward_modeling.ipynb
@@ -45,6 +47,13 @@ Run the staged validation:
 conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check
 conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward
 conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10
+```
+
+Run the two workflow modules directly:
+
+```bash
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py --iterations 10
 ```
 
 Run the longer check only when needed:
