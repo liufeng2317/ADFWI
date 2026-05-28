@@ -129,6 +129,7 @@ numbered order unless you are looking for a specific topic.
 | 118 | [Iteration Loss Readability Pass](./118-iteration-loss-readability-pass.md) | Clarify `iteration/loss.py` sections and rename the loss transform pipeline builder away from old data wording. |
 | 119 | [Elastic Loss Components Owner](./119-elastic-loss-components-owner.md) | Move supported elastic loss components into `elastic_fwi.py` and pass them into iteration loss helpers. |
 | 120 | [Gradient Parameter Ownership](./120-gradient-parameter-ownership.md) | Move acoustic/elastic parameter-order constants out of runtime gradient dispatch and into their FWI drivers. |
+| 121 | [Runtime Responsibility Contract](./121-runtime-responsibility-contract.md) | Clarify runtime module responsibilities without changing execution behavior. |
 
 ## Current Direction
 
@@ -221,3 +222,6 @@ numbered order unless you are looking for a specific topic.
 - Keep `ADFWI.fwi.runtime.gradient` focused on generic gradient processor
   dispatch; physical acoustic/elastic parameter ownership belongs to the FWI
   drivers.
+- Treat `ADFWI.fwi.runtime` as shared driver mechanics, not as a standalone
+  forward/inversion framework; stop reshuffling it unless a concrete duplicate
+  path or bug appears.

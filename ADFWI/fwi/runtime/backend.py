@@ -1,4 +1,9 @@
-"""Runtime backend helpers shared by FWI drivers."""
+"""Construction-time backend alignment helpers for FWI drivers.
+
+These helpers validate or align objects that are created before an inversion
+loop starts. They do not choose a backend and they do not move model or
+propagator tensors during iteration.
+"""
 
 from __future__ import annotations
 

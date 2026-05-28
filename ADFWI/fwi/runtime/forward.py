@@ -1,4 +1,10 @@
-"""Per-batch forward execution helpers for FWI drivers."""
+"""One-batch propagator execution records for FWI drivers.
+
+The helpers in this module only run the propagator for one selected shot batch
+and return the propagator output together with the shot index used to select
+observed data. Loss construction and wavefield interpretation are owned by
+iteration and wavefield helpers.
+"""
 
 from dataclasses import dataclass
 

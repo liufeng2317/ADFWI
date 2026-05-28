@@ -1,9 +1,9 @@
-"""Forward-wavefield accumulation helpers for FWI gradient processing.
+"""Forward-wavefield extraction and accumulation for gradient processing.
 
 These helpers keep the historical ``GradProcessor`` contract: wavefields passed
 to gradient processors are detached CPU NumPy arrays accumulated over shot
 batches. They do not decide which physical wavefield component is appropriate
-for a given inversion parameter.
+for a given inversion parameter, and they do not construct data misfit inputs.
 """
 
 

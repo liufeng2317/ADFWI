@@ -1,4 +1,10 @@
-"""Runtime gradient-processing helpers shared by FWI drivers."""
+"""Gradient processor dispatch helpers shared by FWI drivers.
+
+The FWI drivers own the physical parameter order and pass explicit
+``(parameter_name, processor_index)`` specs into this module. This module only
+preserves the legacy processor calling convention and writes processed
+gradients back to ``parameter.grad``.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +17,7 @@ from ADFWI.utils import numpy2tensor
 
 
 def parameter_specs(parameter_names, *, start_index=0):
-    """Return ``(name, idx)`` pairs for legacy list-style gradient processors."""
+    """Return generic ``(name, idx)`` pairs for list-style processors."""
 
     return [(name, start_index + idx) for idx, name in enumerate(parameter_names)]
 

@@ -1,4 +1,9 @@
-"""Runtime regularization helpers shared by FWI drivers."""
+"""Model regularization loss helpers shared by FWI drivers.
+
+These helpers implement the common summation mechanics for model-space
+regularization. The FWI drivers still choose the ordered physical parameter
+list and the corresponding x/z weights.
+"""
 
 from __future__ import annotations
 

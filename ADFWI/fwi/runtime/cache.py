@@ -1,8 +1,9 @@
-"""Result-cache helpers shared by FWI drivers.
+"""Inversion-history cache helpers shared by FWI drivers.
 
 The helpers in this module only move tensors into the historical Python lists
 used by ``AcousticFWI`` and ``ElasticFWI``. They do not decide which physical
-parameters belong to a given inversion class.
+parameters belong to a given inversion class, when a result should be plotted,
+or how cached arrays should be interpreted.
 """
 
 
