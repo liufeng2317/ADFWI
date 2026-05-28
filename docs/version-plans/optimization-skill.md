@@ -1,244 +1,98 @@
 # ADFWI Optimization Skill
 
-This document defines the default optimization workflow for future ADFWI work.
-It exists because the `bv1.2` internal cleanup expanded into more than one
-hundred iterations. Future optimization should be bounded, testable, and
-closed deliberately.
+This is the default rule for future ADFWI optimization work. Keep it practical:
+each round should be bounded, validated, recorded briefly, and then stopped.
 
-## Core Principle
+## 1. Start With A Boundary
 
-One optimization task must have one explicit target, one validation plan, one
-record, and one stop condition.
-
-Do not start broad cleanup just because code can be improved. Start only when
-there is a concrete reason:
-
-- a user-facing workflow is unclear or broken;
-- a measurable performance bottleneck exists;
-- a numerical path needs validation or stabilization;
-- a public API needs release preparation;
-- a failing test or reproducibility issue exists;
-- a small readability issue blocks understanding of an active module.
-
-## Required Start Checklist
-
-Before editing code, write down the optimization path in plain terms:
+Before editing, define only four things:
 
 ```text
-Target:
+Goal:
 Scope:
-Non-scope:
-Expected behavior change:
 Validation:
-Stop condition:
+Stop:
 ```
 
-Definitions:
+- `Goal`: what problem is being solved.
+- `Scope`: what files or workflow may change.
+- `Validation`: the smallest test or comparison that proves the change.
+- `Stop`: the condition for ending this round.
 
-- `Target`: the exact module, script, notebook, or workflow being changed.
-- `Scope`: files or behavior allowed to change.
-- `Non-scope`: related but excluded work.
-- `Expected behavior change`: use `none` for pure refactor/readability.
-- `Validation`: the smallest reliable test or comparison.
-- `Stop condition`: the point where the task is considered complete.
+If these four lines are unclear, do not start coding yet.
 
-If these cannot be written clearly, do not start implementation yet.
+## 2. Keep One Round Small
 
-## Optimization Classes
+Default rule:
 
-Use one class per task.
+- one subsystem or one example workflow per round;
+- one concise record per round, not many small records;
+- one commit per coherent change;
+- no "while here" cleanup.
 
-| Class | Examples | Required Validation |
-| --- | --- | --- |
-| Readability/API cleanup | docstrings, imports, constants, module ownership | import checks, lint/diff checks, focused unit tests |
-| User workflow update | examples, notebooks, scripts, backend usage | script/notebook parity or runnable smoke test |
-| Numerical FWI change | loss, transform order, receiver selection, gradient processing, propagator inputs | focused unit test plus numerical precision comparison |
-| Performance change | batching, checkpointing, tensor movement, NPU/CPU path | before/after timing with same case and saved metrics |
-| Validation/documentation | records, release notes, case summaries | link checks, command validity, no code tests unless needed |
+Do not expand from a small improvement into adjacent restructuring. If another
+issue is found, write it down as a possible next task and continue only if it is
+needed for the current goal.
 
-Do not mix classes unless the task explicitly requires it. For example, do not
-combine a readability cleanup with a performance rewrite.
+## 3. Use The Right Validation
 
-## Scope Limits
+Use the lightest validation that proves the change:
 
-Default limits for one optimization round:
+| Change type | Validation |
+| --- | --- |
+| docs/comments/import readability | link check, import check, or focused unit test |
+| example or script workflow | run the script/notebook path or compare saved outputs |
+| performance | before/after timing on the same case |
+| FWI numerical path | unit test plus numerical precision comparison |
 
-- code changes should normally stay within one subsystem;
-- avoid touching more than five source files unless the task is a mechanical
-  API migration with a clear search pattern;
-- avoid changing examples and core code in the same commit unless validating a
-  new public API;
-- do not refactor modules that are only placeholders or unused legacy code;
-- do not continue from one small improvement into adjacent cleanups without a
-  new start checklist.
+FWI numerical paths include loss formulas, transform order, receiver/shot
+selection, gradient processing, regularization, optimizer order, propagator
+inputs/outputs, and model constraints.
 
-Large migrations must be split into explicit phases:
+Do not run full Marmousi2 or other heavy cases for pure documentation,
+formatting, import, or comment changes.
 
-1. audit and plan;
-2. first narrow implementation;
-3. validation;
-4. documentation;
-5. stop or open a new bounded task.
+## 4. Record Only What Matters
 
-## Numerical Safety Rules
-
-FWI core changes require numerical validation. Treat these as core paths:
-
-- propagator inputs or outputs;
-- loss and misfit formulas;
-- waveform transform order or formulas;
-- receiver/shot selection semantics;
-- gradient processing;
-- regularization formulas;
-- optimizer update order;
-- model constraints or parameter bounds.
-
-Minimum numerical report:
+A record should answer:
 
 ```text
-Case:
-Device:
-Dtype:
-Seed:
-Metric before:
-Metric after:
-Max absolute error:
-Max relative error:
-Tolerance:
-Conclusion:
+What changed?
+How was it validated?
+What is the result?
+Is there a next bounded task?
 ```
 
-If a numerical difference is expected, document why it is acceptable. If no
-reference exists, create one before changing the algorithm.
+Avoid creating many records for one investigation. Summarize repeated tests in
+one table or one paragraph.
 
-## Validation Ladder
+## 5. Stop Aggressively
 
-Use the smallest validation that proves the task.
+Stop when the original goal is handled and validation has passed. Do not keep
+optimizing because the code is still imperfect.
 
-1. Import or syntax check for documentation/readability changes.
-2. Focused unit test for helper-level behavior.
-3. Smoke test for public workflow changes.
-4. Script/notebook parity for example changes.
-5. Reduced real-case gate for FWI loop changes.
-6. Full real-case gate only for core numerical or release-critical changes.
+Stop and ask for direction if:
 
-Do not run expensive real-case tests just to validate comments, imports, or
-documentation.
+- the task starts touching unrelated subsystems;
+- a numerical difference appears outside the planned validation;
+- the change requires broad example migration;
+- the next step is only aesthetic cleanup.
 
-## Record Policy
+## 6. Default Workflow
 
-Each optimization round should produce one concise record when it changes code,
-behavior, validation assets, or release state.
-
-Recommended record shape:
-
-```markdown
-# N - Short Title
-
-## Target
-## Change
-## Validation
-## Result
-## Next Boundary
-```
-
-Rules:
-
-- one record per meaningful optimization, not one record per tiny edit;
-- summarize repeated experiments in one table instead of many files;
-- link to saved artifacts instead of embedding long logs;
-- if a task is documentation-only, say that no numerical validation was needed;
-- if the next step is not necessary, write `No immediate follow-up`.
-
-## Commit Policy
-
-One commit should represent one coherent task.
-
-Before committing:
-
-- check `git status --short`;
-- stage only files related to the task;
-- do not stage unrelated notebooks or generated outputs;
-- run `git diff --check`;
-- run the planned validation;
-- confirm the record file names the validation.
-
-Commit message format:
-
-```text
-<verb> <bounded target>
-```
-
-Examples:
-
-- `Clarify FWI iteration loss ownership`
-- `Validate Marmousi2 forward script parity`
-- `Document bv1.2 closeout policy`
-
-## Stop Conditions
-
-Stop the task when all are true:
-
-- the original target is handled;
-- planned validation passed or the blocker is documented;
-- related docs/records are updated;
-- code is committed and pushed when appropriate;
-- the next step is either explicitly scoped or deferred.
-
-Stop immediately and ask for direction if:
-
-- the task requires changing more subsystems than planned;
-- validation reveals a numerical drift not covered by the task;
-- the change would require rewriting public examples broadly;
-- the improvement is only aesthetic and not tied to a release/user need.
+1. Define `Goal / Scope / Validation / Stop`.
+2. Inspect only the target area and direct callers.
+3. Make the smallest coherent change.
+4. Run the planned validation.
+5. Update one record if the change is meaningful.
+6. Commit and push when appropriate.
+7. State that the task is closed, or name one next bounded task.
 
 ## Anti-Patterns
 
-Avoid these patterns:
-
-- "while here" cleanup;
-- repeatedly renaming helper modules without a user-facing benefit;
-- adding compatibility shims after a compatibility branch is already retained;
+- broad cleanup without a user or release need;
+- repeated module reshuffling;
+- compatibility shims when an old compatibility branch is already retained;
 - replacing legacy numerical behavior without drift comparison;
-- running full cases to justify non-numerical edits;
-- creating many one-off records for the same investigation;
-- treating an archive of old records as an active task queue;
-- continuing optimization because there is still imperfect code.
-
-## Recommended Default Workflow
-
-For future ADFWI optimization requests:
-
-1. Classify the request into one optimization class.
-2. Write the start checklist.
-3. Inspect only the target subsystem and immediate callers.
-4. Make the smallest coherent change.
-5. Run the validation ladder at the right level.
-6. Write or update one record.
-7. Commit and push.
-8. State whether the task is closed or what the next bounded task is.
-
-## Example
-
-```text
-Target:
-examples/validation/marmousi2_acoustic_bv12/scripts
-
-Scope:
-Make script output match the manually verified notebooks.
-
-Non-scope:
-Do not migrate all examples.
-Do not change FWI core internals.
-
-Expected behavior change:
-None; script should reproduce notebook results.
-
-Validation:
-Run forward and inversion scripts, compare saved arrays against notebook outputs.
-
-Stop condition:
-Script/notebook metrics match and one record documents the comparison.
-```
-
-This is the intended scale for a normal optimization round.
+- using full-case tests to justify non-numerical edits;
+- treating archived records as an active task queue.
