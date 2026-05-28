@@ -51,6 +51,9 @@ from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
 
+ELASTIC_LOSS_COMPONENTS = ("pressure", "vx", "vz")
+
+
 class ElasticFWI(torch.nn.Module):
     """Elastic Full waveform inversion class
     """
@@ -166,7 +169,11 @@ class ElasticFWI(torch.nn.Module):
         
         # inversion component
         self.inversion_component = list(inversion_component) if inversion_component is not None else ["pressure"]
-        self.component_weights = normalize_elastic_component_weights(self.inversion_component, component_weights)
+        self.component_weights = normalize_elastic_component_weights(
+            self.inversion_component,
+            component_weights,
+            supported_components=ELASTIC_LOSS_COMPONENTS,
+        )
     
     def _configure_data_transform_pipeline(self, data_transform_pipeline, waveform_normalize):
         return build_loss_transform_pipeline(data_transform_pipeline, waveform_normalize)
@@ -436,6 +443,7 @@ class ElasticFWI(torch.nn.Module):
                     observed_components=self.obs_components,
                     inversion_components=self.inversion_component,
                     component_weights=self.component_weights,
+                    elastic_loss_components=ELASTIC_LOSS_COMPONENTS,
                     prepare_loss_pair=self._prepare_loss_pair,
                     loss_fn=self.loss_fn,
                     normalization=self.waveform_normalize,

@@ -254,6 +254,7 @@ class TestFWIIterationHelpers(unittest.TestCase):
             observed_components=observed_components,
             inversion_components=["pressure", "vz"],
             component_weights={"pressure": 2.0, "vz": 0.5},
+            elastic_loss_components=("pressure", "vx", "vz"),
             prepare_loss_pair=prepare_pair,
             loss_fn=DummyCallableLoss(),
             normalization=False,

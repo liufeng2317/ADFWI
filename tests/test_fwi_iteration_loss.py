@@ -3,7 +3,6 @@ import unittest
 import torch
 
 from ADFWI.fwi.iteration.loss import (
-    ELASTIC_COMPONENTS,
     LossInput,
     acoustic_pressure_loss_input,
     build_fwi_transform_context,
@@ -25,6 +24,9 @@ from ADFWI.fwi.misfit import Misfit
 from ADFWI.fwi.transforms import DataMask, DataTransformPipeline, LegacyLateWindowMute, LegacyLowPassFilter, LegacyOffsetMute, TraceNormalize
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
 from ADFWI.fwi.transforms.receivers import select_or_mask_receivers
+
+
+TEST_ELASTIC_LOSS_COMPONENTS = ("pressure", "vx", "vz")
 
 
 class DummyMisfit(Misfit):
@@ -263,7 +265,14 @@ class FWIIterationLossTests(unittest.TestCase):
             "vz": torch.full((3, 2, 2), 6.0),
         }
 
-        inputs = elastic_loss_inputs(record, observed_components, ["vz", "pressure"], {"pressure": 2.0, "vz": 0.5}, shot_index)
+        inputs = elastic_loss_inputs(
+            record,
+            observed_components,
+            ["vz", "pressure"],
+            {"pressure": 2.0, "vz": 0.5},
+            TEST_ELASTIC_LOSS_COMPONENTS,
+            shot_index,
+        )
 
         self.assertEqual([item.component for item in inputs], ["pressure", "vz"])
         self.assertTrue(torch.equal(inputs[0].synthetic, torch.full((1, 2, 2), -3.0)))
@@ -369,7 +378,7 @@ class FWIIterationLossTests(unittest.TestCase):
 
         components = elastic_synthetic_components(record)
 
-        self.assertEqual(tuple(components.keys()), ELASTIC_COMPONENTS)
+        self.assertEqual(tuple(components.keys()), TEST_ELASTIC_LOSS_COMPONENTS)
         self.assertTrue(torch.equal(components["pressure"], torch.full((1, 2, 2), -3.0)))
         self.assertTrue(torch.equal(components["vx"], record["vx"]))
         self.assertTrue(torch.equal(components["vz"], record["vz"]))
@@ -392,6 +401,7 @@ class FWIIterationLossTests(unittest.TestCase):
             observed_components,
             ["vz", "pressure"],
             weights,
+            TEST_ELASTIC_LOSS_COMPONENTS,
         )
 
         self.assertEqual([item[0] for item in inputs], ["pressure", "vz"])
@@ -403,11 +413,17 @@ class FWIIterationLossTests(unittest.TestCase):
         self.assertEqual(inputs[1][3], 3.0)
 
     def test_elastic_component_loss_inputs_returns_empty_for_no_active_components(self):
-        synthetic_components = {component: torch.ones((1, 1, 1)) for component in ELASTIC_COMPONENTS}
-        observed_components = {component: torch.ones((1, 1, 1)) for component in ELASTIC_COMPONENTS}
-        weights = {component: 1.0 for component in ELASTIC_COMPONENTS}
+        synthetic_components = {component: torch.ones((1, 1, 1)) for component in TEST_ELASTIC_LOSS_COMPONENTS}
+        observed_components = {component: torch.ones((1, 1, 1)) for component in TEST_ELASTIC_LOSS_COMPONENTS}
+        weights = {component: 1.0 for component in TEST_ELASTIC_LOSS_COMPONENTS}
 
-        inputs = elastic_component_loss_inputs(synthetic_components, observed_components, [], weights)
+        inputs = elastic_component_loss_inputs(
+            synthetic_components,
+            observed_components,
+            [],
+            weights,
+            TEST_ELASTIC_LOSS_COMPONENTS,
+        )
 
         self.assertEqual(inputs, [])
 
@@ -421,30 +437,34 @@ class FWIIterationLossTests(unittest.TestCase):
 
         components = elastic_observed_components(data)
 
-        self.assertEqual(tuple(components.keys()), ELASTIC_COMPONENTS)
+        self.assertEqual(tuple(components.keys()), TEST_ELASTIC_LOSS_COMPONENTS)
         self.assertTrue(torch.equal(components["pressure"], -(data["txx"] + data["tzz"])))
         self.assertTrue(torch.equal(components["vx"], data["vx"]))
         self.assertTrue(torch.equal(components["vz"], data["vz"]))
 
     def test_normalize_elastic_component_weights_defaults_active_components_to_one(self):
-        weights = normalize_elastic_component_weights(["pressure", "vx"], None)
+        weights = normalize_elastic_component_weights(["pressure", "vx"], None, supported_components=TEST_ELASTIC_LOSS_COMPONENTS)
 
         self.assertEqual(weights, {"pressure": 1.0, "vx": 1.0})
 
     def test_normalize_elastic_component_weights_uses_explicit_values(self):
-        weights = normalize_elastic_component_weights(["pressure", "vx", "vz"], {"pressure": 2.0, "vz": 0.25})
+        weights = normalize_elastic_component_weights(
+            ["pressure", "vx", "vz"],
+            {"pressure": 2.0, "vz": 0.25},
+            supported_components=TEST_ELASTIC_LOSS_COMPONENTS,
+        )
 
         self.assertEqual(weights, {"pressure": 2.0, "vx": 1.0, "vz": 0.25})
 
     def test_normalize_elastic_component_weights_rejects_unknown_names(self):
         with self.assertRaises(ValueError):
-            normalize_elastic_component_weights(["pressure", "ux"], None)
+            normalize_elastic_component_weights(["pressure", "ux"], None, supported_components=TEST_ELASTIC_LOSS_COMPONENTS)
         with self.assertRaises(ValueError):
-            normalize_elastic_component_weights(["pressure"], {"ux": 1.0})
+            normalize_elastic_component_weights(["pressure"], {"ux": 1.0}, supported_components=TEST_ELASTIC_LOSS_COMPONENTS)
 
     def test_normalize_elastic_component_weights_rejects_negative_values(self):
         with self.assertRaises(ValueError):
-            normalize_elastic_component_weights(["pressure"], {"pressure": -1.0})
+            normalize_elastic_component_weights(["pressure"], {"pressure": -1.0}, supported_components=TEST_ELASTIC_LOSS_COMPONENTS)
 
 
 if __name__ == "__main__":

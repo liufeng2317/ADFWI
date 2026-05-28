@@ -24,9 +24,6 @@ from ADFWI.fwi.transforms import (
 from ADFWI.fwi.transforms.amplitude import normalize_waveform
 
 
-ELASTIC_COMPONENTS = ("pressure", "vx", "vz")
-
-
 # Loss records
 
 
@@ -101,12 +98,13 @@ def elastic_component_loss_inputs(
     observed_components: Mapping[str, Any],
     inversion_components: Sequence[str],
     component_weights: Mapping[str, float],
+    component_order: Sequence[str],
 ) -> list[tuple[str, torch.Tensor, Any, float]]:
-    """Return active elastic component tensors and weights in stable order."""
+    """Return active elastic component tensors and weights in the driver-defined order."""
 
     active_components = set(inversion_components)
     inputs: list[tuple[str, torch.Tensor, Any, float]] = []
-    for component in ELASTIC_COMPONENTS:
+    for component in component_order:
         if component not in active_components:
             continue
         inputs.append((
@@ -121,17 +119,20 @@ def elastic_component_loss_inputs(
 def normalize_elastic_component_weights(
     inversion_components: Sequence[str],
     component_weights: Optional[Mapping[str, float]] = None,
+    *,
+    supported_components: Sequence[str],
 ) -> dict[str, float]:
     """Return validated elastic component weights for active components."""
 
     active_components = tuple(inversion_components)
-    unknown_active = set(active_components) - set(ELASTIC_COMPONENTS)
+    supported = set(supported_components)
+    unknown_active = set(active_components) - supported
     if unknown_active:
         raise ValueError(f"unsupported elastic inversion components: {sorted(unknown_active)}")
 
     if component_weights is None:
         component_weights = {}
-    unknown_weights = set(component_weights) - set(ELASTIC_COMPONENTS)
+    unknown_weights = set(component_weights) - supported
     if unknown_weights:
         raise ValueError(f"unsupported elastic component weights: {sorted(unknown_weights)}")
 
@@ -167,6 +168,7 @@ def elastic_loss_inputs(
     observed_components: Mapping[str, Any],
     inversion_components: Sequence[str],
     component_weights: Mapping[str, float],
+    component_order: Sequence[str],
     shot_index: Any,
 ) -> list[LossInput]:
     """Return active elastic component loss inputs for one forward batch."""
@@ -178,6 +180,7 @@ def elastic_loss_inputs(
         observed_components,
         inversion_components,
         component_weights,
+        component_order,
     ):
         inputs.append(
             LossInput(
