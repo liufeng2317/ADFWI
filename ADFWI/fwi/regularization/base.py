@@ -1,33 +1,32 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-05-05 19:51:52
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-05 20:29:15
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Base helpers for model regularization terms."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import torch
 import numpy as np
 from typing import Optional
 from ADFWI.backends import get_backend
 
 
-def regular_StepLR(iter,step_size,alpha,gamma=0.8):
-    n = iter//step_size
-    return alpha*np.power(gamma,n)
+def regular_StepLR(iteration, step_size, alpha, gamma=0.8):
+    """Return the historical step-decayed regularization coefficient."""
+    n = iteration // step_size
+    return alpha * np.power(gamma, n)
+
 
 def _l1_norm(x):
     return torch.sum(torch.abs(x))
 
-def _l2_norm(x,eps = 1e-9):
-    return torch.sqrt(torch.sum(x*x)+eps)
 
-class Regularization():
+def _l2_norm(x, eps=1e-9):
+    return torch.sqrt(torch.sum(x * x) + eps)
+
+
+class Regularization(ABC):
+    """Abstract base class for model regularization objectives."""
+
     def __init__(self,nx:int,nz:int,dx:float,dz:float,
                  alphax:float,alphaz:float,
-                 step_size:Optional[int]=1000,gamma:Optional[int]=1,
+                 step_size:Optional[int]=1000,gamma:Optional[float]=1.0,
                  device=None,dtype=None) -> None:
         """
         Parameters:
@@ -55,5 +54,6 @@ class Regularization():
         self.dtype      = backend.dtype
     
     @abstractmethod
-    def forward(self):
-        pass
+    def forward(self, m):
+        """Return the regularization penalty for one model parameter."""
+        raise NotImplementedError

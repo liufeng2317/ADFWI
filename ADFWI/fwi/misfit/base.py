@@ -1,18 +1,12 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Base class for waveform misfit objectives."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-class Misfit():
-    def __init__(self) -> None:
-        pass
-    
+
+class Misfit(ABC):
+    """Abstract interface used by FWI drivers and loss dispatch helpers."""
+
     @abstractmethod
-    def forward(self):
-        pass
+    def forward(self, obs, syn):
+        """Return the misfit tensor for observed and synthetic waveforms."""
+        raise NotImplementedError

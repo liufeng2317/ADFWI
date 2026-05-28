@@ -253,3 +253,6 @@ numbered order unless you are looking for a specific topic.
 - [133 - Marmousi2 Inversion Script Comparison](./133-marmousi2-inversion-script-comparison.md):
   compare separated inversion script output against the manually verified
   notebook inversion output.
+- [134 - FWI Package Readability Closeout](./134-fwi-package-readability-closeout.md):
+  clarify `ADFWI.fwi` package entry points and abstract base contracts without
+  changing numerical behavior.

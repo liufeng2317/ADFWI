@@ -284,23 +284,23 @@ class AcousticFWI(torch.nn.Module):
 
     def save_figure(self,i,data,model_type="vp"):
         if self.save_fig_epoch == -1:
-            pass
-        elif i%self.save_fig_epoch == 0:
-            if os.path.exists(self.save_fig_path):
-                if model_type == "vp":
-                    plot_model(data,title=f"Iteration {i}",
-                            dx=self.model.dx,dz=self.model.dz,
-                            vmin=self.vp_min,vmax=self.vp_max,
-                            save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
-                elif model_type == "rho":
-                    plot_model(data,title=f"Iteration {i}",
-                            dx=self.model.dx,dz=self.model.dz,
-                            vmin=self.rho_min,vmax=self.rho_max,
-                            save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
-                else:
-                    plot_model(data,title=f"Iteration {i}",
-                            dx=self.model.dx,dz=self.model.dz,
-                            save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False,cmap='coolwarm')
+            return
+        if i % self.save_fig_epoch != 0 or not os.path.exists(self.save_fig_path):
+            return
+        if model_type == "vp":
+            plot_model(data,title=f"Iteration {i}",
+                    dx=self.model.dx,dz=self.model.dz,
+                    vmin=self.vp_min,vmax=self.vp_max,
+                    save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
+        elif model_type == "rho":
+            plot_model(data,title=f"Iteration {i}",
+                    dx=self.model.dx,dz=self.model.dz,
+                    vmin=self.rho_min,vmax=self.rho_max,
+                    save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False)
+        else:
+            plot_model(data,title=f"Iteration {i}",
+                    dx=self.model.dx,dz=self.model.dz,
+                    save_path=os.path.join(self.save_fig_path,f"{model_type}_{i}.png"),show=False,cmap='coolwarm')
         return
     
     def save_model_and_gradients(self, epoch_id, loss_epoch):

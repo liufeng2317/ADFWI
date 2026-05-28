@@ -324,20 +324,20 @@ class ElasticFWI(torch.nn.Module):
                 self.rho_min = 1000
         
         if self.save_fig_epoch == -1:
-            pass
-        elif epoch_id%self.save_fig_epoch == 0:
-            if os.path.exists(self.save_fig_path):
-                plot_vp_vs_rho(
-                    vp=vp,vs=vs,rho=rho,
-                    # title=f"Iteration {i}",
-                    figsize=(12,5),wspace=0.2,cbar_pad_fraction=0.18,cbar_height=0.04,
-                    dx=self.model.dx,dz=self.model.dz,
-                    vp_min=self.vp_min,vp_max=self.vp_max,
-                    vs_min=self.vs_min,vs_max=self.vs_max,
-                    rho_min=self.rho_min,rho_max=self.rho_max,
-                    save_path=os.path.join(self.save_fig_path,f"model_{epoch_id}.png"),
-                    show=False
-                    )
+            return
+        if epoch_id % self.save_fig_epoch != 0 or not os.path.exists(self.save_fig_path):
+            return
+        plot_vp_vs_rho(
+            vp=vp,vs=vs,rho=rho,
+            # title=f"Iteration {i}",
+            figsize=(12,5),wspace=0.2,cbar_pad_fraction=0.18,cbar_height=0.04,
+            dx=self.model.dx,dz=self.model.dz,
+            vp_min=self.vp_min,vp_max=self.vp_max,
+            vs_min=self.vs_min,vs_max=self.vs_max,
+            rho_min=self.rho_min,rho_max=self.rho_max,
+            save_path=os.path.join(self.save_fig_path,f"model_{epoch_id}.png"),
+            show=False
+            )
         return
     
     def save_eps_delta_gamma_fig(self,epoch_id,eps,delta,gamma):
@@ -366,28 +366,28 @@ class ElasticFWI(torch.nn.Module):
             self.rho_max = gamma_bound[1]
     
         if self.save_fig_epoch == -1:
-            pass
-        elif epoch_id%self.save_fig_epoch == 0:
-            if os.path.exists(self.save_fig_path):
-                plot_eps_delta_gamma(
-                    eps=eps,delta=delta,gamma=gamma,
-                    # title=f"Iteration {i}",
-                    figsize=(12,5),wspace=0.3,cbar_pad_fraction=0.01,cbar_height=0.04,
-                    dx=self.model.dx,dz=self.model.dz,
-                    save_path=os.path.join(self.save_fig_path,f"anisotropic_model_{epoch_id}.png"),
-                    show=False
-                    )
+            return
+        if epoch_id % self.save_fig_epoch != 0 or not os.path.exists(self.save_fig_path):
+            return
+        plot_eps_delta_gamma(
+            eps=eps,delta=delta,gamma=gamma,
+            # title=f"Iteration {i}",
+            figsize=(12,5),wspace=0.3,cbar_pad_fraction=0.01,cbar_height=0.04,
+            dx=self.model.dx,dz=self.model.dz,
+            save_path=os.path.join(self.save_fig_path,f"anisotropic_model_{epoch_id}.png"),
+            show=False
+            )
         return
     
     def save_gradient_fig(self,epoch_id,data,model_type="vp"):
         if self.save_fig_epoch == -1:
-            pass
-        elif epoch_id%self.save_fig_epoch == 0:
-            if os.path.exists(self.save_fig_path):
-                plot_model(data,title=f"Iteration {epoch_id}",
-                        dx=self.model.dx,dz=self.model.dz,
-                        save_path=os.path.join(self.save_fig_path,f"{model_type}_{epoch_id}.png"),
-                        show=False,cmap='seismic')
+            return
+        if epoch_id % self.save_fig_epoch != 0 or not os.path.exists(self.save_fig_path):
+            return
+        plot_model(data,title=f"Iteration {epoch_id}",
+                dx=self.model.dx,dz=self.model.dz,
+                save_path=os.path.join(self.save_fig_path,f"{model_type}_{epoch_id}.png"),
+                show=False,cmap='seismic')
         return
     
     def save_model_and_gradients(self,epoch_id,loss_epoch):
