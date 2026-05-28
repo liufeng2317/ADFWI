@@ -25,10 +25,10 @@ outputs/       Generated validation artifacts, ignored by git
 
 | Stage | Purpose | Default behavior |
 | --- | --- | --- |
-| `check` | Read the case, rebuild model/survey/observed data, and verify backend setup. | No forward modeling. |
-| `forward` | Run a single-shot forward check from the true model. | Saves JSON/stdout/stderr under `outputs/forward_*`. |
-| `inversion10` | Run a short synthetic-true inversion. | 3 shots, 10 iterations, NPU, `checkpoint_segments=10`. |
-| `inversion100` | Run a longer sanity inversion. | 3 shots, 100 iterations, NPU, `checkpoint_segments=10`. |
+| `check` | Build the true model, survey, backend, and propagator. | No propagation. |
+| `forward` | Run the notebook-equivalent true-model forward. | 3 shots, writes `outputs/minimal_notebook/waveform/obs_data.npz`. |
+| `inversion10` | Run the notebook-equivalent inversion. | Reads the forward-generated observed data, 3 shots, 10 iterations, `checkpoint_segments=1`. |
+| `inversion100` | Run a longer notebook-equivalent inversion. | Reads the forward-generated observed data, 3 shots, 100 iterations, `checkpoint_segments=1`. |
 | `all` | Run `check`, `forward`, and `inversion10`. | Does not run `inversion100` by default. |
 
 ## Python Usage
@@ -42,15 +42,15 @@ conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/ru
 Run the staged validation:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10 --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10
 ```
 
 Run the longer check only when needed:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion100 --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion100
 ```
 
 ## Jupyter Usage
@@ -84,16 +84,9 @@ case-definition helper, or command-line wrapper.
 Default output root:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/
+examples/validation/marmousi2_acoustic_bv12/outputs/minimal_notebook/
 ```
 
-Each stage writes:
-
-- `command.json`
-- `stdout.txt`
-- `stderr.txt`
-- `summary.json` when the wrapped command prints JSON
-
-Inversion stages also write the artifacts produced by
-`scripts/examples/marmousi2_acoustic_reduced_inversion.py`, including loss CSV
-and PNG summaries.
+The script and notebooks use the same default output root. The forward stage
+writes `waveform/obs_data.npz`; inversion stages read that file and write loss,
+model, and summary artifacts under `inversion/`.

@@ -27,28 +27,24 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
 
         self.assertEqual(payload["status"], "ok")
         self.assertEqual([stage["stage"] for stage in payload["stages"]], ["check", "forward", "inversion10"])
-        self.assertIn("--run-forward", payload["stages"][1]["command"])
-        self.assertIn("--case-dir", payload["stages"][0]["command"])
-        self.assertIn("--f0", payload["stages"][0]["command"])
-        inversion = payload["stages"][2]["command"]
-        self.assertIn("--observed-source", inversion)
-        self.assertEqual(inversion[inversion.index("--observed-source") + 1], "synthetic-true")
-        self.assertEqual(inversion[inversion.index("--iterations") + 1], "10")
-        self.assertIn("--model-file", inversion)
-        self.assertEqual(inversion[inversion.index("--model-file") + 1], "init_model.npz")
-        self.assertIn("--output-dir", inversion)
+        self.assertIn("notebook-equivalent", payload["stages"][1]["description"])
+        self.assertEqual(payload["stages"][0]["parameters"]["device"], "cpu")
+        self.assertEqual(payload["stages"][0]["parameters"]["f0"], 5.0)
+        self.assertEqual(payload["stages"][1]["parameters"]["checkpoint_segments"], 1)
+        inversion = payload["stages"][2]["parameters"]
+        self.assertEqual(inversion["iterations"], 10)
+        self.assertEqual(inversion["shots"], 3)
+        self.assertEqual(inversion["lr"], 10.0)
 
     def test_inversion100_stage_uses_longer_default_iterations(self):
         payload = self.run_dry_run("inversion100", "--device", "cpu")
 
-        command = payload["stages"][0]["command"]
-        self.assertEqual(command[command.index("--iterations") + 1], "100")
+        self.assertEqual(payload["stages"][0]["parameters"]["iterations"], 100)
 
     def test_iterations_override_changes_inversion_stage(self):
         payload = self.run_dry_run("inversion10", "--iterations", "4", "--device", "cpu")
 
-        command = payload["stages"][0]["command"]
-        self.assertEqual(command[command.index("--iterations") + 1], "4")
+        self.assertEqual(payload["stages"][0]["parameters"]["iterations"], 4)
 
     def test_forward_and_inversion_notebooks_are_separate(self):
         self.assertTrue((NOTEBOOK_DIR / "01_forward_modeling.ipynb").exists())

@@ -242,3 +242,6 @@ numbered order unless you are looking for a specific topic.
 - [129 - Marmousi2 Validation Minimal Notebooks](./129-marmousi2-validation-minimal-notebooks.md):
   reshape validation notebooks as minimal variants of the original Marmousi2
   example order.
+- [130 - Marmousi2 Validation Script Notebook Parity](./130-marmousi2-validation-script-notebook-parity.md):
+  make the validation script execute the same direct ADFWI workflow as the
+  minimal notebooks.
