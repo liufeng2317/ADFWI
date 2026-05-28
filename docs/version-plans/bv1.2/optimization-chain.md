@@ -1,109 +1,258 @@
 # ADFWI bv1.2 Optimization Chain
 
-This document is the high-level summary of the `bv1.2` optimization branch. It
-is intentionally written from top-level goals down to low-level implementation
-surfaces so the current framework state can be understood without reading every
-numbered record.
+This document summarizes the `bv1.2` optimization branch from architecture-level
+goals down to concrete code surfaces. Detailed per-step records remain in
+`docs/version-plans/bv1.2/`.
 
-Detailed engineering records remain in `docs/version-plans/bv1.2/`.
+## Executive Summary
 
-## Current Status
+`bv1.2` is now in a **stabilization phase**. The main work is no longer broad
+cleanup; the framework has already been reorganized around explicit ownership:
 
-`bv1.2` is now in a **stabilization phase**.
+- `ADFWI.backends` owns backend/device/dtype selection.
+- `ADFWI.fwi.transforms` owns waveform preprocessing.
+- `ADFWI.fwi.iteration` owns FWI iteration mechanics: batches, loss preparation,
+  one-batch steps, and epoch updates.
+- `ADFWI.fwi.runtime` owns shared driver execution mechanics: backend guards,
+  forward records, wavefield accumulation, gradient dispatch, regularization,
+  and cache bookkeeping.
+- `ADFWI.fwi.multiscale` owns the explicit legacy low-pass path.
+- `AcousticFWI` and `ElasticFWI` remain the physical workflow owners: model
+  parameter order, inversion components, loss components, and user-facing FWI
+  configuration.
 
-The main framework optimization goals have been completed:
+The former `ADFWI.fwi.data` helper layer was removed because it did not represent
+data objects. Its useful pieces now live in `ADFWI.fwi.iteration.loss`, where
+they belong: loss-input construction, transform context, misfit dispatch, and
+weighted component loss assembly.
 
-- CPU/CUDA/NPU backend selection is explicit and shared.
-- FWI loss construction is merged into the iteration layer.
-- Acoustic and elastic FWI loops share runtime and iteration helpers.
-- Historical compatibility shims have been removed or narrowed.
-- Real Marmousi2 NPU full-case gates exist for forward-plus-inversion checks.
-- `TorchGradProcessor` is validated as an explicit NPU opt-in path, while the
-  default remains the legacy `GradProcessor`.
-
-Further work should not be open-ended cleanup. New changes should be accepted
-only when they fix a bug, clarify a public contract, improve reproducibility, or
-target a measured performance bottleneck.
-
-## Top-Down Chain
+## Top-Down Architecture
 
 ```mermaid
 flowchart TD
-    Goal[ADFWI bv1.2 goal\nstable framework cleanup + explicit CPU/CUDA/NPU path]
+    Goal[ADFWI bv1.2\nstable FWI framework + explicit CPU/CUDA/NPU path]
 
-    Goal --> Backend[1. Backend foundation\nADFWI.backends + ADFWI.set_backend\nrecords 01, 35-37]
-    Backend --> PublicAPI[2. User-facing scripts and docs\nminimal examples + backend smoke suite\nrecords 36-41]
+    Goal --> Backend[Backend layer\nADFWI.backends / ADFWI.set_backend\nrecords 01, 35-37]
+    Backend --> Drivers[FWI drivers\nAcousticFWI / ElasticFWI\nphysical workflow ownership]
 
-    Goal --> IterLoss[3. Iteration loss construction\ncomponents + pairs + transform context + component weights\nrecords 03, 05-08, 15-24, 26, 28, 58-59, 101-103, 116-118]
-    IterLoss --> Transforms[4. Transform ownership\nmute/mask/receiver selection/normalize/low-pass\nrecords 03-07, 19, 21, 28, 64-66, 95-96]
+    Drivers --> Transforms[Transform layer\nwaveform preprocessing\nrecords 03-07, 19, 21, 28, 64-66, 95-96, 122]
+    Drivers --> Iteration[Iteration layer\nbatch/loss/step/epoch mechanics\nrecords 10-24, 27, 51-63, 97-98, 116-118]
+    Drivers --> Runtime[Runtime layer\nshared execution helpers\nrecords 29, 31-32, 48-50, 99-100, 120-121]
+    Drivers --> Multiscale[Multiscale legacy path\nlegacy low-pass compatibility\nrecords 04, 30, 64-65]
 
-    Goal --> RuntimeLoop[5. Runtime and iteration structure\nshared backend/cache/wavefield/gradient/regularization + batch helpers\nrecords 10-14, 27, 29, 31-32, 48-63, 97-100]
-    RuntimeLoop --> Drivers[6. Acoustic/elastic drivers\nremain physical workflow owners\nrecords 50-63]
+    Transforms --> Numerical[Numerical compatibility policy\nlegacy first, drift measured before replacement]
+    Iteration --> Numerical
+    Runtime --> Numerical
+    Multiscale --> Numerical
 
-    IterLoss --> NumericalPolicy[7. Numerical compatibility policy\nlegacy behavior first, drift measured before acceptance\nrecords 04, 30, 46, 64-65, 107-110]
-    Transforms --> NumericalPolicy
-    RuntimeLoop --> NumericalPolicy
+    Numerical --> Validation[Validation system\nunit tests + smoke tests + Marmousi2 gates\nrecords 36-47, 67, 73-92]
+    Validation --> TorchGrad[TorchGradProcessor\nNPU-validated opt-in\nrecords 68, 70-71, 107-115]
+    Validation --> ImportPolicy[Import surface policy\ncanonical owner imports\nrecords 69, 93-106]
 
-    PublicAPI --> Validation[8. Validation and benchmark system\nsmoke suite + Marmousi2 full-case gates + compare tools\nrecords 36-47, 67, 73-92]
-    NumericalPolicy --> Validation
-
-    Validation --> TorchGrad[9. Torch-native opt-in path\nTorchGradProcessor NPU validated, still not default\nrecords 68, 70-71, 107-115]
-    Validation --> ImportPolicy[10. Import-surface stabilization\nremoved shims guarded by policy tests\nrecords 69, 93-106]
-
-    TorchGrad --> Stabilization[11. bv1.2 stabilization\nstop broad cleanup, keep only targeted fixes]
+    TorchGrad --> Stabilization[Stabilization\nstop broad reshuffling]
     ImportPolicy --> Stabilization
-    Drivers --> Stabilization
 ```
 
-## Major Optimization Layers
+## Major Optimization Areas
 
-| Layer | What Changed | Current Contract | Validation |
-| --- | --- | --- | --- |
-| Backend/device | Added centralized backend configuration, diagnostics, dtype/device handling, and FWI constructor guards. | Users configure CPU/CUDA/NPU once through the backend API before building models/FWI drivers. | `tests/test_backends.py`, `tests/test_backend_integration.py`, backend smoke scripts. |
-| User-facing examples | Added minimal acoustic/elastic backend examples and a layered smoke runner. | Script examples are reproducible entry points for backend checks, not notebook replacements. | `scripts/smoke/run_backend_smoke_suite.py`, `scripts/examples/README.md`. |
-| Iteration loss construction | Moved the former FWI data-contract helpers into `ADFWI.fwi.iteration.loss`. | `loss.py` owns loss-input records, component selection, pre-loss pair preparation, misfit dispatch, and weighting; `step.py` owns one-batch forward/loss/backward execution. | `tests/test_fwi_iteration_loss.py`, `tests/test_fwi_iteration.py`. |
-| Transform pipeline | Moved mute, masks, receiver selection, normalization, and low-pass behavior into transform-owned modules. | Receiver selection runs before transform pipelines; transform order is part of the numerical contract. | `tests/test_data_transforms.py`, receiver-selection tests, low-pass comparisons. |
-| Runtime helpers | Extracted shared backend checks, cache, wavefield collection, gradient dispatch, and regularization helpers. | Acoustic/elastic drivers still own physical parameter choices; helpers own repeated execution details. | `tests/test_fwi_runtime.py`, mini-inversion smoke tests. |
-| Iteration helpers | Extracted batch ranges, loss accumulation, progress, epoch update, and epoch finalization helpers. | FWI loops are shorter but still readable as inversion workflows. | Iteration/runtime unit tests and acoustic/elastic FWI smoke paths. |
-| Compatibility cleanup | Removed thin historical shims and broad re-export surfaces after moving active code to canonical paths. | `bv1.1` remains the legacy compatibility branch; `bv1.2` uses canonical imports. | `tests/test_import_surface_policy.py`. |
-| Marmousi2 full-case gates | Added full-case output artifacts, compare CLI, preset runner, post-run compare, and profiling option. | Fixed 3-shot and 5-shot NPU baselines are the reference gates for future changes. | `tests/full_cases/`, `scripts/benchmark/run_marmousi2_full_case.py`, `compare_full_case_outputs.py`. |
-| Torch gradient path | Added `TorchGradProcessor`, parity tests, stage diagnostics, NPU tolerance profile, and Marmousi2 opt-in gates. | NPU-validated opt-in path; legacy `GradProcessor` remains default. | `tests/test_torch_grad_processor.py`, gradient benchmarks, records 107-115. |
+| Area | Main Change | Current Contract |
+| --- | --- | --- |
+| Backend unification | Added shared backend configuration, diagnostics, and FWI constructor guards. | Configure CPU/CUDA/NPU once before constructing models, propagators, and FWI drivers. |
+| FWI transforms | Centralized normalization, masks, mute, receiver matching, and low-pass filtering. | Receiver selection runs before transform pipelines; most transforms preserve synthetic/observed shape. |
+| FWI iteration | Extracted repeated batch, loss, step, and epoch mechanics from acoustic/elastic loops. | `iteration` owns inversion mechanics, not physical model semantics. |
+| Former data helpers | Removed the misleading `fwi.data` layer and merged useful helpers into `iteration.loss`. | Loss-input pairing and transform execution are part of iteration loss construction. |
+| FWI runtime | Extracted shared execution helpers for backend alignment, cache, forward records, wavefields, gradients, and regularization. | `runtime` is shared driver mechanics, not a standalone forward/inversion framework. Do not keep splitting it. |
+| Multiscale | Moved legacy low-pass into an explicit `multiscale` package. | Legacy low-pass stays available and explicit because it is a numerical compatibility path. |
+| Driver ownership | Moved elastic loss components and acoustic/elastic parameter order back into drivers. | `AcousticFWI` / `ElasticFWI` own physical fields, components, and user-facing configuration. |
+| Compatibility cleanup | Removed thin shims and broad re-export surfaces after canonical owner imports were established. | `bv1.2` uses canonical imports; `bv1.1` remains the legacy compatibility branch. |
+| Torch gradient path | Added and validated `TorchGradProcessor`. | NPU-validated opt-in path; legacy `GradProcessor` remains the default. |
+| Real-case validation | Added Marmousi2 full-case output artifacts, preset runner, comparison CLI, and profiling option. | Fixed shot3/shot5 NPU gates are the reference checks for concrete future changes. |
 
-## Code Landing Points
+## Code Ownership Map
 
-| Path | Stabilized Role |
-| --- | --- |
-| `ADFWI/backends/` | Backend/device/dtype selection and diagnostics. |
-| `ADFWI/fwi/transforms/` | Waveform operations: receiver selection, masks, mute, normalization, low-pass. |
-| `ADFWI/fwi/iteration/` | Namespace package for batch scheduling, loss, epoch, and progress helpers. Import concrete helpers from owner modules. |
-| `ADFWI/fwi/iteration/batches.py` | Shot batch scheduling, `BatchRange` records, and batch progress labels. |
-| `ADFWI/fwi/iteration/loss.py` | Loss-input records, component selection, pre-loss pair preparation, misfit dispatch, and weighted loss accumulation. |
-| `ADFWI/fwi/iteration/step.py` | One-batch acoustic/elastic forward, loss evaluation, regularization merge, backward, and wavefield accumulation. |
-| `ADFWI/fwi/iteration/epoch.py` | Epoch optimizer/scheduler/model update plus epoch progress/cache finalization. |
-| `ADFWI/fwi/runtime/` | Namespace package for backend/cache/forward/gradient/regularization/wavefield helpers. |
-| `ADFWI/fwi/multiscale/` | Explicit legacy-compatible multiscale low-pass implementation. |
-| `ADFWI/propagator/gradient_process.py` | Legacy `GradProcessor` and opt-in `TorchGradProcessor`. |
-| `scripts/smoke/` | Layered backend and FWI smoke checks. |
-| `scripts/examples/` | Reproducible researcher-facing examples. |
-| `scripts/benchmark/` | Marmousi2 presets, comparison tools, benchmark/profiling entry points. |
-| `tests/full_cases/` | Explicit opt-in real-case gates and saved artifact location. |
+| Path | Owner Role | Should Not Own |
+| --- | --- | --- |
+| `ADFWI/backends/` | Backend/device/dtype configuration and diagnostics. | FWI physics or inversion loop logic. |
+| `ADFWI/fwi/acoustic_fwi.py` | Acoustic FWI user entry point and acoustic physical choices. | Generic transform, runtime, or iteration helper internals. |
+| `ADFWI/fwi/elastic_fwi.py` | Elastic FWI user entry point, elastic components, parameter order, and anisotropic choices. | Generic transform, runtime, or iteration helper internals. |
+| `ADFWI/fwi/transforms/` | Waveform preprocessing API. | Optimizer steps, model updates, or FWI physical parameter order. |
+| `ADFWI/fwi/iteration/batches.py` | Shot batch scheduling and batch labels. | Loss formulas or backend management. |
+| `ADFWI/fwi/iteration/loss.py` | Loss-input records, transform context, receiver/data pair preparation, component selection, misfit dispatch, and weighted loss accumulation. | Propagator execution, optimizer stepping, or physical parameter ownership. |
+| `ADFWI/fwi/iteration/step.py` | One-batch acoustic/elastic forward-loss-backward execution. | Epoch update policy or long-term cache ownership. |
+| `ADFWI/fwi/iteration/epoch.py` | Optimizer/scheduler/model constraint update and epoch finalization. | Component loss construction. |
+| `ADFWI/fwi/runtime/backend.py` | Construction-time backend/device alignment. | Backend selection policy or iteration-time tensor movement. |
+| `ADFWI/fwi/runtime/forward.py` | One-batch propagator execution records. | Loss construction or wavefield interpretation. |
+| `ADFWI/fwi/runtime/wavefield.py` | Forward-wavefield extraction and accumulation for gradient processors. | Data misfit inputs. |
+| `ADFWI/fwi/runtime/gradient.py` | Gradient processor dispatch and `parameter.grad` write-back. | Acoustic/elastic physical parameter lists. |
+| `ADFWI/fwi/runtime/regularization.py` | Shared model regularization summation mechanics. | Driver-specific parameter order or weight choices. |
+| `ADFWI/fwi/runtime/cache.py` | Inversion-history array bookkeeping. | Plotting policy or physical interpretation of cached arrays. |
+| `ADFWI/fwi/multiscale/` | Legacy-compatible multiscale low-pass implementation. | New torch-native filtering. |
+| `ADFWI/propagator/gradient_process.py` | Legacy `GradProcessor` and opt-in `TorchGradProcessor`. | FWI loop orchestration. |
+| `scripts/smoke/` | Layered backend/FWI smoke checks. | Heavy real-case benchmarking. |
+| `scripts/benchmark/` | Marmousi2 presets, comparison tools, profiling, and focused benchmarks. | Public example tutorials. |
+| `tests/full_cases/` | Explicit opt-in forward-plus-inversion real-case gates. | Default lightweight unit testing. |
+
+## Detailed Chain By Workflow Stage
+
+### 1. Backend Setup
+
+The user-facing expectation is now:
+
+```python
+import ADFWI
+
+ADFWI.set_backend("npu", device_id=0)
+```
+
+Then models, propagators, and FWI drivers should be constructed consistently.
+FWI constructors guard against model/propagator device mismatch and align
+regularization objects onto the active backend.
+
+Validation surfaces:
+
+- `tests/test_backends.py`
+- `tests/test_backend_integration.py`
+- `scripts/smoke/run_backend_smoke_suite.py`
+- minimal acoustic/elastic backend examples under `scripts/examples/`
+
+### 2. Waveform Preprocessing
+
+Waveform operations are centralized in `ADFWI.fwi.transforms`:
+
+```text
+base.py        DataTransform / DataTransformPipeline
+amplitude.py   TraceNormalize / normalize_waveform
+filters.py     LowPassFilter / LegacyLowPassFilter
+masks.py       ReceiverMask / DataMask
+mutes.py       LegacyOffsetMute / LegacyLateWindowMute
+receivers.py   select_or_mask_receivers
+```
+
+Important contract:
+
+- `select_or_mask_receivers(...)` may change receiver dimension, so it stays
+  outside `DataTransformPipeline`.
+- `DataTransformPipeline` composes same-shape synthetic/observed tensor-pair
+  transforms.
+- `LegacyLowPassFilter` and `Legacy...Mute` names are intentional: they preserve
+  historical behavior.
+- `LowPassFilter` is the torch-native FIR path, but it is not a bitwise
+  replacement for legacy low-pass.
+
+### 3. Loss Construction And Iteration
+
+The loss construction flow now lives under `ADFWI.fwi.iteration`:
+
+```text
+batch range -> forward record -> loss inputs -> transform pipeline
+            -> misfit dispatch -> weighted loss -> backward
+```
+
+Module responsibilities:
+
+- `batches.py`: shot ranges and progress labels.
+- `loss.py`: synthetic/observed pairing, transform context, elastic component
+  inputs, misfit dispatch, and weighted summation.
+- `step.py`: one-batch forward/loss/backward for acoustic and elastic FWI.
+- `epoch.py`: optimizer/scheduler/model-constraint step and epoch finalization.
+
+The former `fwi.data` package is intentionally gone. It was not a real data
+model; it was part of loss preparation and is now owned by `iteration.loss`.
+
+### 4. Runtime Execution Helpers
+
+`ADFWI.fwi.runtime` has reached its intended scope and should not be split
+further without a concrete bug:
+
+```text
+backend.py         construction-time backend/device alignment
+forward.py         one-batch propagator execution records
+wavefield.py       wavefield extraction/accumulation for gradient processors
+gradient.py        gradient processor dispatch
+regularization.py  model regularization summation mechanics
+cache.py           inversion history bookkeeping
+```
+
+The key boundary is:
+
+```text
+runtime = shared execution mechanics
+drivers = physical inversion semantics
+```
+
+Recent ownership corrections followed this rule:
+
+- supported elastic loss components moved into `elastic_fwi.py`;
+- acoustic/elastic parameter-order helpers moved into `acoustic_fwi.py` and
+  `elastic_fwi.py`;
+- `runtime.gradient` now only dispatches gradient processors.
+
+### 5. Acoustic And Elastic Drivers
+
+`AcousticFWI` and `ElasticFWI` are no longer supposed to contain every helper
+implementation, but they still remain the user-facing workflow owners.
+
+They own:
+
+- physical parameter order;
+- active model fields;
+- elastic loss components;
+- inversion components;
+- component weights;
+- user-facing constructor options;
+- orchestration of iteration/runtime helpers.
+
+They should not own:
+
+- generic transform implementations;
+- generic batch scheduling;
+- generic cache append mechanics;
+- generic gradient processor dispatch.
+
+### 6. Legacy Numerical Paths
+
+Compatibility-sensitive numerical paths remain explicit:
+
+- legacy low-pass lives under `ADFWI.fwi.multiscale`;
+- legacy `GradProcessor` remains the default gradient path;
+- historical L2 behavior and zero-residual risk are documented;
+- torch-native alternatives are opt-in until drift is measured and accepted.
+
+This is intentional. `bv1.2` is not a rewrite of all numerical kernels.
+
+### 7. Validation And Real-Case Gates
+
+The validation system now has three levels:
+
+| Level | Purpose | Examples |
+| --- | --- | --- |
+| Unit tests | Guard local contracts. | transforms, iteration, runtime, backend, import surface. |
+| Smoke tests | Check public workflows across devices. | backend smoke suite, minimal acoustic/elastic examples. |
+| Full-case gates | Validate realistic forward-plus-inversion behavior. | Marmousi2 shot3/shot5 NPU baselines. |
+
+Marmousi2 support now includes:
+
+- opt-in full-case tests under `tests/full_cases/`;
+- saved JSON/CSV/PNG artifacts;
+- preset runner `scripts/benchmark/run_marmousi2_full_case.py`;
+- output comparison tool `scripts/benchmark/compare_full_case_outputs.py`;
+- cProfile option for Python-side profiling.
 
 ## Numerical Policy
 
-The main numerical rule in `bv1.2` is:
+The bv1.2 numerical rule is:
 
-> Preserve legacy behavior unless a new numerical path has focused tests,
-> recorded drift, and a real-case comparison.
+> Preserve legacy behavior unless a replacement has focused tests, recorded
+> drift, and a real-case comparison.
 
 Concrete decisions:
 
-- Legacy low-pass and multiscale behavior remain explicit.
-- Historical L2 behavior is documented; safer alternatives are separate paths.
-- Receiver selection order is fixed before transform pipelines.
-- `TorchGradProcessor` is accepted as an opt-in NPU path, not as a default
-  replacement.
-- NPU float32 `conv2d` smoothing drift is known and recorded; strict benchmark
-  tolerance remains the default, while `npu-float32` is explicit.
+- transform order is part of the numerical contract;
+- receiver selection order is fixed before transform pipelines;
+- `LegacyLowPassFilter` remains available for exact legacy behavior;
+- `TorchGradProcessor` is accepted as an opt-in NPU path, not the default;
+- NPU float32 smoothing/illumination drift is documented and handled through an
+  explicit tolerance profile when intentionally testing torch gradient paths.
 
 ## TorchGradProcessor Status
 
@@ -111,7 +260,7 @@ Concrete decisions:
 
 | Gate | Result |
 | --- | --- |
-| Focused parity tests | Passed for normalization, masks, smoothing, illumination, list dispatch. |
+| Focused parity tests | Passed for normalization, masks, smoothing, illumination, and list dispatch. |
 | Stage diagnostics | NPU drift localized to float32 smoothing/illumination convolution. |
 | NPU tolerance profile | Added explicit `npu-float32`; strict remains default. |
 | Marmousi2 mask-only one-step | Matched legacy. |
@@ -124,20 +273,21 @@ Status:
 
 - **Validated:** yes, as an opt-in NPU path.
 - **Default replacement:** no.
-- **More gradient tests:** not needed unless gradient post-processing code
+- **More gradient trajectory tests:** not needed unless gradient processing code
   changes or a default-path migration is explicitly proposed.
 
-## Validation Commands
+## Recommended Validation Commands
 
 Use the `adfwi` conda environment.
 
-Lightweight stabilization checks:
+Lightweight stabilization set:
 
 ```bash
 conda run -n adfwi python -m unittest tests/test_backends.py tests/test_backend_integration.py
-conda run -n adfwi python -m unittest tests/test_data_transforms.py tests/test_fwi_iteration_loss.py
+conda run -n adfwi python -m unittest tests/test_data_transforms.py tests/test_receiver_selection.py
+conda run -n adfwi python -m unittest tests/test_fwi_iteration_loss.py tests/test_fwi_iteration.py
 conda run -n adfwi python -m unittest tests/test_fwi_runtime.py tests/test_import_surface_policy.py
-conda run -n adfwi python -m unittest tests/test_receiver_selection.py tests/test_torch_grad_processor.py
+conda run -n adfwi python -m unittest tests/test_torch_grad_processor.py
 conda run -n adfwi python -m unittest tests/test_marmousi2_full_case_presets.py tests/test_full_case_output_compare.py
 ```
 
@@ -157,13 +307,13 @@ conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot3 --o
 conda run -n adfwi python scripts/benchmark/run_marmousi2_full_case.py shot5 --overwrite
 ```
 
-For changes touching numerical FWI paths, run focused unit tests plus a saved
+For changes touching FWI numerical paths, run focused unit tests plus a saved
 Marmousi2 comparison and record drift in `docs/version-plans/bv1.2/`.
 
-## Stabilization Rules
+## Stabilization Boundaries
 
-Do not continue optimizing by default. New changes should meet at least one of
-these conditions:
+The project should now avoid infinite cleanup. Do not continue optimizing by
+default. New changes should satisfy at least one condition:
 
 1. Fix a concrete bug or failing test.
 2. Clarify a public API or user-facing workflow.
@@ -173,20 +323,21 @@ these conditions:
 
 Avoid:
 
-- broad cleanup without a specific risk;
+- broad module reshuffling without a concrete risk;
+- further `runtime` splitting;
+- restructuring `transforms`, which is already clear and stable;
 - more gradient-processor trajectory tests without a code change;
-- changing transform order, loss-input shape, or receiver selection semantics
-  without a numerical comparison;
-- moving public import surfaces unless the import policy is updated and tested.
+- changing transform order, receiver selection semantics, loss-input shape, or
+  FWI numerical kernels without precision comparison.
 
 ## Remaining Useful Work
 
-The useful remaining work is limited and should be treated as release
-stabilization, not open-ended optimization:
+Remaining work should be treated as release stabilization:
 
-1. Run the lightweight stabilization test set before merging or tagging.
-2. Keep `TorchGradProcessor` documented as NPU-validated opt-in.
-3. Use fixed Marmousi2 3-shot/5-shot gates only to validate concrete changes.
-4. If performance work resumes, start from operator-level profiling of the fixed
+1. Keep `TorchGradProcessor` documented as NPU-validated opt-in.
+2. Use fixed Marmousi2 shot3/shot5 gates only to validate concrete code changes.
+3. If performance work resumes, start from operator-level profiling of the fixed
    `shot3` NPU baseline.
-5. If iteration loss work resumes, keep it small and behavior-preserving.
+4. If driver cleanup resumes, keep changes local to naming, constants, or
+   constructor/user-facing clarity.
+5. Run the lightweight stabilization test set before merging or tagging.
