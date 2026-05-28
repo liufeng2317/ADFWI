@@ -11,6 +11,7 @@ planned.
 - [00 - Model Optimization Outline](./00-model-optimization-outline.md)
 - [01 - Model Definition Readability](./01-model-definition-readability.md)
 - [02 - Model Mechanics Convergence](./02-model-mechanics-convergence.md)
+- [03 - Parameter Formula Semantics Audit](./03-parameter-formula-semantics-audit.md)
 - [Model Optimization Map](./model-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
