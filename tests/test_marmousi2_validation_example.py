@@ -8,7 +8,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "scripts" / "run_validation.py"
 NOTEBOOK_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "notebooks"
-CASE_DEFINITION = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "scripts" / "case_definition.py"
 
 
 class Marmousi2ValidationExampleTests(unittest.TestCase):
@@ -56,11 +55,12 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
         self.assertTrue((NOTEBOOK_DIR / "02_inversion.ipynb").exists())
         self.assertFalse((NOTEBOOK_DIR / "marmousi2_acoustic_bv12_validation.ipynb").exists())
 
-    def test_notebooks_use_local_case_definition_helpers(self):
-        self.assertTrue(CASE_DEFINITION.exists())
+    def test_notebooks_define_case_setup_inline(self):
         for notebook in ("01_forward_modeling.ipynb", "02_inversion.ipynb"):
             text = (NOTEBOOK_DIR / notebook).read_text()
-            self.assertIn("from case_definition import", text)
+            self.assertIn("def build_survey", text)
+            self.assertIn("def build_source_wavelet", text)
+            self.assertNotIn("from case_definition import", text)
             self.assertNotIn("marmousi2_acoustic_backend_check", text)
 
 

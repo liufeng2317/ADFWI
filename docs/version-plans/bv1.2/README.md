@@ -135,6 +135,7 @@ numbered order unless you are looking for a specific topic.
 | 124 | [Marmousi2 Validation Notebook Split](./124-marmousi2-validation-notebook-split.md) | Separate forward-modeling and inversion validation notebooks. |
 | 125 | [Marmousi2 Validation Parameter Notebooks](./125-marmousi2-validation-parameter-notebooks.md) | Expose parameters, model, survey, and wavelet definitions in validation notebooks. |
 | 126 | [Marmousi2 Validation Local Case Definition](./126-marmousi2-validation-local-case-definition.md) | Keep validation notebooks from importing case definitions from another case/check script. |
+| 127 | [Marmousi2 Validation Inline Notebook Definitions](./127-marmousi2-validation-inline-notebook-definitions.md) | Inline lightweight case definitions in validation notebooks for readability. |
 
 ## Current Direction
 
