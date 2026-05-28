@@ -21,6 +21,9 @@ docs/version-plans/
     02-misfit-backend-audit.md
     03-data-transform-pipeline.md
     04-lowpass-filter-comparison.md
+  bv1.2-model/
+    00-model-optimization-outline.md
+    model-optimization-map.md
 ```
 
 ## Version Index
@@ -30,10 +33,12 @@ docs/version-plans/
 | `bv1.1` | Stable baseline | Current synchronized baseline branch. Keep it stable and use it mainly for necessary fixes. | [Code graph](./v1.1/code-graph.md) |
 | `v1.1-freeze` | Frozen tag | Reproducible anchor before later `bv1.2` development. | [Code graph](./v1.1/code-graph.md) |
 | `bv1.2-fwi` | Closeout/stabilization | FWI framework cleanup, backend/device unification, transforms, validation, and archive records. | [Index](./bv1.2-fwi/README.md) |
+| `bv1.2-model` | Planning | Bounded optimization plan for `ADFWI/model` ownership, parameter lifecycle, and validation policy. | [Index](./bv1.2-model/README.md) |
 
 ## Naming Rules
 
-- Put documents under a version directory, such as `bv1.2-fwi/`.
+- Put documents under a version directory, such as `bv1.2-fwi/` or
+  `bv1.2-model/`.
 - Use two-digit numeric prefixes inside active development folders to preserve
   reading order.
 - Use concise topic names after the prefix, for example
@@ -47,7 +52,7 @@ docs/version-plans/
 
 1. Keep the top-level `README.md` as the navigation entry point.
 2. Keep one overview file per active branch, such as
-   `bv1.2/00-development-plan.md`.
+   `bv1.2-model/00-model-optimization-outline.md`.
 3. Link detailed design, audit, and comparison notes from the branch index.
 4. Keep stable branches conservative. Put structural changes into the next
    development branch.
