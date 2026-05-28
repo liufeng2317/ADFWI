@@ -239,3 +239,6 @@ numbered order unless you are looking for a specific topic.
   original example notebooks.
 - [128 - Marmousi2 Validation Direct Notebooks](./128-marmousi2-validation-direct-notebooks.md):
   make validation notebooks call ADFWI APIs directly instead of CLI wrappers.
+- [129 - Marmousi2 Validation Minimal Notebooks](./129-marmousi2-validation-minimal-notebooks.md):
+  reshape validation notebooks as minimal variants of the original Marmousi2
+  example order.

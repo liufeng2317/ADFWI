@@ -58,14 +58,33 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
     def test_notebooks_define_case_setup_inline(self):
         for notebook in ("01_forward_modeling.ipynb", "02_inversion.ipynb"):
             text = (NOTEBOOK_DIR / notebook).read_text()
-            self.assertIn("def build_survey", text)
-            self.assertIn("def build_source_wavelet", text)
             self.assertIn("ADFWI.set_backend", text)
             self.assertIn("AcousticPropagator", text)
+            self.assertIn("load_marmousi_model", text)
+            self.assertIn("validation_shots", text)
             self.assertNotIn("subprocess", text)
             self.assertNotIn("run_validation.py", text)
             self.assertNotIn("from case_definition import", text)
             self.assertNotIn("marmousi2_acoustic_backend_check", text)
+
+    def test_notebooks_follow_original_example_order(self):
+        forward_text = (NOTEBOOK_DIR / "01_forward_modeling.ipynb").read_text()
+        inversion_text = (NOTEBOOK_DIR / "02_inversion.ipynb").read_text()
+
+        for marker in (
+            "## Basic Parameter",
+            "## Define the observed System",
+            "## Define the propagator",
+        ):
+            self.assertIn(marker, forward_text)
+
+        for marker in (
+            "## Define the basic model parameter",
+            "## Load observed datasets",
+            "## Inversion",
+            "## Visualize the inverted results",
+        ):
+            self.assertIn(marker, inversion_text)
 
 
 if __name__ == "__main__":

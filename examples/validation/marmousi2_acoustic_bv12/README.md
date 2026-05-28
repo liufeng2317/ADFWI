@@ -62,17 +62,18 @@ notebooks/01_forward_modeling.ipynb
 notebooks/02_inversion.ipynb
 ```
 
-Run the forward-modeling notebook first. The notebooks define parameters,
-model setup, survey setup, source wavelet construction, and ADFWI execution
-directly in notebook cells. They do not call the command-line runner.
+Run the forward-modeling notebook first. The notebooks intentionally follow the
+original Marmousi2 example order and only change the validation-specific
+parameters such as output folder, device, shot count, and iteration count. They
+do not call the command-line runner.
 
 The notebooks explicitly show:
 
 - parameter definitions;
-- model file selection and model dimensions;
-- source/receiver observation-system metadata;
+- true or initial model construction from the Marmousi2 dataset;
+- source/receiver observation-system construction;
 - source wavelet construction;
-- forward-modeling or inversion execution parameters.
+- propagator, observed-data, FWI, and visualization cells.
 
 Notebook case definitions are written directly in each notebook. They do not
 import setup helpers from another example, backend-check script, separate
