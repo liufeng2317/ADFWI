@@ -250,3 +250,6 @@ numbered order unless you are looking for a specific topic.
 - [132 - Marmousi2 Forward Script Comparison](./132-marmousi2-forward-script-comparison.md):
   compare separated forward script output against the manually verified
   notebook forward output.
+- [133 - Marmousi2 Inversion Script Comparison](./133-marmousi2-inversion-script-comparison.md):
+  compare separated inversion script output against the manually verified
+  notebook inversion output.
