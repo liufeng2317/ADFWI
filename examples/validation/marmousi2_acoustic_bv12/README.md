@@ -14,6 +14,8 @@ current `bv1.2` framework with reproducible script and Jupyter entry points.
 
 ```text
 scripts/       Python command-line validation entry point
+  case_definition.py
+  run_validation.py
 notebooks/     Jupyter validation entry points
   01_forward_modeling.ipynb
   02_inversion.ipynb
@@ -71,6 +73,10 @@ The notebooks explicitly show:
 - source/receiver observation-system metadata;
 - source wavelet construction;
 - forward-modeling or inversion execution parameters.
+
+Notebook case definitions are local to this validation example in
+`scripts/case_definition.py`; they do not import setup helpers from another
+example or backend-check script.
 
 ## Outputs
 

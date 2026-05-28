@@ -134,6 +134,7 @@ numbered order unless you are looking for a specific topic.
 | 123 | [Marmousi2 Validation Example](./123-marmousi2-validation-example.md) | Add separate Python/Jupyter validation entry points for staged Marmousi2 checks. |
 | 124 | [Marmousi2 Validation Notebook Split](./124-marmousi2-validation-notebook-split.md) | Separate forward-modeling and inversion validation notebooks. |
 | 125 | [Marmousi2 Validation Parameter Notebooks](./125-marmousi2-validation-parameter-notebooks.md) | Expose parameters, model, survey, and wavelet definitions in validation notebooks. |
+| 126 | [Marmousi2 Validation Local Case Definition](./126-marmousi2-validation-local-case-definition.md) | Keep validation notebooks from importing case definitions from another case/check script. |
 
 ## Current Direction
 
