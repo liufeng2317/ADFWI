@@ -6,8 +6,9 @@ goals down to concrete code surfaces. Detailed per-step records remain in
 
 ## Executive Summary
 
-`bv1.2` is now in a **stabilization phase**. The main work is no longer broad
-cleanup; the framework has already been reorganized around explicit ownership:
+`bv1.2` is now in a **closeout/stabilization phase**. The main work is no
+longer broad cleanup; the framework has already been reorganized around
+explicit ownership:
 
 - `ADFWI.backends` owns backend/device/dtype selection.
 - `ADFWI.fwi.transforms` owns waveform preprocessing.
@@ -25,6 +26,13 @@ The former `ADFWI.fwi.data` helper layer was removed because it did not represen
 data objects. Its useful pieces now live in `ADFWI.fwi.iteration.loss`, where
 they belong: loss-input construction, transform context, misfit dispatch, and
 weighted component loss assembly.
+
+For future navigation, use:
+
+- [135 - bv1.2 Closeout Summary](./135-bv12-closeout-summary.md) for final
+  branch status and stop criteria;
+- [Archive Index](./archive-index.md) for grouped access to the detailed
+  numbered records.
 
 ## Top-Down Architecture
 
@@ -334,10 +342,12 @@ Avoid:
 
 Remaining work should be treated as release stabilization:
 
-1. Keep `TorchGradProcessor` documented as NPU-validated opt-in.
-2. Use fixed Marmousi2 shot3/shot5 gates only to validate concrete code changes.
-3. If performance work resumes, start from operator-level profiling of the fixed
+1. Prepare bv1.2 release notes from this document and
+   `135-bv12-closeout-summary.md`.
+2. Keep `TorchGradProcessor` documented as NPU-validated opt-in.
+3. Use fixed Marmousi2 shot3/shot5 gates only to validate concrete code changes.
+4. If performance work resumes, start from operator-level profiling of the fixed
    `shot3` NPU baseline.
-4. If driver cleanup resumes, keep changes local to naming, constants, or
+5. If driver cleanup resumes, keep changes local to naming, constants, or
    constructor/user-facing clarity.
-5. Run the lightweight stabilization test set before merging or tagging.
+6. Run the lightweight stabilization test set before merging or tagging.

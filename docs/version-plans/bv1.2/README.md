@@ -1,8 +1,18 @@
 # bv1.2 Planning Index
 
 `bv1.2` is the active development branch for framework cleanup, backend/device
-unification, data transforms, tests, and benchmark preparation. Read the files in
-numbered order unless you are looking for a specific topic.
+unification, data transforms, tests, and benchmark preparation. The detailed
+numbered files are retained as the audit trail; use the summary documents below
+for normal reading.
+
+## Read First
+
+- [bv1.2 Closeout Summary](./135-bv12-closeout-summary.md): final branch status,
+  stop criteria, validation state, and recommended next tasks.
+- [Optimization Chain](./optimization-chain.md): top-down architecture,
+  ownership map, numerical policy, and validation commands.
+- [Archive Index](./archive-index.md): grouped access to the detailed numbered
+  records.
 
 ## Documents
 
@@ -136,123 +146,36 @@ numbered order unless you are looking for a specific topic.
 | 125 | [Marmousi2 Validation Parameter Notebooks](./125-marmousi2-validation-parameter-notebooks.md) | Expose parameters, model, survey, and wavelet definitions in validation notebooks. |
 | 126 | [Marmousi2 Validation Local Case Definition](./126-marmousi2-validation-local-case-definition.md) | Keep validation notebooks from importing case definitions from another case/check script. |
 | 127 | [Marmousi2 Validation Inline Notebook Definitions](./127-marmousi2-validation-inline-notebook-definitions.md) | Inline lightweight case definitions in validation notebooks for readability. |
+| 128 | [Marmousi2 Validation Direct Notebooks](./128-marmousi2-validation-direct-notebooks.md) | Make validation notebooks call ADFWI APIs directly instead of CLI wrappers. |
+| 129 | [Marmousi2 Validation Minimal Notebooks](./129-marmousi2-validation-minimal-notebooks.md) | Reshape validation notebooks as minimal variants of the original Marmousi2 example order. |
+| 130 | [Marmousi2 Validation Script Notebook Parity](./130-marmousi2-validation-script-notebook-parity.md) | Make validation scripts execute the same direct ADFWI workflow as the minimal notebooks. |
+| 131 | [Marmousi2 Validation Script Modules](./131-marmousi2-validation-script-modules.md) | Split validation scripts into separate forward-modeling and inversion modules. |
+| 132 | [Marmousi2 Forward Script Comparison](./132-marmousi2-forward-script-comparison.md) | Compare separated forward script output against the manually verified notebook forward output. |
+| 133 | [Marmousi2 Inversion Script Comparison](./133-marmousi2-inversion-script-comparison.md) | Compare separated inversion script output against the manually verified notebook inversion output. |
+| 134 | [FWI Package Readability Closeout](./134-fwi-package-readability-closeout.md) | Clarify `ADFWI.fwi` package entry points and abstract base contracts without changing numerical behavior. |
+| 135 | [bv1.2 Closeout Summary](./135-bv12-closeout-summary.md) | Final branch status, archive policy, stop criteria, and recommended release-stabilization tasks. |
+| archive | [Archive Index](./archive-index.md) | Group the detailed numbered records by backend, transforms, iteration, runtime, compatibility, validation, and release stabilization. |
 
-## Current Direction
+## Closeout Direction
 
-- Keep public FWI usage simple while routing internal data preparation through structured helpers.
-- Continue moving waveform preprocessing into transform pipelines.
-- Preserve FWI numerical behavior first; introduce pure torch/NPU-native
-  alternatives only when their numerical differences are explicitly accepted.
-- Use smoke tests and benchmark comparisons before replacing legacy branches.
-- Use NPU for reduced real-case multi-iteration gates; keep CPU real-case checks
-  short because the 300-sample path is slow.
-- Keep heavy forward-plus-inversion real-case tests under `tests/full_cases/`
-  and require explicit opt-in.
-- Use 3-shot full-length NPU gates as the next realistic benchmark step because
-  they run faster per iteration than the 1-shot gate while preserving stable
-  synthetic-true loss behavior.
-- Treat the 3-shot, 10-iteration, `checkpoint_segments=10` run as the current
-  full-case NPU baseline because it is faster than `checkpoint_segments=1` with
-  equivalent loss behavior.
-- Use 5-shot, 10-iteration, `checkpoint_segments=10` as the current throughput
-  stress baseline; it remains stable and only slightly slower per iteration than
-  the 3-shot run.
-- Do not continue the shot-count sweep for now; use the existing 3-shot and
-  5-shot full-case gates to validate concrete code or workflow optimizations.
-- Use `scripts/benchmark/compare_full_case_outputs.py` to compare saved
-  full-case outputs after future code or workflow changes.
-- Use `scripts/benchmark/run_marmousi2_full_case.py` to rerun the fixed 3-shot
-  and 5-shot baselines without manually copying long commands.
-- Use preset `--compare-to` when validating future optimizations so every run
-  can immediately compare against a saved baseline.
-- Use preset `--profile` to separate Python-side FWI overhead from propagator
-  and NPU runtime before changing core performance paths.
-- Python profiling shows the fixed shot3 baseline is dominated by autograd
-  backward and checkpointed propagator execution, so next performance work
-  should use torch/NPU operator-level profiling.
-- Start compatibility cleanup by removing thin import shims; do not remove or
-  replace legacy numerical methods without focused tests and full-case
-  comparison.
-- Because `bv1.1` is retained for legacy compatibility, `bv1.2` now removes thin
-  import shims while preserving explicit legacy numerical methods.
-- Continue removing pure re-export modules when active code has already moved
-  to canonical bv1.2 import paths.
-- Keep waveform operations owned by `ADFWI.fwi.transforms`; `iteration.loss`
-  should only orchestrate loss-input pairing, transform execution, misfit
-  dispatch, and weighted loss construction.
-- Route active FWI drivers and tests to owner modules under
-  `ADFWI.fwi.iteration` before deciding whether package-level iteration
-  re-exports should remain public in `bv1.2`.
-- Treat `ADFWI.fwi.iteration` as a namespace package in bv1.2; import concrete
-  helpers from `batches`, `loss`, `step`, and `epoch`.
-- Route active runtime imports to owner modules before deciding whether
-  `ADFWI.fwi.runtime` should remain a broad aggregation surface.
-- Treat `ADFWI.fwi.runtime` as a namespace package in bv1.2; import concrete
-  helpers from backend/cache/forward/gradient/regularization/wavefield modules.
-- Treat the former FWI data-contract helpers as part of `ADFWI.fwi.iteration.loss`.
-- Treat `ADFWI.fwi.iteration.batches` as the owner of shot batch scheduling.
-- Treat `ADFWI.fwi.iteration.step` as the owner of one-batch
-  forward/loss/backward execution.
-- Keep examples and generated API sources aligned with canonical bv1.2 import
-  paths after removing compatibility shims.
-- Use `tests/test_import_surface_policy.py` as the lightweight guard for future
-  import-surface cleanup.
-- Keep the import-surface policy broad enough to catch equivalent `import ...`
-  and `from ADFWI.fwi import ...` forms, not only direct helper imports.
-- Shift from broad cleanup to convergence-focused optimization: strengthen
-  torch gradient parity and timing gates before changing default FWI paths.
-- NPU gradient processor drift is localized to the float32 `conv2d` smoothing
-  stage and then amplified by `vmax` normalization; keep `TorchGradProcessor`
-  opt-in until the NPU tolerance or a dedicated smoothing alternative is chosen.
-- Use `--tolerance-profile npu-float32` only for intentional NPU
-  `TorchGradProcessor` comparisons; the benchmark default remains strict.
-- Marmousi2 full-case entry points now accept `--gradient-processor torch`,
-  but default to legacy; the first full-length one-iteration NPU smoke matches
-  legacy exactly under the current mask-only gradient settings.
-- Real Marmousi2 one-iteration NPU stress gates for `--grad-smooth 2` and
-  `--forw-illumination` show no loss drift and only about `1e-6` relative
-  gradient/update drift, so the next decision point is a short multi-iteration
-  trajectory comparison rather than more single-step diagnostics.
-- The 3-shot, 10-iteration `--grad-smooth 2` NPU trajectory is stable for
-  legacy versus torch gradient processors, with final-loss relative drift around
-  `3e-6` and final update-norm relative drift around `1e-5`.
-- The 3-shot, 10-iteration `--forw-illumination` NPU trajectory is also stable,
-  with identical final loss and final update-norm relative drift around `1e-7`.
-- Treat `TorchGradProcessor` as NPU-validated opt-in, not as the default path.
-  Stop expanding gradient-processor tests unless gradient post-processing code
-  changes; move next optimization toward operator profiling, release
-  stabilization, or reusable real-case configuration.
-- Keep further iteration loss cleanup behavior-preserving; do not change
-  receiver selection order, transform order, or loss-input shapes without a
-  numerical comparison.
-- Keep `ADFWI.fwi.runtime.gradient` focused on generic gradient processor
-  dispatch; physical acoustic/elastic parameter ownership belongs to the FWI
-  drivers.
-- Treat `ADFWI.fwi.runtime` as shared driver mechanics, not as a standalone
-  forward/inversion framework; stop reshuffling it unless a concrete duplicate
-  path or bug appears.
-- Keep `ADFWI.fwi.transforms` structurally stable; its current split is
-  reasonable, and future work should prefer examples or usage docs over module
-  reshuffling.
-- Use `examples/validation/marmousi2_acoustic_bv12/` as the staged Python and
-  Jupyter entry point for Marmousi2 instance validation without modifying the
-  original example notebooks.
-- [128 - Marmousi2 Validation Direct Notebooks](./128-marmousi2-validation-direct-notebooks.md):
-  make validation notebooks call ADFWI APIs directly instead of CLI wrappers.
-- [129 - Marmousi2 Validation Minimal Notebooks](./129-marmousi2-validation-minimal-notebooks.md):
-  reshape validation notebooks as minimal variants of the original Marmousi2
-  example order.
-- [130 - Marmousi2 Validation Script Notebook Parity](./130-marmousi2-validation-script-notebook-parity.md):
-  make the validation script execute the same direct ADFWI workflow as the
-  minimal notebooks.
-- [131 - Marmousi2 Validation Script Modules](./131-marmousi2-validation-script-modules.md):
-  split validation scripts into separate forward-modeling and inversion modules.
-- [132 - Marmousi2 Forward Script Comparison](./132-marmousi2-forward-script-comparison.md):
-  compare separated forward script output against the manually verified
-  notebook forward output.
-- [133 - Marmousi2 Inversion Script Comparison](./133-marmousi2-inversion-script-comparison.md):
-  compare separated inversion script output against the manually verified
-  notebook inversion output.
-- [134 - FWI Package Readability Closeout](./134-fwi-package-readability-closeout.md):
-  clarify `ADFWI.fwi` package entry points and abstract base contracts without
-  changing numerical behavior.
+`bv1.2` should now be treated as a stabilization branch. The optimization
+stream is closed unless a new task has a specific release, validation, example,
+bug-fix, or measured-performance boundary.
+
+Current contracts:
+
+- public backend setup goes through `ADFWI.set_backend(...)`;
+- `AcousticFWI` and `ElasticFWI` remain the user-facing FWI entry points;
+- `ADFWI.fwi.transforms` owns waveform preprocessing;
+- `ADFWI.fwi.iteration` owns batch/loss/step/epoch mechanics;
+- `ADFWI.fwi.runtime` owns shared driver mechanics and should not be split
+  further without a concrete issue;
+- legacy low-pass and legacy `GradProcessor` remain explicit compatibility
+  paths;
+- `TorchGradProcessor` is NPU-validated as opt-in, not the default;
+- `examples/validation/marmousi2_acoustic_bv12/` is the current staged
+  Marmousi2 validation example.
+
+Use [135 - bv1.2 Closeout Summary](./135-bv12-closeout-summary.md) and
+[Archive Index](./archive-index.md) for future navigation instead of treating
+the numbered records as an active task queue.
