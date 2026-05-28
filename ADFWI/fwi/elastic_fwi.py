@@ -26,8 +26,7 @@ from ADFWI.fwi.runtime.cache import (
     tensor_to_numpy,
 )
 from ADFWI.fwi.runtime.gradient import (
-    elastic_gradient_parameter_specs,
-    elastic_parameter_names,
+    parameter_specs,
     process_named_parameter_gradients,
     process_parameter_gradient,
 )
@@ -51,7 +50,33 @@ from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_vp_vs_rho,plot_model,plot_eps_delta_gamma
 
 
+ELASTIC_ISOTROPIC_PARAMETER_NAMES = ("vp", "vs", "rho")
+ELASTIC_ANISOTROPIC_PARAMETER_NAMES = ("eps", "delta", "gamma")
+ELASTIC_ANISOTROPIC_GRADIENT_NAMES = ("eps", "delta")
 ELASTIC_LOSS_COMPONENTS = ("pressure", "vx", "vz")
+
+
+def elastic_parameter_names(*, include_anisotropic=False):
+    """Return elastic model parameters used for regularization and snapshots."""
+
+    names = list(ELASTIC_ISOTROPIC_PARAMETER_NAMES)
+    if include_anisotropic:
+        names.extend(ELASTIC_ANISOTROPIC_PARAMETER_NAMES)
+    return names
+
+
+def elastic_gradient_parameter_specs(*, include_anisotropic=False):
+    """Return elastic gradient processor specs in the historical parameter order.
+
+    The legacy elastic gradient processor path includes ``eps`` and ``delta``
+    for anisotropic models. ``gamma`` is cached/regularized but is not passed to
+    the gradient processor in the current ElasticFWI loop.
+    """
+
+    names = list(ELASTIC_ISOTROPIC_PARAMETER_NAMES)
+    if include_anisotropic:
+        names.extend(ELASTIC_ANISOTROPIC_GRADIENT_NAMES)
+    return parameter_specs(names)
 
 
 class ElasticFWI(torch.nn.Module):

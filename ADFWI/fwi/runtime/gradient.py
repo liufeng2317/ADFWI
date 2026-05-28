@@ -9,51 +9,11 @@ import torch
 
 from ADFWI.utils import numpy2tensor
 
-ACOUSTIC_PARAMETER_NAMES = ("vp", "rho")
-ELASTIC_ISOTROPIC_PARAMETER_NAMES = ("vp", "vs", "rho")
-ELASTIC_ANISOTROPIC_PARAMETER_NAMES = ("eps", "delta", "gamma")
-ELASTIC_ANISOTROPIC_GRADIENT_NAMES = ("eps", "delta")
-
 
 def parameter_specs(parameter_names, *, start_index=0):
     """Return ``(name, idx)`` pairs for legacy list-style gradient processors."""
 
     return [(name, start_index + idx) for idx, name in enumerate(parameter_names)]
-
-
-def acoustic_parameter_names():
-    """Return acoustic model parameters in the historical vp/rho order."""
-
-    return list(ACOUSTIC_PARAMETER_NAMES)
-
-
-def acoustic_gradient_parameter_specs():
-    """Return acoustic gradient processor specs in the historical vp/rho order."""
-
-    return parameter_specs(ACOUSTIC_PARAMETER_NAMES)
-
-
-def elastic_parameter_names(*, include_anisotropic=False):
-    """Return elastic model parameters used for regularization and snapshots."""
-
-    names = list(ELASTIC_ISOTROPIC_PARAMETER_NAMES)
-    if include_anisotropic:
-        names.extend(ELASTIC_ANISOTROPIC_PARAMETER_NAMES)
-    return names
-
-
-def elastic_gradient_parameter_specs(*, include_anisotropic=False):
-    """Return elastic gradient processor specs in the historical parameter order.
-
-    The legacy elastic gradient processor path includes ``eps`` and ``delta``
-    for anisotropic models. ``gamma`` is cached/regularized but is not passed to
-    the gradient processor in the current ElasticFWI loop.
-    """
-
-    names = list(ELASTIC_ISOTROPIC_PARAMETER_NAMES)
-    if include_anisotropic:
-        names.extend(ELASTIC_ANISOTROPIC_GRADIENT_NAMES)
-    return parameter_specs(names)
 
 
 def process_parameter_gradient(

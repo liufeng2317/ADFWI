@@ -25,8 +25,7 @@ from ADFWI.fwi.runtime.cache import (
     snapshot_model_parameters,
 )
 from ADFWI.fwi.runtime.gradient import (
-    acoustic_gradient_parameter_specs,
-    acoustic_parameter_names,
+    parameter_specs,
     process_named_parameter_gradients,
     process_parameter_gradient,
 )
@@ -46,7 +45,22 @@ from ADFWI.fwi.optimizer import NLCG
 from ADFWI.utils       import numpy2tensor
 from ADFWI.view        import plot_model
 
-    
+
+ACOUSTIC_PARAMETER_NAMES = ("vp", "rho")
+
+
+def acoustic_parameter_names():
+    """Return acoustic model parameters in the historical vp/rho order."""
+
+    return list(ACOUSTIC_PARAMETER_NAMES)
+
+
+def acoustic_gradient_parameter_specs():
+    """Return acoustic gradient processor specs in the historical vp/rho order."""
+
+    return parameter_specs(ACOUSTIC_PARAMETER_NAMES)
+
+
 
 class AcousticFWI(torch.nn.Module):
     """Acoustic Full waveform inversion class

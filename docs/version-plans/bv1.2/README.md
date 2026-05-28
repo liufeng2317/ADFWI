@@ -128,6 +128,7 @@ numbered order unless you are looking for a specific topic.
 | 117 | [Merge Data Helpers Into Iteration Loss](./117-merge-data-helpers-into-iteration-loss.md) | Remove the misleading `ADFWI.fwi.data` package and move its helpers into iteration-owned batch loss construction. |
 | 118 | [Iteration Loss Readability Pass](./118-iteration-loss-readability-pass.md) | Clarify `iteration/loss.py` sections and rename the loss transform pipeline builder away from old data wording. |
 | 119 | [Elastic Loss Components Owner](./119-elastic-loss-components-owner.md) | Move supported elastic loss components into `elastic_fwi.py` and pass them into iteration loss helpers. |
+| 120 | [Gradient Parameter Ownership](./120-gradient-parameter-ownership.md) | Move acoustic/elastic parameter-order constants out of runtime gradient dispatch and into their FWI drivers. |
 
 ## Current Direction
 
@@ -217,3 +218,6 @@ numbered order unless you are looking for a specific topic.
 - Keep further iteration loss cleanup behavior-preserving; do not change
   receiver selection order, transform order, or loss-input shapes without a
   numerical comparison.
+- Keep `ADFWI.fwi.runtime.gradient` focused on generic gradient processor
+  dispatch; physical acoustic/elastic parameter ownership belongs to the FWI
+  drivers.

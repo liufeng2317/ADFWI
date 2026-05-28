@@ -15,10 +15,6 @@ from ADFWI.fwi.runtime.cache import (
 )
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord, acoustic_forward_batch, elastic_forward_batch
 from ADFWI.fwi.runtime.gradient import (
-    acoustic_gradient_parameter_specs,
-    acoustic_parameter_names,
-    elastic_gradient_parameter_specs,
-    elastic_parameter_names,
     parameter_specs,
     process_named_parameter_gradients,
     process_parameter_gradient,
@@ -32,6 +28,8 @@ from ADFWI.fwi.runtime.wavefield import (
     select_elastic_gradient_wavefield,
     wavefield_to_numpy,
 )
+from ADFWI.fwi.acoustic_fwi import acoustic_gradient_parameter_specs, acoustic_parameter_names
+from ADFWI.fwi.elastic_fwi import elastic_gradient_parameter_specs, elastic_parameter_names
 
 
 class DummyRegularization:

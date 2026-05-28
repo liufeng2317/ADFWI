@@ -29,6 +29,11 @@ The helper design keeps the physical model choice explicit:
 - Added focused runtime tests for acoustic order, isotropic elastic order, and
   anisotropic elastic behavior.
 
+Follow-up note: step 120 moved acoustic/elastic physical parameter-order
+constants and convenience helpers from `ADFWI.fwi.runtime.gradient` into the
+owning FWI drivers. `runtime.gradient` now keeps only the generic
+`parameter_specs(...)` helper and gradient processor dispatch.
+
 ## Scientific Contract
 
 - Acoustic parameter order remains `vp`, `rho`.
