@@ -177,6 +177,19 @@ def tensor_summary(rt: Dict[str, Any], value) -> Dict[str, Any]:
     }
 
 
+def array_summary(rt: Dict[str, Any], value) -> Dict[str, Any]:
+    np = rt["np"]
+    array = np.asarray(value)
+    return {
+        "shape": list(array.shape),
+        "dtype": str(array.dtype),
+        "finite": bool(np.isfinite(array).all()),
+        "min": float(np.nanmin(array)),
+        "max": float(np.nanmax(array)),
+        "norm": float(np.linalg.norm(array.reshape(-1))),
+    }
+
+
 def save_forward_figures(rt: Dict[str, Any], output_root: Path, model, survey, propagator, d_obs) -> None:
     survey.source.plot_wavelet(save_path=str(output_root / "survey" / "wavelets.png"))
     survey.plot(model.vp, cmap="coolwarm", save_path=str(output_root / "survey" / "observed_system.png"))
@@ -270,7 +283,7 @@ def run_forward(args: argparse.Namespace) -> Dict[str, Any]:
         "seconds": seconds,
         "checkpoint_segments": args.checkpoint_segments,
         "survey": {"shots": survey.source.num, "receivers": survey.receiver.num, "nt": survey.source.nt, "dt": survey.source.dt},
-        "record": {"p": tensor_summary(rt, record_waveform["p"])},
+        "record": {"p": array_summary(rt, d_obs.data["p"])},
     }
     write_json(args.output_root / "forward_summary.json", report)
     return report

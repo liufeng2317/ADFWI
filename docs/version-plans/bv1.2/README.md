@@ -247,3 +247,6 @@ numbered order unless you are looking for a specific topic.
   minimal notebooks.
 - [131 - Marmousi2 Validation Script Modules](./131-marmousi2-validation-script-modules.md):
   split validation scripts into separate forward-modeling and inversion modules.
+- [132 - Marmousi2 Forward Script Comparison](./132-marmousi2-forward-script-comparison.md):
+  compare separated forward script output against the manually verified
+  notebook forward output.
