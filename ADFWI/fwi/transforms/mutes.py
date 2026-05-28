@@ -1,4 +1,9 @@
-"""Legacy mute transforms for waveform tensor pairs."""
+"""Legacy mute wrappers for waveform tensor pairs.
+
+These classes expose existing offset and first-arrival mute utilities through
+the transform pipeline interface. They preserve historical behavior; they are
+not redesigned torch-native mute operators.
+"""
 
 from __future__ import annotations
 
@@ -82,7 +87,11 @@ class LegacyOffsetMute(DataTransform):
 
 
 class LegacyLateWindowMute(DataTransform):
-    """Apply the legacy first-arrival late-window mute through a transform."""
+    """Apply the legacy first-arrival late-window mute through a transform.
+
+    The implementation calls ``ADFWI.utils.first_arrivel_picking.apply_mute``
+    per shot to preserve the previous mute behavior.
+    """
 
     def __init__(
         self,

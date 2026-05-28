@@ -1,4 +1,9 @@
-"""Frequency-domain and time-domain filtering transforms."""
+"""Low-pass filtering transforms for waveform tensor pairs.
+
+``LowPassFilter`` is the differentiable torch FIR path intended for device-native
+pipelines. ``LegacyLowPassFilter`` delegates to the historical multiscale
+implementation when exact legacy behavior is required.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +22,9 @@ class LowPassFilter(DataTransform):
     filters over ``dim=1``. ``cutoff_freq`` is specified in Hz. Provide either
     ``dt`` or ``sampling_frequency`` at construction time, or pass them through
     ``context`` using the keys ``"dt"`` or ``"sampling_frequency"``.
+
+    This path is intended for torch-native CPU/CUDA/NPU execution. Its response
+    is not bitwise identical to the legacy SciPy/autograd low-pass path.
     """
 
     def __init__(

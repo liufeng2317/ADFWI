@@ -130,6 +130,7 @@ numbered order unless you are looking for a specific topic.
 | 119 | [Elastic Loss Components Owner](./119-elastic-loss-components-owner.md) | Move supported elastic loss components into `elastic_fwi.py` and pass them into iteration loss helpers. |
 | 120 | [Gradient Parameter Ownership](./120-gradient-parameter-ownership.md) | Move acoustic/elastic parameter-order constants out of runtime gradient dispatch and into their FWI drivers. |
 | 121 | [Runtime Responsibility Contract](./121-runtime-responsibility-contract.md) | Clarify runtime module responsibilities without changing execution behavior. |
+| 122 | [Transform Responsibility Notes](./122-transform-responsibility-notes.md) | Clarify transform module responsibilities without changing behavior. |
 
 ## Current Direction
 
@@ -225,3 +226,6 @@ numbered order unless you are looking for a specific topic.
 - Treat `ADFWI.fwi.runtime` as shared driver mechanics, not as a standalone
   forward/inversion framework; stop reshuffling it unless a concrete duplicate
   path or bug appears.
+- Keep `ADFWI.fwi.transforms` structurally stable; its current split is
+  reasonable, and future work should prefer examples or usage docs over module
+  reshuffling.

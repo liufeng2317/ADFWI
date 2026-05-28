@@ -1,4 +1,9 @@
-"""Receiver selection helpers for FWI observed/synthetic matching."""
+"""Receiver selection helpers for FWI observed/synthetic matching.
+
+Receiver selection is kept outside ``DataTransformPipeline`` because it can
+change the receiver dimension when observed data only contains active traces.
+Same-shape receiver masking remains available as ``ReceiverMask``.
+"""
 
 from __future__ import annotations
 
