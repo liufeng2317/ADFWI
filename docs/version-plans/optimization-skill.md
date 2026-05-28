@@ -21,18 +21,21 @@ Stop:
 
 If these four lines are unclear, do not start coding yet.
 
-## 2. Keep One Round Small
+## 2. Keep One Round Bounded
 
 Default rule:
 
-- one subsystem or one example workflow per round;
+- one clear goal per round;
+- changes may touch multiple files, but all changed files must serve that goal;
+- one subsystem or one example workflow is the normal boundary;
 - one concise record per round, not many small records;
 - one commit per coherent change;
 - no "while here" cleanup.
 
-Do not expand from a small improvement into adjacent restructuring. If another
-issue is found, write it down as a possible next task and continue only if it is
-needed for the current goal.
+Bounded does not mean tiny. A round can be large enough to finish the goal, but
+it should not grow into adjacent restructuring. If another issue is found, write
+it down as a possible next task and continue only if it is needed for the
+current goal.
 
 ## 3. Use The Right Validation
 
@@ -82,7 +85,7 @@ Stop and ask for direction if:
 
 1. Define `Goal / Scope / Validation / Stop`.
 2. Inspect only the target area and direct callers.
-3. Make the smallest coherent change.
+3. Make the bounded coherent change.
 4. Run the planned validation.
 5. Update one record if the change is meaningful.
 6. Commit and push when appropriate.
