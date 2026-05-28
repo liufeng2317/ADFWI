@@ -4,6 +4,10 @@ This directory records ADFWI branch and release planning notes. The structure is
 version-first, then topic-ordered, so later bv1.2 optimization work can keep a
 clear trace without turning the folder into a flat list of notes.
 
+Before starting a new optimization round, read
+[ADFWI Optimization Skill](./optimization-skill.md). It defines the default
+scope, validation, record, commit, and stop rules for future optimization work.
+
 ## Directory Layout
 
 ```text
@@ -11,7 +15,7 @@ docs/version-plans/
   README.md
   v1.1/
     code-graph.md
-  bv1.2/
+  bv1.2-fwi/
     00-development-plan.md
     01-device-backend-design.md
     02-misfit-backend-audit.md
@@ -25,11 +29,11 @@ docs/version-plans/
 | --- | --- | --- | --- |
 | `bv1.1` | Stable baseline | Current synchronized baseline branch. Keep it stable and use it mainly for necessary fixes. | [Code graph](./v1.1/code-graph.md) |
 | `v1.1-freeze` | Frozen tag | Reproducible anchor before later `bv1.2` development. | [Code graph](./v1.1/code-graph.md) |
-| `bv1.2` | Active development | Framework cleanup, backend/device unification, transforms, tests, and benchmark preparation. | [Index](./bv1.2/README.md) |
+| `bv1.2-fwi` | Closeout/stabilization | FWI framework cleanup, backend/device unification, transforms, validation, and archive records. | [Index](./bv1.2-fwi/README.md) |
 
 ## Naming Rules
 
-- Put documents under a version directory, such as `bv1.2/`.
+- Put documents under a version directory, such as `bv1.2-fwi/`.
 - Use two-digit numeric prefixes inside active development folders to preserve
   reading order.
 - Use concise topic names after the prefix, for example
