@@ -17,8 +17,9 @@ checks without modifying the historical notebooks.
   - `inversion10`;
   - `inversion100`;
   - `all` for `check + forward + inversion10`.
-- Added
-  `examples/validation/marmousi2_acoustic_bv12/notebooks/marmousi2_acoustic_bv12_validation.ipynb`.
+- Added separate Jupyter validation notebooks:
+  - `examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb`;
+  - `examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb`.
 - Added `tests/test_marmousi2_validation_example.py` to verify dry-run command
   construction without running heavy forward/inversion jobs.
 
@@ -30,6 +31,8 @@ checks without modifying the historical notebooks.
 - Dry-run and unit tests do not run heavy numerical workloads.
 - Actual numerical validation remains explicit through the `check`, `forward`,
   `inversion10`, and `inversion100` stages.
+- Forward modeling and inversion are separate notebook workflows even though
+  they share the same script runner.
 
 ## Validation
 

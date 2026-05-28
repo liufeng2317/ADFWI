@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "scripts" / "run_validation.py"
+NOTEBOOK_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "notebooks"
 
 
 class Marmousi2ValidationExampleTests(unittest.TestCase):
@@ -44,6 +45,11 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
 
         command = payload["stages"][0]["command"]
         self.assertEqual(command[command.index("--iterations") + 1], "4")
+
+    def test_forward_and_inversion_notebooks_are_separate(self):
+        self.assertTrue((NOTEBOOK_DIR / "01_forward_modeling.ipynb").exists())
+        self.assertTrue((NOTEBOOK_DIR / "02_inversion.ipynb").exists())
+        self.assertFalse((NOTEBOOK_DIR / "marmousi2_acoustic_bv12_validation.ipynb").exists())
 
 
 if __name__ == "__main__":

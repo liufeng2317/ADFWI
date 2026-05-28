@@ -13,9 +13,11 @@ current `bv1.2` framework with reproducible script and Jupyter entry points.
 ## Layout
 
 ```text
-scripts/     Python command-line validation entry point
-notebooks/   Jupyter validation entry point using the same script
-outputs/     Generated validation artifacts, ignored by git
+scripts/       Python command-line validation entry point
+notebooks/     Jupyter validation entry points
+  01_forward_modeling.ipynb
+  02_inversion.ipynb
+outputs/       Generated validation artifacts, ignored by git
 ```
 
 ## Stages
@@ -52,9 +54,15 @@ conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/ru
 
 ## Jupyter Usage
 
-Open `notebooks/marmousi2_acoustic_bv12_validation.ipynb` and run cells top to
-bottom. The notebook uses the same `scripts/run_validation.py` entry point as
-the shell commands.
+Forward modeling and inversion are separated:
+
+```text
+notebooks/01_forward_modeling.ipynb
+notebooks/02_inversion.ipynb
+```
+
+Run the forward-modeling notebook first. Both notebooks use the same
+`scripts/run_validation.py` entry point as the shell commands.
 
 ## Outputs
 

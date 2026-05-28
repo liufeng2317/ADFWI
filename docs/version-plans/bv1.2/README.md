@@ -132,6 +132,7 @@ numbered order unless you are looking for a specific topic.
 | 121 | [Runtime Responsibility Contract](./121-runtime-responsibility-contract.md) | Clarify runtime module responsibilities without changing execution behavior. |
 | 122 | [Transform Responsibility Notes](./122-transform-responsibility-notes.md) | Clarify transform module responsibilities without changing behavior. |
 | 123 | [Marmousi2 Validation Example](./123-marmousi2-validation-example.md) | Add separate Python/Jupyter validation entry points for staged Marmousi2 checks. |
+| 124 | [Marmousi2 Validation Notebook Split](./124-marmousi2-validation-notebook-split.md) | Separate forward-modeling and inversion validation notebooks. |
 
 ## Current Direction
 
