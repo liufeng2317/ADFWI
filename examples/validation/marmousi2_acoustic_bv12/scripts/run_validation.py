@@ -47,13 +47,20 @@ def extract_json(stdout: str) -> Optional[Dict[str, object]]:
 def build_check_stage(args: argparse.Namespace, *, run_forward: bool) -> StagePlan:
     name = "forward" if run_forward else "check"
     output_dir = args.output_root / f"{name}_{safe_device_name(args.device)}"
+    model_file = args.forward_model_file if run_forward else args.check_model_file
     command = [
         args.python,
         str(BACKEND_CHECK_SCRIPT),
+        "--case-dir",
+        str(args.case_dir),
+        "--model-file",
+        model_file,
         "--device",
         args.device,
         "--dtype",
         args.dtype,
+        "--f0",
+        str(args.f0),
         "--checkpoint-segments",
         str(args.checkpoint_segments),
     ]
@@ -62,8 +69,6 @@ def build_check_stage(args: argparse.Namespace, *, run_forward: bool) -> StagePl
     if run_forward:
         command.extend(
             [
-                "--model-file",
-                "true_model.npz",
                 "--run-forward",
                 "--shot-index",
                 str(args.forward_shot_index),
@@ -93,10 +98,16 @@ def build_inversion_stage(args: argparse.Namespace, *, stage: str) -> StagePlan:
     command = [
         args.python,
         str(INVERSION_SCRIPT),
+        "--case-dir",
+        str(args.case_dir),
+        "--model-file",
+        args.inversion_model_file,
         "--device",
         args.device,
         "--dtype",
         args.dtype,
+        "--f0",
+        str(args.f0),
         "--shot-count",
         str(args.shots),
         "--nt-samples",
@@ -224,8 +235,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fallback-cpu", action="store_true")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
+    parser.add_argument(
+        "--case-dir",
+        type=Path,
+        default=REPO_ROOT / "examples" / "acoustic" / "01-model-test" / "01-Marmousi2",
+        help="Original Marmousi2 acoustic case directory",
+    )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--check-model-file", default="init_model.npz", choices=("init_model.npz", "true_model.npz"))
+    parser.add_argument("--forward-model-file", default="true_model.npz", choices=("init_model.npz", "true_model.npz"))
+    parser.add_argument("--inversion-model-file", default="init_model.npz", choices=("init_model.npz", "true_model.npz"))
+    parser.add_argument("--f0", type=float, default=5.0)
     parser.add_argument("--forward-shot-index", type=int, default=0)
     parser.add_argument("--shots", type=int, default=3)
     parser.add_argument("--nt-samples", type=int, default=3000)

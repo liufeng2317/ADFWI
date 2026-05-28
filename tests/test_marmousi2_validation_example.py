@@ -28,10 +28,14 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
         self.assertEqual(payload["status"], "ok")
         self.assertEqual([stage["stage"] for stage in payload["stages"]], ["check", "forward", "inversion10"])
         self.assertIn("--run-forward", payload["stages"][1]["command"])
+        self.assertIn("--case-dir", payload["stages"][0]["command"])
+        self.assertIn("--f0", payload["stages"][0]["command"])
         inversion = payload["stages"][2]["command"]
         self.assertIn("--observed-source", inversion)
         self.assertEqual(inversion[inversion.index("--observed-source") + 1], "synthetic-true")
         self.assertEqual(inversion[inversion.index("--iterations") + 1], "10")
+        self.assertIn("--model-file", inversion)
+        self.assertEqual(inversion[inversion.index("--model-file") + 1], "init_model.npz")
         self.assertIn("--output-dir", inversion)
 
     def test_inversion100_stage_uses_longer_default_iterations(self):

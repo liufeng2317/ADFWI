@@ -64,6 +64,14 @@ notebooks/02_inversion.ipynb
 Run the forward-modeling notebook first. Both notebooks use the same
 `scripts/run_validation.py` entry point as the shell commands.
 
+The notebooks explicitly show:
+
+- parameter definitions;
+- model file selection and model dimensions;
+- source/receiver observation-system metadata;
+- source wavelet construction;
+- forward-modeling or inversion execution parameters.
+
 ## Outputs
 
 Default output root:
