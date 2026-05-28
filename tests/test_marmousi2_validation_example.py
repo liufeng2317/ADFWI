@@ -60,6 +60,10 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
             text = (NOTEBOOK_DIR / notebook).read_text()
             self.assertIn("def build_survey", text)
             self.assertIn("def build_source_wavelet", text)
+            self.assertIn("ADFWI.set_backend", text)
+            self.assertIn("AcousticPropagator", text)
+            self.assertNotIn("subprocess", text)
+            self.assertNotIn("run_validation.py", text)
             self.assertNotIn("from case_definition import", text)
             self.assertNotIn("marmousi2_acoustic_backend_check", text)
 

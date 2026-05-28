@@ -237,3 +237,5 @@ numbered order unless you are looking for a specific topic.
 - Use `examples/validation/marmousi2_acoustic_bv12/` as the staged Python and
   Jupyter entry point for Marmousi2 instance validation without modifying the
   original example notebooks.
+- [128 - Marmousi2 Validation Direct Notebooks](./128-marmousi2-validation-direct-notebooks.md):
+  make validation notebooks call ADFWI APIs directly instead of CLI wrappers.

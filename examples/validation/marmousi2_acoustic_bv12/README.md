@@ -62,8 +62,9 @@ notebooks/01_forward_modeling.ipynb
 notebooks/02_inversion.ipynb
 ```
 
-Run the forward-modeling notebook first. Both notebooks use the same
-`scripts/run_validation.py` entry point as the shell commands.
+Run the forward-modeling notebook first. The notebooks define parameters,
+model setup, survey setup, source wavelet construction, and ADFWI execution
+directly in notebook cells. They do not call the command-line runner.
 
 The notebooks explicitly show:
 
@@ -74,8 +75,8 @@ The notebooks explicitly show:
 - forward-modeling or inversion execution parameters.
 
 Notebook case definitions are written directly in each notebook. They do not
-import setup helpers from another example, backend-check script, or separate
-case-definition helper.
+import setup helpers from another example, backend-check script, separate
+case-definition helper, or command-line wrapper.
 
 ## Outputs
 
