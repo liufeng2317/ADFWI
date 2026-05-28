@@ -131,6 +131,7 @@ numbered order unless you are looking for a specific topic.
 | 120 | [Gradient Parameter Ownership](./120-gradient-parameter-ownership.md) | Move acoustic/elastic parameter-order constants out of runtime gradient dispatch and into their FWI drivers. |
 | 121 | [Runtime Responsibility Contract](./121-runtime-responsibility-contract.md) | Clarify runtime module responsibilities without changing execution behavior. |
 | 122 | [Transform Responsibility Notes](./122-transform-responsibility-notes.md) | Clarify transform module responsibilities without changing behavior. |
+| 123 | [Marmousi2 Validation Example](./123-marmousi2-validation-example.md) | Add separate Python/Jupyter validation entry points for staged Marmousi2 checks. |
 
 ## Current Direction
 
@@ -229,3 +230,6 @@ numbered order unless you are looking for a specific topic.
 - Keep `ADFWI.fwi.transforms` structurally stable; its current split is
   reasonable, and future work should prefer examples or usage docs over module
   reshuffling.
+- Use `examples/validation/marmousi2_acoustic_bv12/` as the staged Python and
+  Jupyter entry point for Marmousi2 instance validation without modifying the
+  original example notebooks.
