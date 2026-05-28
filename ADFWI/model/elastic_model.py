@@ -1,27 +1,18 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Elastic model containers and derived elastic parameter refresh logic."""
+
 import numpy as np
 import torch
 from torch import Tensor
-from typing import Optional,Tuple,Union,List
-from ADFWI.utils import gpu2cpu,numpy2tensor,tensor2numpy
+from typing import Optional,Tuple,Union
+from ADFWI.utils import numpy2tensor
 from ADFWI.model.base import AbstractModel
-from ADFWI.model.parameters import (thomsen_init,elastic_moduli_init,
-                         vs_vp_to_Lame,thomsen_to_elastic_moduli,
+from ADFWI.model.parameters import (elastic_moduli_init, vs_vp_to_Lame, thomsen_to_elastic_moduli,
                          elastic_moduli_for_isotropic,elastic_moduli_for_TI,
                          parameter_staggered_grid)
-from ADFWI.view import (plot_vp_rho,plot_vp_vs_rho,plot_eps_delta_gamma,plot_lam_mu,plot_model)
-from ADFWI.survey import Survey
+from ADFWI.view import (plot_vp_vs_rho,plot_eps_delta_gamma,plot_lam_mu,plot_model)
 
 class IsotropicElasticModel(AbstractModel):
-    """Isotropic Elastic Velocity model with parameterization of vp vs and rho
-    """
+    """Isotropic elastic model with persistent ``vp``, ``vs``, and ``rho``."""
     def __init__(self,
                 ox:float,oz:float,
                 nx:int,nz:int,
@@ -48,7 +39,7 @@ class IsotropicElasticModel(AbstractModel):
         """
         Parameters:
         --------------
-        ox (float), oz (float)                   : Non use, the origin coordinates of the model in the x- and z- directions (in meters).
+        ox (float), oz (float)                   : Origin coordinates of the model in the x- and z-directions (meters).
         nx (int), nz (int)                       : The number of grid points in the x- and z- directions.
         dx (float), dz (float)                   : The grid spacing in the x- and z- directions (in meters).
         vp (Optional[Union[np.array, Tensor]])   : P-wave velocity model with shape (nz, nx). Default is None.
@@ -67,7 +58,7 @@ class IsotropicElasticModel(AbstractModel):
         auto_update_rho (Optional[bool])         : Whether to automatically update the density model during inversion. Default is True.
         auto_update_vp (Optional[bool])          : Whether to automatically update the P-wave velocity model during inversion. Default is False.
         water_layer_mask (Optional[Union[np.array, Tensor]]) : A mask for the water layer (not update), if applicable. Default is None.
-        device (str)                             : The device on which to run the model. Options are 'cpu' or 'cuda'. Default is 'cpu'.
+        device (str)                             : Device on which to place the model. Uses the active ADFWI backend when omitted.
         dtype (torch.dtype)                      : The data type for PyTorch tensors. Default is torch.float32.
         """
         # initialize the common model parameters
@@ -172,7 +163,7 @@ class IsotropicElasticModel(AbstractModel):
         self.muxz = muxz
         CC = [C11,C12,C13,C14,C15,C16,C22,C23,C24,C25,C26,C33,C34,C35,C36,C44,C45,C46,C55,C56,C66]
         self.CC = CC
-        return 
+        return
     
     def get_clone_data(self) -> Tuple:
         kwargs = super().get_clone_data()
@@ -255,9 +246,7 @@ class IsotropicElasticModel(AbstractModel):
     
 
     def forward(self) -> None:
-        """Forward method of the elastic model class
-        
-        """
+        """Refresh constraints and derived elastic quantities for propagation."""
         # set the constraints on the parameters if necessary
         if self.auto_update_rho:
             self.set_rho_using_empirical_function()
@@ -271,12 +260,11 @@ class IsotropicElasticModel(AbstractModel):
         # calculate the thomson/lame and elastic moduli parameters
         self._parameterization_Lame()
         self._parameterization_elastic_moduli()
-        return 
+        return
     
     
 class AnisotropicElasticModel(AbstractModel):
-    """AnIsotropic Elastic Velocity model with parameterization of vp vs rho eps and delta. (VTI/HTI)
-    """
+    """Anisotropic elastic model with velocity, density, and Thomsen parameters."""
     def __init__(self,
                 ox:float,oz:float,
                 nx:int,nz:int,
@@ -313,7 +301,7 @@ class AnisotropicElasticModel(AbstractModel):
         """
         Parameters:
         --------------
-        ox (float), oz (float)                      : Non use, the origin coordinates of the model in the x- and z- directions (meters).
+        ox (float), oz (float)                      : Origin coordinates of the model in the x- and z-directions (meters).
         nx (int), nz (int)                          : The number of grid points in the x- and z- directions.
         dx (float), dz (float)                      : The grid spacing in the x- and z- directions (meters).
         vp (Optional[Union[np.array, Tensor]])      : P-wave velocity model with shape (nz, nx). Default is None.
@@ -342,7 +330,7 @@ class AnisotropicElasticModel(AbstractModel):
         auto_update_rho (Optional[bool])            : Whether to auto-update the density model during inversion. Default is False.
         auto_update_vp (Optional[bool])             : Whether to auto-update the P-wave velocity model during inversion. Default is False.
         water_layer_mask (Optional[Union[np.array, Tensor]]) : Mask for the water layer (not update), if applicable. Default is None.
-        device (str)                                : Device for running the model ('cpu' or 'cuda'). Default is 'cpu'.
+        device (str)                                : Device on which to place the model. Uses the active ADFWI backend when omitted.
         dtype (torch.dtype)                         : Data type for PyTorch tensors. Default is torch.float32.
         """
         # initialize the common model parameters
@@ -455,7 +443,7 @@ class AnisotropicElasticModel(AbstractModel):
         self.muxz = muxz
         CC = [C11,C12,C13,C14,C15,C16,C22,C23,C24,C25,C26,C33,C34,C35,C36,C44,C45,C46,C55,C56,C66]
         self.CC = CC
-        return 
+        return
     
     def _plot_vp_vs_rho(self,**kwargs):
         """plot velocity model
@@ -526,8 +514,7 @@ class AnisotropicElasticModel(AbstractModel):
     
         
     def forward(self) -> None:
-        """Forward method of the elastic model class
-        """
+        """Refresh constraints and derived elastic quantities for propagation."""
         # set the constraints on the parameters if necessary
         if self.auto_update_rho:
             self.set_rho_using_empirical_function()
@@ -541,4 +528,4 @@ class AnisotropicElasticModel(AbstractModel):
         # calculate the thomson/lame and elastic moduli parameters
         self._parameterization_Lame()
         self._parameterization_elastic_moduli()
-        return 
+        return

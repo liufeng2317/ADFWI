@@ -49,6 +49,21 @@ fully explicit:
 
 ## Optimization Path
 
+The model optimization should improve definitions and algorithmic readability,
+not add structure for its own sake. Prefer in-place clarification and thin
+shared helpers over new files or deeper abstractions.
+
+The guiding model lifecycle is:
+
+```text
+input arrays
+-> persistent model parameters
+-> optional empirical updates
+-> bounds and water-layer constraints
+-> derived physical quantities
+-> propagator/FWI consumers
+```
+
 ### Phase 1 - Responsibility And Contract Audit
 
 Goal:
@@ -71,6 +86,7 @@ Potential targets:
 - make helper names/comments describe parameter lifecycle more clearly;
 - clarify that `forward()` updates constraints and derived model quantities
   rather than running wave propagation.
+- avoid splitting files or introducing new abstractions in this phase.
 
 Validation:
 
@@ -89,6 +105,9 @@ Potential targets:
 - common helper for bounds initialization;
 - common helper for water-layer-preserving clamp;
 - common helper for empirical update replacement of `rho` or `vp`.
+
+Only extract helpers that remove real duplication and have stable semantics.
+Do not create a larger model framework.
 
 Validation:
 

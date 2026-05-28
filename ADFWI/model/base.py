@@ -1,20 +1,9 @@
-"""
-* Modified from: https://github.com/seisfwi/SWIT
-* Original Author: Haipeng Li
-* Original Author Email: haipeng@stanford.edu
-=========================================================
-* Author: Liu Feng (SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: Liu Feng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by Liu Feng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-"""
+"""Base model container used by acoustic and elastic model classes."""
 
 import numpy as np
 import torch
 from torch import Tensor
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional,Tuple,Union
 from ADFWI.utils import gpu2cpu,numpy2tensor
 from ADFWI.backends import get_backend
@@ -31,10 +20,12 @@ units = {
     "delta" : "none",
     "vs_vp" : "none",
 }
-eps = 1e-7
 
-class AbstractModel(torch.nn.Module):
-    """ Abstract model class for FWI models
+
+class AbstractModel(torch.nn.Module, ABC):
+    """Shared geometry, backend, bounds, and parameter access for models.
+
+    Concrete subclasses own physical parameter choices and derived quantities.
 
     Parameters
     ----------
@@ -123,9 +114,11 @@ class AbstractModel(torch.nn.Module):
     
     @abstractmethod
     def forward(self, *args, **kwargs) -> Tuple[Tensor, Tensor, Tensor]:
-        """ Forward method of the model class that outputs the elastic 
-        parameters of lambda, mu, and buoyancy required for the wave equation
-        propogator.
+        """Refresh model constraints and derived quantities for propagation.
+
+        This is not wave propagation. Propagators consume the refreshed model
+        state after subclasses apply empirical updates, bounds, and derived
+        physical parameter calculations.
         """
         raise NotImplementedError("Forward method must be implemented by the subclass")
 
@@ -138,16 +131,6 @@ class AbstractModel(torch.nn.Module):
                     self.lower_bound[par] < self.upper_bound[par]
                 ), "Lower bound must be smaller than upper bound"
 
-            # if self.lower_bound[par] is not None:
-            #     if self.lower_bound[par] + eps > self.get_model(par).min():
-            #         Warning(f"Lower bound must be larger than minimum value, set to {self.get_model(par).min()}")
-            #         self.lower_bound[par] = self.get_model(par).min() - eps
-
-            # if self.upper_bound[par] is not None:
-            #     if self.upper_bound[par] - eps < self.get_model(par).max():
-            #         Warning(f"Upper bound must be smaller than maximum value, set to {self.get_model(par).max()}")
-            #         self.upper_bound[par] = self.get_model(par).max() + eps
-    
     def check_dims(self) -> None:
         """Check the provided model dimensions are legal
         """

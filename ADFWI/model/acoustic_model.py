@@ -1,23 +1,15 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: LiuFeng
-* LastEditTime: 2024-06-01 14:47:30
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Acoustic model container with ``vp`` and ``rho`` parameters."""
+
 import numpy as np
 import torch
 from torch import Tensor
 from typing import Optional,Tuple,Union
-from ADFWI.utils       import gpu2cpu,numpy2tensor
+from ADFWI.utils       import numpy2tensor
 from ADFWI.model.base  import AbstractModel
 from ADFWI.view        import (plot_vp_rho,plot_model)
-from ADFWI.survey      import Survey
 
 class AcousticModel(AbstractModel):
-    """Acoustic Velocity model with parameterization of vp and rho
-    """
+    """Acoustic model with persistent ``vp`` and ``rho`` parameters."""
     def __init__(self,
                 ox:float,oz:float,
                 nx:int,nz:int,
@@ -41,8 +33,8 @@ class AcousticModel(AbstractModel):
         """
         Parameters:
         --------------
-        ox (float), oz (float)                               : Non use, The origin coordinates of the model in the x- and z- directions (in meters).
-        nx (int), nz (int)                                   : Non use, The number of grid points in the x- and z- directions.
+        ox (float), oz (float)                               : Origin coordinates of the model in the x- and z-directions (meters).
+        nx (int), nz (int)                                   : Number of grid points in the x- and z-directions.
         dx (float), dz (float)                               : The grid spacing in the x- and z- directions (in meters).
         vp (Optional[Union[np.array, Tensor]])               : P-wave velocity model with shape (nz, nx). Default is None.
         rho (Optional[Union[np.array, Tensor]])              : Density model with shape (nz, nx). Default is None.
@@ -57,7 +49,7 @@ class AcousticModel(AbstractModel):
         abc_type (Optional[str])                             : The type of absorbing boundary condition used in the model. Options include 'PML' and 'Jerjan'. Default is 'PML'.
         abc_jerjan_alpha (Optional[float])                   : The attenuation factor for the Jerjan boundary condition. Default is 0.0053.
         nabc (Optional[int])                                 : The number of grid cells dedicated to the absorbing boundary, default is 20.
-        device (str)                                         : The device on which to run the model. Options are 'cpu' or 'cuda'. Default is 'cpu'.
+        device (str)                                         : Device on which to place the model. Uses the active ADFWI backend when omitted.
         dtype (torch.dtype)                                  : The data type for PyTorch tensors. Default is torch.float32.
         """
         # initialize the common model parameters
@@ -173,8 +165,7 @@ class AcousticModel(AbstractModel):
         return
         
     def forward(self) -> Tuple:
-        """Forward method of the elastic model class
-        """
+        """Refresh acoustic model constraints before propagation."""
         # using the empirical function to setting rho
         if self.auto_update_rho and not self.rho_grad:
             self.set_rho_using_empirical_function()
@@ -184,4 +175,4 @@ class AcousticModel(AbstractModel):
             
         # Clip the model parameters
         self.clip_params()
-        return 
+        return
