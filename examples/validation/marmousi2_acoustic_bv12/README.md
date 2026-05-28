@@ -10,6 +10,14 @@ examples/acoustic/01-model-test/01-Marmousi2
 It does not modify the original example notebooks. The goal is to validate the
 current `bv1.2` framework with reproducible script and Jupyter entry points.
 
+## Layout
+
+```text
+scripts/     Python command-line validation entry point
+notebooks/   Jupyter validation entry point using the same script
+outputs/     Generated validation artifacts, ignored by git
+```
+
 ## Stages
 
 | Stage | Purpose | Default behavior |
@@ -25,27 +33,28 @@ current `bv1.2` framework with reproducible script and Jupyter entry points.
 Preview commands without running:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/run_validation.py all --dry-run
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --dry-run
 ```
 
 Run the staged validation:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/run_validation.py check --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/run_validation.py forward --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/run_validation.py inversion10 --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10 --overwrite
 ```
 
 Run the longer check only when needed:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/run_validation.py inversion100 --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion100 --overwrite
 ```
 
 ## Jupyter Usage
 
-Open `marmousi2_acoustic_bv12_validation.ipynb` and run cells top to bottom. The
-notebook uses the same `run_validation.py` entry point as the shell commands.
+Open `notebooks/marmousi2_acoustic_bv12_validation.ipynb` and run cells top to
+bottom. The notebook uses the same `scripts/run_validation.py` entry point as
+the shell commands.
 
 ## Outputs
 

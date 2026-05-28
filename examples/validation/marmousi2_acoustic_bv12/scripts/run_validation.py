@@ -18,9 +18,9 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-THIS_DIR = Path(__file__).resolve().parent
-DEFAULT_OUTPUT_ROOT = THIS_DIR / "outputs"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+VALIDATION_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_OUTPUT_ROOT = VALIDATION_ROOT / "outputs"
 BACKEND_CHECK_SCRIPT = REPO_ROOT / "scripts" / "examples" / "marmousi2_acoustic_backend_check.py"
 INVERSION_SCRIPT = REPO_ROOT / "scripts" / "examples" / "marmousi2_acoustic_reduced_inversion.py"
 

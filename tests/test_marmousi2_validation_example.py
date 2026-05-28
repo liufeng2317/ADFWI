@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "run_validation.py"
+SCRIPT = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12" / "scripts" / "run_validation.py"
 
 
 class Marmousi2ValidationExampleTests(unittest.TestCase):
