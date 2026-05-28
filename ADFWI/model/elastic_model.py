@@ -1,10 +1,8 @@
 """Elastic model containers and derived elastic parameter refresh logic."""
 
 import numpy as np
-import torch
 from torch import Tensor
 from typing import Optional,Tuple,Union
-from ADFWI.utils import numpy2tensor
 from ADFWI.model.base import AbstractModel
 from ADFWI.model.parameters import (elastic_moduli_init, vs_vp_to_Lame, thomsen_to_elastic_moduli,
                          elastic_moduli_for_isotropic,elastic_moduli_for_TI,
@@ -92,17 +90,18 @@ class IsotropicElasticModel(AbstractModel):
         self._parameterization_elastic_moduli()
         
         # set model bounds
-        self.lower_bound["vp"]  = vp_bound[0]  if vp_bound  is not None else None
-        self.lower_bound["vs"]  = vs_bound[0]  if vs_bound  is not None else None
-        self.lower_bound["rho"] = rho_bound[0] if rho_bound is not None else None
-        self.upper_bound["vp"]  = vp_bound[1]  if vp_bound  is not None else None
-        self.upper_bound["vs"]  = vs_bound[1]  if vs_bound  is not None else None
-        self.upper_bound["rho"] = rho_bound[1] if rho_bound is not None else None
+        self._set_parameter_bounds({
+            "vp": vp_bound,
+            "vs": vs_bound,
+            "rho": rho_bound,
+        })
         
         # set model gradients
-        self.requires_grad["vp"]    = self.vp_grad
-        self.requires_grad["vs"]    = self.vs_grad
-        self.requires_grad["rho"]   = self.rho_grad
+        self._set_requires_grad_flags({
+            "vp": self.vp_grad,
+            "vs": self.vs_grad,
+            "rho": self.rho_grad,
+        })
         
         # check the input model
         self._check_bounds()
@@ -112,28 +111,17 @@ class IsotropicElasticModel(AbstractModel):
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
     
-        if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
-        else:
-            self.water_layer_mask = None
+        self.water_layer_mask = self._prepare_water_layer_mask(water_layer_mask)
             
     def _parameterization_thomson(self):
         """setting variable and gradients
         """
-        # numpy2tensor
-        self.vp     = numpy2tensor(self.vp   ,self.dtype).to(self.device)
-        self.vs     = numpy2tensor(self.vs   ,self.dtype).to(self.device)
-        self.rho    = numpy2tensor(self.rho  ,self.dtype).to(self.device)
-        self.eps    = numpy2tensor(self.eps  ,self.dtype).to(self.device)
-        self.gamma  = numpy2tensor(self.gamma,self.dtype).to(self.device)
-        self.delta  = numpy2tensor(self.delta,self.dtype).to(self.device)
-        # set model parameters
-        self.vp     = torch.nn.Parameter(self.vp    ,requires_grad=self.vp_grad)
-        self.vs     = torch.nn.Parameter(self.vs    ,requires_grad=self.vs_grad)
-        self.rho    = torch.nn.Parameter(self.rho   ,requires_grad=self.rho_grad)
-        self.eps    = torch.nn.Parameter(self.eps   ,requires_grad=False)
-        self.gamma  = torch.nn.Parameter(self.gamma ,requires_grad=False)
-        self.delta  = torch.nn.Parameter(self.delta ,requires_grad=False)
+        self._register_model_parameter("vp", self.vp, self.vp_grad)
+        self._register_model_parameter("vs", self.vs, self.vs_grad)
+        self._register_model_parameter("rho", self.rho, self.rho_grad)
+        self._register_model_parameter("eps", self.eps, False)
+        self._register_model_parameter("gamma", self.gamma, False)
+        self._register_model_parameter("delta", self.delta, False)
         return
     
     def _parameterization_Lame(self):
@@ -206,8 +194,7 @@ class IsotropicElasticModel(AbstractModel):
         if self.water_layer_mask is not None:
             mask = self.water_layer_mask.cpu().detach().numpy()
             rho_empirical[mask] = rho[mask]
-        rho         = numpy2tensor(rho_empirical,self.dtype).to(self.device)
-        self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
+        self._register_model_parameter("rho", rho_empirical, self.rho_grad)
         return
     
     def set_vp_using_empirical_function(self):
@@ -219,29 +206,7 @@ class IsotropicElasticModel(AbstractModel):
         if self.water_layer_mask is not None:
             mask = self.water_layer_mask.cpu().detach().numpy()
             vp_empirical[mask] = vp[mask]
-        vp = numpy2tensor(vp_empirical,self.dtype).to(self.device)
-        self.vp = torch.nn.Parameter(vp,requires_grad=self.vp_grad)
-        return
-    
-    def clip_params(self)->None:
-        """Clip the model parameters to the given bounds
-        """
-        for par in self.pars:
-            if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
-                # Retrieve the model parameter
-                m = getattr(self, par)
-                min_value = self.lower_bound[par]
-                max_value = self.upper_bound[par]
-
-                # Create a temporary copy for masking purposes
-                m_temp = m.clone()  # Use .clone() instead of .copy() to avoid issues with gradients
-
-                # Clip the values of the parameter using in-place modification with .data
-                m.data.clamp_(min_value, max_value)
-
-                # Apply the water layer mask if it is not None, using in-place modification
-                if self.water_layer_mask is not None:
-                    m.data = torch.where(self.water_layer_mask, m_temp.data, m.data)
+        self._register_model_parameter("vp", vp_empirical, self.vp_grad)
         return
     
 
@@ -369,26 +334,24 @@ class AnisotropicElasticModel(AbstractModel):
         self._parameterization_elastic_moduli()
         
         # set model bounds
-        self.lower_bound["vp"]      = vp_bound[0] if vp_bound  is not None else None
-        self.lower_bound["vs"]      = vs_bound[0] if vs_bound  is not None else None
-        self.lower_bound["rho"]     = rho_bound[0] if rho_bound is not None else None
-        self.lower_bound['eps']     = eps_bound[0] if eps_bound is not None else None
-        self.lower_bound['gamma']   = gamma_bound[0] if gamma_bound is not None else None
-        self.lower_bound['delta']   = delta_bound[0] if delta_bound is not None else None
-        self.upper_bound["vp"]      = vp_bound[1] if vp_bound  is not None else None
-        self.upper_bound["vs"]      = vs_bound[1] if vs_bound  is not None else None
-        self.upper_bound["rho"]     = rho_bound[1] if rho_bound is not None else None
-        self.upper_bound["eps"]     = eps_bound[1] if eps_bound  is not None else None
-        self.upper_bound["gamma"]   = gamma_bound[1] if gamma_bound  is not None else None
-        self.upper_bound["delta"]   = delta_bound[1] if delta_bound is not None else None
+        self._set_parameter_bounds({
+            "vp": vp_bound,
+            "vs": vs_bound,
+            "rho": rho_bound,
+            "eps": eps_bound,
+            "gamma": gamma_bound,
+            "delta": delta_bound,
+        })
         
         # set model gradients
-        self.requires_grad["vp"]    = self.vp_grad
-        self.requires_grad["vs"]    = self.vs_grad
-        self.requires_grad["rho"]   = self.rho_grad
-        self.requires_grad["eps"]   = self.eps_grad
-        self.requires_grad["gamma"] = self.gamma_grad
-        self.requires_grad["delta"] = self.delta_grad
+        self._set_requires_grad_flags({
+            "vp": self.vp_grad,
+            "vs": self.vs_grad,
+            "rho": self.rho_grad,
+            "eps": self.eps_grad,
+            "gamma": self.gamma_grad,
+            "delta": self.delta_grad,
+        })
         
         # check the input model
         self._check_bounds()
@@ -398,26 +361,15 @@ class AnisotropicElasticModel(AbstractModel):
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
         
-        if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
-        else:
-            self.water_layer_mask = None
+        self.water_layer_mask = self._prepare_water_layer_mask(water_layer_mask)
                 
     def _parameterization_thomson(self):
-        # numpy2tensor
-        self.vp     = numpy2tensor(self.vp   ,self.dtype).to(self.device)
-        self.vs     = numpy2tensor(self.vs   ,self.dtype).to(self.device)
-        self.rho    = numpy2tensor(self.rho  ,self.dtype).to(self.device)
-        self.eps    = numpy2tensor(self.eps  ,self.dtype).to(self.device)
-        self.gamma  = numpy2tensor(self.gamma,self.dtype).to(self.device)
-        self.delta  = numpy2tensor(self.delta,self.dtype).to(self.device)
-        # set model parameters
-        self.vp     = torch.nn.Parameter(self.vp    ,requires_grad=self.vp_grad)
-        self.vs     = torch.nn.Parameter(self.vs    ,requires_grad=self.vs_grad)
-        self.rho    = torch.nn.Parameter(self.rho   ,requires_grad=self.rho_grad)
-        self.eps    = torch.nn.Parameter(self.eps   ,requires_grad=self.eps_grad)
-        self.gamma  = torch.nn.Parameter(self.gamma ,requires_grad=self.gamma_grad)
-        self.delta  = torch.nn.Parameter(self.delta ,requires_grad=self.delta_grad)
+        self._register_model_parameter("vp", self.vp, self.vp_grad)
+        self._register_model_parameter("vs", self.vs, self.vs_grad)
+        self._register_model_parameter("rho", self.rho, self.rho_grad)
+        self._register_model_parameter("eps", self.eps, self.eps_grad)
+        self._register_model_parameter("gamma", self.gamma, self.gamma_grad)
+        self._register_model_parameter("delta", self.delta, self.delta_grad)
         return
     
     def _parameterization_Lame(self):
@@ -478,8 +430,7 @@ class AnisotropicElasticModel(AbstractModel):
         """
         vp          = self.vp.cpu().detach().numpy()
         rho         = np.power(vp, 0.25) * 310
-        rho         = numpy2tensor(rho,self.dtype).to(self.device)
-        self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
+        self._register_model_parameter("rho", rho, self.rho_grad)
         return
     
     def set_vp_using_empirical_function(self):
@@ -487,29 +438,7 @@ class AnisotropicElasticModel(AbstractModel):
         """
         vs = self.vs.cpu().detach().numpy()
         vp = vs*np.sqrt(3)
-        vp = numpy2tensor(vp,self.dtype).to(self.device)
-        self.vp = torch.nn.Parameter(vp,requires_grad=self.vp_grad)
-        return
-    
-    def clip_params(self)->None:
-        """Clip the model parameters to the given bounds
-        """
-        for par in self.pars:
-            if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
-                # Retrieve the model parameter
-                m = getattr(self, par)
-                min_value = self.lower_bound[par]
-                max_value = self.upper_bound[par]
-
-                # Create a temporary copy for masking purposes
-                m_temp = m.clone()  # Use .clone() instead of .copy() to avoid issues with gradients
-
-                # Clip the values of the parameter using in-place modification with .data
-                m.data.clamp_(min_value, max_value)
-
-                # Apply the water layer mask if it is not None, using in-place modification
-                if self.water_layer_mask is not None:
-                    m.data = torch.where(self.water_layer_mask, m_temp.data, m.data)
+        self._register_model_parameter("vp", vp, self.vp_grad)
         return
     
         

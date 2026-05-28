@@ -81,6 +81,28 @@ class AbstractModel(torch.nn.Module, ABC):
         self.requires_grad  = {}
         self.lower_bound    = {}
         self.upper_bound    = {}
+
+    def _register_model_parameter(self, par: str, value, requires_grad: bool) -> None:
+        """Register one persistent model field as a backend tensor parameter."""
+        tensor = numpy2tensor(value, self.dtype).to(self.device)
+        setattr(self, par, torch.nn.Parameter(tensor, requires_grad=requires_grad))
+
+    def _set_parameter_bounds(self, bounds) -> None:
+        """Initialize lower/upper bound dictionaries for model parameters."""
+        for par, bound in bounds.items():
+            self.lower_bound[par] = bound[0] if bound is not None else None
+            self.upper_bound[par] = bound[1] if bound is not None else None
+
+    def _set_requires_grad_flags(self, flags) -> None:
+        """Initialize requires-grad metadata for model parameters."""
+        for par, requires_grad in flags.items():
+            self.requires_grad[par] = requires_grad
+
+    def _prepare_water_layer_mask(self, water_layer_mask):
+        """Return an optional bool mask on the model backend."""
+        if water_layer_mask is None:
+            return None
+        return numpy2tensor(water_layer_mask, dtype=torch.bool).to(self.device)
     
     def __repr__(self) -> str:
         """Representation of the model object
@@ -283,13 +305,17 @@ class AbstractModel(torch.nn.Module, ABC):
     def clip_params(self)->None:
         """Clip the model parameters to the given bounds
         """
+        water_layer_mask = getattr(self, "water_layer_mask", None)
         for par in self.pars:
             if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
-                m = getattr(self,par)
+                m = getattr(self, par)
                 min_value = self.lower_bound[par]
                 max_value = self.upper_bound[par]
-                # clip the model parametrs
-                m.data.clamp_(min_value,max_value)
+                if water_layer_mask is not None:
+                    m_temp = m.clone()
+                m.data.clamp_(min_value, max_value)
+                if water_layer_mask is not None:
+                    m.data = torch.where(water_layer_mask, m_temp.data, m.data)
         return
     
     def constrain_range(self, value, min_value, max_value) -> Tensor:

@@ -1,10 +1,8 @@
 """Acoustic model container with ``vp`` and ``rho`` parameters."""
 
 import numpy as np
-import torch
 from torch import Tensor
 from typing import Optional,Tuple,Union
-from ADFWI.utils       import numpy2tensor
 from ADFWI.model.base  import AbstractModel
 from ADFWI.view        import (plot_vp_rho,plot_model)
 
@@ -64,14 +62,16 @@ class AcousticModel(AbstractModel):
         self._parameterization()
         
         # set model bounds
-        self.lower_bound["vp"]  =  vp_bound[0]  if vp_bound  is not None else None
-        self.lower_bound["rho"] = rho_bound[0]  if rho_bound is not None else None
-        self.upper_bound["vp"]  =  vp_bound[1]  if vp_bound  is not None else None
-        self.upper_bound["rho"] = rho_bound[1]  if rho_bound is not None else None
+        self._set_parameter_bounds({
+            "vp": vp_bound,
+            "rho": rho_bound,
+        })
         
         # set model gradients
-        self.requires_grad["vp"]    = self.vp_grad
-        self.requires_grad["rho"]   = self.rho_grad
+        self._set_requires_grad_flags({
+            "vp": self.vp_grad,
+            "rho": self.rho_grad,
+        })
         
         # check the input model
         self._check_bounds()
@@ -81,20 +81,13 @@ class AcousticModel(AbstractModel):
         self.auto_update_rho = auto_update_rho
         self.auto_update_vp  = auto_update_vp
         
-        if water_layer_mask is not None:
-            self.water_layer_mask = numpy2tensor(water_layer_mask,dtype=torch.bool).to(self.device)
-        else:
-            self.water_layer_mask = None
+        self.water_layer_mask = self._prepare_water_layer_mask(water_layer_mask)
         
     def _parameterization(self):
         """setting variable and gradients
         """
-        # numpy2tensor
-        self.vp     = numpy2tensor(self.vp   ,self.dtype).to(self.device)
-        self.rho    = numpy2tensor(self.rho  ,self.dtype).to(self.device)
-        # set model parameters
-        self.vp     = torch.nn.Parameter(self.vp    ,requires_grad=self.vp_grad)
-        self.rho    = torch.nn.Parameter(self.rho   ,requires_grad=self.rho_grad)
+        self._register_model_parameter("vp", self.vp, self.vp_grad)
+        self._register_model_parameter("rho", self.rho, self.rho_grad)
         return
     
     def get_clone_data(self) -> Tuple:
@@ -126,8 +119,7 @@ class AcousticModel(AbstractModel):
         if self.water_layer_mask is not None:
             mask = self.water_layer_mask.cpu().detach().numpy()
             rho_empirical[mask] = rho[mask]
-        rho         = numpy2tensor(rho_empirical,self.dtype).to(self.device)
-        self.rho    = torch.nn.Parameter(rho   ,requires_grad=self.rho_grad)
+        self._register_model_parameter("rho", rho_empirical, self.rho_grad)
         return
 
     def set_vp_using_empirical_function(self):
@@ -139,29 +131,7 @@ class AcousticModel(AbstractModel):
         if self.water_layer_mask is not None:
             grad_mask = self.water_layer_mask.cpu().detach().numpy()
             vp_empirical[grad_mask] = vp[grad_mask]
-        vp          = numpy2tensor(vp_empirical,self.dtype).to(self.device)
-        self.vp     = torch.nn.Parameter(vp , requires_grad=self.vp_grad)
-        return   
-    
-    def clip_params(self)->None:
-        """Clip the model parameters to the given bounds
-        """
-        for par in self.pars:
-            if self.lower_bound[par] is not None and self.upper_bound[par] is not None:
-                # Retrieve the model parameter
-                m = getattr(self, par)
-                min_value = self.lower_bound[par]
-                max_value = self.upper_bound[par]
-
-                # Create a temporary copy for masking purposes
-                m_temp = m.clone()  # Use .clone() instead of .copy() to avoid issues with gradients
-
-                # Clip the values of the parameter using in-place modification with .data
-                m.data.clamp_(min_value, max_value)
-
-                # Apply the water layer mask if it is not None, using in-place modification
-                if self.water_layer_mask is not None:
-                    m.data = torch.where(self.water_layer_mask.contiguous(), m_temp.data, m.data)
+        self._register_model_parameter("vp", vp_empirical, self.vp_grad)
         return
         
     def forward(self) -> Tuple:
