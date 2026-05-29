@@ -17,6 +17,7 @@ change.
 - [05 - Wavelet Contract Tests](./05-wavelet-contract-tests.md)
 - [06 - Wavelet Documentation Correction](./06-wavelet-doc-correction.md)
 - [07 - Noise and Metric Contract Tests](./07-noise-metric-contract-tests.md)
+- [08 - Noise Docs and Frequency Contract Audit](./08-noise-doc-frequency-contract-audit.md)
 - [Utils Optimization Map](./utils-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
