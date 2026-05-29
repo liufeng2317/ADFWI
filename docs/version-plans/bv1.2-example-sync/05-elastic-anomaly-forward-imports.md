@@ -58,8 +58,45 @@ missing []
 source_lines 14
 ```
 
+## Backend Sync Follow-Up
+
+The notebook was then aligned with the bv1.2 backend pattern:
+
+```python
+import ADFWI
+
+device = "npu:0"
+dtype = torch.float32
+backend = ADFWI.set_backend(device, dtype=dtype)
+
+model = IsotropicElasticModel(...)
+F = ElasticPropagator(model, survey)
+```
+
+`IsotropicElasticModel` and `ElasticPropagator` no longer need explicit
+`device`/`dtype` arguments when the global backend has already been set. A
+minimal construction check confirmed that model tensors, propagator buffers,
+and source wavelets inherit `npu:0` and `torch.float32`.
+
+Notebook outputs and execution counts were cleared after the check so this file
+can be used as the clean elastic forward synchronization template.
+
+## Validation Result
+
+```text
+python -m json.tool examples/elastic/Iso-elastic-Anomaly/01_forward.ipynb
+conda run -n adfwi python -c "<minimal elastic backend inheritance check>"
+```
+
+Result:
+
+```text
+inherits_backend True
+```
+
 ## Next Direction
 
-Validate elastic backend inheritance separately before removing explicit
-`device=device, dtype=dtype` from elastic model construction or
-`device=device` from `ElasticPropagator`.
+Use `examples/elastic/Iso-elastic-Anomaly/01_forward.ipynb` as the elastic
+forward notebook template when synchronizing the remaining elastic examples:
+explicit imports, one backend setup cell, no `sys.path`, and no repeated
+`device`/`dtype` arguments when construction inherits the active backend.

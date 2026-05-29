@@ -52,7 +52,7 @@ branch bv1.2-example-sync
 | Original acoustic Marmousi2 forward | Pattern identified | Review generated outputs, then close forward sync. |
 | Original acoustic Marmousi2 inversion | Pending | Apply the forward import/backend pattern before short inversion validation. |
 | Acoustic-only forward notebooks | Bulk pattern applied | Decide whether ignored local examples should be force-added. |
-| Elastic forward notebooks | Skipped | Validate elastic backend inheritance before updating. |
+| Elastic forward notebooks | Template ready | Use Iso-elastic-Anomaly forward as the elastic sync blueprint. |
 | Minimal API examples | Pending | Handle after Marmousi2. |
 | Heavy research examples | Deferred | Do not start until core examples are stable. |
 
