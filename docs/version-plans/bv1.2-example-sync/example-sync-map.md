@@ -56,6 +56,7 @@ branch bv1.2-example-sync
 | Multiscale acoustic forward | Template ready | Use as the special forward wrapper pattern before elastic multiscale. |
 | Gradient checking forward | Acoustic/elastic synced | Prefer pip usage next; keep validation-heavy cases separate. |
 | All forward notebooks | Wrapper sync complete | Move to representative inversion sync. |
+| Marmousi2 acoustic inversion | Wrapper synced | Run a short inversion validation before broad inversion sync. |
 | Minimal API examples | Pending | Handle after Marmousi2. |
 | Heavy research examples | Deferred | Do not start until core examples are stable. |
 
