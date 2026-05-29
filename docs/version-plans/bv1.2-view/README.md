@@ -9,6 +9,7 @@ numerical transforms.
 ## Read First
 
 - [00 - View Optimization Outline](./00-view-optimization-outline.md)
+- [01 - View Contract Tests](./01-view-contract-tests.md)
 - [View Optimization Map](./view-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

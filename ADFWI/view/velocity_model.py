@@ -297,7 +297,7 @@ def plot_eps_delta_gamma(eps,delta,gamma,dx=-1,dz=-1,figsize=(14,4),wspace=0.2,h
         ax[1].set_xlabel("X (km)",**label_param)
         ax[1].set_ylabel("Z (km)",**label_param)
     else:
-        im2 = ax[0].imshow(delta,cmap=cmap)
+        im2 = ax[1].imshow(delta,cmap=cmap)
         ax[1].set_xlabel("X",**label_param)
         ax[1].set_ylabel("Z",**label_param)
     cax2 = fig.add_axes([ax[1].get_position().x0,ax[1].get_position().y0-cbar_pad_fraction,
