@@ -1,25 +1,18 @@
-"""
-* Modified from: https://github.com/seisfwi/SWIT
-* Original Author: Haipeng Li
-* Original Author Email: haipeng@stanford.edu
-=========================================================
-* Author: Liu Feng (SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: Liu Feng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by Liu Feng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-"""
+"""Recorded seismic waveform data and survey metadata snapshots."""
 
 import numpy as np 
-import matplotlib.pyplot as plt
 
-from typing import Optional,List,Union
 from ADFWI.survey import Survey
 from ADFWI.utils import gpu2cpu,tensor2numpy
 from ADFWI.view import plot_waveform2D,plot_waveform_wiggle,plot_waveform_trace
 
 class SeismicData():
+    """Container for recorded acoustic or elastic waveform dictionaries.
+
+    `SeismicData` snapshots source/receiver metadata from a `Survey`, records
+    propagator output dictionaries as numpy arrays, and saves/loads the current
+    `.npz` format. It does not own acquisition geometry mutation.
+    """
     def __init__(self,survey:Survey):
         self.survey     = survey
         # get the survey information
@@ -38,8 +31,7 @@ class SeismicData():
         self.data_masks = None
         
     def __repr__(self):
-        """ Print the survey information
-        """
+        """Return a readable seismic-data summary."""
 
         info = f"Seismic Data:\n"
         info += f"  Source number : {self.src_num}\n"
@@ -49,7 +41,7 @@ class SeismicData():
         return info
 
     def record_data(self, data: dict):
-        """ Add the shot gather data to the class
+        """Record a propagator waveform dictionary as numpy arrays.
 
         Parameters:
         ----------
@@ -62,6 +54,7 @@ class SeismicData():
         self.data = data
     
     def save(self,path:str):
+        """Save waveform data and survey metadata to the current `.npz` format."""
         data_save = {   'data'      : self.data,
                         'src_loc'   : self.src_loc,
                         'rcv_loc'   : self.rcv_loc,
@@ -100,6 +93,7 @@ class SeismicData():
         return
     
     def normalize_and_mask(self,array):
+        """Normalize each trace while preserving all-zero traces."""
         time_sum = np.sum(np.abs(array), axis=1, keepdims=True)
         mask = time_sum == 0
         max_val  = np.max(np.abs(array), axis=1, keepdims=True)
@@ -108,6 +102,7 @@ class SeismicData():
         return array
     
     def parse_elastic_data(self,normalize=False):
+        """Return elastic pressure, txz, vx, and vz arrays."""
         txx = self.data["txx"]
         tzz = self.data["tzz"]
         txz = self.data["txz"]
@@ -122,6 +117,7 @@ class SeismicData():
         return pressure,txz,vx,vz
 
     def parse_acoustic_data(self,normalize=False):
+        """Return acoustic pressure, u, and w arrays."""
         pressure = self.data["p"]
         u = self.data["u"]
         w = self.data["w"]

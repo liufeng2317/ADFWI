@@ -1,14 +1,7 @@
-"""
-* Modified from: https://github.com/seisfwi/SWIT
-* Original Author: Haipeng Li
-* Original Author Email: haipeng@stanford.edu
-=========================================================
-* Author: Liu Feng (SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: Liu Feng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by Liu Feng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+"""Receiver geometry and receiver-type metadata for a survey.
+
+`Receiver` stores grid-index receiver locations and receiver component types.
+It does not own source wavelets, recorded data, or propagator logic.
 """
 
 from typing import List
@@ -16,11 +9,14 @@ import numpy as np
 from ADFWI.utils import list2numpy,numpy2list
 
 class Receiver(object):
-    """Seismic Receiver class
-    Parameters:
-    -------------
-    nt (int)    : number of time samples in the receiver data
-    dt (float)  : Time inverval of data
+    """Seismic receiver collection.
+
+    Parameters
+    ----------
+    nt : int
+        Number of time samples in receiver data.
+    dt : float
+        Time interval in seconds.
     
     Notes:  1. The seismic data is assumed to start at time 0, e.g., ot = 0.
             2. The receiver locations should be added using the add_receiver method.
@@ -68,8 +64,7 @@ class Receiver(object):
         return info
     
     def add_receivers(self, rcv_x: np.array,rcv_z:np.array, rcv_type: str) -> None:
-        """add multiple receiver with same type
-        """
+        """Append multiple receivers with one receiver type."""
         if rcv_x.shape != rcv_z.shape:
             raise ValueError(
                 "Receiver Error: Inconsistant number of receiver in X and Z directions"
@@ -84,8 +79,7 @@ class Receiver(object):
         self.num += rcv_n
     
     def add_receiver(self, rcv_x:int,rcv_z:int, rcv_type: str) -> None:
-        """Append single receiver
-        """
+        """Append one receiver."""
         if rcv_type.lower() not in ["pr", "vx", "vz"]:
             raise ValueError("Receiver type must be either pr, vx, vz")
         # add the receiver
@@ -95,8 +89,7 @@ class Receiver(object):
         self.num += 1
     
     def get_loc(self):
-        """Return the source location
-        """
+        """Return receiver locations with shape ``(rcv_num, 2)``."""
         rcv_x = list2numpy(self.loc_x).reshape(-1,1)
         rcv_z = list2numpy(self.loc_z).reshape(-1,1)
         rcv_loc = np.hstack((rcv_x,rcv_z))
@@ -104,8 +97,7 @@ class Receiver(object):
         return rcv_loc 
     
     def get_type(self, unique=False) -> List[str]:
-        """Return the source type
-        """
+        """Return receiver types."""
         type = list2numpy(self.type)
         
         if unique:

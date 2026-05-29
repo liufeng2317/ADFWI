@@ -9,6 +9,7 @@ forward/inversion numerical behavior by default.
 ## Read First
 
 - [00 - Survey Optimization Outline](./00-survey-optimization-outline.md)
+- [01 - Survey Contract Readability](./01-survey-contract-readability.md)
 - [Survey Optimization Map](./survey-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

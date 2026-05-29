@@ -1,24 +1,31 @@
-"""
-* Modified from: https://github.com/seisfwi/SWIT
-* Original Author: Haipeng Li
-* Original Author Email: haipeng@stanford.edu
-=========================================================
-* Author: Liu Feng (SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: Liu Feng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by Liu Feng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
+"""Source geometry, wavelet, and moment-tensor metadata for a survey.
+
+`Source` stores grid-index source locations, source wavelets, source types, and
+moment tensors. It does not own receivers, recorded data, or propagator logic.
 """
 
 import numpy as np
 from typing import List, Optional
-import numpy as np
 from ADFWI.utils import list2numpy,numpy2list
 from ADFWI.view import plot_wavelet
 
 class Source(object):
-    """Seismic Source class
+    """Seismic source collection.
+
+    Parameters
+    ----------
+    nt : int
+        Number of time samples in each source wavelet.
+    dt : float
+        Time interval in seconds.
+    f0 : float
+        Dominant source frequency used by callers when constructing wavelets.
+
+    Notes
+    -----
+    Source coordinates are grid indices. Normal, non-encoded sources return
+    locations with shape ``(src_num, 2)``, wavelets with shape
+    ``(src_num, nt)``, and moment tensors with shape ``(src_num, 3, 3)``.
     """
     def __init__(self,nt:int,dt:float,f0:float)->None:
         self.nt             = nt
@@ -62,8 +69,7 @@ class Source(object):
             src_type    : Optional[str]='mt',
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
-        """source encoded
-        """
+        """Append encoded sources with source-specific encoded wavelets."""
         if src_x.shape != src_z.shape:
             raise ValueError(
                 "Source location along x and z direction must have the same shape"
@@ -98,8 +104,7 @@ class Source(object):
             src_type    : Optional[str]='mt',
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
-        """add multiple sources with same wavelet
-        """
+        """Append multiple sources that share one wavelet and moment tensor."""
         if src_x.shape != src_z.shape:
             raise ValueError(
                 "Source location along x and z direction must have the same shape"
@@ -134,8 +139,7 @@ class Source(object):
             src_type    : Optional[str]='mt',
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
-        """Append single source
-        """
+        """Append one source with one wavelet and one moment tensor."""
         if src_type.lower() not in ["mt"]:
             raise ValueError(
                 "Source type must be either mt"
@@ -159,7 +163,10 @@ class Source(object):
         self.num += 1
     
     def get_loc(self):
-        """Return the source location
+        """Return source locations.
+
+        Normal sources return shape ``(src_num, 2)`` as ``[x, z]`` grid
+        indices. Encoded source inputs may preserve higher-rank leading axes.
         """
         src_x = list2numpy(self.loc_x)
         src_z = list2numpy(self.loc_z)
@@ -176,20 +183,17 @@ class Source(object):
         return src_loc 
     
     def get_wavelet(self):
-        """Return the source wavelets
-        """
+        """Return source wavelets as a numpy array."""
         wavelet = list2numpy(self.wavelet)
         return wavelet
     
     def get_moment_tensor(self):
-        """Return the source wavelets
-        """
+        """Return source moment tensors as a numpy array."""
         mt = list2numpy(self.moment_tensor)
         return mt
     
     def get_type(self, unique=False) -> List[str]:
-        """Return the source type
-        """
+        """Return source types."""
         type = list2numpy(self.type)
         
         if unique:
