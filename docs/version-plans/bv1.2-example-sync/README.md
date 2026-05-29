@@ -16,6 +16,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [04 Acoustic Forward Bulk Sync](./04-acoustic-forward-bulk-sync.md)
 - [05 Elastic Anomaly Forward Import Cleanup](./05-elastic-anomaly-forward-imports.md)
 - [06 Elastic Forward Bulk Sync](./06-elastic-forward-bulk-sync.md)
+- [07 Multiscale Forward Template](./07-multiscale-forward-template.md)
 
 ## Branch Boundary
 

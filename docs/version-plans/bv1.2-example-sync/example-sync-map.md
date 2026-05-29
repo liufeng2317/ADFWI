@@ -53,6 +53,7 @@ branch bv1.2-example-sync
 | Original acoustic Marmousi2 inversion | Pending | Apply the forward import/backend pattern before short inversion validation. |
 | Acoustic-only forward notebooks | Bulk pattern applied | Decide whether ignored local examples should be force-added. |
 | Elastic forward notebooks | Bulk sync validated | Commit tracked notebooks; decide whether to promote ignored local examples. |
+| Multiscale acoustic forward | Template ready | Use as the special forward wrapper pattern before elastic multiscale. |
 | Minimal API examples | Pending | Handle after Marmousi2. |
 | Heavy research examples | Deferred | Do not start until core examples are stable. |
 
