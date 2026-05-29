@@ -1,10 +1,26 @@
 import numpy as np
 
-# source wavelet
+
 def wavelet(nt, dt, f0, amp0 = 1, t0 = None, type = 'Ricker'):
-    """ source time function.
+    """Return a source time axis and wavelet values.
+
+    Parameters
+    ----------
+    nt : int
+        Number of time samples.
+    dt : float
+        Time sampling interval in seconds.
+    f0 : float
+        Dominant frequency in Hz.
+    amp0 : float, optional
+        Amplitude scale.
+    t0 : float, optional
+        Source delay. The historical default is ``1.2 / f0``.
+    type : str, optional
+        Historical public argument selecting ``"Ricker"``, ``"Gaussian"``, or
+        ``"Ramp"``. ``"Gaussian"`` preserves the legacy double cumulative sum
+        of the Ricker-like base expression.
     """
-    # time array
     t = np.arange(nt) * dt + 0.0
     wavelet = np.zeros_like(t)
     t0 = t0 if t0 is not None else 1.2 / f0
@@ -29,7 +45,7 @@ def wavelet(nt, dt, f0, amp0 = 1, t0 = None, type = 'Ricker'):
         
     # Unknown source type
     else:
-        msg = 'Support source types: Rikcer, Guassian, Ramp. \n'
+        msg = 'Supported source types: Ricker, Gaussian, Ramp. \n'
         err = 'Unknown source type: {}'.format(type)
         raise ValueError(msg + '\n' + err)
 
