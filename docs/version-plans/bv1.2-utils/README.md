@@ -13,6 +13,7 @@ change.
 - [01 - Utils Planning Audit](./01-utils-planning-audit.md)
 - [02 - Utils Public Namespace Readability](./02-utils-public-namespace-readability.md)
 - [03 - Utils Conversion Contract Tests](./03-utils-conversion-contract-tests.md)
+- [04 - Utils Conversion Readability](./04-utils-conversion-readability.md)
 - [Utils Optimization Map](./utils-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
