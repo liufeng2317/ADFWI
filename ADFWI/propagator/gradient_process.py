@@ -1,11 +1,10 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Gradient post-processing utilities used by FWI runtimes.
+
+This module is exported from `ADFWI.propagator` for compatibility, but its
+responsibility is gradient tapering, smoothing, masking, illumination
+preconditioning, and normalization after wave propagation. It does not own
+forward wavefield kernels or propagator dispatch.
+"""
 
 import scipy.signal as _signal
 import scipy
@@ -14,8 +13,7 @@ import torch
 import torch.nn.functional as F
 
 def gauss2(X, Y, mu, sigma, normalize=True):
-    ''' Evaluates Gaussian over points of X,Y
-    '''
+    """Evaluate a 2D Gaussian over meshgrid coordinates."""
     D = sigma[0, 0]*sigma[1, 1] - sigma[0, 1]*sigma[1, 0]
     B = np.linalg.inv(sigma)
     X = X - mu[0]
@@ -29,8 +27,7 @@ def gauss2(X, Y, mu, sigma, normalize=True):
 
 
 def smooth2d(Z, span=10):
-    ''' Smooths values on 2D rectangular grid
-    '''
+    """Smooth a 2D rectangular grid with the legacy SciPy path."""
     import warnings
     warnings.filterwarnings('ignore')
 
@@ -101,8 +98,7 @@ def grad_taper_torch(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine', 
 
 
 def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine'):
-    ''' Gradient taper
-    '''
+    """Return the legacy NumPy gradient taper mask."""
     # for masking the water layer, use the zero threds
     if marine_or_land in ['marine', 'Offshore']: 
         taper = np.ones((nz, nx))
@@ -124,6 +120,8 @@ def grad_taper(nz, nx, tapersize=20, thred=0.05, marine_or_land='marine'):
 
 
 class GradProcessor():
+    """Legacy NumPy/SciPy gradient post-processor."""
+
     def __init__(self,grad_mute=0,
                  grad_smooth=0,
                  grad_mask=None,
