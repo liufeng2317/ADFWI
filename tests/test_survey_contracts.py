@@ -47,9 +47,27 @@ class SurveyContractTests(unittest.TestCase):
         survey.set_receiver_masks(receiver_masks)
 
         self.assertTrue(np.array_equal(survey.receiver_masks, receiver_masks))
+        self.assertEqual(survey.receiver_masks.shape, (survey.source.num, survey.receiver.num))
 
         with self.assertRaisesRegex(ValueError, "Receiver Mask"):
             survey.set_receiver_masks(np.ones((1, 3), dtype=np.float32))
+
+        with self.assertRaisesRegex(ValueError, "2-D"):
+            survey.set_receiver_masks(np.ones(3, dtype=np.float32))
+
+    def test_receiver_mask_constructor_accepts_array_like_and_preserves_obs_flag(self):
+        survey = self._survey()
+        receiver_masks = [[1, 0, 1], [0, 1, 1]]
+
+        masked_survey = Survey(
+            survey.source,
+            survey.receiver,
+            receiver_masks=receiver_masks,
+            receiver_masks_obs=False,
+        )
+
+        self.assertTrue(np.array_equal(masked_survey.receiver_masks, np.asarray(receiver_masks)))
+        self.assertFalse(masked_survey.receiver_masks_obs)
 
     def test_seismic_data_record_save_load_round_trip(self):
         survey = self._survey()

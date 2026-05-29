@@ -11,6 +11,7 @@ forward/inversion numerical behavior by default.
 - [00 - Survey Optimization Outline](./00-survey-optimization-outline.md)
 - [01 - Survey Contract Readability](./01-survey-contract-readability.md)
 - [02 - SeismicData Contracts](./02-seismic-data-contracts.md)
+- [03 - Receiver Mask Contract](./03-receiver-mask-contract.md)
 - [Survey Optimization Map](./survey-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

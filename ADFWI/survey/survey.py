@@ -18,8 +18,9 @@ class Survey(object):
         Source object
     receiver : Receiver
         Receiver object
-    receiver_masks: The index of useful receiver at each shot
-        numpy: [shot number, receiver number], by default None
+    receiver_masks: Active receiver mask for each shot
+        array-like with shape ``(source.num, receiver.num)``, by default None.
+        Nonzero entries mark active receivers.
         This parameter is useful for designing special observation systems.
                 * v v v v v v v v
                     * v v v v v v
@@ -32,7 +33,7 @@ class Survey(object):
     def __init__(self,source:Source,receiver:Receiver,receiver_masks=None,receiver_masks_obs=True) -> None:
         self.source         = source
         self.receiver       = receiver
-        # receive mask  -> mask some of the receiver are useful while other are not
+        # receiver_masks marks active receivers for each shot.
         self.receiver_masks = None
         # receiver_masks_obs -> mark if the obs waveform need to be masked or not
         self.receiver_masks_obs = receiver_masks_obs
@@ -41,14 +42,20 @@ class Survey(object):
     
     def set_receiver_masks(self,receiver_masks):
         """Set receiver masks with shape ``(source.num, receiver.num)``."""
-        src_x,src_z = list2numpy(self.source.loc_x),list2numpy(self.source.loc_z)
-        rcv_x,rcv_z = list2numpy(self.receiver.loc_x),list2numpy(self.receiver.loc_z)
-        if receiver_masks.shape[0] == len(src_x) and receiver_masks.shape[1] == len(rcv_x):        
-            self.receiver_masks = receiver_masks
-        else:
+        receiver_masks = np.asarray(receiver_masks)
+        if receiver_masks.ndim != 2:
             raise ValueError(
-                "Receiver Mask Errror: the number of receiver/source are not equal to the Mask"
+                f"Receiver Mask Error: receiver_masks must be 2-D [source, receiver], got {receiver_masks.shape}"
             )
+        src_x = list2numpy(self.source.loc_x)
+        rcv_x = list2numpy(self.receiver.loc_x)
+        expected_shape = (len(src_x), len(rcv_x))
+        if receiver_masks.shape != expected_shape:
+            raise ValueError(
+                "Receiver Mask Error: receiver_masks shape must match "
+                f"(source.num, receiver.num)={expected_shape}, got {receiver_masks.shape}"
+            )
+        self.receiver_masks = receiver_masks
         
     
     def __repr__(self):
