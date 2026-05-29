@@ -14,6 +14,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [02 Editable Install For Example Imports](./02-editable-install-imports.md)
 - [03 Forward Case Sync Pattern](./03-forward-case-sync-pattern.md)
 - [04 Acoustic Forward Bulk Sync](./04-acoustic-forward-bulk-sync.md)
+- [05 Elastic Anomaly Forward Import Cleanup](./05-elastic-anomaly-forward-imports.md)
 
 ## Branch Boundary
 
