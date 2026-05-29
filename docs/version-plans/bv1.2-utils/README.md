@@ -16,6 +16,7 @@ change.
 - [04 - Utils Conversion Readability](./04-utils-conversion-readability.md)
 - [05 - Wavelet Contract Tests](./05-wavelet-contract-tests.md)
 - [06 - Wavelet Documentation Correction](./06-wavelet-doc-correction.md)
+- [07 - Noise and Metric Contract Tests](./07-noise-metric-contract-tests.md)
 - [Utils Optimization Map](./utils-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
