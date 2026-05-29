@@ -9,6 +9,7 @@ kernel rewrite, no finite-difference formula change, and no FWI behavior change.
 ## Read First
 
 - [00 - Propagator Optimization Outline](./00-propagator-optimization-outline.md)
+- [01 - Propagator Wrapper Readability](./01-propagator-wrapper-readability.md)
 - [Propagator Optimization Map](./propagator-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

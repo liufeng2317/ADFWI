@@ -1,17 +1,13 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-20 09:32:43
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-15 19:30:38
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Acoustic propagator wrapper.
+
+`AcousticPropagator` adapts an acoustic model and survey into backend tensors,
+builds boundary damping tensors, and dispatches to the acoustic finite-
+difference kernel. Numerical wavefield updates live in `acoustic_kernels.py`.
+"""
 
 from typing import Optional,Dict
-import numpy as np
 import torch
 from torch import Tensor
-import matplotlib.pyplot as plt
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
@@ -20,9 +16,11 @@ from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
 from .acoustic_kernels import forward_kernel
 
 class AcousticPropagator(torch.nn.Module):
-    """Defines the propagator for the isotropic acoustic wave
-    equation (stress-velocity form), solved by the finite
-    difference method.
+    """Isotropic acoustic finite-difference propagator interface.
+
+    This wrapper owns model/survey/backend adaptation and kernel dispatch. It
+    does not own FWI loss construction, waveform transforms, or finite-
+    difference formulas.
 
     Parameters:
     -----------

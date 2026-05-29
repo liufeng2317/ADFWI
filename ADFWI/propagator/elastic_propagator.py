@@ -1,28 +1,25 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-05-03 22:33:52
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-15 18:41:40
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Elastic propagator wrapper.
+
+`ElasticPropagator` adapts an elastic model and survey into backend tensors,
+builds boundary tensors, and dispatches to the elastic finite-difference
+kernel. Numerical wavefield updates live in `elastic_kernels.py`.
+"""
+
 from typing import Optional
-import numpy as np
 import torch
-import matplotlib.pyplot as plt
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from .boundary_condition import bc_pml_xz,bc_gerjan,bc_sincos
 from .elastic_kernels import forward_kernel
 from ADFWI.utils import numpy2tensor
 from ADFWI.backends import get_backend
-import torch.jit as jit
 
 class ElasticPropagator(torch.nn.Module):
-# class ElasticPropagator(jit.ScriptModule):
-    """The class of defining the propagator for the isotropic elastic wave
-    equation (stress-velocity form), which is solved by the finite
-    difference method.
+    """Elastic finite-difference propagator interface.
+
+    This wrapper owns model/survey/backend adaptation and kernel dispatch. It
+    does not own FWI loss construction, waveform transforms, or finite-
+    difference formulas.
 
     Parameters:
     -----------
