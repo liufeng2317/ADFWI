@@ -29,9 +29,9 @@ Replaced broad wildcard imports with the names used by this notebook:
 - `load_marmousi_model`, `resample_marmousi_model`, `wavelet`
 - `plot_damp`
 
-The old relative `sys.path.append("../../../../")` was replaced with a repo-root
-check based on `Path.cwd()` plus the same relative fallback. Output directory
-creation was kept local to the notebook and simplified with `exist_ok=True`.
+The original simple relative `sys.path.append("../../../../")` style was kept
+to avoid making the example setup heavier. Output directory creation was kept
+local to the notebook and simplified with `exist_ok=True`.
 
 ## Validation Result
 
