@@ -24,6 +24,15 @@ docs/version-plans/
   bv1.2-model/
     00-model-optimization-outline.md
     model-optimization-map.md
+  bv1.2-survey/
+    00-survey-optimization-outline.md
+    survey-optimization-map.md
+  bv1.2-propagator/
+    00-propagator-optimization-outline.md
+    propagator-optimization-map.md
+  bv1.2-utils/
+    00-utils-optimization-outline.md
+    utils-optimization-map.md
 ```
 
 ## Version Index
@@ -33,7 +42,10 @@ docs/version-plans/
 | `bv1.1` | Stable baseline | Current synchronized baseline branch. Keep it stable and use it mainly for necessary fixes. | [Code graph](./v1.1/code-graph.md) |
 | `v1.1-freeze` | Frozen tag | Reproducible anchor before later `bv1.2` development. | [Code graph](./v1.1/code-graph.md) |
 | `bv1.2-fwi` | Closeout/stabilization | FWI framework cleanup, backend/device unification, transforms, validation, and archive records. | [Index](./bv1.2-fwi/README.md) |
-| `bv1.2-model` | Planning | Bounded optimization plan for `ADFWI/model` ownership, parameter lifecycle, and validation policy. | [Index](./bv1.2-model/README.md) |
+| `bv1.2-model` | Closeout/stabilization | Bounded optimization and validation records for `ADFWI/model` ownership and parameter contracts. | [Index](./bv1.2-model/README.md) |
+| `bv1.2-survey` | Closeout/stabilization | Bounded optimization and validation records for survey geometry/data contracts. | [Index](./bv1.2-survey/README.md) |
+| `bv1.2-propagator` | Closeout/stabilization | Bounded non-kernel cleanup and validation records for propagator contracts. | [Index](./bv1.2-propagator/README.md) |
+| `bv1.2-utils` | Planning | Bounded optimization plan for shared utility helpers, model data helpers, wavelets, mutes, metrics, and conversion contracts. | [Index](./bv1.2-utils/README.md) |
 
 ## Naming Rules
 
