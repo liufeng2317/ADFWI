@@ -1,0 +1,35 @@
+# bv1.2 Example Sync
+
+This folder records the work for branch `bv1.2-example-sync`.
+
+The goal is not another framework cleanup. The goal is to make the public
+examples match the bv1.2 internal structure while preserving the original
+example style, figures, and user-facing workflow as much as possible.
+
+## Documents
+
+- [00 Example Sync Outline](./00-example-sync-outline.md)
+- [Example Sync Map](./example-sync-map.md)
+
+## Branch Boundary
+
+This branch should focus on examples only:
+
+- update example imports and calls when they no longer match bv1.2;
+- keep notebooks self-contained unless the original example already used a
+  helper;
+- keep scripts and notebooks parallel when both are provided;
+- validate with short, reproducible forward or inversion runs;
+- avoid changing core `ADFWI` modules unless an example exposes a clear bug.
+
+The first active target is the original acoustic Marmousi2 example:
+
+```text
+examples/acoustic/01-model-test/01-Marmousi2/
+```
+
+The existing validation case remains the reference workflow:
+
+```text
+examples/validation/marmousi2_acoustic_bv12/
+```
