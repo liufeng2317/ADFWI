@@ -18,6 +18,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [06 Elastic Forward Bulk Sync](./06-elastic-forward-bulk-sync.md)
 - [07 Multiscale Forward Template](./07-multiscale-forward-template.md)
 - [08 Gradient Checking Forward Sync](./08-gradient-forward-sync.md)
+- [09 All Forward Wrapper Sync](./09-all-forward-wrapper-sync.md)
 
 ## Branch Boundary
 
