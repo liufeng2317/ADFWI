@@ -22,6 +22,9 @@ checkpoint settings, DIP/DR-FWI network definitions, or propagator kernels.
 - Remove old ADFWI repo-root `sys.path` setup.
 - Replace ADFWI wildcard imports with explicit imports from public bv1.2
   namespaces.
+- Generate explicit imports per notebook from the names actually used in that
+  notebook. Do not use a large shared fallback import block; it is less readable
+  than the wildcard form it replaces.
 - Keep local dependency `sys.path` entries when they point to a notebook-local
   helper package, for example pretrained DIP helper code.
 - Add explicit backend setup:
@@ -52,6 +55,7 @@ repo_root_sys_path 0
 missing_backend_import 0
 repo_root_project_path 0
 repo_root_dataset_path 0
+large_shared_import_blocks 0
 ```
 
 Representative import/setup-cell checks passed in the `adfwi` conda
