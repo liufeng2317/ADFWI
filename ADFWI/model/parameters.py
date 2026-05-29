@@ -160,6 +160,10 @@ def elastic_moduli_for_TI(CC,anisotropic_type="VTI"):
                               C55,C56,
                                   C55]
         # [C33,C13,C13,C15,C11,C12,C11,C35,C66,C55,C55]
+    else:
+        raise ValueError(
+            f"Unsupported anisotropic_type {anisotropic_type!r}; expected 'vti' or 'hti'."
+        )
     return CC
 
 

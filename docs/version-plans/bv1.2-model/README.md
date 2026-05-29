@@ -12,6 +12,7 @@ planned.
 - [01 - Model Definition Readability](./01-model-definition-readability.md)
 - [02 - Model Mechanics Convergence](./02-model-mechanics-convergence.md)
 - [03 - Parameter Formula Semantics Audit](./03-parameter-formula-semantics-audit.md)
+- [04 - TI Anisotropic Type Validation](./04-ti-anisotropic-type-validation.md)
 - [Model Optimization Map](./model-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
