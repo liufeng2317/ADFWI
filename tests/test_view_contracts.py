@@ -43,6 +43,31 @@ class ViewPlotContractTests(unittest.TestCase):
         self.assertTrue(path.exists(), f"missing saved figure: {path}")
         self.assertEqual(plt.get_fignums(), [])
 
+    def test_view_package_exports_public_plotting_helpers(self):
+        import ADFWI.view as view
+
+        expected_names = {
+            "animate_inversion_process",
+            "plot_bcx_bcz",
+            "plot_damp",
+            "plot_eps_delta_gamma",
+            "plot_initial_and_inverted",
+            "plot_lam_mu",
+            "plot_misfit",
+            "plot_model",
+            "plot_survey",
+            "plot_vp_rho",
+            "plot_vp_vs_rho",
+            "plot_waveform2D",
+            "plot_waveform_trace",
+            "plot_waveform_wiggle",
+            "plot_wavelet",
+        }
+
+        self.assertEqual(set(view.__all__), expected_names)
+        for name in expected_names:
+            self.assertTrue(callable(getattr(view, name)), name)
+
     def test_velocity_model_plot_helpers_save_and_close(self):
         base = np.arange(12, dtype=np.float32).reshape(3, 4) + 1.0
 

@@ -10,6 +10,7 @@ numerical transforms.
 
 - [00 - View Optimization Outline](./00-view-optimization-outline.md)
 - [01 - View Contract Tests](./01-view-contract-tests.md)
+- [02 - View Explicit Exports](./02-view-explicit-exports.md)
 - [View Optimization Map](./view-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
