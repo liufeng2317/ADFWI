@@ -12,6 +12,7 @@ kernel rewrite, no finite-difference formula change, and no FWI behavior change.
 - [01 - Propagator Wrapper Readability](./01-propagator-wrapper-readability.md)
 - [02 - Propagator Wrapper Contract Tests](./02-propagator-wrapper-contract-tests.md)
 - [03 - Boundary Profile Validation](./03-boundary-profile-validation.md)
+- [04 - Boundary Condition Readability](./04-boundary-condition-readability.md)
 - [Propagator Optimization Map](./propagator-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

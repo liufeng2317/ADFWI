@@ -1,21 +1,16 @@
-'''
-* Author: LiuFeng(SJTU) : liufeng2317@sjtu.edu.cn
-* Date: 2024-04-17 21:41:11
-* LastEditors: LiuFeng
-* LastEditTime: 2024-05-05 14:22:45
-* Description: 
-* Copyright (c) 2024 by liufeng, Email: liufeng2317@sjtu.edu.cn, All Rights Reserved.
-'''
+"""Boundary damping profile builders for propagator wrappers.
+
+This module returns NumPy arrays used by acoustic and elastic propagator
+wrappers. It does not own wavefield time stepping, source injection, receiver
+sampling, or FWI loss behavior.
+"""
+
 import numpy as np
 from math import log
-import torch
 
 
-# ADFWI DAMP
 def bc_pml(nx,nz,dx,dz,pml,vmax,free_surface=True):
-    """
-        calculate the damping in both x and z direction
-    """
+    """Return the scalar PML damping profile used by acoustic propagation."""
     if free_surface:
         nx_pml = nx + 2*pml
         nz_pml = nz + pml
@@ -46,10 +41,8 @@ def bc_pml(nx,nz,dx,dz,pml,vmax,free_surface=True):
             
     return damp_global.T
 
-# SinCos damp
 def bc_sincos(nx,nz,dx,dz,pml,free_surface=False):
-    ''' Set up damping profile
-    '''
+    """Return a SinCos multiplicative damping profile."""
     if free_surface:
         nx_pml = nx + 2*pml
         nz_pml = nz +   pml
@@ -67,11 +60,12 @@ def bc_sincos(nx,nz,dx,dz,pml,free_surface=False):
 
     return damp
 
-# FDWave3D damp
 def bc_gerjan(nx,nz,dx,dz,pml,alpha=0.0053,free_surface=True):
-    """ PML Gerjan et al., 1985
-        G = exp(a*[I - i]^2)
-        -a: attenuation factor
+    """Return a Gerjan-style damping profile.
+
+    The formula follows the current ADFWI implementation of the Gerjan et al.
+    attenuation profile and is intentionally unchanged in this readability
+    pass.
     """
     wt = np.exp(-(alpha*(pml-np.arange(1,pml+1)))**2)
     if free_surface:
@@ -94,8 +88,8 @@ def bc_gerjan(nx,nz,dx,dz,pml,alpha=0.0053,free_surface=True):
             damp[k-1            ,k-1:nx_pml-k+1] = wt[k-1]        # top
     return damp
 
-# FDWave3D ABCdamp
 def bc_pml_xz(nx,nz,dx,dz,pml,vmax,free_surface=True):
+    """Return separate x/z PML damping profiles used by elastic propagation."""
     if free_surface:
         nx_pml = nx + 2*pml
         nz_pml = nz + pml
