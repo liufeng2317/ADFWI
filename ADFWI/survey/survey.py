@@ -73,6 +73,7 @@ class Survey(object):
         return info
     
     def plot(self,model_data,**kwargs):
+        """Plot the full acquisition geometry."""
         src_x = list2numpy(self.source.loc_x)
         src_z = list2numpy(self.source.loc_z)
         rcv_x = list2numpy(self.receiver.loc_x)
@@ -81,6 +82,7 @@ class Survey(object):
         plot_survey(src_x,src_z,rcv_x,rcv_z,model_data,**kwargs)
     
     def plot_single_shot(self,model_data,src_idx,**kwargs):
+        """Plot one source and its active receivers."""
         src_x = list2numpy(self.source.loc_x[src_idx])
         src_z = list2numpy(self.source.loc_z[src_idx])
         rcv_x = list2numpy(self.receiver.loc_x)
@@ -89,7 +91,8 @@ class Survey(object):
             receiver_mask = np.ones(len(rcv_x))
         else:
             receiver_mask = self.receiver_masks[src_idx]
-        rcv_x = rcv_x[np.argwhere(receiver_mask)]
-        rcv_z = rcv_z[np.argwhere(receiver_mask)]
+        active_receivers = np.flatnonzero(receiver_mask)
+        rcv_x = rcv_x[active_receivers]
+        rcv_z = rcv_z[active_receivers]
 
         plot_survey(src_x,src_z,rcv_x,rcv_z,model_data,**kwargs)

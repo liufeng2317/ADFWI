@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import torch
@@ -141,6 +142,19 @@ class SurveyContractTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(masked_survey.receiver_masks, np.asarray(receiver_masks)))
         self.assertFalse(masked_survey.receiver_masks_obs)
+
+    def test_plot_single_shot_passes_1d_active_receiver_locations(self):
+        survey = self._survey()
+        survey.set_receiver_masks([[1, 0, 1], [0, 1, 1]])
+
+        with patch("ADFWI.survey.survey.plot_survey") as mocked_plot:
+            survey.plot_single_shot(np.zeros((4, 4), dtype=np.float32), src_idx=0)
+
+        _, _, rcv_x, rcv_z, _ = mocked_plot.call_args.args
+        self.assertEqual(rcv_x.shape, (2,))
+        self.assertEqual(rcv_z.shape, (2,))
+        self.assertTrue(np.array_equal(rcv_x, np.array([0, 4])))
+        self.assertTrue(np.array_equal(rcv_z, np.array([1, 1])))
 
     def test_seismic_data_record_save_load_round_trip(self):
         survey = self._survey()

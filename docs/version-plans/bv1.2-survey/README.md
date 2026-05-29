@@ -14,6 +14,7 @@ forward/inversion numerical behavior by default.
 - [03 - Receiver Mask Contract](./03-receiver-mask-contract.md)
 - [04 - Source Receiver Contracts](./04-source-receiver-contracts.md)
 - [05 - Survey SeismicData Boundary](./05-survey-seismic-data-boundary.md)
+- [06 - Survey Plot Helper Contract](./06-survey-plot-helper-contract.md)
 - [Survey Optimization Map](./survey-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
