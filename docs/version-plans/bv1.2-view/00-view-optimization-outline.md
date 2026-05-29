@@ -58,7 +58,12 @@ No code implementation is changed in this planning round.
 6. Plot helper tests are currently indirect.
    Validation examples exercise several functions by saving figures, but there
    is no focused `ADFWI/view` smoke test that ensures each public plot helper
-   can run with the non-interactive `Agg` backend.
+   can save/close figures in a non-interactive test environment.
+
+7. Backend selection must stay outside library code.
+   `ADFWI/view` should not call `matplotlib.use(...)`. Tests and validation
+   scripts may choose a non-interactive backend before importing view helpers,
+   but notebooks and interactive users should keep their configured backend.
 
 ## Optimization Strategy
 
@@ -74,9 +79,11 @@ strategy. Do not edit implementation code.
 
 ### Phase 2 - Plotting Contract Smoke Tests
 
-Add focused tests using Matplotlib `Agg`:
+Add focused plotting smoke tests:
 
 - tiny synthetic arrays only;
+- if the test environment needs a non-interactive backend, set it inside the
+  test before importing `ADFWI.view`;
 - call each public plotting helper with `show=False`;
 - save to a temporary path where useful;
 - assert files are created and no figures are left open;
@@ -119,6 +126,10 @@ conda run -n adfwi python -m py_compile ADFWI/view/*.py
 conda run -n adfwi python -m unittest tests/test_view_contracts.py
 git diff --check
 ```
+
+`tests/test_view_contracts.py` may select a non-interactive Matplotlib backend
+locally for headless execution. The production `ADFWI/view` modules should not
+set or change the backend.
 
 If a changed plotting path is used by the validation case:
 

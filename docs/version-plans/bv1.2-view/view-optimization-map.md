@@ -58,15 +58,19 @@ more explicit.
 | --- | --- | --- |
 | module docstrings/import cleanup | low | `py_compile`, import smoke |
 | explicit package exports | low-medium | import smoke for all public names |
-| plotting bug fix | medium | focused `Agg` plotting test and figure creation check |
+| plotting bug fix | medium | focused plotting test and figure creation check |
 | waveform normalization behavior | high | before/after array comparison and caller audit |
 | changing axes, units, or orientation | high | image smoke plus validation figure review |
 | removing legacy files or names | high | repository-wide import/caller migration |
 
 ## Recommended First Code Round
 
-Add `tests/test_view_contracts.py` with `Agg` backend smoke tests for the public
-plot helpers. Keep arrays tiny and save into temporary directories.
+Add `tests/test_view_contracts.py` with smoke tests for the public plot helpers.
+Keep arrays tiny and save into temporary directories.
+
+For headless testing, the test file may select a non-interactive Matplotlib
+backend before importing `ADFWI.view`. Do not set the backend inside
+`ADFWI/view` itself.
 
 After that, fix only the confirmed `plot_eps_delta_gamma()` axis bug and make
 `ADFWI/view/__init__.py` explicit if the tests pass.

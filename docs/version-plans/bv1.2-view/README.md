@@ -32,6 +32,10 @@ It does not own:
 ## Stop Rule
 
 Each view cleanup round must be visible, bounded, and validated by either
-`py_compile`, focused plotting smoke tests with the `Agg` backend, or the
-Marmousi2 validation case when a validation script depends on the changed
-plotting path.
+`py_compile`, focused plotting smoke tests, or the Marmousi2 validation case
+when a validation script depends on the changed plotting path.
+
+Backend policy is important: `ADFWI/view` library code must not force a
+Matplotlib backend. Tests or non-interactive validation scripts may select a
+backend locally before importing plotting helpers, but notebooks and interactive
+users must keep their own backend behavior.
