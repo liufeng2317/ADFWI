@@ -12,6 +12,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [Example Sync Map](./example-sync-map.md)
 - [01 Marmousi2 Forward Import Cleanup](./01-marmousi2-forward-imports.md)
 - [02 Editable Install For Example Imports](./02-editable-install-imports.md)
+- [03 Forward Case Sync Pattern](./03-forward-case-sync-pattern.md)
 
 ## Branch Boundary
 

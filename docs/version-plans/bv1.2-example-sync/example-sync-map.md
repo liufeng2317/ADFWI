@@ -49,7 +49,8 @@ branch bv1.2-example-sync
 | Area | Status | Next action |
 | --- | --- | --- |
 | Validation Marmousi2 acoustic | Reference exists | Use as comparison baseline. |
-| Original acoustic Marmousi2 | Not synchronized in this branch yet | Audit forward and inversion notebooks first. |
+| Original acoustic Marmousi2 forward | Pattern identified | Review generated outputs, then close forward sync. |
+| Original acoustic Marmousi2 inversion | Pending | Apply the forward import/backend pattern before short inversion validation. |
 | Minimal API examples | Pending | Handle after Marmousi2. |
 | Heavy research examples | Deferred | Do not start until core examples are stable. |
 
