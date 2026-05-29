@@ -7,22 +7,25 @@ import scipy.signal as signal
 #---------------------------------------------------------------------------------
 
 def calculate_spectrum(rcv, dt):
+    """Return positive-half FFT amplitude and power spectra.
+
+    Parameters
+    ----------
+    rcv : np.ndarray
+        Receiver-time data with shape ``[receiver, time]``.
+    dt : float
+        Time sampling interval in seconds.
+
+    Returns
+    -------
+    positive_freqs : np.ndarray
+        Positive frequency bins from ``np.fft.fftfreq``.
+    amplitude_spectrum : np.ndarray
+        Absolute FFT values for the positive frequency half.
+    power_spectrum : np.ndarray
+        Squared amplitude spectrum.
     """
-    Perform frequency spectrum analysis of seismic data and return the spectrum data.
-    
-    Parameters:
-    rcv (np.ndarray): Seismic data with shape (n_receivers, n_samples).
-    t (np.ndarray): Time vector with shape (n_samples,).
-    
-    Returns:
-    freqs (np.ndarray): Array of frequencies (positive frequencies).
-    amplitude_spectrum (np.ndarray): Amplitude spectrum of the seismic data.
-    power_spectrum (np.ndarray): Power spectrum of the seismic data.
-    """
-    # 1. Perform Fast Fourier Transform (FFT) on each receiver's data
-    # rcv.shape = (n_receivers, n_samples)
-    n_receivers, n_samples = rcv.shape
-    fs = 1 / dt  # Sampling frequency
+    _, n_samples = rcv.shape
     
     # Apply FFT to each trace (receiver data)
     fft_data = np.fft.fft(rcv, axis=1)  # FFT along the time axis (axis=1)
@@ -43,31 +46,30 @@ def calculate_spectrum(rcv, dt):
     return positive_freqs, amplitude_spectrum, power_spectrum
 
 def filter_low_frequencies_zero_phase(data, dt, cutoff_freq=5):
+    """Apply zero-phase high-pass filtering below ``cutoff_freq``.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Seismic data with shape ``[shot, time, receiver]``.
+    dt : float
+        Time sampling interval in seconds.
+    cutoff_freq : float, optional
+        Frequencies below this cutoff are attenuated by the current high-pass
+        Butterworth filter.
+
+    Returns
+    -------
+    np.ndarray
+        Zero-phase filtered seismic data with the same shape and dtype as
+        ``data``.
     """
-    Apply zero-phase filtering to remove frequencies below the cutoff frequency.
+    n_shots, _, n_receivers = data.shape
     
-    Parameters:
-    data (np.ndarray): Seismic data with shape [shot, t, rcv], where
-                        - shot: number of shots
-                        - t: number of time samples
-                        - rcv: number of receivers
-    dt (float): Time step (sampling interval).
-    cutoff_freq (float): The cutoff frequency in Hz. Frequencies below this value will be filtered out.
-    
-    Returns:
-    np.ndarray: Zero-phase filtered seismic data.
-    """
-    n_shots, n_time, n_receivers = data.shape
-    
-    # Define the Nyquist frequency
-    nyquist_freq = 0.5 / dt
-    
-    # Create a lowpass filter using scipy
-    # The filter is designed to remove frequencies below cutoff_freq (lowpass filter)
     nyquist = 0.5 / dt  # Nyquist frequency
     normalized_cutoff = cutoff_freq / nyquist  # Normalize the cutoff frequency
     
-    # Design a Butterworth lowpass filter
+    # Design the historical high-pass Butterworth filter.
     b, a = signal.butter(6, normalized_cutoff, btype='high')
     
     # Apply zero-phase filtering to each trace using filtfilt
