@@ -14,6 +14,7 @@ kernel rewrite, no finite-difference formula change, and no FWI behavior change.
 - [03 - Boundary Profile Validation](./03-boundary-profile-validation.md)
 - [04 - Boundary Condition Readability](./04-boundary-condition-readability.md)
 - [05 - Non Kernel Cleanup Closeout](./05-non-kernel-cleanup-closeout.md)
+- [06 - Final Audit and Validation](./06-final-audit-validation.md)
 - [Propagator Optimization Map](./propagator-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
@@ -34,6 +35,7 @@ Do not edit propagator kernels in the first round.
 
 ## Stop Rule
 
-Stop this planning stage when ownership boundaries, risk levels, validation
-requirements, and the first bounded implementation candidates are clear.
-Do not continue into numerical edits without a dedicated validation plan.
+The non-kernel cleanup is closed by
+[06 - Final Audit and Validation](./06-final-audit-validation.md). Do not
+continue into numerical edits without a dedicated validation plan, reference
+forward/backward outputs, and an explicit performance or correctness target.
