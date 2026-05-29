@@ -65,10 +65,15 @@ class Receiver(object):
     
     def add_receivers(self, rcv_x: np.array,rcv_z:np.array, rcv_type: str) -> None:
         """Append multiple receivers with one receiver type."""
+        rcv_x = np.asarray(rcv_x)
+        rcv_z = np.asarray(rcv_z)
+
         if rcv_x.shape != rcv_z.shape:
             raise ValueError(
-                "Receiver Error: Inconsistant number of receiver in X and Z directions"
+                "Receiver Error: Inconsistent number of receiver in X and Z directions"
             )
+        if rcv_x.ndim != 1:
+            raise ValueError("Receiver locations must be 1-D arrays")
         if rcv_type.lower() not in ["pr", "vx", "vz"]:
             raise ValueError("Receiver type must be either pr, vx, vz")
         rcv_n = len(rcv_x)

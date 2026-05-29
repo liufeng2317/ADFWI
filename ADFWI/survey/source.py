@@ -70,13 +70,26 @@ class Source(object):
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
         """Append encoded sources with source-specific encoded wavelets."""
+        src_x = np.asarray(src_x)
+        src_z = np.asarray(src_z)
+        src_wavelet = np.asarray(src_wavelet)
+        if src_mt is None:
+            raise ValueError("Moment tensor must be provided for mt source")
+        src_mt = np.asarray(src_mt)
+
         if src_x.shape != src_z.shape:
             raise ValueError(
                 "Source location along x and z direction must have the same shape"
             )
+        if src_x.ndim == 0:
+            raise ValueError("Encoded source locations must be array-like")
         if src_type.lower() not in ["mt"]:
             raise ValueError(
                 "Source type must be either mt"
+            )
+        if src_wavelet.ndim < 2:
+            raise ValueError(
+                "Encoded source wavelet must have shape (..., nt)"
             )
         if src_wavelet.shape[-1] != self.nt:
             raise ValueError(
@@ -85,8 +98,6 @@ class Source(object):
         if src_mt.shape != (3, 3):
             raise ValueError("Moment tensor must be a 3x3 matrix")
 
-        if src_type.lower() == "mt" and src_mt is None:
-            raise ValueError("Moment tensor must be provided for mt source")
         src_n = len(src_x)
         # add source
         self.loc_x.extend(numpy2list(src_x))
@@ -105,23 +116,30 @@ class Source(object):
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
         """Append multiple sources that share one wavelet and moment tensor."""
+        src_x = np.asarray(src_x)
+        src_z = np.asarray(src_z)
+        src_wavelet = np.asarray(src_wavelet)
+        if src_mt is None:
+            raise ValueError("Moment tensor must be provided for mt source")
+        src_mt = np.asarray(src_mt)
+
         if src_x.shape != src_z.shape:
             raise ValueError(
                 "Source location along x and z direction must have the same shape"
             )
+        if src_x.ndim != 1:
+            raise ValueError("Source locations must be 1-D arrays")
         if src_type.lower() not in ["mt"]:
             raise ValueError(
                 "Source type must be either mt"
             )
-        if src_wavelet.shape[0] != self.nt:
+        if src_wavelet.ndim != 1 or src_wavelet.shape[0] != self.nt:
             raise ValueError(
                 "Source wavelet must have the same length as the number of time samples"
             )
         if src_mt.shape != (3, 3):
             raise ValueError("Moment tensor must be a 3x3 matrix")
 
-        if src_type.lower() == "mt" and src_mt is None:
-            raise ValueError("Moment tensor must be provided for mt source")
         src_n = len(src_x)
         # add source
         self.loc_x.extend(numpy2list(src_x.reshape(-1)))
@@ -140,19 +158,21 @@ class Source(object):
             src_mt      : Optional[np.ndarray] = np.array([[1,0,0],[0,1,0],[0,0,1]]), 
         ) -> None:
         """Append one source with one wavelet and one moment tensor."""
+        src_wavelet = np.asarray(src_wavelet)
+        if src_mt is None:
+            raise ValueError("Moment tensor must be provided for mt source")
+        src_mt = np.asarray(src_mt)
+
         if src_type.lower() not in ["mt"]:
             raise ValueError(
                 "Source type must be either mt"
             )
-        if src_wavelet.shape[0] != self.nt:
+        if src_wavelet.ndim != 1 or src_wavelet.shape[0] != self.nt:
             raise ValueError(
                 "Source wavelet must have the same length as the number of time samples"
             )
         if src_mt.shape != (3, 3):
             raise ValueError("Moment tensor must be a 3x3 matrix")
-
-        if src_type.lower() == "mt" and src_mt is None:
-            raise ValueError("Moment tensor must be provided for mt source")
 
         # add source
         self.loc_x.append(src_x)

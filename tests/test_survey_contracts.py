@@ -40,6 +40,79 @@ class SurveyContractTests(unittest.TestCase):
         self.assertEqual(survey.source.get_type().tolist(), ["mt", "mt"])
         self.assertEqual(survey.receiver.get_type().tolist(), ["pr", "pr", "pr"])
 
+    def test_source_adders_accept_array_like_and_validate_shapes(self):
+        nt = 4
+        source = Source(nt=nt, dt=0.002, f0=4.0)
+
+        source.add_source(1, 2, [0.0, 1.0, 0.5, 0.0])
+        source.add_sources([3, 5], [2, 2], [0.0, 0.5, 1.0, 0.0])
+
+        self.assertEqual(source.num, 3)
+        self.assertEqual(source.get_loc().shape, (3, 2))
+        self.assertEqual(source.get_wavelet().shape, (3, nt))
+        self.assertEqual(source.get_moment_tensor().shape, (3, 3, 3))
+
+        with self.assertRaisesRegex(ValueError, "Source wavelet"):
+            source.add_source(1, 2, [[0.0, 1.0, 0.5, 0.0]])
+
+        with self.assertRaisesRegex(ValueError, "same shape"):
+            source.add_sources([1, 2], [1], [0.0, 0.5, 1.0, 0.0])
+
+        with self.assertRaisesRegex(ValueError, "1-D"):
+            source.add_sources([[1, 2]], [[1, 2]], [0.0, 0.5, 1.0, 0.0])
+
+        with self.assertRaisesRegex(ValueError, "Moment tensor"):
+            source.add_source(1, 2, [0.0, 1.0, 0.5, 0.0], src_mt=None)
+
+    def test_encoded_source_contracts(self):
+        nt = 4
+        source = Source(nt=nt, dt=0.002, f0=4.0)
+        encoded_wavelet = np.ones((2, 2, nt), dtype=np.float32)
+
+        source.add_encoded_sources(
+            src_x=np.array([1, 3]),
+            src_z=np.array([2, 2]),
+            src_wavelet=encoded_wavelet,
+        )
+
+        self.assertEqual(source.num, 2)
+        self.assertEqual(source.get_loc().shape, (2, 2))
+        self.assertEqual(source.get_wavelet().shape, (2, 2, nt))
+        self.assertEqual(source.get_moment_tensor().shape, (2, 3, 3))
+
+        with self.assertRaisesRegex(ValueError, "same length"):
+            source.add_encoded_sources(
+                src_x=np.array([1, 3]),
+                src_z=np.array([2, 2]),
+                src_wavelet=np.ones((2, 2, nt + 1), dtype=np.float32),
+            )
+
+        with self.assertRaisesRegex(ValueError, "array-like"):
+            source.add_encoded_sources(
+                src_x=np.array(1),
+                src_z=np.array(2),
+                src_wavelet=encoded_wavelet,
+            )
+
+    def test_receiver_adders_accept_array_like_and_validate_shapes(self):
+        receiver = Receiver(nt=4, dt=0.002)
+
+        receiver.add_receiver(0, 1, "pr")
+        receiver.add_receivers([1, 2], [1, 1], "vx")
+
+        self.assertEqual(receiver.num, 3)
+        self.assertEqual(receiver.get_loc().shape, (3, 2))
+        self.assertEqual(receiver.get_type().tolist(), ["pr", "vx", "vx"])
+
+        with self.assertRaisesRegex(ValueError, "Inconsistent"):
+            receiver.add_receivers([1, 2], [1], "pr")
+
+        with self.assertRaisesRegex(ValueError, "1-D"):
+            receiver.add_receivers([[1, 2]], [[1, 2]], "pr")
+
+        with self.assertRaisesRegex(ValueError, "Receiver type"):
+            receiver.add_receiver(0, 1, "ux")
+
     def test_receiver_mask_shape_contract(self):
         survey = self._survey()
         receiver_masks = np.array([[1, 0, 1], [0, 1, 1]], dtype=np.float32)
