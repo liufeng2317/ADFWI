@@ -15,6 +15,7 @@ planned.
 - [04 - TI Anisotropic Type Validation](./04-ti-anisotropic-type-validation.md)
 - [05 - Staggered Grid Validation](./05-staggered-grid-validation.md)
 - [06 - Model Closeout Summary](./06-model-closeout-summary.md)
+- [07 - Model Closeout Real Case Validation](./07-model-closeout-real-case-validation.md)
 - [Model Optimization Map](./model-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
