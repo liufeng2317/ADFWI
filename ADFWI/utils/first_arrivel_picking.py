@@ -3,17 +3,14 @@ from ADFWI.utils.utils import numpy2tensor
 
 
 def brutal_picker(trace):
-    ''' pick the first arrival 
-    '''
+    """Pick the first sample above a per-trace relative amplitude threshold."""
     threds = 0.001 * np.max(abs(trace), axis=-1)
     pick = [(abs(trace[i,:]) > threds[i]).argmax(axis=-1) for i in range(trace.shape[0])]
     return np.array(pick)
 
-# functions acting on individual traces
+
 def mask(itmin, itmax, nt, length):
-    ''' constructs tapered mask that can be applied to trace to
-        mute early or late arrivals.
-    '''
+    """Construct the legacy tapered arrival mask."""
     mask = np.ones(nt)
     # construct taper
     win = np.sin(np.linspace(0, np.pi, 2*length))
@@ -31,16 +28,14 @@ def mask(itmin, itmax, nt, length):
     return mask
 
 def mute_arrival(trace, itmin, itmax, mutetype, nt, length):
-    ''' applies tapered mask to record section, muting early or late arrivals
-    '''
+    """Apply ``1 - mask(...)`` to one trace on the trace device."""
     win = 1 - mask(itmin, itmax, nt, length)
     win = numpy2tensor(win).to(trace.device)
     trace = trace * win
     return trace
     
 def apply_mute(mute_late_window, shot, dt):
-    ''' apply time window and offset window mute. [nt,nrcv]
-    '''
+    """Apply the legacy late-window mute to a shot with shape ``[time, receiver]``."""
     shot_np = shot.cpu().detach().numpy()  
     # pick up the first arrival for each trace
     pick = brutal_picker(shot_np.T) + np.ceil(mute_late_window/dt) # [nrcv]

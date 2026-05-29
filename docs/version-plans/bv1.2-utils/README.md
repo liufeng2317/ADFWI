@@ -20,6 +20,7 @@ change.
 - [08 - Noise Docs and Frequency Contract Audit](./08-noise-doc-frequency-contract-audit.md)
 - [09 - Frequency Process Contract Tests](./09-frequency-process-contract-tests.md)
 - [10 - Frequency Process Documentation Cleanup](./10-frequency-process-doc-cleanup.md)
+- [11 - Legacy Mute Contract Tests](./11-legacy-mute-contract-tests.md)
 - [Utils Optimization Map](./utils-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
