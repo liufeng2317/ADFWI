@@ -9,6 +9,8 @@ for normal reading.
 
 - [bv1.2 Closeout Summary](./135-bv12-closeout-summary.md): final branch status,
   stop criteria, validation state, and recommended next tasks.
+- [FWI Final Audit and Validation](./136-fwi-final-audit-validation.md):
+  final post-cleanup `ADFWI/fwi` audit and validation check.
 - [Optimization Chain](./optimization-chain.md): top-down architecture,
   ownership map, numerical policy, and validation commands.
 - [Archive Index](./archive-index.md): grouped access to the detailed numbered
@@ -154,6 +156,7 @@ for normal reading.
 | 133 | [Marmousi2 Inversion Script Comparison](./133-marmousi2-inversion-script-comparison.md) | Compare separated inversion script output against the manually verified notebook inversion output. |
 | 134 | [FWI Package Readability Closeout](./134-fwi-package-readability-closeout.md) | Clarify `ADFWI.fwi` package entry points and abstract base contracts without changing numerical behavior. |
 | 135 | [bv1.2 Closeout Summary](./135-bv12-closeout-summary.md) | Final branch status, archive policy, stop criteria, and recommended release-stabilization tasks. |
+| 136 | [FWI Final Audit and Validation](./136-fwi-final-audit-validation.md) | Final `ADFWI/fwi` closeout audit after module-specific cleanup and validation check. |
 | archive | [Archive Index](./archive-index.md) | Group the detailed numbered records by backend, transforms, iteration, runtime, compatibility, validation, and release stabilization. |
 
 ## Closeout Direction

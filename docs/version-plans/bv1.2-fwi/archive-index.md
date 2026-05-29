@@ -10,6 +10,8 @@ renumbered.
   ownership map, validation commands, and stabilization boundaries.
 - [135 - bv1.2 Closeout Summary](./135-bv12-closeout-summary.md): final branch
   status and stop criteria.
+- [136 - FWI Final Audit and Validation](./136-fwi-final-audit-validation.md):
+  final post-cleanup FWI audit and validation check.
 - [00 - Development Plan](./00-development-plan.md): original goals and
   milestones.
 
@@ -120,7 +122,7 @@ Representative records:
 
 ## Documentation And Release Stabilization
 
-- `22`, `33`-`34`, `41`, `72`, `87`, `115`, `121`-`122`, `134`-`135`
+- `22`, `33`-`34`, `41`, `72`, `87`, `115`, `121`-`122`, `134`-`136`
 - Main topic: module map, optimization chain, responsibility contracts,
   stopping broad optimization, and release/stabilization handoff.
 
@@ -130,6 +132,7 @@ Representative records:
 - [72 - Optimization Chain Documentation](./72-optimization-chain-doc.md)
 - [87 - Marmousi2 Benchmark Direction Adjustment](./87-marmousi2-benchmark-direction-adjustment.md)
 - [135 - bv1.2 Closeout Summary](./135-bv12-closeout-summary.md)
+- [136 - FWI Final Audit and Validation](./136-fwi-final-audit-validation.md)
 
 ## Deprecated Direction
 

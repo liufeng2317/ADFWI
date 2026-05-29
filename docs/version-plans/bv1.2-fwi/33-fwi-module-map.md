@@ -22,8 +22,8 @@ flowchart TD
     Syn --> Pair
 
     Pair --> Transforms[Waveform transforms\nmask, mute, low-pass, normalize\nADFWI.fwi.transforms]
-    Transforms --> Data[Data contract and component selection\nADFWI.fwi.data]
-    Data --> Misfit[Misfit loss\nADFWI.fwi.misfit]
+    Transforms --> LossInputs[Loss-input contract and component selection\nADFWI.fwi.iteration.loss]
+    LossInputs --> Misfit[Misfit loss\nADFWI.fwi.misfit]
 
     Model --> Reg[Regularization loss\nADFWI.fwi.regularization\nADFWI.fwi.runtime.regularization]
     Misfit --> Total[Total batch loss\nADFWI.fwi.iteration]
@@ -42,7 +42,7 @@ flowchart TD
 | --- | --- | --- |
 | `ADFWI/fwi/acoustic_fwi.py` | Acoustic FWI experiment driver | Keeps the acoustic inversion loop visible: forward modeling, loss, backward, gradient processing, optimizer update, cache. |
 | `ADFWI/fwi/elastic_fwi.py` | Elastic/anisotropic FWI experiment driver | Keeps the elastic inversion loop visible, including pressure/vx/vz component selection and elastic parameter updates. |
-| `ADFWI/fwi/data/` | Data entering the objective function | Builds synthetic/observed loss pairs, applies receiver/data masks, selects elastic components, combines weighted component losses. |
+| `ADFWI/fwi/iteration/loss.py` | Data entering the objective function | Builds synthetic/observed loss inputs, applies receiver/data masks, selects elastic components, combines weighted component losses, and dispatches misfit evaluation. |
 | `ADFWI/fwi/transforms/` | Seismic waveform preprocessing | Encodes trace normalization, receiver masking, data masks, offset mute, first-arrival mute, and low-pass transforms. |
 | `ADFWI/fwi/misfit/` | Data misfit definition | Defines objective functions such as L2, Wasserstein, StudentT, SoftDTW, and travel-time style losses. |
 | `ADFWI/fwi/regularization/` | Model prior / smoothness constraint | Defines model-space penalties used together with data misfit. |
@@ -57,7 +57,7 @@ The current split is physically reasonable because it follows the FWI chain:
 
 1. model and survey define the experiment;
 2. propagator generates synthetic data;
-3. data/transforms prepare observed and synthetic waveforms consistently;
+3. transforms and iteration loss helpers prepare observed and synthetic waveforms consistently;
 4. misfit and regularization define the objective;
 5. autograd computes gradients;
 6. gradient processors apply geophysical preconditioning;
@@ -66,7 +66,7 @@ The current split is physically reasonable because it follows the FWI chain:
 This organization helps researchers locate the right layer:
 
 - change a waveform mute or filter: use `fwi.transforms`;
-- change observed/synthetic pairing or elastic component weights: use `fwi.data`;
+- change observed/synthetic pairing or elastic component weights: use `fwi.iteration.loss`; physical component ownership stays in `acoustic_fwi.py` and `elastic_fwi.py`;
 - change the objective function: use `fwi.misfit` or `fwi.regularization`;
 - change the inversion schedule or batching: use `fwi.iteration`;
 - change backend/device behavior: use `ADFWI.backends` and `fwi.runtime.backend`;
@@ -77,7 +77,7 @@ This organization helps researchers locate the right layer:
 - Keep `acoustic_fwi.py` and `elastic_fwi.py` as readable algorithm drivers. Do not hide the complete inversion loop behind too many nested helpers.
 - Keep `runtime` as execution glue only. It may reduce acoustic/elastic duplication, but it should not own physical modeling assumptions.
 - Keep waveform operations in `transforms` when they act on seismic traces before loss calculation.
-- Keep data contract and component bookkeeping in `data` when they decide which synthetic/observed tensors enter the loss.
+- Keep loss-input and component bookkeeping in `iteration.loss` when it decides which synthetic/observed tensors enter the loss.
 - Keep numerical behavior fixed unless a validation document explicitly accepts a new tolerance or formula.
 
 ## Recommended Next Refactor Direction
