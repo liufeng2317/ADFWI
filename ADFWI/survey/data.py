@@ -1,4 +1,10 @@
-"""Recorded seismic waveform data and survey metadata snapshots."""
+"""Recorded seismic waveform data and survey metadata snapshots.
+
+`SeismicData` stores waveform arrays and the survey metadata snapshot used to
+interpret them. Parsing and plotting methods are compatibility helpers around
+that stored state; source/receiver geometry mutation belongs to `Survey`,
+`Source`, and `Receiver`.
+"""
 
 import numpy as np 
 
@@ -11,7 +17,8 @@ class SeismicData():
 
     `SeismicData` snapshots source/receiver metadata from a `Survey`, records
     propagator output dictionaries as numpy arrays, and saves/loads the current
-    `.npz` format. It does not own acquisition geometry mutation.
+    `.npz` format. It does not own acquisition geometry mutation, propagator
+    execution, or FWI loss construction.
     """
     def __init__(self,survey:Survey):
         self.survey     = survey
@@ -52,6 +59,17 @@ class SeismicData():
         for key,value in data.items():
             recorded[key] = tensor2numpy(gpu2cpu(value)).copy()
         self.data = recorded
+
+    def _require_components(self, keys, data_kind):
+        """Return stored component arrays after checking the recorded state."""
+        if self.data is None:
+            raise ValueError(f"No {data_kind} waveform data has been recorded or loaded")
+        missing = [key for key in keys if key not in self.data]
+        if missing:
+            raise ValueError(
+                f"Missing {data_kind} waveform component(s): {', '.join(missing)}"
+            )
+        return tuple(self.data[key] for key in keys)
     
     def save(self,path:str):
         """Save waveform data and survey metadata to the current `.npz` format."""
@@ -93,7 +111,7 @@ class SeismicData():
         return
     
     def normalize_and_mask(self,array):
-        """Normalize each trace while preserving all-zero traces."""
+        """Normalize each trace along time while preserving all-zero traces."""
         time_sum = np.sum(np.abs(array), axis=1, keepdims=True)
         mask = time_sum == 0
         max_val  = np.max(np.abs(array), axis=1, keepdims=True)
@@ -102,12 +120,11 @@ class SeismicData():
         return array
     
     def parse_elastic_data(self,normalize=False):
-        """Return elastic pressure, txz, vx, and vz arrays."""
-        txx = self.data["txx"]
-        tzz = self.data["tzz"]
-        txz = self.data["txz"]
-        vx  = self.data["vx"]
-        vz  = self.data["vz"]
+        """Return elastic receiver components as ``pressure, txz, vx, vz``."""
+        txx, tzz, txz, vx, vz = self._require_components(
+            ("txx", "tzz", "txz", "vx", "vz"),
+            "elastic",
+        )
         pressure = -(txx + tzz)
         if normalize:
             pressure = self.normalize_and_mask(pressure)
@@ -117,10 +134,8 @@ class SeismicData():
         return pressure,txz,vx,vz
 
     def parse_acoustic_data(self,normalize=False):
-        """Return acoustic pressure, u, and w arrays."""
-        pressure = self.data["p"]
-        u = self.data["u"]
-        w = self.data["w"]
+        """Return acoustic receiver components as ``pressure, u, w``."""
+        pressure, u, w = self._require_components(("p", "u", "w"), "acoustic")
         if normalize:
             pressure = self.normalize_and_mask(pressure)
             u = self.normalize_and_mask(u)
@@ -129,6 +144,7 @@ class SeismicData():
         return pressure,u,w    
     
     def plot_waveform2D(self,i_shot,rcv_type="pressure",acoustic_or_elastic="acoustic",normalize=True,**kwargs):
+        """Plot one shot gather with the stored waveform plotting helpers."""
         if acoustic_or_elastic == "acoustic":
             pressure,vx,vz = self.parse_acoustic_data(normalize=normalize)
         elif acoustic_or_elastic == "elastic":
@@ -145,6 +161,7 @@ class SeismicData():
         return
     
     def plot_waveform_wiggle(self,i_shot,rcv_type="pressure",acoustic_or_elastic="acoustic",normalize=True,**kwargs):
+        """Plot one shot gather as wiggle traces."""
         if acoustic_or_elastic == "acoustic":
             pressure,vx,vz = self.parse_acoustic_data(normalize=normalize)
         elif acoustic_or_elastic == "elastic":
@@ -161,6 +178,7 @@ class SeismicData():
         return
     
     def plot_waveform_trace(self,i_shot,i_trace,rcv_type="pressure",acoustic_or_elastic="acoustic",normalize=True,**kwargs):
+        """Plot one waveform trace from stored data."""
         if acoustic_or_elastic == "acoustic":
             pressure,vx,vz = self.parse_acoustic_data(normalize=normalize)
         elif acoustic_or_elastic == "elastic":

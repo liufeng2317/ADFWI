@@ -178,6 +178,18 @@ class SurveyContractTests(unittest.TestCase):
         self.assertTrue(np.array_equal(loaded.data["u"], u))
         self.assertTrue(np.array_equal(loaded.data["w"], w))
 
+    def test_seismic_data_parse_requires_recorded_components(self):
+        survey = self._survey()
+        seismic_data = SeismicData(survey)
+
+        with self.assertRaisesRegex(ValueError, "No acoustic waveform data"):
+            seismic_data.parse_acoustic_data()
+
+        seismic_data.data = {"p": np.zeros((2, 5, 3), dtype=np.float32)}
+
+        with self.assertRaisesRegex(ValueError, "Missing acoustic waveform component"):
+            seismic_data.parse_acoustic_data()
+
     def test_seismic_data_parse_elastic_and_normalization_contracts(self):
         survey = self._survey()
         seismic_data = SeismicData(survey)

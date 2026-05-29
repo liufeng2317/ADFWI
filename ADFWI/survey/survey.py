@@ -1,4 +1,9 @@
-"""Survey-level acquisition geometry built from sources and receivers."""
+"""Survey-level acquisition geometry built from sources and receivers.
+
+`Survey` is the acquisition-state object. It composes a `Source`, a `Receiver`,
+and optional receiver masks. It does not own waveform arrays, propagator
+execution, or FWI loss logic.
+"""
 
 from .receiver import Receiver
 from .source import Source
@@ -33,9 +38,10 @@ class Survey(object):
     def __init__(self,source:Source,receiver:Receiver,receiver_masks=None,receiver_masks_obs=True) -> None:
         self.source         = source
         self.receiver       = receiver
-        # receiver_masks marks active receivers for each shot.
+        # receiver_masks marks active receivers for each shot. Survey stores
+        # this state; propagator/FWI code decides when to apply it.
         self.receiver_masks = None
-        # receiver_masks_obs -> mark if the obs waveform need to be masked or not
+        # Whether observed waveforms are already masked before entering FWI.
         self.receiver_masks_obs = receiver_masks_obs
         if receiver_masks is not None:
             self.set_receiver_masks(receiver_masks)
