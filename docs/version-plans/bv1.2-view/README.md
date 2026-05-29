@@ -12,6 +12,7 @@ numerical transforms.
 - [01 - View Contract Tests](./01-view-contract-tests.md)
 - [02 - View Explicit Exports](./02-view-explicit-exports.md)
 - [03 - View Closeout Audit](./03-view-closeout-audit.md)
+- [04 - View Real-Case Plot Audit](./04-view-real-case-plot-audit.md)
 - [View Optimization Map](./view-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

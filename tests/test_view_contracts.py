@@ -147,6 +147,21 @@ class ViewPlotContractTests(unittest.TestCase):
             lambda path: plot_waveform_wiggle(wiggle, show=False, save_path=str(path)),
         )
 
+    def test_waveform_wiggle_uses_a_fresh_figure(self):
+        existing = plt.figure()
+        plt.imshow(np.ones((2, 2), dtype=np.float32))
+        existing_number = existing.number
+
+        path = self.output_dir / "wiggle_fresh.png"
+        plot_waveform_wiggle(
+            np.arange(16 * 4, dtype=np.float32).reshape(16, 4),
+            show=False,
+            save_path=str(path),
+        )
+
+        self.assertTrue(path.exists())
+        self.assertIn(existing_number, plt.get_fignums())
+
     def test_inversion_plot_helpers_save_and_close(self):
         vp_init = np.arange(12, dtype=np.float32).reshape(3, 4) + 1500.0
         iter_vp = np.stack([vp_init, vp_init + 10.0])

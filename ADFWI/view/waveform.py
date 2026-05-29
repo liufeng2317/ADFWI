@@ -269,7 +269,8 @@ def wiggle_input_check(data, tt, xx, sf, verbose):
     return data, tt, xx, ts
 
 
-def plot_waveform_wiggle(data, tt=None, xx=None, color='k', sf=0.15, verbose=False,save_path="",show=False):
+def plot_waveform_wiggle(data, tt=None, xx=None, color='k', sf=0.15, verbose=False,
+                         figsize=(8, 6), save_path="", show=False):
     '''Wiggle plot of a sesimic data section
     Syntax examples:
         wiggle(data)
@@ -315,7 +316,8 @@ def plot_waveform_wiggle(data, tt=None, xx=None, color='k', sf=0.15, verbose=Fal
     # Input check
     data, tt_new, xx_new, ts_new = wiggle_input_check(data, tt, xx, sf, verbose)
 
-    # Plot data using matplotlib.pyplot
+    # Plot data using a fresh figure so prior plots do not leak into wiggles.
+    plt.figure(figsize=figsize)
     Ntr = data.shape[1]
 
     ax = plt.gca()
