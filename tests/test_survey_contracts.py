@@ -62,10 +62,13 @@ class SurveyContractTests(unittest.TestCase):
 
         seismic_data.record_data(waveform)
 
+        self.assertIsInstance(waveform["p"], torch.Tensor)
+        self.assertIsInstance(seismic_data.data["p"], np.ndarray)
         pressure, u, w = seismic_data.parse_acoustic_data(normalize=False)
-        self.assertTrue(np.array_equal(pressure, waveform["p"]))
-        self.assertTrue(np.array_equal(u, waveform["u"]))
-        self.assertTrue(np.array_equal(w, waveform["w"]))
+        self.assertEqual(pressure.dtype, np.float32)
+        self.assertTrue(np.array_equal(pressure, waveform["p"].numpy()))
+        self.assertTrue(np.array_equal(u, waveform["u"].numpy()))
+        self.assertTrue(np.array_equal(w, waveform["w"].numpy()))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "obs_data.npz"
@@ -83,6 +86,30 @@ class SurveyContractTests(unittest.TestCase):
         self.assertTrue(np.array_equal(loaded.data["p"], pressure))
         self.assertTrue(np.array_equal(loaded.data["u"], u))
         self.assertTrue(np.array_equal(loaded.data["w"], w))
+
+    def test_seismic_data_parse_elastic_and_normalization_contracts(self):
+        survey = self._survey()
+        seismic_data = SeismicData(survey)
+        txx = np.arange(2 * 5 * 3, dtype=np.float32).reshape(2, 5, 3)
+        tzz = np.ones((2, 5, 3), dtype=np.float32)
+        txz = np.full((2, 5, 3), 2.0, dtype=np.float32)
+        vx = np.zeros((2, 5, 3), dtype=np.float32)
+        vz = np.full((2, 5, 3), -3.0, dtype=np.float32)
+        seismic_data.data = {"txx": txx, "tzz": tzz, "txz": txz, "vx": vx, "vz": vz}
+
+        pressure, parsed_txz, parsed_vx, parsed_vz = seismic_data.parse_elastic_data(normalize=False)
+
+        self.assertTrue(np.array_equal(pressure, -(txx + tzz)))
+        self.assertTrue(np.array_equal(parsed_txz, txz))
+        self.assertTrue(np.array_equal(parsed_vx, vx))
+        self.assertTrue(np.array_equal(parsed_vz, vz))
+
+        normalized = seismic_data.normalize_and_mask(
+            np.array([[[0.0, 0.0], [0.0, 2.0], [0.0, -4.0]]], dtype=np.float32)
+        )
+
+        expected = np.array([[[0.0, 0.0], [0.0, 0.5], [0.0, -1.0]]], dtype=np.float32)
+        self.assertTrue(np.array_equal(normalized, expected))
 
 
 if __name__ == "__main__":

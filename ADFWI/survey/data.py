@@ -48,10 +48,10 @@ class SeismicData():
         data: dict
             shot gather data in dictionary format
         """
+        recorded = {}
         for key,value in data.items():
-            value      = tensor2numpy(gpu2cpu(value)).copy()
-            data[key]  = value
-        self.data = data
+            recorded[key] = tensor2numpy(gpu2cpu(value)).copy()
+        self.data = recorded
     
     def save(self,path:str):
         """Save waveform data and survey metadata to the current `.npz` format."""
@@ -69,7 +69,7 @@ class SeismicData():
         np.savez(path, **data_save) 
     
     def load(self, path: str):
-        """ Load the shot gather data
+        """Load waveform data and survey metadata from the current `.npz` format.
 
         Parameters:
         ----------
