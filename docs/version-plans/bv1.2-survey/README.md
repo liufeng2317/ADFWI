@@ -15,6 +15,7 @@ forward/inversion numerical behavior by default.
 - [04 - Source Receiver Contracts](./04-source-receiver-contracts.md)
 - [05 - Survey SeismicData Boundary](./05-survey-seismic-data-boundary.md)
 - [06 - Survey Plot Helper Contract](./06-survey-plot-helper-contract.md)
+- [07 - Survey Closeout Summary](./07-survey-closeout-summary.md)
 - [Survey Optimization Map](./survey-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 
@@ -37,3 +38,8 @@ validation caller.
 Stop this stage when source/receiver/survey/data responsibilities and validation
 contracts are clear. Do not continue into propagator or broad example migration
 as part of this stage.
+
+Current status: survey-stage cleanup is closed after
+[07 - Survey Closeout Summary](./07-survey-closeout-summary.md). Remaining risks
+are recorded there and should only be picked up as separate bounded tasks when
+they block a real validation workflow or expose a clear bug.
