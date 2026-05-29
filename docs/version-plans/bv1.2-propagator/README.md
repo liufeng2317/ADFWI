@@ -10,6 +10,7 @@ kernel rewrite, no finite-difference formula change, and no FWI behavior change.
 
 - [00 - Propagator Optimization Outline](./00-propagator-optimization-outline.md)
 - [01 - Propagator Wrapper Readability](./01-propagator-wrapper-readability.md)
+- [02 - Propagator Wrapper Contract Tests](./02-propagator-wrapper-contract-tests.md)
 - [Propagator Optimization Map](./propagator-optimization-map.md)
 - [Global Optimization Skill](../optimization-skill.md)
 

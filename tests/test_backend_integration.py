@@ -93,6 +93,27 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(propagator.dtype, torch.float64)
         self.assertEqual(propagator.wavelet.dtype, torch.float64)
 
+    def test_acoustic_propagator_construction_preserves_survey_tensor_contracts(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._trace_missing_survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+
+        propagator = AcousticPropagator(model, survey)
+
+        self.assertEqual(propagator.src_x.shape, (1,))
+        self.assertEqual(propagator.src_z.shape, (1,))
+        self.assertEqual(propagator.rcv_x.shape, (3,))
+        self.assertEqual(propagator.rcv_z.shape, (3,))
+        self.assertEqual(propagator.wavelet.shape, (1, survey.source.nt))
+        self.assertEqual(propagator.moment_tensor.shape, (1, 3, 3))
+        self.assertEqual(propagator.src_x.dtype, torch.long)
+        self.assertEqual(propagator.rcv_x.dtype, torch.long)
+        self.assertEqual(propagator.wavelet.dtype, propagator.dtype)
+        self.assertEqual(propagator.wavelet.device, propagator.device)
+        self.assertTrue(np.array_equal(propagator.receiver_masks, survey.receiver_masks))
+        self.assertFalse(propagator.receiver_masks_obs)
+
     def test_explicit_model_device_remains_supported(self):
         configure_backend("cpu")
         vp, rho = self._model_arrays()
@@ -180,6 +201,30 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(propagator.device, model.device)
         self.assertEqual(propagator.dtype, model.dtype)
         self.assertEqual(propagator.wavelet.dtype, torch.float64)
+
+    def test_elastic_propagator_construction_preserves_survey_tensor_contracts(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._trace_missing_survey()
+        vp = np.ones((6, 8), dtype=np.float32) * 2200.0
+        vs = np.ones((6, 8), dtype=np.float32) * 1200.0
+        rho = np.ones((6, 8), dtype=np.float32) * 2000.0
+        model = IsotropicElasticModel(0, 0, 8, 6, 10, 10, vp, vs, rho, vp_grad=True, auto_update_rho=False)
+
+        propagator = ElasticPropagator(model, survey)
+
+        self.assertEqual(propagator.src_x.shape, (1,))
+        self.assertEqual(propagator.src_z.shape, (1,))
+        self.assertEqual(propagator.rcv_x.shape, (3,))
+        self.assertEqual(propagator.rcv_z.shape, (3,))
+        self.assertEqual(propagator.wavelet.shape, (1, survey.source.nt))
+        self.assertEqual(propagator.moment_tensor.shape, (1, 3, 3))
+        self.assertEqual(propagator.src_x.dtype, torch.long)
+        self.assertEqual(propagator.rcv_x.dtype, torch.long)
+        self.assertEqual(propagator.wavelet.dtype, propagator.dtype)
+        self.assertEqual(propagator.moment_tensor.dtype, propagator.dtype)
+        self.assertEqual(propagator.wavelet.device, propagator.device)
+        self.assertTrue(np.array_equal(propagator.receiver_masks, survey.receiver_masks))
+        self.assertFalse(propagator.receiver_masks_obs)
 
     def test_elastic_fwi_aligns_regularization_to_propagator_backend(self):
         configure_backend("cpu", dtype=torch.float32)
