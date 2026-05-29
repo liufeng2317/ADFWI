@@ -50,14 +50,15 @@ branch bv1.2-example-sync
 | --- | --- | --- |
 | Validation Marmousi2 acoustic | Reference exists | Use as comparison baseline. |
 | Original acoustic Marmousi2 forward | Pattern identified | Review generated outputs, then close forward sync. |
-| Original acoustic Marmousi2 inversion | Pending | Apply the forward import/backend pattern before short inversion validation. |
+| Original acoustic Marmousi2 inversion | Wrapper synced and manually tested | Keep generated outputs out of commits. |
 | Acoustic-only forward notebooks | Bulk pattern applied | Decide whether ignored local examples should be force-added. |
 | Elastic forward notebooks | Bulk sync validated | Commit tracked notebooks; decide whether to promote ignored local examples. |
 | Multiscale acoustic forward | Template ready | Use as the special forward wrapper pattern before elastic multiscale. |
 | Gradient checking forward | Acoustic/elastic synced | Prefer pip usage next; keep validation-heavy cases separate. |
-| All forward notebooks | Wrapper sync complete | Move to representative inversion sync. |
-| Marmousi2 acoustic inversion | Wrapper synced | Run a short inversion validation before broad inversion sync. |
-| Minimal API examples | Pending | Handle after Marmousi2. |
+| All forward notebooks | Wrapper sync complete | Use as the notebook style baseline. |
+| Tracked inversion notebooks | Wrapper sync complete | Run representative short validations by category. |
+| Ignored DR-FWI/DIP research notebooks | Locally scanned | Force-add only if these examples become release targets. |
+| Minimal API examples | Pending | Handle after representative inversion validation. |
 | Heavy research examples | Deferred | Do not start until core examples are stable. |
 
 ## Validation Ladder
