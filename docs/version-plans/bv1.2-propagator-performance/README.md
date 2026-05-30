@@ -50,3 +50,13 @@ Reduced acoustic FWI iteration is dominated by backward cost
 (`17.78 s`, `61.01%`). Continue with Phase B: acoustic AD graph and backward
 cost diagnostics.
 ```
+
+Phase B policy diagnostic:
+
+- `10-acoustic-fwi-wavefield-policy-profile.md`
+- Under `GradProcessor(forw_illumination=False)`, skipping acoustic
+  forward-wavefield summaries preserved loss, raw gradients, processed
+  gradients, and updated `vp` exactly in the reduced single-iteration
+  comparison.
+- Single paired run total timing improved from `28.76 s` to `22.89 s`, but this
+  is opt-in and should not become the default path.

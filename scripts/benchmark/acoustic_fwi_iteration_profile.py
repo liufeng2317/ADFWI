@@ -59,6 +59,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--mask-extra-depth", type=int, default=2)
     parser.add_argument("--generate-observed", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
 
 
 def synchronize(backend) -> None:
@@ -162,7 +163,10 @@ def build_fwi_state(rt: Dict[str, Any], args: argparse.Namespace, backend):
     )
     grad_mask = np.ones_like(vp_init)
     grad_mask[: args.grad_mute_top, :] = 0
-    gradient_processor = GradProcessor(grad_mask=grad_mask)
+    gradient_processor = GradProcessor(
+        grad_mask=grad_mask,
+        forw_illumination=args.grad_forw_illumination,
+    )
 
     fwi = AcousticFWI(
         propagator=propagator,
@@ -180,7 +184,27 @@ def build_fwi_state(rt: Dict[str, Any], args: argparse.Namespace, backend):
     return fwi, vp_init
 
 
-def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer) -> Dict[str, Any]:
+def tensor_diff(reference, candidate, *, atol_floor=1e-12) -> Dict[str, Any]:
+    torch = sys.modules["torch"]
+    ref = reference.detach().cpu()
+    val = candidate.detach().cpu()
+    diff = (val - ref).abs()
+    denom = torch.maximum(ref.abs(), torch.full_like(ref, atol_floor))
+    rel = diff / denom
+    return {
+        "shape": list(ref.shape),
+        "max_abs_diff": float(diff.max().item()),
+        "max_rel_diff": float(rel.max().item()),
+        "reference_norm": float(torch.linalg.norm(ref.reshape(-1)).item()),
+        "candidate_norm": float(torch.linalg.norm(val.reshape(-1)).item()),
+    }
+
+
+def public_iteration_report(report: Dict[str, Any]) -> Dict[str, Any]:
+    return {key: value for key, value in report.items() if not key.startswith("_")}
+
+
+def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer, *, keep_tensors: bool = False) -> Dict[str, Any]:
     import torch
 
     from ADFWI.fwi.acoustic_fwi import acoustic_gradient_parameter_specs
@@ -260,6 +284,10 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer) -> Dict[str, 
             }
         )
 
+    raw_grad = fwi.model.vp.grad.detach().clone()
+    raw_grad_norm = tensor_norm(raw_grad)
+    raw_grad_finite = bool(torch.isfinite(raw_grad).all().cpu().item())
+
     _, timings["gradient_processing"] = timer.measure(
         lambda: process_named_parameter_gradients(
             fwi.model,
@@ -269,6 +297,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer) -> Dict[str, 
         )
     )
     grad_after_processing = fwi.model.vp.grad.detach()
+    processed_grad = grad_after_processing.clone()
     grad_norm_after_processing = tensor_norm(grad_after_processing)
     grad_finite_after_processing = bool(torch.isfinite(grad_after_processing).all().cpu().item())
 
@@ -276,19 +305,27 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer) -> Dict[str, 
         lambda: apply_epoch_update_step(fwi.optimizer, fwi.scheduler, fwi.model)
     )
     vp_finite_after_optimizer = bool(torch.isfinite(fwi.model.vp.detach()).all().cpu().item())
+    vp_after_optimizer = fwi.model.vp.detach().clone()
 
     total = sum(timings.values())
-    return {
+    report = {
         "loss": float(loss_epoch),
         "loss_finite": bool(torch.isfinite(torch.as_tensor(loss_epoch)).item()),
         "timings": timings,
         "timing_total": total,
         "timing_fraction": {name: (value / total if total > 0 else 0.0) for name, value in timings.items()},
+        "raw_grad_norm": raw_grad_norm,
+        "raw_grad_finite": raw_grad_finite,
         "grad_norm_after_processing": grad_norm_after_processing,
         "grad_finite_after_processing": grad_finite_after_processing,
         "vp_finite_after_optimizer": vp_finite_after_optimizer,
         "batches": batch_reports,
     }
+    if keep_tensors:
+        report["_raw_grad"] = raw_grad
+        report["_processed_grad"] = processed_grad
+        report["_vp_after_optimizer"] = vp_after_optimizer
+    return report
 
 
 def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
@@ -304,7 +341,10 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
     setup_seconds = time.perf_counter() - setup_start
 
     timer = Timer(backend)
-    iteration_reports = [run_one_iteration(fwi, args, timer) for _ in range(args.iterations)]
+    iteration_reports = [
+        public_iteration_report(run_one_iteration(fwi, args, timer))
+        for _ in range(args.iterations)
+    ]
 
     torch = rt["torch"]
     vp_update_norm = float(
@@ -328,6 +368,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
             "nz": fwi.model.nz,
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
+            "grad_forw_illumination": args.grad_forw_illumination,
         },
         "setup_seconds": setup_seconds,
         "observed_data": observed_report,
@@ -336,13 +377,94 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
     }
 
 
+def run_policy_variant(args: argparse.Namespace, *, save_forward_wavefield: bool):
+    variant_args = argparse.Namespace(**vars(args))
+    variant_args.save_forward_wavefield = save_forward_wavefield
+    variant_args.grad_forw_illumination = False
+    setup_start = time.perf_counter()
+    rt = forward_modeling.import_runtime_modules()
+    backend = rt["ADFWI"].set_backend(variant_args.device, dtype=variant_args.dtype, fallback=variant_args.fallback_cpu)
+    observed_report = ensure_observed_data(rt, variant_args, backend)
+    fwi, vp_init = build_fwi_state(rt, variant_args, backend)
+    synchronize(backend)
+    setup_seconds = time.perf_counter() - setup_start
+
+    timer = Timer(backend)
+    iteration = run_one_iteration(fwi, variant_args, timer, keep_tensors=True)
+    torch = rt["torch"]
+    vp_update_norm = float(
+        torch.linalg.norm(
+            (fwi.model.vp.detach() - torch.as_tensor(vp_init, device=fwi.model.vp.device, dtype=fwi.model.vp.dtype)).reshape(-1)
+        )
+        .cpu()
+        .item()
+    )
+    return {
+        "backend": rt["ADFWI"].backend_diagnostics(),
+        "setup_seconds": setup_seconds,
+        "observed_data": observed_report,
+        "shape": {
+            "shots": variant_args.shots,
+            "receivers": fwi.propagator.rcv_n,
+            "nt": fwi.propagator.nt,
+            "nx": fwi.model.nx,
+            "nz": fwi.model.nz,
+            "checkpoint_segments": variant_args.checkpoint_segments,
+            "save_forward_wavefield": save_forward_wavefield,
+            "grad_forw_illumination": False,
+        },
+        "iteration": iteration,
+        "vp_update_norm": vp_update_norm,
+    }
+
+
+def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
+    if args.grad_forw_illumination:
+        raise ValueError("--compare-wavefield-policy requires --no-grad-forw-illumination")
+    full = run_policy_variant(args, save_forward_wavefield=True)
+    skipped = run_policy_variant(args, save_forward_wavefield=False)
+    full_iter = full["iteration"]
+    skipped_iter = skipped["iteration"]
+
+    comparison = {
+        "loss_abs_diff": abs(skipped_iter["loss"] - full_iter["loss"]),
+        "raw_grad": tensor_diff(full_iter["_raw_grad"], skipped_iter["_raw_grad"]),
+        "processed_grad": tensor_diff(full_iter["_processed_grad"], skipped_iter["_processed_grad"]),
+        "vp_after_optimizer": tensor_diff(full_iter["_vp_after_optimizer"], skipped_iter["_vp_after_optimizer"]),
+        "speedup": {
+            "forward": full_iter["timings"]["forward"] / skipped_iter["timings"]["forward"],
+            "backward": full_iter["timings"]["backward"] / skipped_iter["timings"]["backward"],
+            "total": full_iter["timing_total"] / skipped_iter["timing_total"],
+        },
+    }
+
+    return {
+        "status": "ok",
+        "case": "marmousi2_acoustic_reduced",
+        "purpose": "Phase B acoustic FWI forward-wavefield policy comparison",
+        "reference": {
+            **{key: value for key, value in full.items() if key != "iteration"},
+            "iteration": public_iteration_report(full_iter),
+        },
+        "candidate": {
+            **{key: value for key, value in skipped.items() if key != "iteration"},
+            "iteration": public_iteration_report(skipped_iter),
+        },
+        "comparison": comparison,
+    }
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     add_arguments(parser)
+    parser.add_argument("--compare-wavefield-policy", action="store_true")
     args = parser.parse_args(argv)
     forward_modeling.validate_case_args(parser, args)
 
-    report = run_profile(args)
+    if args.compare_wavefield_policy:
+        report = run_policy_comparison(args)
+    else:
+        report = run_profile(args)
     args.result_json.parent.mkdir(parents=True, exist_ok=True)
     args.result_json.write_text(
         json.dumps(report, indent=2, sort_keys=True, default=forward_modeling.json_default) + "\n"
