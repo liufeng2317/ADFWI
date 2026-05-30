@@ -2,17 +2,17 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("agg")
 from scipy import integrate
-import sys
 import os
-sys.path.append("../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
+from ADFWI.model import IsotropicElasticModel
+from ADFWI.propagator import ElasticPropagator
+from ADFWI.survey import Receiver, Source, Survey
+from ADFWI.utils import (
+    get_smooth_marmousi_model,
+    load_marmousi_model,
+    resample_marmousi_model,
+    wavelet,
+)
 
 import warnings
 warnings.filterwarnings("ignore")

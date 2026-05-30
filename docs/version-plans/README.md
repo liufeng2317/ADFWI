@@ -34,6 +34,9 @@ docs/version-plans/
     bv1.2-view/
       00-view-optimization-outline.md
       view-optimization-map.md
+  bv1.2-example-sync/
+    00-example-sync-outline.md
+    example-sync-map.md
 ```
 
 ## Version Index
@@ -48,6 +51,7 @@ docs/version-plans/
 | `bv1.2-propagator` | Archived closeout | Bounded non-kernel cleanup and validation records for propagator contracts. | [Index](./bv1.2/bv1.2-propagator/README.md) |
 | `bv1.2-utils` | Archived closeout | Bounded optimization records for shared utility helpers, model data helpers, wavelets, mutes, metrics, and conversion contracts. | [Index](./bv1.2/bv1.2-utils/README.md) |
 | `bv1.2-view` | Archived closeout | Bounded optimization records for plotting helpers and validation figure checks. | [Index](./bv1.2/bv1.2-view/README.md) |
+| `bv1.2-example-sync` | Active branch | Synchronize public examples with the bv1.2 framework while preserving original notebook workflows. | [Index](./bv1.2-example-sync/README.md) |
 
 ## Naming Rules
 

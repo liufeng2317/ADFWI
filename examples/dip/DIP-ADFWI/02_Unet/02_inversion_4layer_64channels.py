@@ -2,41 +2,46 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("agg")
+from pathlib import Path
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import (
+    get_smooth_marmousi_model,
+    load_marmousi_model,
+    numpy2tensor,
+    resample_marmousi_model,
+    wavelet
+)
+from ADFWI.view import animate_inversion_process, plot_damp, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi.misfit import Misfit_global_correlation
+from ADFWI.dip import DIP_AcousticFWI, DIP_AcousticModel, DIP_Unet
+
 import os
-sys.path.append("../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
-from ADFWI.dip import *
 from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
+    project_path = str(SCRIPT_DIR / "data")
     layer_num = 4
     base_channel = 64
     
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,f"inversion-{layer_num}layer-{base_channel}channels")):
-        os.makedirs(os.path.join(project_path,f"inversion-{layer_num}layer-{base_channel}channels"))
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,f"inversion-{layer_num}layer-{base_channel}channels"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:1"
+    device = "npu:0"
     dtype  = torch.float32
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox,oz  = 0,0
     nz,nx  = 88,200
     dx,dz  = 40, 40
@@ -49,7 +54,7 @@ if __name__ == "__main__":
     #                   Velocity Model
     #------------------------------------------------------
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir="../../../datasets/marmousi2_source")
+    marmousi_model = load_marmousi_model(in_dir=str(SCRIPT_DIR / "../../../datasets/marmousi2_source"))
     x = np.linspace(5000, 5000 + dx * nx, nx)
     z = np.linspace(0, dz * nz, nz)
     true_model = resample_marmousi_model(x, z, marmousi_model)
@@ -67,8 +72,8 @@ if __name__ == "__main__":
                          n_layers= layer_num,
                          vmin=vp_true.min()/1000,
                          vmax=vp_true.max()/1000,
-                         base_channel=base_channel,
-                         device=device)
+                         base_channel=base_channel
+                         )
     DIP_model.to(device)
 
     # -----------------------------------
@@ -87,7 +92,7 @@ if __name__ == "__main__":
             gamma       = 0.5
             optimizer = torch.optim.Adam(DIP_model.parameters(),lr = lr)
             scheduler = torch.optim.lr_scheduler.StepLR(optimizer,step_size=step_size,gamma=gamma)
-            vp_init = numpy2tensor(vp_init,dtype=dtype).to(device)
+            vp_init = numpy2tensor(vp_init).to(device)
             pbar = tqdm(range(iteration+1))
             for i in pbar:  
                 vp_nn = DIP_model()
@@ -112,8 +117,8 @@ if __name__ == "__main__":
                             water_layer_mask=water_layer_mask,
                             free_surface=free_surface,
                             abc_type="PML",abc_jerjan_alpha=0.007,
-                            nabc=nabc,
-                            device=device,dtype=dtype)
+                            nabc=nabc
+                            )
     print(model.__repr__())
     model.save(os.path.join(project_path,"model/init_model.npz"))
     
@@ -145,7 +150,7 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #                   Waveform Propagator
     #------------------------------------------------------
-    F = AcousticPropagator(model,survey,device=device)
+    F = AcousticPropagator(model,survey)
     damp = F.damp
     plot_damp(damp,save_path=os.path.join(project_path,"model/boundary_condition_init.png"),show=False)
     

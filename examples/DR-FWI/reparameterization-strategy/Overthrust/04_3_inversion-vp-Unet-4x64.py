@@ -1,41 +1,44 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("agg")
+from pathlib import Path
 from scipy import integrate
-import sys
-import os
-sys.path.append("../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
-from ADFWI.dip         import *
-from tqdm import tqdm
-torch.cuda.set_device(1)
 
+import ADFWI
+from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import (
+    load_overthrust_initial_model,
+    load_overthrust_model,
+    numpy2tensor,
+    resample_overthrust_model,
+    wavelet
+)
+from ADFWI.view import animate_inversion_process, plot_damp, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi.misfit import Misfit_global_correlation
+from ADFWI.fwi.regularization import regularization_TV_2order
+from ADFWI.dip import DIP_AcousticFWI, DIP_AcousticModel, DIP_Unet
+
+import os
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"GC/inversion-vp-Unet-4x64")):
-        os.makedirs(os.path.join(project_path,"GC/inversion-vp-Unet-4x64"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"GC/inversion-vp-Unet-4x64"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:1"
+    device = "npu:0"
     dtype  = torch.float32
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox, oz = 0, 0             # Origin coordinates for x and z directions
     nz, nx = 90, 200          # Grid dimensions in z and x directions
     dx, dz = 50, 50           # Grid spacing in x and z directions
@@ -45,7 +48,7 @@ if __name__ == "__main__":
     free_surface = True       # Enable free surface boundary condition
     
     # Load the Marmousi model dataset
-    model_path ="../../../datasets/overthrust_source"
+    model_path = str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "overthrust_source")
     overthrust_model = load_overthrust_model(in_dir=model_path)
     true_model       = resample_overthrust_model(overthrust_model)
     overthrust_initial_model    = load_overthrust_initial_model(in_dir=model_path)
@@ -75,8 +78,8 @@ if __name__ == "__main__":
                             out_channels=1,
                             vmin=vp_true.min()/1000,
                             vmax=vp_true.max()/1000,
-                            unit=1000,
-                            device=device)
+                            unit=1000
+                            )
     DIP_model_vp.to(device)
 
     # -----------------------------------
@@ -95,7 +98,7 @@ if __name__ == "__main__":
             gamma       = 0.5
             optimizer = torch.optim.Adam(DIP_model_vp.parameters(),lr = lr)
             scheduler = torch.optim.lr_scheduler.StepLR(optimizer,step_size=step_size,gamma=gamma)
-            vp_init = numpy2tensor(vp_init,dtype=dtype).to(device)
+            vp_init = numpy2tensor(vp_init).to(device)
             pbar = tqdm(range(iteration+1))
             for i in pbar:  
                 vp_nn = DIP_model_vp()
@@ -115,8 +118,8 @@ if __name__ == "__main__":
                         rho_bound=[rho_true.min(),rho_true.max()],
                         free_surface=free_surface,
                         abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc,
-                        auto_update_rho=True, auto_update_vp=False,
-                        device=device,dtype=dtype)
+                        auto_update_rho=True, auto_update_vp=False
+                        )
     
     model.save(os.path.join(project_path,"model/init_model.npz"))
     print(model.__repr__())
@@ -150,7 +153,7 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #                   Waveform Propagator
     #------------------------------------------------------
-    F = AcousticPropagator(model,survey,device=device)
+    F = AcousticPropagator(model,survey)
     damp = F.damp
     plot_damp(damp,save_path=os.path.join(project_path,"model/boundary_condition_init.png"),show=False)
     
@@ -165,10 +168,8 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
         
     # Setup misfit function
-    from ADFWI.fwi.misfit import Misfit_global_correlation
-    from ADFWI.fwi.regularization import regularization_TV_2order
     loss_fn = Misfit_global_correlation(dt=1)
-    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
+    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
     # gradient processor
     grad_mask = np.ones((vp_init.shape[0],vp_init.shape[1]))
@@ -204,7 +205,6 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #            Visualize the Inversion Results
     #------------------------------------------------------
-    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
     # misfit
     plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,f"GC/inversion-vp-Unet-4x64/misfit.png"),show=False)

@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -31,13 +30,9 @@ def write_json(path: Path, payload: Dict[str, Any]) -> None:
 def import_runtime_modules():
     import numpy as np
     import torch
-    import matplotlib
 
-    matplotlib.use("Agg")
     from scipy import integrate
 
-    if str(REPO_ROOT) not in sys.path:
-        sys.path.insert(0, str(REPO_ROOT))
     os.chdir(REPO_ROOT)
 
     import ADFWI

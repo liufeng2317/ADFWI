@@ -2,37 +2,44 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("agg")
+from pathlib import Path
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.model import AnisotropicElasticModel
+from ADFWI.propagator import ElasticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import wavelet
+from ADFWI.view import (
+    animate_inversion_process,
+    plot_bcx_bcz,
+    plot_damp,
+    plot_initial_and_inverted,
+    plot_misfit
+)
+from ADFWI.fwi import ElasticFWI
+from ADFWI.fwi.misfit import Misfit_waveform_L2
+
 import os
-sys.path.append("../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
 
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"inversion")):
-        os.makedirs(os.path.join(project_path,"inversion"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"inversion"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:6"
+    device = "npu:0"
     dtype  = torch.float32
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox,oz  = 0,0
     nz,nx  = 80,180
     dx,dz  = 10, 10
@@ -105,8 +112,8 @@ if __name__ == "__main__":
                         abc_type="PML",abc_jerjan_alpha=0.007,
                         auto_update_rho=False,
                         auto_update_vp =False,
-                        nabc=nabc,
-                        device=device,dtype=dtype)
+                        nabc=nabc
+                        )
     model.save(os.path.join(project_path,"model/init_model.npz"))
     print(model.__repr__())
         
@@ -141,7 +148,7 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #                   Waveform Propagator
     #------------------------------------------------------
-    F = ElasticPropagator(model,survey,device=device)
+    F = ElasticPropagator(model,survey)
     if model.abc_type == "PML":
         bcx = F.bcx
         bcz = F.bcz

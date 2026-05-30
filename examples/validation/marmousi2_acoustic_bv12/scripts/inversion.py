@@ -5,15 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from forward_modeling import (  # noqa: E402
+from forward_modeling import (
     DEFAULT_OUTPUT_ROOT,
     REPO_ROOT,
     add_case_arguments,
@@ -46,7 +42,6 @@ def import_inversion_runtime_modules() -> Dict[str, Any]:
     rt = import_runtime_modules()
     import matplotlib
 
-    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     from ADFWI.fwi import AcousticFWI

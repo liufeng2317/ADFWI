@@ -1,40 +1,39 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("agg")
+from pathlib import Path
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.model import AcousticModel
+from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import load_overthrust_initial_model, load_overthrust_model, resample_overthrust_model, wavelet
+from ADFWI.view import animate_inversion_process, plot_damp, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi import AcousticFWI
+from ADFWI.fwi.misfit import Misfit_global_correlation
+from ADFWI.fwi.regularization import regularization_TV_2order
+
 import os
-sys.path.append("../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
-from ADFWI.dip         import *
 from tqdm import tqdm
-torch.cuda.set_device(0)
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"GC/inversion-vp-baseline")):
-        os.makedirs(os.path.join(project_path,"GC/inversion-vp-baseline"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"GC/inversion-vp-baseline"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:0"
+    device = "npu:0"
     dtype  = torch.float32
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox, oz = 0, 0             # Origin coordinates for x and z directions
     nz, nx = 90, 200          # Grid dimensions in z and x directions
     dx, dz = 50, 50           # Grid spacing in x and z directions
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     free_surface = True       # Enable free surface boundary condition
     
     # Load the Marmousi model dataset
-    model_path ="../../../datasets/overthrust_source"
+    model_path = str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "overthrust_source")
     overthrust_model = load_overthrust_model(in_dir=model_path)
     true_model       = resample_overthrust_model(overthrust_model)
     overthrust_initial_model    = load_overthrust_initial_model(in_dir=model_path)
@@ -71,8 +70,8 @@ if __name__ == "__main__":
                     free_surface=free_surface,
                     abc_type="PML",abc_jerjan_alpha=0.007,
                     nabc=nabc,
-                    auto_update_rho=True,
-                    device=device,dtype=dtype)
+                    auto_update_rho=True
+                    )
     
     model.save(os.path.join(project_path,"model/init_model.npz"))
     print(model.__repr__())
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #                   Waveform Propagator
     #------------------------------------------------------
-    F = AcousticPropagator(model,survey,device=device)
+    F = AcousticPropagator(model,survey)
     damp = F.damp
     plot_damp(damp,save_path=os.path.join(project_path,"model/boundary_condition_init.png"),show=False)
     
@@ -121,10 +120,8 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
         
     # Setup misfit function
-    from ADFWI.fwi.misfit import Misfit_global_correlation
-    from ADFWI.fwi.regularization import regularization_TV_2order
     loss_fn = Misfit_global_correlation(dt=1)
-    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
+    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
     # gradient processor
     grad_mask = np.ones((vp_init.shape[0],vp_init.shape[1]))
@@ -159,7 +156,6 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #            Visualize the Inversion Results
     #------------------------------------------------------
-    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
     # misfit
     plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,f"GC/inversion-vp-baseline/misfit.png"),show=False)
