@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Load the Marmousi model dataset
     from ADFWI.propagator.gradient_process import smooth2d
 
-    model_path = str(SCRIPT_DIR.parents[2] / "datasets" / "foothill_source")
+    model_path = str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "foothill_source")
 
     vp_true  = np.loadtxt(os.path.join(model_path,"Foothill_801_331_25m.dat"))[:801,:291]
     vp_init = np.copy(vp_true)

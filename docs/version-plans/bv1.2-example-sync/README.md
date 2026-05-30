@@ -29,6 +29,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [17 DR-FWI Dataset Path Sync](./17-dr-fwi-dataset-path-sync.md)
 - [18 Example Matplotlib Backend Sync](./18-example-matplotlib-backend-sync.md)
 - [19 DR-FWI Local Import Dedup](./19-dr-fwi-local-import-dedup.md)
+- [20 DR-FWI Path Consistency Audit](./20-dr-fwi-path-consistency-audit.md)
 
 ## Branch Boundary
 
