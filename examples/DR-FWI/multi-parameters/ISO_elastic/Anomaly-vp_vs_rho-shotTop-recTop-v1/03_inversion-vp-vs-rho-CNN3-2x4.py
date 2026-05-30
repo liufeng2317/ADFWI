@@ -139,7 +139,6 @@ if __name__ == "__main__":
     # -----------------------------------
     #     velocity model for FWI
     # -----------------------------------
-    from ADFWI.dip.dip_elastic_model_vp_vs_rho import DIP_ElasticModel_vp_vs_rho
     model = DIP_ElasticModel_vp_vs_rho(ox,oz,nx,nz,dx,dz,
                             DIP_model=DIP_model,
                             vp_init=vp_init,
@@ -197,8 +196,6 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=200,gamma=0.75,last_epoch=-1)
 
     # Setup misfit function
-    from ADFWI.fwi.misfit import Misfit_global_correlation
-    from ADFWI.fwi.regularization import regularization_TV_2order
     loss_fn = Misfit_global_correlation(dt=1)
     regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
@@ -246,7 +243,6 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #            Visualize the Inversion Results
     #------------------------------------------------------
-    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
     # misfit
     plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,f"inversion-vp_vs_rho-CNN3-2x4/misfit.png"),show=False)

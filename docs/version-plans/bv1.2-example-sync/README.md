@@ -28,6 +28,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [16 FootHill Inversion Script Path Sync](./16-foothill-inversion-script-path-sync.md)
 - [17 DR-FWI Dataset Path Sync](./17-dr-fwi-dataset-path-sync.md)
 - [18 Example Matplotlib Backend Sync](./18-example-matplotlib-backend-sync.md)
+- [19 DR-FWI Local Import Dedup](./19-dr-fwi-local-import-dedup.md)
 
 ## Branch Boundary
 

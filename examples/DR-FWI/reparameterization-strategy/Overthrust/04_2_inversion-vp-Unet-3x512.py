@@ -168,8 +168,6 @@ if __name__ == "__main__":
     scheduler   =   torch.optim.lr_scheduler.StepLR(optimizer,step_size=100,gamma=0.75,last_epoch=-1)
         
     # Setup misfit function
-    from ADFWI.fwi.misfit import Misfit_global_correlation
-    from ADFWI.fwi.regularization import regularization_TV_2order
     loss_fn = Misfit_global_correlation(dt=1)
     regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
@@ -207,7 +205,6 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #            Visualize the Inversion Results
     #------------------------------------------------------
-    from ADFWI.view.inverted_loss_model import plot_misfit,plot_initial_and_inverted,animate_inversion_process
     
     # misfit
     plot_misfit(iter_loss = iter_loss, save_path=os.path.join(project_path,f"GC/inversion-vp-Unet-3x512/misfit.png"),show=False)
