@@ -30,6 +30,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [18 Example Matplotlib Backend Sync](./18-example-matplotlib-backend-sync.md)
 - [19 DR-FWI Local Import Dedup](./19-dr-fwi-local-import-dedup.md)
 - [20 DR-FWI Path Consistency Audit](./20-dr-fwi-path-consistency-audit.md)
+- [21 Marmousi2 Forward Import Dedup](./21-marmousi2-forward-import-dedup.md)
 
 ## Branch Boundary
 
