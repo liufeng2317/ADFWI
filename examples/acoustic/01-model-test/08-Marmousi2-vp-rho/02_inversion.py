@@ -2,37 +2,40 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
+from pathlib import Path
 matplotlib.use("agg")
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.model import AcousticModel
+from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import get_smooth_marmousi_model, load_marmousi_model, resample_marmousi_model, wavelet
+from ADFWI.view import animate_inversion_process, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi import AcousticFWI
+from ADFWI.fwi.misfit import Misfit_waveform_L2
+from ADFWI.fwi.regularization import regularization_TV_2order
+
 import os
-sys.path.append("../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
 
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"inversion")):
-        os.makedirs(os.path.join(project_path,"inversion"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"inversion"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:7"         # Specify the GPU device
+    device = "npu:0"         # Specify the GPU device
     dtype = torch.float32     # Set data type to 32-bit floating point
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox, oz = 0, 0             # Origin coordinates for x and z directions
     nz, nx = 88, 200          # Grid dimensions in z and x directions
     dx, dz = 40, 40           # Grid spacing in x and z directions
@@ -42,7 +45,7 @@ if __name__ == "__main__":
     free_surface = True       # Enable free surface boundary condition
         
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir="../../../datasets/marmousi2_source")
+    marmousi_model = load_marmousi_model(in_dir=str(SCRIPT_DIR / "../../../datasets/marmousi2_source"))
 
     # Create coordinate arrays for x and z based on the grid size.
     x = np.linspace(5000, 5000 + dx * nx, nx)
@@ -70,8 +73,8 @@ if __name__ == "__main__":
                         abc_type="PML",abc_jerjan_alpha=0.007,
                         nabc=nabc,
                         auto_update_rho=False,
-                        # water_layer_mask=water_layer_mask,
-                        device=device,dtype=dtype)
+                        # water_layer_mask=water_layer_mask
+                        )
 
     
     model.save(os.path.join(project_path,"model/init_model.npz"))
@@ -132,7 +135,7 @@ if __name__ == "__main__":
         model._parameterization()
         
         # Initialize the wave propagator using the specified model and survey configuration
-        F = AcousticPropagator(model, survey, device=device)
+        F = AcousticPropagator(model, survey)
         
         # Initialize the optimizer (Adam) for model parameters with a learning rate.
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -142,7 +145,7 @@ if __name__ == "__main__":
 
         # Configure the misfit function to compute the loss based on the observed data.
         loss_fn = Misfit_waveform_L2(dt=dt)
-        regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
+        regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
         # gradient processor
         grad_mask = np.ones_like(vp_init)

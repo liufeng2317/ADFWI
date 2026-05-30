@@ -2,37 +2,39 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
+from pathlib import Path
 matplotlib.use("agg")
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.model import IsotropicElasticModel
+from ADFWI.propagator import ElasticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import get_smooth_marmousi_model, load_marmousi_model, resample_marmousi_model, wavelet
+from ADFWI.view import animate_inversion_process, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi import ElasticFWI
+from ADFWI.fwi.misfit import Misfit_global_correlation
+from ADFWI.fwi.regularization import regularization_TV_2order
+
 import os
-sys.path.append("../../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
-from ADFWI.dip import *
 from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline")):
-        os.makedirs(os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline"), exist_ok=True)
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:6"         # Specify the GPU device
+    device = "npu:0"         # Specify the GPU device
     dtype = torch.float32     # Set data type to 32-bit floating point
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox, oz = 0, 0             # Origin coordinates for x and z directions
     nz, nx = 68, 200          # Grid dimensions in z and x directions
     dx, dz = 45, 45           # Grid spacing in x and z directions
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     #                   Velocity Model
     #------------------------------------------------------
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir="../../../../datasets/marmousi2_source")
+    marmousi_model = load_marmousi_model(in_dir=str(SCRIPT_DIR / "../../../../datasets/marmousi2_source"))
 
     # Resample the Marmousi model for the defined coordinates
     x = np.linspace(5000, 5000 + dx * nx, nx)
@@ -73,8 +75,8 @@ if __name__ == "__main__":
                     vp_grad = True, vs_grad = True, rho_grad=True,
                     auto_update_rho=False, auto_update_vp=False,
                     free_surface=free_surface,
-                    abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc,
-                    device=device,dtype=dtype)
+                    abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc
+                    )
     print(model.__repr__())
     model.save(os.path.join(project_path,"model/init_model.npz"))
     
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     #                   Waveform Propagator
     #------------------------------------------------------
     # Initialize the wave propagator using the specified model and survey configuration
-    F = ElasticPropagator(model,survey,device=device)
+    F = ElasticPropagator(model,survey)
 
     # load data
     d_obs = SeismicData(survey)
@@ -124,7 +126,7 @@ if __name__ == "__main__":
     from ADFWI.fwi.misfit import Misfit_global_correlation
     from ADFWI.fwi.regularization import regularization_TV_2order
     loss_fn = Misfit_global_correlation(dt=1)
-    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9,device=device,dtype=dtype)
+    regularization_fn = regularization_TV_2order(nx,nz,dx,dz,step_size=50,gamma=0.9)
 
     # gradient processor
     grad_mask             = np.ones((nz,nx))
@@ -148,7 +150,7 @@ if __name__ == "__main__":
                         cache_result=True,
                         save_fig_epoch=10,
                         save_fig_path=os.path.join(project_path,f"no-gradient-smooth/inversion-vp_vs_rho-baseline"),
-                        inversion_component=["vx","vz"],
+                        inversion_component=["vx","vz"]
                         )
 
     # Run the forward modeling for the specified number of iterations.

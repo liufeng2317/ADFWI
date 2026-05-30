@@ -2,37 +2,39 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
+from pathlib import Path
 matplotlib.use("agg")
 from scipy import integrate
-import sys
+
+import ADFWI
+from ADFWI.model import AcousticModel
+from ADFWI.propagator import AcousticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import get_smooth_marmousi_model, load_marmousi_model, resample_marmousi_model, wavelet
+from ADFWI.view import animate_inversion_process, plot_damp, plot_initial_and_inverted, plot_misfit
+from ADFWI.fwi import AcousticFWI
+from ADFWI.fwi.misfit import Misfit_global_correlation
+
 import os
-sys.path.append("../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
 
 import warnings
 warnings.filterwarnings("ignore")
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 if __name__ == "__main__":
-    project_path = "./data/"
-    if not os.path.exists(os.path.join(project_path,"model")):
-        os.makedirs(os.path.join(project_path,"model"))
-    if not os.path.exists(os.path.join(project_path,"waveform")):
-        os.makedirs(os.path.join(project_path,"waveform"))
-    if not os.path.exists(os.path.join(project_path,"survey")):
-        os.makedirs(os.path.join(project_path,"survey"))
-    if not os.path.exists(os.path.join(project_path,"inversion-no_regularization")):
-        os.makedirs(os.path.join(project_path,"inversion-no_regularization"))
+    project_path = str(SCRIPT_DIR / "data")
+    os.makedirs(os.path.join(project_path,"model"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"waveform"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"survey"), exist_ok=True)
+    os.makedirs(os.path.join(project_path,"inversion-no_regularization"), exist_ok=True)
 
     #------------------------------------------------------
     #                   Basic Parameters
     #------------------------------------------------------
-    device = "cuda:0"
+    device = "npu:0"
     dtype  = torch.float32
+    backend = ADFWI.set_backend(device, dtype=dtype)
     ox,oz  = 0,0
     nz,nx  = 88,200
     dx,dz  = 40, 40
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     free_surface = True
     
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir="../../../datasets/marmousi2_source")
+    marmousi_model = load_marmousi_model(in_dir=str(SCRIPT_DIR / "../../../datasets/marmousi2_source"))
 
     # Create coordinate arrays for x and z based on the grid size.
     x = np.linspace(5000, 5000 + dx * nx, nx)
@@ -64,8 +66,8 @@ if __name__ == "__main__":
                         vp_grad=True,rho_grad=False,
                         free_surface=free_surface,
                         abc_type="PML",abc_jerjan_alpha=0.007,nabc=nabc,
-                        auto_update_rho=True,
-                        device=device,dtype=dtype)
+                        auto_update_rho=True
+                        )
     
     model.save(os.path.join(project_path,"model/init_model.npz"))
     print(model.__repr__())
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     #------------------------------------------------------
     #                   Waveform Propagator
     #------------------------------------------------------
-    F = AcousticPropagator(model,survey,device=device)
+    F = AcousticPropagator(model,survey)
     damp = F.damp
     plot_damp(damp,save_path=os.path.join(project_path,"model/boundary_condition_init.png"),show=False)
     
