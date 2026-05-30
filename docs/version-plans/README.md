@@ -53,6 +53,12 @@ docs/version-plans/
 | `bv1.2-view` | Archived closeout | Bounded optimization records for plotting helpers and validation figure checks. | [Index](./bv1.2/bv1.2-view/README.md) |
 | `bv1.2-example-sync` | Active branch | Synchronize public examples with the bv1.2 framework while preserving original notebook workflows. | [Index](./bv1.2-example-sync/README.md) |
 
+## Baselines
+
+| Baseline | Purpose | Document |
+| --- | --- | --- |
+| Marmousi2 acoustic full-record FWI | Reference run for future propagator/operator/backend/FWI-loop performance and numerical comparisons after bv1.2 cleanup. | [Full-record Marmousi2 baseline](./bv1.2/full-record-marmousi2-baseline.md) |
+
 ## Naming Rules
 
 - Put documents under a version directory, such as `bv1.2/bv1.2-fwi/` or
