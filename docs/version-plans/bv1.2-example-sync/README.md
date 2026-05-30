@@ -22,6 +22,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [10 Marmousi2 Inversion Wrapper Sync](./10-marmousi2-inversion-wrapper-sync.md)
 - [11 Inversion Wrapper Sync](./11-inversion-wrapper-sync.md)
 - [12 Python Script Wrapper Template](./12-python-script-wrapper-template.md)
+- [13 Article Figure Notebook Sync](./13-article-figure-notebook-sync.md)
 
 ## Branch Boundary
 
