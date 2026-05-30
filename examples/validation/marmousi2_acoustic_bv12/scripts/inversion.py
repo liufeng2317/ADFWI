@@ -42,7 +42,6 @@ def import_inversion_runtime_modules() -> Dict[str, Any]:
     rt = import_runtime_modules()
     import matplotlib
 
-    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     from ADFWI.fwi import AcousticFWI

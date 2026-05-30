@@ -3,7 +3,6 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib
 from pathlib import Path
-matplotlib.use("agg")
 from scipy import integrate
 
 import ADFWI

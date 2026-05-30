@@ -40,6 +40,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [28 Global Example Residual Scan](./28-example-global-residual-scan.md)
 - [29 Sys Path Residual Cleanup](./29-sys-path-residual-cleanup.md)
 - [30 ADFWI Wildcard Import Cleanup](./30-adfwi-wildcard-import-cleanup.md)
+- [31 Matplotlib Backend Cleanup](./31-matplotlib-backend-cleanup.md)
 
 ## Branch Boundary
 

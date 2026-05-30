@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("agg")
 from scipy import integrate
 import os
 from ADFWI.model import IsotropicElasticModel

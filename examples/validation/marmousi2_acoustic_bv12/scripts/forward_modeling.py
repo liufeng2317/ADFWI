@@ -30,9 +30,7 @@ def write_json(path: Path, payload: Dict[str, Any]) -> None:
 def import_runtime_modules():
     import numpy as np
     import torch
-    import matplotlib
 
-    matplotlib.use("Agg")
     from scipy import integrate
 
     os.chdir(REPO_ROOT)
