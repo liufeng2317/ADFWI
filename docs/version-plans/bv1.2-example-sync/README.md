@@ -34,6 +34,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [22 Forward Notebook Import Dedup](./22-forward-notebook-import-dedup.md)
 - [23 Inversion Notebook Import Audit](./23-inversion-notebook-import-audit.md)
 - [24 Marmousi2 Smoke Run](./24-marmousi2-smoke-run.md)
+- [25 Ricker Misfit Notebook Import Sync](./25-ricker-misfit-notebook-import-sync.md)
 
 ## Branch Boundary
 
