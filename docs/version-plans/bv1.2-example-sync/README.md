@@ -23,6 +23,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [11 Inversion Wrapper Sync](./11-inversion-wrapper-sync.md)
 - [12 Python Script Wrapper Template](./12-python-script-wrapper-template.md)
 - [13 Article Figure Notebook Sync](./13-article-figure-notebook-sync.md)
+- [14 Analysis Notebook Path Sync](./14-analysis-notebook-path-sync.md)
 
 ## Branch Boundary
 
