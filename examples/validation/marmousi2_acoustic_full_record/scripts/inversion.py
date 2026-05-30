@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Notebook-equivalent Marmousi2 acoustic inversion validation."""
+"""Notebook-equivalent Full-record Marmousi2 acoustic inversion validation."""
 
 from __future__ import annotations
 

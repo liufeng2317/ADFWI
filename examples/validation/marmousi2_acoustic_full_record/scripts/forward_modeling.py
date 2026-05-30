@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Notebook-equivalent Marmousi2 acoustic forward-modeling validation."""
+"""Notebook-equivalent Full-record Marmousi2 acoustic forward-modeling validation."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 VALIDATION_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_ROOT = VALIDATION_ROOT / "outputs" / "minimal_notebook"
+DEFAULT_OUTPUT_ROOT = VALIDATION_ROOT / "outputs" / "full_record"
 
 
 def json_default(value: Any) -> Any:
@@ -67,7 +67,7 @@ def add_case_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--fallback-cpu", action="store_true")
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--dataset-dir", type=Path, default=REPO_ROOT / "examples" / "datasets" / "marmousi2_source")
-    parser.add_argument("--shots", type=int, default=3)
+    parser.add_argument("--shots", type=int, default=40)
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--ox", type=float, default=0.0)
     parser.add_argument("--oz", type=float, default=0.0)
