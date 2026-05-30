@@ -39,6 +39,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [27 Gradient Checking Notebook Import Sync](./27-gradient-checking-notebook-import-sync.md)
 - [28 Global Example Residual Scan](./28-example-global-residual-scan.md)
 - [29 Sys Path Residual Cleanup](./29-sys-path-residual-cleanup.md)
+- [30 ADFWI Wildcard Import Cleanup](./30-adfwi-wildcard-import-cleanup.md)
 
 ## Branch Boundary
 
