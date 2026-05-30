@@ -294,7 +294,5 @@ The norm matches the full-record baseline exactly.
 
 ## Next Direction
 
-Do not connect `save_forward_wavefield=False` to FWI globally. The safe next
-step is to add an FWI-level guard that only allows this option when all active
-gradient processors have `forw_illumination=False`, then validate processed
-gradients and reduced inversion behavior against the default path.
+Do not connect `save_forward_wavefield=False` to FWI globally. The FWI-level
+guarded follow-up is recorded in `08-acoustic-fwi-wavefield-policy-guard.md`.

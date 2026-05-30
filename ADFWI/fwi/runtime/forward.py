@@ -17,12 +17,13 @@ class ForwardBatchRecord:
     record_waveform: object
 
 
-def acoustic_forward_batch(propagator, batch_range, checkpoint_segments):
+def acoustic_forward_batch(propagator, batch_range, checkpoint_segments, *, save_forward_wavefield=True):
     """Run one acoustic forward batch and keep its shot selection with the record."""
     shot_index = batch_range.shot_index
     record_waveform = propagator.forward(
         shot_index=shot_index,
         checkpoint_segments=checkpoint_segments,
+        save_forward_wavefield=save_forward_wavefield,
     )
     return ForwardBatchRecord(shot_index=shot_index, record_waveform=record_waveform)
 

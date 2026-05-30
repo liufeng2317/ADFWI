@@ -60,6 +60,18 @@ Required result: `p/u/w`, pressure loss, and raw `vp.grad` differences are
 zero or tolerance-bounded. This does not prove FWI processed-gradient parity
 when `GradProcessor.forw_illumination=True`.
 
+For AcousticFWI-level use of `save_forward_wavefield=False`, require guard and
+processed-gradient tests:
+
+```bash
+conda run -n adfwi python -m unittest \
+  tests.test_backend_integration.BackendIntegrationTests.test_acoustic_fwi_rejects_skipped_forward_wavefield_when_illumination_is_active \
+  tests.test_backend_integration.BackendIntegrationTests.test_acoustic_fwi_skipped_forward_wavefield_matches_default_without_illumination
+```
+
+The opt-in FWI path is valid only when active gradient processors explicitly set
+`forw_illumination=False`.
+
 ## Static And Unit Commands
 
 ```bash

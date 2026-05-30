@@ -162,6 +162,9 @@ Candidate targets:
 - optional recording policy for pressure-only acoustic runs;
 - completed: opt-in acoustic forward-wavefield accumulation control;
   see `07-acoustic-forward-wavefield-policy.md`;
+- completed: AcousticFWI guard for opt-in forward-wavefield skipping when
+  gradient processors have `forw_illumination=False`; see
+  `08-acoustic-fwi-wavefield-policy-guard.md`;
 - avoid computing unused receiver components only behind an explicit option.
 
 Risk:

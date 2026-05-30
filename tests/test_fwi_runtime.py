@@ -216,8 +216,8 @@ class FWIRuntimeTests(unittest.TestCase):
         calls = []
 
         class Propagator:
-            def forward(self, *, shot_index, checkpoint_segments):
-                calls.append((shot_index, checkpoint_segments))
+            def forward(self, *, shot_index, checkpoint_segments, save_forward_wavefield=True):
+                calls.append((shot_index, checkpoint_segments, save_forward_wavefield))
                 return {"p": torch.tensor([[1.0]])}
 
         result = acoustic_forward_batch(Propagator(), batch_range, checkpoint_segments=2)
@@ -225,7 +225,7 @@ class FWIRuntimeTests(unittest.TestCase):
         self.assertIsInstance(result, ForwardBatchRecord)
         self.assertIs(result.shot_index, batch_range.shot_index)
         self.assertEqual(result.record_waveform["p"].tolist(), [[1.0]])
-        self.assertEqual(calls, [(batch_range.shot_index, 2)])
+        self.assertEqual(calls, [(batch_range.shot_index, 2, True)])
 
     def test_elastic_forward_batch_preserves_fd_order_and_shot_index(self):
         batch_range = SimpleNamespace(shot_index=torch.tensor([0]))

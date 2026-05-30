@@ -75,8 +75,8 @@ class DummyAcousticPropagator:
         self.dt = 0.002
         self.calls = []
 
-    def forward(self, *, shot_index, checkpoint_segments):
-        self.calls.append((shot_index, checkpoint_segments))
+    def forward(self, *, shot_index, checkpoint_segments, save_forward_wavefield=True):
+        self.calls.append((shot_index, checkpoint_segments, save_forward_wavefield))
         return {
             "p": self.synthetic,
             "forward_wavefield_p": self.forward_wavefield,
@@ -195,6 +195,7 @@ class TestFWIIterationHelpers(unittest.TestCase):
             propagator=propagator,
             batch_range=batch_range,
             checkpoint_segments=3,
+            save_forward_wavefield=False,
             observed_pressure=observed,
             prepare_loss_pair=prepare_pair,
             loss_fn=DummyApplyLoss,
@@ -210,7 +211,7 @@ class TestFWIIterationHelpers(unittest.TestCase):
         self.assertTrue(torch.equal(synthetic.grad, torch.tensor([[[2.0], [4.0]]])))
         self.assertEqual(float(regularization.grad.item()), 1.0)
         np.testing.assert_array_equal(result.accumulated_wavefield, np.array([[3.0, 4.0]], dtype=np.float32))
-        self.assertEqual(propagator.calls, [(batch_range.shot_index, 3)])
+        self.assertEqual(propagator.calls, [(batch_range.shot_index, 3, False)])
         self.assertEqual(prepare_calls, [(batch_range.shot_index, 8.0, 0.002)])
         self.assertEqual(progress_bar.description, "Shot:0 to 1")
 

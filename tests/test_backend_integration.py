@@ -5,7 +5,7 @@ import torch
 
 from ADFWI.backends import configure_backend, get_backend
 from ADFWI.model import AcousticModel, IsotropicElasticModel
-from ADFWI.propagator import AcousticPropagator, ElasticPropagator
+from ADFWI.propagator import AcousticPropagator, ElasticPropagator, GradProcessor
 from ADFWI.fwi import AcousticFWI, ElasticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
@@ -136,6 +136,88 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(float(full_loss.item()), float(skipped_loss.item()))
         self.assertGreater(float(torch.linalg.norm(full_record["forward_wavefield_p"]).item()), 0.0)
         self.assertEqual(float(torch.linalg.norm(skipped_record["forward_wavefield_p"]).item()), 0.0)
+
+    def test_acoustic_fwi_rejects_skipped_forward_wavefield_when_illumination_is_active(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            gradient_processor=GradProcessor(forw_illumination=True),
+            cache_result=False,
+        )
+
+        with self.assertRaisesRegex(ValueError, "forw_illumination=False"):
+            fwi.forward(iteration=0, save_forward_wavefield=False)
+
+    def test_acoustic_fwi_allows_skipped_forward_wavefield_without_illumination(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            gradient_processor=GradProcessor(forw_illumination=False),
+            cache_result=False,
+        )
+
+        fwi.forward(iteration=0, save_forward_wavefield=False)
+
+    def test_acoustic_fwi_skipped_forward_wavefield_matches_default_without_illumination(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        observed = SeismicData(survey)
+        observed.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+
+        def build_fwi():
+            model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+            propagator = AcousticPropagator(model, survey)
+            optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+            fwi = AcousticFWI(
+                propagator,
+                model,
+                optimizer,
+                scheduler,
+                Misfit_waveform_L2(dt=survey.source.dt),
+                observed,
+                gradient_processor=GradProcessor(forw_illumination=False, norm_grad=False),
+                waveform_normalize=False,
+                cache_result=False,
+            )
+            return fwi
+
+        default_fwi = build_fwi()
+        skipped_fwi = build_fwi()
+
+        default_fwi.forward(iteration=1, save_forward_wavefield=True)
+        skipped_fwi.forward(iteration=1, save_forward_wavefield=False)
+
+        self.assertEqual(default_fwi.iter_loss, skipped_fwi.iter_loss)
+        self.assertTrue(torch.equal(default_fwi.model.vp, skipped_fwi.model.vp))
+        self.assertTrue(torch.equal(default_fwi.model.vp.grad, skipped_fwi.model.vp.grad))
 
     def test_explicit_model_device_remains_supported(self):
         configure_backend("cpu")
