@@ -50,7 +50,7 @@ if __name__ == "__main__":
     free_surface = True       # Enable free surface boundary condition
     
     # Load the Marmousi model dataset
-    model_path ="../../../datasets/overthrust_source"
+    model_path = str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "overthrust_source")
     overthrust_model = load_overthrust_model(in_dir=model_path)
     true_model       = resample_overthrust_model(overthrust_model)
     overthrust_initial_model    = load_overthrust_initial_model(in_dir=model_path)

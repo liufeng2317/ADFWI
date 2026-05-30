@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #                   Velocity Model
     #------------------------------------------------------
     # Load the Marmousi model dataset
-    true_model   = load_valhall_model(in_dir=str(SCRIPT_DIR / "../../../../datasets/Valhall_source"))
+    true_model   = load_valhall_model(in_dir=str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "Valhall_source"))
     smooth_model = get_smooth_valhall_model(true_model,gaussian_kernel=8)
 
     # Extract true model properties for comparison.

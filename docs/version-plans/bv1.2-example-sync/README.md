@@ -26,6 +26,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [14 Analysis Notebook Path Sync](./14-analysis-notebook-path-sync.md)
 - [15 FootHill Forward Import Sync](./15-foothill-forward-import-sync.md)
 - [16 FootHill Inversion Script Path Sync](./16-foothill-inversion-script-path-sync.md)
+- [17 DR-FWI Dataset Path Sync](./17-dr-fwi-dataset-path-sync.md)
 
 ## Branch Boundary
 

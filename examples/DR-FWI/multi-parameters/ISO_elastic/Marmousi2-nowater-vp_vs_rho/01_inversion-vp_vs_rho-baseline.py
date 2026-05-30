@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #                   Velocity Model
     #------------------------------------------------------
     # Load the Marmousi model dataset from the specified directory.
-    marmousi_model = load_marmousi_model(in_dir=str(SCRIPT_DIR / "../../../../datasets/marmousi2_source"))
+    marmousi_model = load_marmousi_model(in_dir=str(next(parent for parent in SCRIPT_DIR.parents if parent.name == "examples") / "datasets" / "marmousi2_source"))
 
     # Resample the Marmousi model for the defined coordinates
     x = np.linspace(5000, 5000 + dx * nx, nx)
