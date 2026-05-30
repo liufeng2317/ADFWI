@@ -72,43 +72,40 @@ These findings bridge empirical observations with theoretical understanding, dem
 #### Step1: load required library
 
 ```python
+import os
+
+import ADFWI
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("agg")
 from scipy import integrate
-import sys
-import os
-sys.path.append("../../../../../")
-from ADFWI.propagator  import *
-from ADFWI.model       import *
-from ADFWI.view        import *
-from ADFWI.utils       import *
-from ADFWI.survey      import *
-from ADFWI.fwi         import *
-from ADFWI.dip import *
 from tqdm import tqdm
+
+from ADFWI.dip import DIP_ElasticFWI
+from ADFWI.propagator import ElasticPropagator, GradProcessor
+from ADFWI.survey import Receiver, SeismicData, Source, Survey
+from ADFWI.utils import (
+    get_smooth_marmousi_model,
+    load_marmousi_model,
+    numpy2tensor,
+    resample_marmousi_model,
+    wavelet,
+)
 ```
 
 #### Step 2: set theparameters for velocity model
 
 ```python
 project_path = "./data/"
-if not os.path.exists(os.path.join(project_path,"model")):
-    os.makedirs(os.path.join(project_path,"model"))
-if not os.path.exists(os.path.join(project_path,"waveform")):
-    os.makedirs(os.path.join(project_path,"waveform"))
-if not os.path.exists(os.path.join(project_path,"survey")):
-    os.makedirs(os.path.join(project_path,"survey"))
-if not os.path.exists(os.path.join(project_path,f"inversion-vp_vs_rho-CNN3-2x64-1")):
-    os.makedirs(os.path.join(project_path,f"inversion-vp_vs_rho-CNN3-2x64-1"))
+for subdir in ("model", "waveform", "survey", "inversion-vp_vs_rho-CNN3-2x64-1"):
+    os.makedirs(os.path.join(project_path, subdir), exist_ok=True)
 
 #------------------------------------------------------
 #                   Basic Parameters
 #------------------------------------------------------
-device = "cuda:0"         # Specify the GPU device
+device = "cuda:0"         # Specify the CPU/GPU/NPU device
 dtype = torch.float32     # Set data type to 32-bit floating point
+backend = ADFWI.set_backend(device, dtype=dtype)
 ox, oz = 0, 0             # Origin coordinates for x and z directions
 nz, nx = 68, 200          # Grid dimensions in z and x directions
 dx, dz = 45, 45           # Grid spacing in x and z directions
@@ -121,7 +118,7 @@ free_surface = True       # Enable free surface boundary condition
 #                   Velocity Model
 #------------------------------------------------------
 # Load the Marmousi model dataset from the specified directory.
-marmousi_model = load_marmousi_model(in_dir="../../../../datasets/marmousi2_source")
+marmousi_model = load_marmousi_model(in_dir="../datasets/marmousi2_source")
 
 # Resample the Marmousi model for the defined coordinates
 x = np.linspace(5000, 5000 + dx * nx, nx)
