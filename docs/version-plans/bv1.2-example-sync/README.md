@@ -38,6 +38,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [26 Ricker Misfit Sibling Import Sync](./26-ricker-misfit-sibling-import-sync.md)
 - [27 Gradient Checking Notebook Import Sync](./27-gradient-checking-notebook-import-sync.md)
 - [28 Global Example Residual Scan](./28-example-global-residual-scan.md)
+- [29 Sys Path Residual Cleanup](./29-sys-path-residual-cleanup.md)
 
 ## Branch Boundary
 

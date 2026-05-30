@@ -11,15 +11,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from forward_modeling import (  # noqa: E402
+from forward_modeling import (
     DEFAULT_OUTPUT_ROOT,
     add_case_arguments,
     json_default,
@@ -27,7 +23,7 @@ from forward_modeling import (  # noqa: E402
     run_forward,
     validate_case_args,
 )
-from inversion import add_inversion_arguments, run_inversion  # noqa: E402
+from inversion import add_inversion_arguments, run_inversion
 
 
 @dataclass(frozen=True)
