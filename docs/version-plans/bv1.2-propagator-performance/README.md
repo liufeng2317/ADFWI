@@ -41,3 +41,12 @@ breakdown for one reduced differentiable acoustic FWI iteration.
 First profiling record:
 
 - `01-profile-first-bottleneck-probe.md`
+- `09-acoustic-fwi-iteration-profile.md`
+
+Current measured next direction:
+
+```text
+Reduced acoustic FWI iteration is dominated by backward cost
+(`17.78 s`, `61.01%`). Continue with Phase B: acoustic AD graph and backward
+cost diagnostics.
+```

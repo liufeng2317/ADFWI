@@ -1,0 +1,355 @@
+#!/usr/bin/env python
+"""Profile one reduced Marmousi2 acoustic FWI iteration.
+
+This benchmark is the Phase A gate for propagator performance work. It does not
+change ADFWI runtime behavior. It reproduces the reduced validation inversion
+setup, then times one or more explicit FWI iterations split into forward, loss,
+backward, gradient processing, optimizer, and setup costs.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+VALIDATION_SCRIPTS = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced" / "scripts"
+DEFAULT_OUTPUT_ROOT = (
+    REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced" / "outputs" / "phase_a_profile"
+)
+DEFAULT_RESULT = (
+    REPO_ROOT
+    / "docs"
+    / "version-plans"
+    / "bv1.2-propagator-performance"
+    / "acoustic_fwi_iteration_profile_20260531.json"
+)
+
+
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load module {name!r} from {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+forward_modeling = load_module("phase_a_forward_modeling", VALIDATION_SCRIPTS / "forward_modeling.py")
+
+
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    forward_modeling.add_case_arguments(parser)
+    parser.set_defaults(output_root=DEFAULT_OUTPUT_ROOT)
+    parser.add_argument("--result-json", type=Path, default=DEFAULT_RESULT)
+    parser.add_argument("--iterations", type=int, default=1)
+    parser.add_argument("--lr", type=float, default=10.0)
+    parser.add_argument("--scheduler-step-size", type=int, default=200)
+    parser.add_argument("--scheduler-gamma", type=float, default=0.75)
+    parser.add_argument("--grad-mute-top", type=int, default=12)
+    parser.add_argument("--gaussian-kernel", type=int, default=6)
+    parser.add_argument("--rcv-depth", type=int, default=10)
+    parser.add_argument("--mask-extra-depth", type=int, default=2)
+    parser.add_argument("--generate-observed", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
+
+
+def synchronize(backend) -> None:
+    if backend.name in {"cuda", "npu"}:
+        backend.synchronize()
+
+
+class Timer:
+    def __init__(self, backend) -> None:
+        self.backend = backend
+
+    def measure(self, fn):
+        synchronize(self.backend)
+        start = time.perf_counter()
+        value = fn()
+        synchronize(self.backend)
+        return value, time.perf_counter() - start
+
+
+def tensor_scalar(value) -> float:
+    if hasattr(value, "detach"):
+        return float(value.detach().cpu().item())
+    return float(value)
+
+
+def tensor_norm(value) -> float:
+    torch = sys.modules["torch"]
+    detached = value.detach()
+    return float(torch.linalg.norm(detached.reshape(-1)).cpu().item())
+
+
+def build_initial_model(rt: Dict[str, Any], args: argparse.Namespace):
+    np = rt["np"]
+    torch = rt["torch"]
+    true_model, vp_true, _ = forward_modeling.build_true_arrays(rt, args)
+    from ADFWI.utils import get_smooth_marmousi_model
+
+    smooth_model = get_smooth_marmousi_model(
+        true_model,
+        gaussian_kernel=args.gaussian_kernel,
+        rcv_depth=args.rcv_depth,
+        mask_extra_detph=args.mask_extra_depth,
+    )
+    vp_init = smooth_model["vp"].T
+    rho_init = np.power(vp_init, 0.25) * 310
+    model = rt["AcousticModel"](
+        args.ox,
+        args.oz,
+        args.nx,
+        args.nz,
+        args.dx,
+        args.dz,
+        vp_init,
+        rho_init,
+        vp_bound=[vp_true.min(), vp_true.max()],
+        vp_grad=True,
+        free_surface=args.free_surface,
+        abc_type=args.abc_type,
+        abc_jerjan_alpha=args.abc_jerjan_alpha,
+        nabc=args.nabc,
+        auto_update_rho=True,
+        device=args.device,
+        dtype=torch.float32 if args.dtype == "float32" else torch.float64,
+    )
+    return model, vp_init
+
+
+def ensure_observed_data(rt: Dict[str, Any], args: argparse.Namespace, backend) -> Dict[str, Any]:
+    obs_path = args.output_root / "waveform" / "obs_data.npz"
+    if obs_path.exists():
+        return {"generated": False, "path": str(obs_path), "seconds": 0.0}
+    if not args.generate_observed:
+        raise FileNotFoundError(f"missing observed data: {obs_path}")
+
+    timer = Timer(backend)
+    _, seconds = timer.measure(lambda: forward_modeling.run_forward(args))
+    return {"generated": True, "path": str(obs_path), "seconds": seconds}
+
+
+def build_fwi_state(rt: Dict[str, Any], args: argparse.Namespace, backend):
+    import numpy as np
+    import torch
+
+    from ADFWI.fwi import AcousticFWI
+    from ADFWI.fwi.misfit import Misfit_waveform_L2
+    from ADFWI.propagator import GradProcessor
+
+    model, vp_init = build_initial_model(rt, args)
+    survey = forward_modeling.build_survey(rt, args)
+    propagator = rt["AcousticPropagator"](model, survey, device=args.device)
+
+    d_obs = rt["SeismicData"](survey)
+    d_obs.load(str(args.output_root / "waveform" / "obs_data.npz"))
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer,
+        step_size=args.scheduler_step_size,
+        gamma=args.scheduler_gamma,
+        last_epoch=-1,
+    )
+    grad_mask = np.ones_like(vp_init)
+    grad_mask[: args.grad_mute_top, :] = 0
+    gradient_processor = GradProcessor(grad_mask=grad_mask)
+
+    fwi = AcousticFWI(
+        propagator=propagator,
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        loss_fn=Misfit_waveform_L2(dt=1),
+        obs_data=d_obs,
+        gradient_processor=gradient_processor,
+        waveform_normalize=True,
+        cache_result=False,
+        save_fig_epoch=-1,
+    )
+    fwi._validate_forward_wavefield_policy(args.save_forward_wavefield)
+    return fwi, vp_init
+
+
+def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer) -> Dict[str, Any]:
+    import torch
+
+    from ADFWI.fwi.acoustic_fwi import acoustic_gradient_parameter_specs
+    from ADFWI.fwi.iteration.batches import iter_batch_ranges
+    from ADFWI.fwi.iteration.epoch import apply_epoch_update_step
+    from ADFWI.fwi.iteration.loss import acoustic_pressure_loss_input, build_batch_loss, evaluate_loss_inputs
+    from ADFWI.fwi.runtime.forward import acoustic_forward_batch
+    from ADFWI.fwi.runtime.gradient import process_named_parameter_gradients
+    from ADFWI.fwi.runtime.wavefield import acoustic_pressure_waveforms, accumulate_wavefield
+
+    timings = {
+        "zero_grad": 0.0,
+        "forward": 0.0,
+        "wavefield_accumulation": 0.0,
+        "loss_evaluation": 0.0,
+        "backward": 0.0,
+        "gradient_processing": 0.0,
+        "optimizer_step": 0.0,
+    }
+    batch_reports: List[Dict[str, Any]] = []
+
+    _, timings["zero_grad"] = timer.measure(lambda: fwi.optimizer.zero_grad())
+    loss_epoch = 0.0
+    accumulated_wavefield = None
+    batch_ranges = list(iter_batch_ranges(fwi.propagator.src_n, args.shots))
+
+    for batch_range in batch_ranges:
+        forward_batch, elapsed = timer.measure(
+            lambda batch_range=batch_range: acoustic_forward_batch(
+                fwi.propagator,
+                batch_range,
+                args.checkpoint_segments,
+                save_forward_wavefield=args.save_forward_wavefield,
+            )
+        )
+        timings["forward"] += elapsed
+
+        (_, forward_wavefield_p), elapsed = timer.measure(
+            lambda: acoustic_pressure_waveforms(forward_batch.record_waveform)
+        )
+        timings["wavefield_accumulation"] += elapsed
+        accumulated_wavefield, elapsed = timer.measure(
+            lambda: accumulate_wavefield(accumulated_wavefield, forward_wavefield_p)
+        )
+        timings["wavefield_accumulation"] += elapsed
+
+        def evaluate_loss():
+            loss_input = acoustic_pressure_loss_input(
+                forward_batch.record_waveform,
+                fwi.obs_p,
+                forward_batch.shot_index,
+            )
+            loss_evaluation = evaluate_loss_inputs(
+                [loss_input],
+                prepare_loss_pair=fwi._prepare_loss_pair,
+                loss_fn=fwi.loss_fn,
+                normalization=fwi.waveform_normalize,
+                function_fallback="apply",
+                cutoff_freq=None,
+                propagator_dt=fwi.propagator.dt,
+                device=fwi.device,
+            )
+            return build_batch_loss(loss_evaluation.data_loss)
+
+        batch_loss, elapsed = timer.measure(evaluate_loss)
+        timings["loss_evaluation"] += elapsed
+        loss_epoch += batch_loss.scalar
+
+        _, elapsed = timer.measure(lambda batch_loss=batch_loss: batch_loss.tensor.backward())
+        timings["backward"] += elapsed
+        batch_reports.append(
+            {
+                "batch": batch_range.batch,
+                "begin": batch_range.begin,
+                "end": batch_range.end,
+                "loss": batch_loss.scalar,
+            }
+        )
+
+    _, timings["gradient_processing"] = timer.measure(
+        lambda: process_named_parameter_gradients(
+            fwi.model,
+            acoustic_gradient_parameter_specs(),
+            fwi.process_gradient,
+            forw=accumulated_wavefield,
+        )
+    )
+    grad_after_processing = fwi.model.vp.grad.detach()
+    grad_norm_after_processing = tensor_norm(grad_after_processing)
+    grad_finite_after_processing = bool(torch.isfinite(grad_after_processing).all().cpu().item())
+
+    _, timings["optimizer_step"] = timer.measure(
+        lambda: apply_epoch_update_step(fwi.optimizer, fwi.scheduler, fwi.model)
+    )
+    vp_finite_after_optimizer = bool(torch.isfinite(fwi.model.vp.detach()).all().cpu().item())
+
+    total = sum(timings.values())
+    return {
+        "loss": float(loss_epoch),
+        "loss_finite": bool(torch.isfinite(torch.as_tensor(loss_epoch)).item()),
+        "timings": timings,
+        "timing_total": total,
+        "timing_fraction": {name: (value / total if total > 0 else 0.0) for name, value in timings.items()},
+        "grad_norm_after_processing": grad_norm_after_processing,
+        "grad_finite_after_processing": grad_finite_after_processing,
+        "vp_finite_after_optimizer": vp_finite_after_optimizer,
+        "batches": batch_reports,
+    }
+
+
+def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
+    if args.iterations <= 0:
+        raise ValueError("--iterations must be positive")
+
+    setup_start = time.perf_counter()
+    rt = forward_modeling.import_runtime_modules()
+    backend = rt["ADFWI"].set_backend(args.device, dtype=args.dtype, fallback=args.fallback_cpu)
+    observed_report = ensure_observed_data(rt, args, backend)
+    fwi, vp_init = build_fwi_state(rt, args, backend)
+    synchronize(backend)
+    setup_seconds = time.perf_counter() - setup_start
+
+    timer = Timer(backend)
+    iteration_reports = [run_one_iteration(fwi, args, timer) for _ in range(args.iterations)]
+
+    torch = rt["torch"]
+    vp_update_norm = float(
+        torch.linalg.norm(
+            (fwi.model.vp.detach() - torch.as_tensor(vp_init, device=fwi.model.vp.device, dtype=fwi.model.vp.dtype)).reshape(-1)
+        )
+        .cpu()
+        .item()
+    )
+
+    return {
+        "status": "ok",
+        "case": "marmousi2_acoustic_reduced",
+        "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
+        "backend": rt["ADFWI"].backend_diagnostics(),
+        "shape": {
+            "shots": args.shots,
+            "receivers": fwi.propagator.rcv_n,
+            "nt": fwi.propagator.nt,
+            "nx": fwi.model.nx,
+            "nz": fwi.model.nz,
+            "checkpoint_segments": args.checkpoint_segments,
+            "save_forward_wavefield": args.save_forward_wavefield,
+        },
+        "setup_seconds": setup_seconds,
+        "observed_data": observed_report,
+        "iterations": iteration_reports,
+        "vp_update_norm": vp_update_norm,
+    }
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    args = parser.parse_args(argv)
+    forward_modeling.validate_case_args(parser, args)
+
+    report = run_profile(args)
+    args.result_json.parent.mkdir(parents=True, exist_ok=True)
+    args.result_json.write_text(
+        json.dumps(report, indent=2, sort_keys=True, default=forward_modeling.json_default) + "\n"
+    )
+    print(json.dumps(report, indent=2, sort_keys=True, default=forward_modeling.json_default))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
