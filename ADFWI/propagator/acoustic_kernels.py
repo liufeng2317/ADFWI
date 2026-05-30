@@ -281,18 +281,32 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
     
     k = 0
     for i, chunk in enumerate(torch.chunk(src_v, checkpoint_segments, dim=-1)):
-        # Step forward
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
-            checkpoint(step_forward,
-                       nx, nz, dx, dz, dt,
-                       nabc, free_surface,
-                       src_x, src_z, src_n, chunk,
-                       rcv_x, rcv_z, rcv_n,
-                       kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
-                       p, u, w,
-                       device, dtype, 
-                       use_reentrant=True
-                       )
+        if checkpoint_segments == 1:
+            # No time segmentation is requested, so checkpointing only adds
+            # autograd recomputation overhead without reducing segment count.
+            p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
+                step_forward(
+                    nx, nz, dx, dz, dt,
+                    nabc, free_surface,
+                    src_x, src_z, src_n, chunk,
+                    rcv_x, rcv_z, rcv_n,
+                    kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                    p, u, w,
+                    device, dtype,
+                )
+        else:
+            # Step forward with checkpointing for segmented memory savings.
+            p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
+                checkpoint(step_forward,
+                           nx, nz, dx, dz, dt,
+                           nabc, free_surface,
+                           src_x, src_z, src_n, chunk,
+                           rcv_x, rcv_z, rcv_n,
+                           kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                           p, u, w,
+                           device, dtype,
+                           use_reentrant=True
+                           )
 
         # Save the waveform recorded on the receiver
         rcv_p[:, k:k + chunk.shape[-1]] = rcv_p_temp
