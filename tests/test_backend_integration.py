@@ -114,6 +114,29 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertTrue(np.array_equal(propagator.receiver_masks, survey.receiver_masks))
         self.assertFalse(propagator.receiver_masks_obs)
 
+    def test_acoustic_forward_wavefield_output_can_be_skipped_without_changing_receiver_gradient(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        full_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        skipped_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        full_propagator = AcousticPropagator(full_model, survey)
+        skipped_propagator = AcousticPropagator(skipped_model, survey)
+
+        full_record = full_propagator.forward(checkpoint_segments=1, save_forward_wavefield=True)
+        skipped_record = skipped_propagator.forward(checkpoint_segments=1, save_forward_wavefield=False)
+        full_loss = full_record["p"].pow(2).mean()
+        skipped_loss = skipped_record["p"].pow(2).mean()
+        full_loss.backward()
+        skipped_loss.backward()
+
+        for key in ("p", "u", "w"):
+            self.assertTrue(torch.equal(full_record[key], skipped_record[key]), key)
+        self.assertTrue(torch.equal(full_model.vp.grad, skipped_model.vp.grad))
+        self.assertEqual(float(full_loss.item()), float(skipped_loss.item()))
+        self.assertGreater(float(torch.linalg.norm(full_record["forward_wavefield_p"]).item()), 0.0)
+        self.assertEqual(float(torch.linalg.norm(skipped_record["forward_wavefield_p"]).item()), 0.0)
+
     def test_explicit_model_device_remains_supported(self):
         configure_backend("cpu")
         vp, rho = self._model_arrays()

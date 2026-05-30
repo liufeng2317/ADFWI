@@ -45,6 +45,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
                  kappa1: torch.Tensor, alpha1: torch.Tensor, kappa2: torch.Tensor, alpha2: torch.Tensor,
                  kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
                  p: torch.Tensor, u: torch.Tensor, w: torch.Tensor,
+                 save_forward_wavefield: bool = True,
                  device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Description
@@ -77,6 +78,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         p (Tensor)                      : pressure
         u (Tensor)                      : vertical velocity (vx)
         w (Tensor)                      : horizontal velocity (vz)
+        save_forward_wavefield (bool)   : whether to accumulate detached forward wavefield summaries
         device (str)                    : device type
         dtype (torch.dtype)             : data type for tensors
     
@@ -178,10 +180,11 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         rcv_u[:, it, :] = u[:, rcv_z, rcv_x]
         rcv_w[:, it, :] = w[:, rcv_z, rcv_x]
 
-        # Accumulate forward wavefields
-        forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+        # Accumulate detached forward wavefields for gradient processing and visualization.
+        if save_forward_wavefield:
+            forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+            forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+            forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
         
     # if you want to save the wavefield, you need to comments the @torch.jit.script
     #     if it % 10 == 0:
@@ -199,6 +202,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                    damp: torch.Tensor,                                                              # PML
                    v: torch.Tensor, rho: torch.Tensor,                                              # Velocity model
                    checkpoint_segments: int = 1,                                                    # Finite Difference
+                   save_forward_wavefield: bool = True,
                    device: torch.device = torch.device('cpu'), dtype: torch.dtype = torch.float32
                    ) -> Dict[str, torch.Tensor]:  # Changed return type to Dict for clarity
     """ Forward simulation of Acoustic Waveform Equation
@@ -224,6 +228,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
         v (Tensor)                      : P-wave velocity (km/s)
         rho (Tensor)                    : Density (kg/m^3)
         checkpoint_segments (int)       : Segments of the checkpoints for saving memory
+        save_forward_wavefield (bool)   : Whether to accumulate detached forward wavefield summaries
         device (str)                    : Device type, default is "cpu"
         dtype (torch.dtype)             : Data type for tensors, default is torch.float32
     
@@ -294,6 +299,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                     rcv_x, rcv_z, rcv_n,
                     kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                     p, u, w,
+                    save_forward_wavefield,
                     device, dtype,
                 )
         else:
@@ -306,6 +312,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                            rcv_x, rcv_z, rcv_n,
                            kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                            p, u, w,
+                           save_forward_wavefield,
                            device, dtype,
                            use_reentrant=True
                            )
@@ -315,10 +322,11 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
         rcv_u[:, k:k + chunk.shape[-1]] = rcv_u_temp
         rcv_w[:, k:k + chunk.shape[-1]] = rcv_w_temp
 
-        # Accumulate the forward wavefield
-        forward_wavefield_p = forward_wavefield_p + forward_wavefield_p_temp.detach()
-        forward_wavefield_u = forward_wavefield_u + forward_wavefield_u_temp.detach()
-        forward_wavefield_w = forward_wavefield_w + forward_wavefield_w_temp.detach()
+        # Accumulate the detached forward wavefield summaries when requested.
+        if save_forward_wavefield:
+            forward_wavefield_p = forward_wavefield_p + forward_wavefield_p_temp.detach()
+            forward_wavefield_u = forward_wavefield_u + forward_wavefield_u_temp.detach()
+            forward_wavefield_w = forward_wavefield_w + forward_wavefield_w_temp.detach()
             
         k = k + chunk.shape[-1]
     

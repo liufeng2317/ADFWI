@@ -37,6 +37,29 @@ conda run -n adfwi python scripts/benchmark/acoustic_output_cost.py \
 This benchmark is only for bottleneck selection. It does not replace acoustic
 numerical parity tests because it does not run the full propagator.
 
+For acoustic forward-wavefield output-policy changes, use:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_wavefield_policy.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 1 \
+  --repeat 3 \
+  --checkpoint-segments 1 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --nt 800 \
+  --dx 40 \
+  --dz 40 \
+  --dt 0.003 \
+  --f0 5
+```
+
+Required result: `p/u/w`, pressure loss, and raw `vp.grad` differences are
+zero or tolerance-bounded. This does not prove FWI processed-gradient parity
+when `GradProcessor.forw_illumination=True`.
+
 ## Static And Unit Commands
 
 ```bash

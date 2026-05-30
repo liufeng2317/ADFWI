@@ -160,13 +160,17 @@ summaries if profiling proves output accumulation is material.
 Candidate targets:
 
 - optional recording policy for pressure-only acoustic runs;
-- optional forward-wavefield accumulation controls;
+- completed: opt-in acoustic forward-wavefield accumulation control;
+  see `07-acoustic-forward-wavefield-policy.md`;
 - avoid computing unused receiver components only behind an explicit option.
 
 Risk:
 
 - this touches public output dictionaries and FWI assumptions. It must be
   opt-in or maintain the default output exactly.
+- acoustic FWI uses `forward_wavefield_p` for GradProcessor illumination
+  preconditioning; skipped forward wavefields must not be enabled when
+  `forw_illumination=True`.
 
 Required validation:
 

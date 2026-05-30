@@ -124,6 +124,7 @@ class AcousticPropagator(torch.nn.Module):
                 model: Optional[AbstractModel] = None,
                 shot_index: Optional[int] = None,
                 checkpoint_segments: int = 1,
+                save_forward_wavefield: bool = True,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
 
@@ -132,6 +133,7 @@ class AcousticPropagator(torch.nn.Module):
         model (Optional[AbstractModel]) : Model to use for simulation, defaults to the instance's model
         shot_index (Optional[int])       : Index of the shot to simulate
         checkpoint_segments (int)        : Number of segments for checkpointing to save memory
+        save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
 
         Returns:
         --------
@@ -155,6 +157,7 @@ class AcousticPropagator(torch.nn.Module):
             self.damp,
             model.vp,model.rho,
             checkpoint_segments=checkpoint_segments,
+            save_forward_wavefield=save_forward_wavefield,
             device=self.device,dtype=self.dtype
         )
         return record_waveform
