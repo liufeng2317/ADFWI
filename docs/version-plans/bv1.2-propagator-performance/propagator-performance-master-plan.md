@@ -1,0 +1,241 @@
+# Propagator Performance Master Plan
+
+Date: 2026-05-31
+
+This document is the execution entry point for the
+`bv1.2-propagator-performance` branch. It replaces ad-hoc optimization with a
+fixed profiling and validation route.
+
+## Goal
+
+Improve `ADFWI/propagator` performance without changing the default numerical
+results, automatic-differentiation gradients, or public output contract.
+
+The optimization target is not "cleaner code" by itself. The target is measured
+runtime reduction on a named FWI workflow while preserving scientific behavior.
+
+## Non-Negotiable Rules
+
+1. Profile before editing kernels.
+2. Keep default numerical behavior unchanged.
+3. Compare gradients for every differentiable propagator change.
+4. Treat opt-in output reduction as a separate feature from default
+   performance optimization.
+5. Stop a phase when its exit condition is reached.
+6. Do not start elastic optimization until the acoustic profiling workflow has
+   converged and been recorded.
+
+## Baselines
+
+### B0: Stable Full-Record Baseline
+
+Reference:
+`docs/version-plans/bv1.2/full-record-marmousi2-baseline.md`
+
+| Metric | Value |
+| --- | --- |
+| Case | `examples/validation/marmousi2_acoustic_full_record` |
+| Device / dtype | `npu:0`, `float32` |
+| `checkpoint_segments` | `1` |
+| Forward shape | `[40, 3000, 200]` |
+| Forward pressure norm | `4.604166507720947` |
+| Forward wall time | `7.913247490301728 s` |
+| 300-iter final loss | `4211.63671875` |
+| 300-iter min loss | `2709.09228515625` |
+| Seconds / iteration | `33.75309997430071 s` |
+
+### B1: Current Acoustic Kernel Baseline
+
+This branch has already accepted two default acoustic kernel optimizations:
+
+| Change | Effect | Numerical result |
+| --- | --- | --- |
+| Bypass checkpoint when `checkpoint_segments == 1` | small NPU benchmark total mean `9.40 s -> 6.86 s` | `p/u/w`, forward wavefields, loss, and `vp.grad` differences all `0.0` |
+| Hoist acoustic source indices out of timestep loop | small NPU benchmark total mean `6.86 s -> 6.55 s` | same numerical parity, differences all `0.0` |
+
+The next default optimization must compare against the current branch, not the
+pre-optimization code.
+
+### B2: Opt-In Output Policy Baseline
+
+`save_forward_wavefield=False` is an opt-in acoustic path guarded at FWI level.
+It is valid only when active gradient processors have
+`forw_illumination=False`.
+
+This is not the default behavior baseline. Do not mix opt-in output reduction
+with default kernel optimization in the same performance conclusion.
+
+## Execution Route
+
+```text
+Phase A: End-to-end cost breakdown
+  -> Phase B: Acoustic AD graph and backward cost
+  -> Phase C: Acoustic timestep/kernel execution cost
+  -> Phase D: Acoustic FWI loop and gradient-processing cost
+  -> Phase E: Elastic propagator profiling
+  -> Phase F: Research-only high-risk methods
+```
+
+Only one phase is active at a time. Each phase starts with a measurement record
+and ends with a decision: implement one bounded change, defer it, or stop.
+
+## Phase A: End-To-End Cost Breakdown
+
+Purpose: determine where runtime is actually spent before more kernel edits.
+
+Required measurement:
+
+- one reduced differentiable acoustic FWI iteration;
+- one full-record acoustic forward;
+- timing split for setup, `propagator.forward`, loss preparation, loss
+  evaluation, backward, gradient processing, optimizer step, and output/save
+  overhead;
+- device, dtype, shape, shot count, receiver count, `nt`, and
+  `checkpoint_segments`.
+
+Exit condition:
+
+- a recorded table that identifies the top two runtime components;
+- a selected Phase B/C/D target with expected impact and validation commands;
+- no code optimization before this table exists.
+
+Next immediate task:
+
+```text
+Build an acoustic FWI iteration profiling harness that measures the runtime
+components above on the reduced Marmousi2 validation case.
+```
+
+## Phase B: Acoustic AD Graph And Backward Cost
+
+Purpose: reduce automatic-differentiation overhead without changing gradients.
+
+Candidate methods:
+
+- checkpoint/rematerialization policy when memory permits;
+- graph pruning for outputs that are not used by the loss or gradient
+  processors;
+- avoiding unnecessary differentiable tensor writes when the value is not used;
+- only consider custom autograd/adjoint-state after default PyTorch AD
+  bottlenecks are quantified.
+
+Required validation:
+
+- forward output parity for `p`, `u`, `w`;
+- forward-wavefield parity when default outputs are enabled;
+- loss parity;
+- raw `vp.grad` parity;
+- processed gradient parity if FWI code is touched;
+- reduced inversion comparison.
+
+Exit condition:
+
+- one accepted bounded improvement, or a record that AD graph cost is not the
+  next dominant bottleneck.
+
+## Phase C: Acoustic Timestep And Kernel Execution Cost
+
+Purpose: optimize measured per-timestep overhead in the acoustic kernel.
+
+Candidate methods:
+
+- move invariant index/tensor preparation out of timestep loops;
+- reduce repeated tiny allocations when safe for autograd;
+- receiver sampling cost reduction only if receiver sampling is measured as
+  visible;
+- wavefield accumulation cost reduction only behind default-parity or explicit
+  opt-in policy;
+- device-specific compile/fusion experiments only after normal PyTorch timing
+  is stable.
+
+Required validation:
+
+- same as Phase B for any differentiable kernel edit;
+- full-record forward timing for accepted milestone changes.
+
+Exit condition:
+
+- stop when remaining measured candidates are below `5%` reduced-iteration
+  impact or below `10%` isolated hot-path impact.
+
+## Phase D: Acoustic FWI Loop And Gradient Processing Cost
+
+Purpose: optimize work outside the propagation timestep loop only if profiling
+shows it matters.
+
+Candidate methods:
+
+- compare `GradProcessor` and `TorchGradProcessor` on the same gradient;
+- identify CPU/NPU transfer points;
+- reduce repeated conversion, smoothing, and normalization setup;
+- separate plotting/save overhead from compute overhead.
+
+Required validation:
+
+- `tests/test_torch_grad_processor.py`;
+- processed-gradient numerical comparison;
+- reduced inversion loss comparison.
+
+Exit condition:
+
+- one accepted loop-level improvement, or a record that loop overhead is not
+  significant relative to propagation/backward.
+
+## Phase E: Elastic Propagator Profiling
+
+Purpose: start elastic optimization only after acoustic has a stable
+measurement/validation workflow.
+
+Required measurement:
+
+- PML vs ABL branch timing;
+- `fd_order` 4/6/8/10 timing when practical;
+- receiver output and forward-wavefield output cost;
+- backward/gradient comparison for a tiny differentiable elastic case.
+
+Exit condition:
+
+- an elastic-specific optimization plan based on measurements, not on file
+  size or duplicated code alone.
+
+## Phase F: Research-Only High-Risk Methods
+
+These methods are not default branch tasks until a separate experiment proves
+both speed and scientific parity.
+
+| Method | Reason for caution |
+| --- | --- |
+| custom autograd / adjoint-state rewrite | high risk of gradient convention or boundary mismatch |
+| mixed precision / AMP | may alter inversion trajectory and stability |
+| `torch.compile` or graph capture | may be backend/version sensitive, especially on NPU |
+| replacing checkpoint strategy globally | can change memory use and backward behavior |
+| promoting `acoustic_kernels_bs.py` | currently experimental and has global autograd side effects |
+
+## Stop Criteria
+
+Stop the current optimization round when any of these is true:
+
+- no measured bottleneck has a plausible `>=5%` reduced-iteration impact;
+- the proposed change cannot preserve raw gradient parity;
+- the change requires public default output changes;
+- the change is only readability cleanup and not tied to measured runtime;
+- the same phase has produced two consecutive "no meaningful improvement"
+  records.
+
+At that point, write a closeout note and move to the next planned phase or stop
+the branch.
+
+## Required Record For Each Change
+
+Each accepted optimization needs a local record in this folder with:
+
+- optimization path and hypothesis;
+- pre-change command and timing;
+- post-change command and timing;
+- shape, device, dtype, and case;
+- max absolute and relative differences for outputs and gradients;
+- validation commands;
+- commit hash;
+- next direction.
+
+No propagator performance commit should be merged without this record.

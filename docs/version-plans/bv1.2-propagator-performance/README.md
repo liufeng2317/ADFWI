@@ -4,6 +4,15 @@ This folder records the performance optimization plan for `ADFWI/propagator`.
 It starts from the stable bv1.2 full-record Marmousi2 acoustic baseline and
 keeps propagator changes bounded by explicit timing and numerical comparison.
 
+Start here:
+
+- `propagator-performance-master-plan.md`: execution rules, phase order,
+  baselines, stop criteria, and the next required profiling task.
+- `ad-fwi-efficiency-method-map.md`: method map for AD-FWI performance work,
+  including what is low-risk, opt-in, or research-only.
+- `performance-test-matrix.md`: validation commands and acceptance rules.
+- `propagator-operator-map.md`: operator ownership and hot-path map.
+
 Current scope:
 
 - measure the current acoustic propagator bottleneck before kernel edits;
@@ -21,6 +30,13 @@ Current baseline:
 Do not treat this folder as a task queue. Each future performance round should
 start with a measured bottleneck, select one bounded target from the route, run
 the matching tests, record the before/after result, then stop.
+
+Current execution rule:
+
+```text
+No further kernel optimization until Phase A produces an end-to-end cost
+breakdown for one reduced differentiable acoustic FWI iteration.
+```
 
 First profiling record:
 
