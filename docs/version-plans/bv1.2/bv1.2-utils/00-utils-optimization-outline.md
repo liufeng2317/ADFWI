@@ -136,6 +136,6 @@ conda run -n adfwi python -m unittest tests/test_mute_transform_comparison.py te
 Real-case validation only when dataset/model/wavelet behavior changes:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_bv12/outputs/utils_validation_check --device npu:0 --shots 3 --checkpoint-segments 1
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_reduced/outputs/utils_validation_check --device npu:0 --shots 3 --checkpoint-segments 1
 ```
 

@@ -7,7 +7,7 @@ branch bv1.2-example-sync
   |
   +-- reference behavior
   |     |
-  |     +-- examples/validation/marmousi2_acoustic_bv12
+  |     +-- examples/validation/marmousi2_acoustic_reduced
   |           +-- forward modeling script/notebook
   |           +-- short inversion script/notebook
   |           +-- saved summaries and figures

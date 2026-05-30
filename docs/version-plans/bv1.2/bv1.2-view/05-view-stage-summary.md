@@ -51,8 +51,8 @@ Commands used across the stage:
 ```bash
 conda run -n adfwi python -m unittest tests/test_view_contracts.py
 conda run -n adfwi python -m py_compile ADFWI/view/*.py tests/test_view_contracts.py
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/view_plot_audit \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward \
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/view_plot_audit \
   --device npu:0 --dtype float32 --shots 3 --checkpoint-segments 1
 git diff --check
 ```

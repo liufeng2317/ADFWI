@@ -9,8 +9,8 @@ checks without modifying the historical notebooks.
 
 ## Change
 
-- Added `examples/validation/marmousi2_acoustic_bv12/README.md`.
-- Added `examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py` with
+- Added `examples/validation/marmousi2_acoustic_reduced/README.md`.
+- Added `examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py` with
   staged validation commands:
   - `check`;
   - `forward`;
@@ -18,8 +18,8 @@ checks without modifying the historical notebooks.
   - `inversion100`;
   - `all` for `check + forward + inversion10`.
 - Added separate Jupyter validation notebooks:
-  - `examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb`;
-  - `examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb`.
+  - `examples/validation/marmousi2_acoustic_reduced/notebooks/01_forward_modeling.ipynb`;
+  - `examples/validation/marmousi2_acoustic_reduced/notebooks/02_inversion.ipynb`.
 - Added `tests/test_marmousi2_validation_example.py` to verify dry-run command
   construction without running heavy forward/inversion jobs.
 
@@ -38,9 +38,9 @@ checks without modifying the historical notebooks.
 
 Completed validation:
 
-- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
+- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
 - `conda run -n adfwi python -m unittest tests/test_marmousi2_validation_example.py`: passed.
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --device cpu --dry-run`: passed.
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all --device cpu --dry-run`: passed.
 - `git diff --check`: passed.
 
 ## Next Direction
@@ -48,9 +48,9 @@ Completed validation:
 Run staged validation manually on NPU:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward --overwrite
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10 --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py forward --overwrite
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py inversion10 --overwrite
 ```
 
 Only run `inversion100` after inspecting the 10-iteration loss and model-update

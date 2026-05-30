@@ -43,10 +43,10 @@ conda env adfwi py_compile for all changed scripts: passed
 Validation command:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 40 --nz 30 --nt 300 --dx 40 --dz 40 --nabc 20 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/matplotlib_backend_cleanup_check
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/matplotlib_backend_cleanup_check
 ```
 
 Result:

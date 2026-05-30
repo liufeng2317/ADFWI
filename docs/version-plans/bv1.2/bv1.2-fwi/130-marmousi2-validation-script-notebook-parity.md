@@ -36,9 +36,9 @@ interactive Jupyter path comparable.
 
 Completed validation:
 
-- `python -m py_compile examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
+- `python -m py_compile examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
 - `python -m unittest tests/test_marmousi2_validation_example.py`: passed.
-- `python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --device cpu --dry-run`: passed.
+- `python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all --device cpu --dry-run`: passed.
 - `git diff --check`: passed.
 
 ## Next Direction

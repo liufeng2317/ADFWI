@@ -9,14 +9,14 @@
 Validation workflow:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12
+examples/validation/marmousi2_acoustic_reduced
 ```
 
 Command:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/model_closeout_validation \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all \
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/model_closeout_validation \
   --device npu:0 \
   --shots 3 \
   --checkpoint-segments 1 \
@@ -26,13 +26,13 @@ conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/ru
 Reference output:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare
+examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare
 ```
 
 Current output:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/model_closeout_validation
+examples/validation/marmousi2_acoustic_reduced/outputs/model_closeout_validation
 ```
 
 Generated outputs are ignored by git through the validation folder `.gitignore`.

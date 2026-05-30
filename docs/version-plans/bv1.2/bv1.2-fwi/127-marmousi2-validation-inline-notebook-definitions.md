@@ -9,7 +9,7 @@ workflow harder to inspect and diverged from the original example style.
 
 ## Change
 
-- Removed `examples/validation/marmousi2_acoustic_bv12/scripts/case_definition.py`.
+- Removed `examples/validation/marmousi2_acoustic_reduced/scripts/case_definition.py`.
 - Inlined the lightweight case-definition helpers in both validation notebooks:
   - `load_npz`;
   - `cumulative_trapezoid`;
@@ -31,10 +31,10 @@ workflow harder to inspect and diverged from the original example style.
 
 Completed validation:
 
-- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
-- `python -m json.tool examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb`: passed.
-- `python -m json.tool examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb`: passed.
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --device cpu --dry-run`: passed.
+- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
+- `python -m json.tool examples/validation/marmousi2_acoustic_reduced/notebooks/01_forward_modeling.ipynb`: passed.
+- `python -m json.tool examples/validation/marmousi2_acoustic_reduced/notebooks/02_inversion.ipynb`: passed.
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all --device cpu --dry-run`: passed.
 - `conda run -n adfwi python -m unittest tests/test_marmousi2_validation_example.py`: passed.
 - `git diff --check`: passed.
 

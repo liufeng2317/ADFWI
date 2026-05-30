@@ -143,4 +143,4 @@ defined by:
 - `optimization-chain.md`;
 - `135-bv12-closeout-summary.md`;
 - the latest code in `ADFWI/fwi`;
-- the validation examples under `examples/validation/marmousi2_acoustic_bv12/`.
+- the validation examples under `examples/validation/marmousi2_acoustic_reduced/`.

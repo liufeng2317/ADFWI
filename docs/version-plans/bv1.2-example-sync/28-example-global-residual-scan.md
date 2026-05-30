@@ -60,7 +60,7 @@ examples/dip/DIP-ADFWI/02_Unet/03_plot_inverted_res.ipynb
 One validation notebook still has a local `sys.path.insert(...)` helper:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb
+examples/validation/marmousi2_acoustic_reduced/notebooks/02_inversion.ipynb
 ```
 
 This should be reviewed carefully because validation notebooks may have been
@@ -82,9 +82,9 @@ The validation scripts also contain controlled local `sys.path.insert(...)`
 lines:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py
-examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py
-examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py
+examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py
+examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py
+examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py
 ```
 
 These are intentional script bootstrap paths unless the validation scripts are
@@ -101,8 +101,8 @@ examples/gradient_checking/Acoustic-Marmousi2/02_gradient_check_FD.ipynb
 examples/gradient_checking/Acoustic-Marmousi2/03_1_compare_gradient.ipynb
 examples/elastic/Iso-elastic-Anomaly/03_plot_inverted_res.ipynb
 examples/new_features/source_encoding/cmp_8source.ipynb
-examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb
-examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb
+examples/validation/marmousi2_acoustic_reduced/notebooks/01_forward_modeling.ipynb
+examples/validation/marmousi2_acoustic_reduced/notebooks/02_inversion.ipynb
 ```
 
 Some hits may be comments, notebook outputs, or intentionally repo-root paths.

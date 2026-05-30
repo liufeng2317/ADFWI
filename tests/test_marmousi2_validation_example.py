@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-VALIDATION_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_bv12"
+VALIDATION_DIR = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced"
 SCRIPT_DIR = VALIDATION_DIR / "scripts"
 SCRIPT = SCRIPT_DIR / "run_validation.py"
 NOTEBOOK_DIR = VALIDATION_DIR / "notebooks"
@@ -52,7 +52,7 @@ class Marmousi2ValidationExampleTests(unittest.TestCase):
     def test_forward_and_inversion_notebooks_are_separate(self):
         self.assertTrue((NOTEBOOK_DIR / "01_forward_modeling.ipynb").exists())
         self.assertTrue((NOTEBOOK_DIR / "02_inversion.ipynb").exists())
-        self.assertFalse((NOTEBOOK_DIR / "marmousi2_acoustic_bv12_validation.ipynb").exists())
+        self.assertFalse((NOTEBOOK_DIR / "marmousi2_acoustic_reduced_validation.ipynb").exists())
 
     def test_forward_and_inversion_scripts_are_separate(self):
         self.assertTrue((SCRIPT_DIR / "forward_modeling.py").exists())

@@ -35,10 +35,10 @@ tracked notebook JSON parse: passed
 Command:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 60 --nz 40 --nt 500 --dx 40 --dz 40 --nabc 20 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_final_smoke
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_final_smoke
 ```
 
 Result:
@@ -50,7 +50,7 @@ seconds=1.6068
 record.p.shape=[1, 500, 60]
 record.p.finite=true
 record.p.norm=0.5580375791
-obs_data=examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_final_smoke/waveform/obs_data.npz
+obs_data=examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_final_smoke/waveform/obs_data.npz
 ```
 
 ## Smoke Inversion
@@ -58,12 +58,12 @@ obs_data=examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_final_
 Command:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 60 --nz 40 --nt 500 --dx 40 --dz 40 --nabc 20 \
   --iterations 2 --lr 10 --gaussian-kernel 4 --rcv-depth 8 \
   --mask-extra-depth 2 --grad-mute-top 8 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_final_smoke
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_final_smoke
 ```
 
 Result:

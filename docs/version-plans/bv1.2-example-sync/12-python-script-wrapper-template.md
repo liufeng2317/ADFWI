@@ -56,7 +56,7 @@ missing_import_adfwi_for_set_backend 0
 cuda_device_binding_left 0
 ```
 
-`examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py` is a special
+`examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py` is a special
 validation driver that imports runtime modules through
 `forward_modeling.import_runtime_modules()`. It was left in its existing
 validated structure instead of being forced into the simple standalone script

@@ -1,4 +1,4 @@
-# Marmousi2 Acoustic bv1.2 Validation
+# Marmousi2 Acoustic Reduced Validation
 
 This folder contains a separate validation workflow for the existing Marmousi2
 acoustic example:
@@ -7,8 +7,7 @@ acoustic example:
 examples/acoustic/01-model-test/01-Marmousi2
 ```
 
-It does not modify the original example notebooks. The goal is to validate the
-current `bv1.2` framework with reproducible script and Jupyter entry points.
+It does not modify the original example notebooks. The goal is to provide a lightweight reduced-record validation workflow with reproducible script and Jupyter entry points. Use `examples/validation/marmousi2_acoustic_full_record/` when the full 40-shot acquisition geometry is required.
 
 ## Layout
 
@@ -38,28 +37,28 @@ outputs/       Generated validation artifacts, ignored by git
 Preview commands without running:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --dry-run
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all --dry-run
 ```
 
 Run the staged validation:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion10
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py forward
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py inversion10
 ```
 
 Run the two workflow modules directly:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py --iterations 10
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py --iterations 10
 ```
 
 Run the longer check only when needed:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py inversion100
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py inversion100
 ```
 
 ## Jupyter Usage
@@ -93,7 +92,7 @@ case-definition helper, or command-line wrapper.
 Default output root:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/minimal_notebook/
+examples/validation/marmousi2_acoustic_reduced/outputs/minimal_notebook/
 ```
 
 The script and notebooks use the same default output root. The forward stage

@@ -18,7 +18,7 @@ gradient-processing numerical logic is changed in this record.
 - `ADFWI/propagator/boundary_condition.py`
 - `ADFWI/propagator/gradient_process.py`
 - `docs/version-plans/bv1.2-propagator/`
-- `examples/validation/marmousi2_acoustic_bv12/`
+- `examples/validation/marmousi2_acoustic_reduced/`
 
 Kernel files were inspected as part of the package map, but remain out of scope
 for readability or formula edits:
@@ -46,8 +46,8 @@ for readability or formula edits:
 ```bash
 conda run -n adfwi python -m py_compile ADFWI/propagator/*.py
 conda run -n adfwi python -m unittest tests/test_boundary_conditions.py tests/test_torch_grad_processor.py tests/test_backend_integration.py tests/test_marmousi2_validation_example.py
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_bv12/outputs/propagator_final_audit --device npu:0 --shots 3 --checkpoint-segments 1
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py forward --output-root examples/validation/marmousi2_acoustic_bv12/outputs/propagator_final_audit --device npu:0 --shots 3 --checkpoint-segments 1
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_reduced/outputs/propagator_final_audit --device npu:0 --shots 3 --checkpoint-segments 1
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py forward --output-root examples/validation/marmousi2_acoustic_reduced/outputs/propagator_final_audit --device npu:0 --shots 3 --checkpoint-segments 1
 git diff --check
 ```
 
@@ -70,13 +70,13 @@ git diff --check
 Reference:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare/waveform/obs_data.npz
+examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare/waveform/obs_data.npz
 ```
 
 Candidate:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/outputs/propagator_final_audit/waveform/obs_data.npz
+examples/validation/marmousi2_acoustic_reduced/outputs/propagator_final_audit/waveform/obs_data.npz
 ```
 
 Comparison result:

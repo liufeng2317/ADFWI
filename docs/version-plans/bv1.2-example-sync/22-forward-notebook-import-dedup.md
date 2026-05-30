@@ -44,7 +44,7 @@ conda run -n adfwi python /tmp/adfwi_forward_import_smoke.py
 ok examples/acoustic/01-model-test/02-FootHill/01_forward.ipynb
 ok examples/elastic/Iso-elastic-Anomaly/01_forward.ipynb
 ok examples/DR-FWI/multi-parameters/ISO_acoustic/Marmousi2/00_forward.ipynb
-ok examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb
+ok examples/validation/marmousi2_acoustic_reduced/notebooks/01_forward_modeling.ipynb
 ```
 
 The full forward simulations were not rerun because this pass only removed

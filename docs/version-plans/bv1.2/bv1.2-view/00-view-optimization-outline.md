@@ -134,8 +134,8 @@ set or change the backend.
 If a changed plotting path is used by the validation case:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/view_validation \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward \
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/view_validation \
   --device npu:0 --dtype float32 --shots 3 --checkpoint-segments 1
 ```
 

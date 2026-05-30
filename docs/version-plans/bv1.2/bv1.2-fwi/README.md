@@ -176,7 +176,7 @@ Current contracts:
 - legacy low-pass and legacy `GradProcessor` remain explicit compatibility
   paths;
 - `TorchGradProcessor` is NPU-validated as opt-in, not the default;
-- `examples/validation/marmousi2_acoustic_bv12/` is the current staged
+- `examples/validation/marmousi2_acoustic_reduced/` is the current staged
   Marmousi2 validation example.
 
 Use [135 - bv1.2 Closeout Summary](./135-bv12-closeout-summary.md) and

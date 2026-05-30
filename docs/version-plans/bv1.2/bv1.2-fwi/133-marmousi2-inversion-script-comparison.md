@@ -11,8 +11,8 @@ The script inversion used the forward data from the prior script-forward
 comparison:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py \
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare \
   --device npu:0 \
   --shots 3 \
   --iterations 10 \
@@ -23,11 +23,11 @@ conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/in
 
 Reference:
 
-- `examples/validation/marmousi2_acoustic_bv12/outputs/minimal_notebook/inversion/`
+- `examples/validation/marmousi2_acoustic_reduced/outputs/minimal_notebook/inversion/`
 
 Script output:
 
-- `examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare/inversion/`
+- `examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare/inversion/`
 
 Result:
 
@@ -58,7 +58,7 @@ Result:
 
 Completed validation:
 
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py --output-root examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare --device npu:0 --shots 3 --iterations 10 --checkpoint-segments 1`: passed.
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py --output-root examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare --device npu:0 --shots 3 --iterations 10 --checkpoint-segments 1`: passed.
 - Script-vs-notebook `iter_loss.npz` comparison: passed with zero difference.
 - Script-vs-notebook `iter_vp.npz` comparison: passed with zero difference.
 

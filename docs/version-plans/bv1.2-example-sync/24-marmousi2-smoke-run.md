@@ -6,8 +6,8 @@ This run moved from static import cleanup to a representative executable
 validation. It used the existing Marmousi2 acoustic validation scripts:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py
-examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py
+examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py
+examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py
 ```
 
 The run used a reduced grid and reduced iterations to validate the example
@@ -16,10 +16,10 @@ sync path quickly. It is not a numerical benchmark.
 ## Forward Command
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 60 --nz 40 --nt 500 --dx 40 --dz 40 --nabc 20 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_smoke
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_smoke
 ```
 
 ## Forward Result
@@ -31,18 +31,18 @@ seconds=1.6449
 record.p.shape=[1, 500, 60]
 record.p.finite=true
 record.p.norm=0.5580375791
-obs_data=examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_smoke/waveform/obs_data.npz
+obs_data=examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_smoke/waveform/obs_data.npz
 ```
 
 ## Inversion Command
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 60 --nz 40 --nt 500 --dx 40 --dz 40 --nabc 20 \
   --iterations 2 --lr 10 --gaussian-kernel 4 --rcv-depth 8 \
   --mask-extra-depth 2 --grad-mute-top 8 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/example_sync_smoke
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/example_sync_smoke
 ```
 
 ## Inversion Result
@@ -69,7 +69,7 @@ The smoke run verified the synchronized example path across:
 - observed-data reload in inversion;
 - FWI construction, loss evaluation, gradient processing, and model update.
 
-Outputs are under `examples/validation/marmousi2_acoustic_bv12/outputs/`,
+Outputs are under `examples/validation/marmousi2_acoustic_reduced/outputs/`,
 which is ignored by the validation case `.gitignore`.
 
 ## Next Direction

@@ -64,5 +64,5 @@ examples/acoustic/01-model-test/01-Marmousi2/
 The existing validation case remains the reference workflow:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/
+examples/validation/marmousi2_acoustic_reduced/
 ```

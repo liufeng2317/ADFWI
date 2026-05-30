@@ -15,10 +15,10 @@ examples/gradient_checking/Acoustic-Marmousi2/02_gradient_check_FD.py
 examples/gradient_checking/Elastic-Marmousi2/02_gradient_check_FD-rho.py
 examples/gradient_checking/Elastic-Marmousi2/02_gradient_check_FD-vp.py
 examples/gradient_checking/Elastic-Marmousi2/02_gradient_check_FD-vs.py
-examples/validation/marmousi2_acoustic_bv12/notebooks/02_inversion.ipynb
-examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py
-examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py
-examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py
+examples/validation/marmousi2_acoustic_reduced/notebooks/02_inversion.ipynb
+examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py
+examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py
+examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py
 ```
 
 ## Optimization Path
@@ -50,10 +50,10 @@ conda env adfwi py_compile for touched scripts: passed
 Validation command:
 
 ```bash
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check \
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check \
   --device npu:0 --dtype float32 --shots 1 --checkpoint-segments 1 \
   --nx 40 --nz 30 --nt 300 --dx 40 --dz 40 --nabc 20 \
-  --output-root examples/validation/marmousi2_acoustic_bv12/outputs/sys_path_cleanup_check
+  --output-root examples/validation/marmousi2_acoustic_reduced/outputs/sys_path_cleanup_check
 ```
 
 Result:

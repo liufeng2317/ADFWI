@@ -39,7 +39,7 @@ example should remain understandable on its own.
 
 | Priority | Target | Purpose | Validation |
 | --- | --- | --- | --- |
-| Reference | `examples/validation/marmousi2_acoustic_bv12` | Known bv1.2 reference case. | Already has forward and short inversion scripts/notebooks. |
+| Reference | `examples/validation/marmousi2_acoustic_reduced` | Known bv1.2 reference case. | Already has forward and short inversion scripts/notebooks. |
 | P0 | `examples/acoustic/01-model-test/01-Marmousi2` | Main user-facing acoustic benchmark. | Run forward notebook/script path and short inversion path. |
 | P1 | Minimal acoustic and elastic usage examples | Confirm common API entry points. | Import/run smoke tests. |
 | P2 | Multiscale and regularization examples | Confirm FWI transform and loss options. | Short reduced workflow. |

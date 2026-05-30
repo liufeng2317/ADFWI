@@ -16,11 +16,11 @@ the manually verified forward notebook.
 
 Reference:
 
-- `examples/validation/marmousi2_acoustic_bv12/outputs/minimal_notebook/waveform/obs_data.npz`
+- `examples/validation/marmousi2_acoustic_reduced/outputs/minimal_notebook/waveform/obs_data.npz`
 
 Script output:
 
-- `examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare/waveform/obs_data.npz`
+- `examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare/waveform/obs_data.npz`
 
 Result:
 
@@ -47,9 +47,9 @@ Result:
 
 Completed validation:
 
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py forward --output-root examples/validation/marmousi2_acoustic_bv12/outputs/script_forward_compare --device npu:0 --shots 3 --checkpoint-segments 1`: passed.
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py forward --output-root examples/validation/marmousi2_acoustic_reduced/outputs/script_forward_compare --device npu:0 --shots 3 --checkpoint-segments 1`: passed.
 - Script-vs-notebook `obs_data.npz` comparison: passed with zero difference.
-- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py`: passed.
+- `conda run -n adfwi python -m py_compile examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py`: passed.
 
 ## Next Direction
 

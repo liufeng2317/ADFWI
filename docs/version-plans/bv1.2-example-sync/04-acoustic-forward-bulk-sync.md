@@ -81,7 +81,7 @@ residual_core_old_patterns 1
 The one residual old pattern is:
 
 ```text
-examples/validation/marmousi2_acoustic_bv12/notebooks/01_forward_modeling.ipynb
+examples/validation/marmousi2_acoustic_reduced/notebooks/01_forward_modeling.ipynb
 ```
 
 That notebook was intentionally skipped as a validation reference.

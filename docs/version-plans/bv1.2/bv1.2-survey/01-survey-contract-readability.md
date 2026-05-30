@@ -31,14 +31,14 @@
 
 - `conda run -n adfwi python -m unittest tests/test_survey_contracts.py`
 - `conda run -n adfwi python -m py_compile ADFWI/survey/*.py tests/test_survey_contracts.py`
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_bv12/outputs/survey_contract_check --device npu:0 --shots 3 --checkpoint-segments 1`
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_reduced/outputs/survey_contract_check --device npu:0 --shots 3 --checkpoint-segments 1`
 - `git diff --check`
 
 ## Result
 
 - `conda run -n adfwi python -m unittest tests/test_survey_contracts.py` 通过，3 tests OK。
 - `conda run -n adfwi python -m py_compile ADFWI/survey/*.py tests/test_survey_contracts.py` 通过。
-- `conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_bv12/outputs/survey_contract_check --device npu:0 --shots 3 --checkpoint-segments 1` 通过。
+- `conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_reduced/outputs/survey_contract_check --device npu:0 --shots 3 --checkpoint-segments 1` 通过。
 - validation `check` 结果：`shots=3`、`receivers=200`、`nt=3000`、backend `npu:0/float32`。
 - `git diff --check` 通过。
 

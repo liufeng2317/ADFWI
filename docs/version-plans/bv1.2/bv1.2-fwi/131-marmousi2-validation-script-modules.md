@@ -31,8 +31,8 @@ dispatcher, but it should not own both workflows.
 
 Completed validation:
 
-- `python -m py_compile examples/validation/marmousi2_acoustic_bv12/scripts/forward_modeling.py examples/validation/marmousi2_acoustic_bv12/scripts/inversion.py examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
-- `python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py all --device cpu --dry-run`: passed.
+- `python -m py_compile examples/validation/marmousi2_acoustic_reduced/scripts/forward_modeling.py examples/validation/marmousi2_acoustic_reduced/scripts/inversion.py examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py tests/test_marmousi2_validation_example.py`: passed.
+- `python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py all --device cpu --dry-run`: passed.
 - `python -m unittest tests/test_marmousi2_validation_example.py`: passed.
 - `conda run -n adfwi python -m py_compile ...`: passed.
 - `conda run -n adfwi python -m unittest tests/test_marmousi2_validation_example.py`: passed.

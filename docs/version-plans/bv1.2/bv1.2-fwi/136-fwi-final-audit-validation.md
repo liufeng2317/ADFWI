@@ -14,7 +14,7 @@ No FWI code or numerical behavior is changed in this record.
 - `ADFWI/fwi` package structure and public entry points.
 - Current FWI planning documents under `docs/version-plans/bv1.2-fwi/`.
 - The staged Marmousi2 validation example under
-  `examples/validation/marmousi2_acoustic_bv12/`.
+  `examples/validation/marmousi2_acoustic_reduced/`.
 
 ## Findings
 
@@ -34,7 +34,7 @@ No FWI code or numerical behavior is changed in this record.
 ```bash
 conda run -n adfwi python -m py_compile ADFWI/fwi/*.py ADFWI/fwi/iteration/*.py ADFWI/fwi/runtime/*.py ADFWI/fwi/transforms/*.py
 conda run -n adfwi python -m unittest tests/test_fwi_iteration.py tests/test_fwi_iteration_loss.py tests/test_fwi_runtime.py tests/test_data_transforms.py tests/test_receiver_selection.py tests/test_multiscale_compat.py tests/test_import_surface_policy.py
-conda run -n adfwi python examples/validation/marmousi2_acoustic_bv12/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_bv12/outputs/fwi_final_audit_check --device npu:0 --shots 3 --checkpoint-segments 1
+conda run -n adfwi python examples/validation/marmousi2_acoustic_reduced/scripts/run_validation.py check --output-root examples/validation/marmousi2_acoustic_reduced/outputs/fwi_final_audit_check --device npu:0 --shots 3 --checkpoint-segments 1
 git diff --check
 ```
 
