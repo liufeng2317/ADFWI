@@ -32,6 +32,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [20 DR-FWI Path Consistency Audit](./20-dr-fwi-path-consistency-audit.md)
 - [21 Marmousi2 Forward Import Dedup](./21-marmousi2-forward-import-dedup.md)
 - [22 Forward Notebook Import Dedup](./22-forward-notebook-import-dedup.md)
+- [23 Inversion Notebook Import Audit](./23-inversion-notebook-import-audit.md)
 
 ## Branch Boundary
 
