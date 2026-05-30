@@ -33,6 +33,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [21 Marmousi2 Forward Import Dedup](./21-marmousi2-forward-import-dedup.md)
 - [22 Forward Notebook Import Dedup](./22-forward-notebook-import-dedup.md)
 - [23 Inversion Notebook Import Audit](./23-inversion-notebook-import-audit.md)
+- [24 Marmousi2 Smoke Run](./24-marmousi2-smoke-run.md)
 
 ## Branch Boundary
 
