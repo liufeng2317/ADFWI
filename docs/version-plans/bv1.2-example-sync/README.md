@@ -21,6 +21,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [09 All Forward Wrapper Sync](./09-all-forward-wrapper-sync.md)
 - [10 Marmousi2 Inversion Wrapper Sync](./10-marmousi2-inversion-wrapper-sync.md)
 - [11 Inversion Wrapper Sync](./11-inversion-wrapper-sync.md)
+- [12 Python Script Wrapper Template](./12-python-script-wrapper-template.md)
 
 ## Branch Boundary
 
