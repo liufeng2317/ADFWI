@@ -137,7 +137,8 @@ Candidate targets:
 
 - completed: direct `step_forward` call when `checkpoint_segments=1` for the
   acoustic kernel; see `03-acoustic-checkpoint-bypass-implementation.md`;
-- hoist invariant source index tensors out of the timestep loop;
+- completed: hoist invariant source index tensors out of the timestep loop;
+  see `05-acoustic-source-index-hoist.md`;
 - avoid repeated small allocations where the same tensor can be safely reused;
 - remove unused imports only if they do not trigger JIT or runtime side effects.
 - inspect whether forward-wavefield accumulation and recording extra components

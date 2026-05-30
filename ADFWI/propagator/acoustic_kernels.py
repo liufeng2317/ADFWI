@@ -40,7 +40,7 @@ def pad_torchSingle(v: torch.Tensor, pml: int, nz: int, nx: int, ns: int, device
 @torch.jit.script
 def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
                  nabc: int, free_surface: bool,                               # Model settings
-                 src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_v: torch.Tensor,     # Source
+                 src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_index: torch.Tensor, src_v: torch.Tensor,     # Source
                  rcv_x: torch.Tensor, rcv_z: torch.Tensor, rcv_n: int,                  # Receiver
                  kappa1: torch.Tensor, alpha1: torch.Tensor, kappa2: torch.Tensor, alpha2: torch.Tensor,
                  kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
@@ -62,6 +62,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         src_x (Tensor)                  : source location in the X-axis
         src_z (Tensor)                  : source location in the Z-axis
         src_n (Tensor)                  : the number of sources
+        src_index (Tensor)              : source batch indices for vectorized source injection
         src_v (Tensor)                  : wavelets for each source
         rcv_x (Tensor)                  : receiver location in the X-axis
         rcv_z (Tensor)                  : receiver location in the Z-axis
@@ -133,7 +134,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         # single source
         if src_z.dim() == 1:
             src_update = dt * (src_v[it] if len(src_v.shape) == 1 else src_v[:, it])
-            p[torch.arange(src_n), src_z, src_x] = p[torch.arange(src_n), src_z, src_x] + src_update
+            p[src_index, src_z, src_x] = p[src_index, src_z, src_x] + src_update
         else:
         # encoded source
             for i in range(src_n):
@@ -250,6 +251,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
     
     rcv_x = rcv_x + nabc
     rcv_z = rcv_z + nabc
+    src_index = torch.arange(src_n, dtype=torch.long, device=device)
     
     # Initialize pressure, velocity fields
     p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
@@ -288,7 +290,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                 step_forward(
                     nx, nz, dx, dz, dt,
                     nabc, free_surface,
-                    src_x, src_z, src_n, chunk,
+                    src_x, src_z, src_n, src_index, chunk,
                     rcv_x, rcv_z, rcv_n,
                     kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                     p, u, w,
@@ -300,7 +302,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                 checkpoint(step_forward,
                            nx, nz, dx, dz, dt,
                            nabc, free_surface,
-                           src_x, src_z, src_n, chunk,
+                           src_x, src_z, src_n, src_index, chunk,
                            rcv_x, rcv_z, rcv_n,
                            kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                            p, u, w,
