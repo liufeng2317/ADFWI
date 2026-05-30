@@ -17,6 +17,26 @@ Before selecting an optimization target, run at least one profile probe that
 separates forward, backward, and gradient-processing time. Do not infer the
 first target from static inspection alone.
 
+For acoustic output-side cost probes, use:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_output_cost.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 1 \
+  --repeat 3 \
+  --shots 1 \
+  --receivers 200 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --nt 800 \
+  --requires-grad
+```
+
+This benchmark is only for bottleneck selection. It does not replace acoustic
+numerical parity tests because it does not run the full propagator.
+
 ## Static And Unit Commands
 
 ```bash
