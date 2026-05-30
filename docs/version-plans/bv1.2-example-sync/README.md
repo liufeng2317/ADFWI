@@ -42,6 +42,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [30 ADFWI Wildcard Import Cleanup](./30-adfwi-wildcard-import-cleanup.md)
 - [31 Matplotlib Backend Cleanup](./31-matplotlib-backend-cleanup.md)
 - [32 Tracked Notebook Path Cleanup](./32-tracked-notebook-path-cleanup.md)
+- [33 Final Global Scan And Smoke Run](./33-final-global-scan-smoke-run.md)
 
 ## Branch Boundary
 
