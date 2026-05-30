@@ -54,9 +54,18 @@ cost diagnostics.
 Phase B policy diagnostic:
 
 - `10-acoustic-fwi-wavefield-policy-profile.md`
+- `11-acoustic-fwi-wavefield-policy-repeat.md`
 - Under `GradProcessor(forw_illumination=False)`, skipping acoustic
   forward-wavefield summaries preserved loss, raw gradients, processed
   gradients, and updated `vp` exactly in the reduced single-iteration
   comparison.
-- Single paired run total timing improved from `28.76 s` to `22.89 s`, but this
-  is opt-in and should not become the default path.
+- Repeated paired runs kept all numerical differences at `0.0`; total speedup
+  ranged from `1.06x` to `1.26x`, with candidate runtime stable around `22 s`.
+  This is accepted as an opt-in path and should not become the default.
+
+Current default-path next direction:
+
+```text
+Return to Phase B and profile the default acoustic backward path at finer
+granularity before making another kernel change.
+```

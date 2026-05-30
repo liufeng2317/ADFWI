@@ -60,6 +60,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--generate-observed", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--policy-repeat", type=int, default=1)
 
 
 def synchronize(backend) -> None:
@@ -418,14 +419,16 @@ def run_policy_variant(args: argparse.Namespace, *, save_forward_wavefield: bool
     }
 
 
-def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
-    if args.grad_forw_illumination:
-        raise ValueError("--compare-wavefield-policy requires --no-grad-forw-illumination")
-    full = run_policy_variant(args, save_forward_wavefield=True)
-    skipped = run_policy_variant(args, save_forward_wavefield=False)
+def run_policy_pair(args: argparse.Namespace, *, reverse_order: bool = False) -> Dict[str, Any]:
+    if reverse_order:
+        skipped = run_policy_variant(args, save_forward_wavefield=False)
+        full = run_policy_variant(args, save_forward_wavefield=True)
+    else:
+        full = run_policy_variant(args, save_forward_wavefield=True)
+        skipped = run_policy_variant(args, save_forward_wavefield=False)
+
     full_iter = full["iteration"]
     skipped_iter = skipped["iteration"]
-
     comparison = {
         "loss_abs_diff": abs(skipped_iter["loss"] - full_iter["loss"]),
         "raw_grad": tensor_diff(full_iter["_raw_grad"], skipped_iter["_raw_grad"]),
@@ -437,11 +440,8 @@ def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
             "total": full_iter["timing_total"] / skipped_iter["timing_total"],
         },
     }
-
     return {
-        "status": "ok",
-        "case": "marmousi2_acoustic_reduced",
-        "purpose": "Phase B acoustic FWI forward-wavefield policy comparison",
+        "order": "candidate_first" if reverse_order else "reference_first",
         "reference": {
             **{key: value for key, value in full.items() if key != "iteration"},
             "iteration": public_iteration_report(full_iter),
@@ -451,6 +451,72 @@ def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
             "iteration": public_iteration_report(skipped_iter),
         },
         "comparison": comparison,
+    }
+
+
+def summarize_policy_pairs(pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def values(path):
+        result = []
+        for pair in pairs:
+            current = pair
+            for key in path:
+                current = current[key]
+            result.append(float(current))
+        return result
+
+    def stats(path):
+        series = values(path)
+        return {
+            "min": min(series),
+            "max": max(series),
+            "mean": sum(series) / len(series),
+            "values": series,
+        }
+
+    return {
+        "speedup": {
+            "forward": stats(("comparison", "speedup", "forward")),
+            "backward": stats(("comparison", "speedup", "backward")),
+            "total": stats(("comparison", "speedup", "total")),
+        },
+        "timing_seconds": {
+            "reference_total": stats(("reference", "iteration", "timing_total")),
+            "candidate_total": stats(("candidate", "iteration", "timing_total")),
+            "reference_forward": stats(("reference", "iteration", "timings", "forward")),
+            "candidate_forward": stats(("candidate", "iteration", "timings", "forward")),
+            "reference_backward": stats(("reference", "iteration", "timings", "backward")),
+            "candidate_backward": stats(("candidate", "iteration", "timings", "backward")),
+        },
+        "max_differences": {
+            "loss_abs_diff": max(values(("comparison", "loss_abs_diff"))),
+            "raw_grad_max_abs_diff": max(values(("comparison", "raw_grad", "max_abs_diff"))),
+            "raw_grad_max_rel_diff": max(values(("comparison", "raw_grad", "max_rel_diff"))),
+            "processed_grad_max_abs_diff": max(values(("comparison", "processed_grad", "max_abs_diff"))),
+            "processed_grad_max_rel_diff": max(values(("comparison", "processed_grad", "max_rel_diff"))),
+            "vp_after_optimizer_max_abs_diff": max(values(("comparison", "vp_after_optimizer", "max_abs_diff"))),
+            "vp_after_optimizer_max_rel_diff": max(values(("comparison", "vp_after_optimizer", "max_rel_diff"))),
+        },
+    }
+
+
+def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
+    if args.grad_forw_illumination:
+        raise ValueError("--compare-wavefield-policy requires --no-grad-forw-illumination")
+    if args.policy_repeat <= 0:
+        raise ValueError("--policy-repeat must be positive")
+
+    pairs = [
+        run_policy_pair(args, reverse_order=bool(index % 2))
+        for index in range(args.policy_repeat)
+    ]
+
+    return {
+        "status": "ok",
+        "case": "marmousi2_acoustic_reduced",
+        "purpose": "Phase B acoustic FWI forward-wavefield policy comparison",
+        "policy_repeat": args.policy_repeat,
+        "pairs": pairs,
+        "summary": summarize_policy_pairs(pairs),
     }
 
 
