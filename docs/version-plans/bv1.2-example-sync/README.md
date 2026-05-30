@@ -36,6 +36,7 @@ example style, figures, and user-facing workflow as much as possible.
 - [24 Marmousi2 Smoke Run](./24-marmousi2-smoke-run.md)
 - [25 Ricker Misfit Notebook Import Sync](./25-ricker-misfit-notebook-import-sync.md)
 - [26 Ricker Misfit Sibling Import Sync](./26-ricker-misfit-sibling-import-sync.md)
+- [27 Gradient Checking Notebook Import Sync](./27-gradient-checking-notebook-import-sync.md)
 
 ## Branch Boundary
 
