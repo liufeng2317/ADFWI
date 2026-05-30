@@ -135,6 +135,9 @@ backward-safe changes have priority over gradient post-processing cleanup.
 
 Candidate targets:
 
+- implement a direct `step_forward` call when `checkpoint_segments=1`, after
+  the checkpoint-overhead benchmark showed strict parity and about `1.50x`
+  backward speedup on the measured NPU acoustic case;
 - hoist invariant source index tensors out of the timestep loop;
 - avoid repeated small allocations where the same tensor can be safely reused;
 - measure checkpoint overhead when `checkpoint_segments=1`;

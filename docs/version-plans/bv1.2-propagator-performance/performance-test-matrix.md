@@ -64,6 +64,28 @@ npu float32 exact-code refactor: max_abs <= 1e-5 or max_rel <= 1e-4
 If a change intentionally alters numerical behavior, it is not a pure
 performance optimization and needs a separate scientific justification.
 
+For `checkpoint_segments=1` checkpoint bypass work, also run:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_checkpoint_overhead.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 0 \
+  --repeat 2 \
+  --checkpoint-segments 1 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --nt 800 \
+  --dx 40 \
+  --dz 40 \
+  --dt 0.003 \
+  --f0 5
+```
+
+Required result: zero or tolerance-bounded differences for all acoustic output
+tensors, loss, and `vp.grad`; report forward/backward/total timing.
+
 ## Elastic Numerical Parity
 
 Run for any change to `elastic_kernels.py` or elastic wrapper semantics.
