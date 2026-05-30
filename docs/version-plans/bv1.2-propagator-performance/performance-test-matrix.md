@@ -13,6 +13,10 @@ Use this matrix before accepting any propagator performance change.
 | Full-record forward | Compare real forward timing | Performance milestones |
 | Full-record inversion | Compare full FWI behavior | Major milestones only |
 
+Before selecting an optimization target, run at least one profile probe that
+separates forward, backward, and gradient-processing time. Do not infer the
+first target from static inspection alone.
+
 ## Static And Unit Commands
 
 ```bash
@@ -146,4 +150,3 @@ A propagator performance change is acceptable only when:
 - timing improves enough to matter for the target case;
 - the optimization path and next direction are recorded in this folder;
 - the commit message names the bounded performance target.
-

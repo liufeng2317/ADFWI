@@ -6,8 +6,9 @@ keeps propagator changes bounded by explicit timing and numerical comparison.
 
 Current scope:
 
+- measure the current acoustic propagator bottleneck before kernel edits;
 - analyze the acoustic and elastic propagator operator paths;
-- define the first performance optimization route;
+- define the first performance optimization route from measured bottlenecks;
 - define the test matrix before changing kernel behavior.
 
 Current baseline:
@@ -18,6 +19,9 @@ Current baseline:
 - inversion anchor: Marmousi2 acoustic full-record, 300 iterations
 
 Do not treat this folder as a task queue. Each future performance round should
-select one bounded target from the route, run the matching tests, record the
-before/after result, then stop.
+start with a measured bottleneck, select one bounded target from the route, run
+the matching tests, record the before/after result, then stop.
 
+First profiling record:
+
+- `01-profile-first-bottleneck-probe.md`

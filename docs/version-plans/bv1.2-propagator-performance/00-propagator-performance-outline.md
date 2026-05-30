@@ -99,9 +99,14 @@ the same command and hardware.
 
 ## Optimization Route
 
+This route is profile-first. Static code inspection is useful for understanding
+the operator, but it is not enough to choose the next optimization. Every
+kernel-level change must start from a measured bottleneck on a named case.
+
 ### Phase 1: Measurement Harness
 
-Purpose: make before/after measurement reproducible before editing kernels.
+Purpose: make before/after measurement reproducible before editing kernels and
+identify the dominant cost before deciding what to optimize.
 
 Tasks:
 
@@ -110,6 +115,10 @@ Tasks:
 - record wall time, device, dtype, `checkpoint_segments`, shot count, receiver
   count, `nt`, and output summary;
 - produce comparable JSON summaries for forward and short inversion runs.
+- separate at least forward, backward, and gradient-processing time for a
+  differentiable acoustic run;
+- separate one-time setup cost from `propagator.forward` for full-record
+  forward runs.
 
 Required validation:
 
@@ -118,9 +127,11 @@ Required validation:
 - reduced acoustic validation forward;
 - full-record forward only when comparing real timing.
 
-### Phase 2: Acoustic Low-Risk Hot-Path Cleanup
+### Phase 2: Acoustic Backward/Forward Hot-Path Work
 
-Purpose: optimize obvious invariant work without changing public behavior.
+Purpose: optimize the measured hot path without changing public behavior. The
+first probe shows backward dominates the differentiable acoustic run, so
+backward-safe changes have priority over gradient post-processing cleanup.
 
 Candidate targets:
 
@@ -128,6 +139,8 @@ Candidate targets:
 - avoid repeated small allocations where the same tensor can be safely reused;
 - measure checkpoint overhead when `checkpoint_segments=1`;
 - remove unused imports only if they do not trigger JIT or runtime side effects.
+- inspect whether forward-wavefield accumulation and recording extra components
+  affect backward graph cost.
 
 Required validation:
 
@@ -180,8 +193,9 @@ Required validation:
 
 ### Phase 5: Gradient Processing In Inversion
 
-Purpose: measure whether `GradProcessor` CPU/SciPy work is visible in full FWI
-iteration time and promote `TorchGradProcessor` only where numerically safe.
+Purpose: revisit `GradProcessor` only if full FWI profiling shows it is visible.
+The first acoustic bottleneck probe shows gradient post-processing is not the
+dominant cost for the measured case.
 
 Candidate targets:
 
@@ -207,4 +221,3 @@ Required validation:
   timestep hot loop;
 - promoting `acoustic_kernels_bs.py` without an explicit experiment branch and
   strict numerical comparison.
-
