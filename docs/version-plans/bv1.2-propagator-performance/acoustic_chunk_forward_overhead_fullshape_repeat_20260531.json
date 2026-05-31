@@ -1,0 +1,278 @@
+{
+  "comparisons": [
+    {
+      "index": 0,
+      "output_diff": {
+        "experimental-chunk": {
+          "batches": [
+            {
+              "p": {
+                "candidate_norm": 1.1410123109817505,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 1.1410123109817505,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              },
+              "u": {
+                "candidate_norm": 3.6917938928127114e-07,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 3.6917938928127114e-07,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              },
+              "w": {
+                "candidate_norm": 2.975005770622374e-07,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 2.975005770622374e-07,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              }
+            }
+          ],
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0
+        }
+      },
+      "speedup": {
+        "experimental-chunk": 1.2109399660212627
+      }
+    },
+    {
+      "index": 1,
+      "output_diff": {
+        "experimental-chunk": {
+          "batches": [
+            {
+              "p": {
+                "candidate_norm": 1.1410123109817505,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 1.1410123109817505,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              },
+              "u": {
+                "candidate_norm": 3.6917938928127114e-07,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 3.6917938928127114e-07,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              },
+              "w": {
+                "candidate_norm": 2.975005770622374e-07,
+                "max_abs_diff": 0.0,
+                "max_rel_diff": 0.0,
+                "reference_norm": 2.975005770622374e-07,
+                "shape": [
+                  3,
+                  3000,
+                  200
+                ]
+              }
+            }
+          ],
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0
+        }
+      },
+      "speedup": {
+        "experimental-chunk": 0.9662491356397119
+      }
+    }
+  ],
+  "config": {
+    "abc_jerjan_alpha": 0.007,
+    "abc_type": "PML",
+    "batch_size": 3,
+    "checkpoint_segments": 1,
+    "dataset_dir": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/datasets/marmousi2_source",
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "free_surface": true,
+    "gaussian_kernel": 6,
+    "generate_observed": true,
+    "grad_forw_illumination": false,
+    "grad_mute_top": 12,
+    "gradient_processor": "legacy",
+    "iterations": 1,
+    "lr": 10.0,
+    "mask_extra_depth": 2,
+    "modes": "production,experimental-chunk",
+    "nabc": 30,
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "output_root": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_reduced/outputs/experimental_forward_iteration_parity_fullshape",
+    "ox": 0.0,
+    "oz": 0.0,
+    "policy_repeat": 1,
+    "rcv_depth": 10,
+    "repeat": 2,
+    "result_json": "docs/version-plans/bv1.2-propagator-performance/acoustic_chunk_forward_overhead_fullshape_repeat_20260531.json",
+    "save_forward_wavefield": false,
+    "scheduler_gamma": 0.75,
+    "scheduler_step_size": 200,
+    "shots": 3,
+    "validation_case": "reduced",
+    "warmup": 0
+  },
+  "purpose": "forward-only overhead profile for acoustic custom-gradient candidates",
+  "status": "ok",
+  "summary": {
+    "forward_seconds": {
+      "experimental-chunk": {
+        "max": 7.219422604888678,
+        "mean": 6.840811853297055,
+        "min": 6.462201101705432,
+        "values": [
+          7.219422604888678,
+          6.462201101705432
+        ]
+      },
+      "production": {
+        "max": 8.74228736385703,
+        "mean": 7.4931917963549495,
+        "min": 6.244096228852868,
+        "values": [
+          8.74228736385703,
+          6.244096228852868
+        ]
+      }
+    },
+    "output_max_abs_diff": {
+      "experimental-chunk": 0.0
+    },
+    "output_max_rel_diff": {
+      "experimental-chunk": 0.0
+    },
+    "speedup_vs_production": {
+      "experimental-chunk": {
+        "max": 1.2109399660212627,
+        "mean": 1.0885945508304873,
+        "min": 0.9662491356397119,
+        "values": [
+          1.2109399660212627,
+          0.9662491356397119
+        ]
+      }
+    }
+  },
+  "variants": {
+    "experimental-chunk": [
+      {
+        "backend": {
+          "available": true,
+          "device": "npu:0",
+          "dtype": "float32",
+          "fallback": false,
+          "index": 0,
+          "memory_allocated": 58010112,
+          "name": "npu",
+          "reason": null
+        },
+        "forward_seconds": 7.219422604888678,
+        "shape": {
+          "batch_size": 3,
+          "checkpoint_segments": 1,
+          "nt": 3000,
+          "nx": 200,
+          "nz": 88,
+          "receivers": 200,
+          "shots": 3
+        }
+      },
+      {
+        "backend": {
+          "available": true,
+          "device": "npu:0",
+          "dtype": "float32",
+          "fallback": false,
+          "index": 0,
+          "memory_allocated": 101211648,
+          "name": "npu",
+          "reason": null
+        },
+        "forward_seconds": 6.462201101705432,
+        "shape": {
+          "batch_size": 3,
+          "checkpoint_segments": 1,
+          "nt": 3000,
+          "nx": 200,
+          "nz": 88,
+          "receivers": 200,
+          "shots": 3
+        }
+      }
+    ],
+    "production": [
+      {
+        "backend": {
+          "available": true,
+          "device": "npu:0",
+          "dtype": "float32",
+          "fallback": false,
+          "index": 0,
+          "memory_allocated": 36409344,
+          "name": "npu",
+          "reason": null
+        },
+        "forward_seconds": 8.74228736385703,
+        "shape": {
+          "batch_size": 3,
+          "checkpoint_segments": 1,
+          "nt": 3000,
+          "nx": 200,
+          "nz": 88,
+          "receivers": 200,
+          "shots": 3
+        }
+      },
+      {
+        "backend": {
+          "available": true,
+          "device": "npu:0",
+          "dtype": "float32",
+          "fallback": false,
+          "index": 0,
+          "memory_allocated": 79610880,
+          "name": "npu",
+          "reason": null
+        },
+        "forward_seconds": 6.244096228852868,
+        "shape": {
+          "batch_size": 3,
+          "checkpoint_segments": 1,
+          "nt": 3000,
+          "nx": 200,
+          "nz": 88,
+          "receivers": 200,
+          "shots": 3
+        }
+      }
+    ]
+  }
+}

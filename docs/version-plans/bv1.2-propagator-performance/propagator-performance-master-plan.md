@@ -299,6 +299,7 @@ Latest records:
 - `44-acoustic-custom-chunk-forward-prototype.md`
 - `45-acoustic-production-interface-chunk-parity.md`
 - `46-acoustic-observed-finite-chunk-gate.md`
+- `47-acoustic-chunk-forward-overhead.md`
 
 Decision:
 
@@ -396,6 +397,9 @@ production itself produces non-finite raw gradients in that reduced shape. The
 fullshape observed-pressure gate is valid and passes: both production and chunk
 gradients are finite, outputs/loss are exact, raw `vp.grad` max abs diff is
 `2.89e-7`, backward speedup is `1.22x`, and total speedup is `1.11x`. The next
-task is to explain the chunk candidate forward overhead before any production
-kernel edit.
+task was to explain the chunk candidate forward overhead before any production
+kernel edit. The forward-only overhead benchmark shows timestep-custom forward
+is slower, but chunk-custom forward is comparable to production and averaged
+`1.09x` faster across the repeat. The next task is a guarded production
+integration design, not more low-level formula debugging.
 ```
