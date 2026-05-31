@@ -85,6 +85,8 @@ Default backward operator profile:
 - `22-acoustic-full-record-iteration-profile.md`
 - `23-acoustic-full-record-backward-operator-profile.md`
 - `24-acoustic-timestep-rewrite-decision.md`
+- `25-acoustic-performance-branch-summary.md`
+- `26-acoustic-custom-pressure-update-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -134,3 +136,9 @@ Default backward operator profile:
   optimization task. Remaining meaningful changes would alter the autograd
   representation of the recurrent wave-equation update and should move to a
   separate custom-autograd/adjoint research route.
+- This branch remains the active performance branch. The next high-impact path
+  is a custom-gradient/adjoint-style acoustic update prototype with strict
+  output and gradient parity gates, starting from a tiny pressure-update probe.
+- The first custom-autograd pressure-update probe produced a positive signal:
+  output/loss matched exactly, maximum gradient absolute difference was
+  `2.27e-13`, and backward speedup averaged `1.67x` on the isolated update.

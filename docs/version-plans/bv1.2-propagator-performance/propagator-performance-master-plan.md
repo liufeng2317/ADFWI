@@ -251,6 +251,8 @@ Latest records:
 - `22-acoustic-full-record-iteration-profile.md`
 - `23-acoustic-full-record-backward-operator-profile.md`
 - `24-acoustic-timestep-rewrite-decision.md`
+- `25-acoustic-performance-branch-summary.md`
+- `26-acoustic-custom-pressure-update-probe.md`
 
 Decision:
 
@@ -276,7 +278,9 @@ changes would alter the autograd representation of the recurrent wave equation.
 Current next direction:
 
 ```text
-Write an acoustic performance closeout for this branch. Future custom
-autograd/adjoint work should be a separate research route with explicit
-gradient-parity gates.
+Continue on this branch with custom-gradient acoustic prototypes. The first
+pressure-update probe preserved output/loss, kept gradient max absolute
+difference at `2.27e-13`, and showed `1.67x` isolated backward speedup. The next
+step is a complete one-timestep p/u/w custom-autograd prototype outside
+production kernels.
 ```
