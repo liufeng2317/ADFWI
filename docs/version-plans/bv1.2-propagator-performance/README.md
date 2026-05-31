@@ -81,6 +81,7 @@ Default backward operator profile:
 - `18-acoustic-phase-d-gradient-processor-profile.md`
 - `19-acoustic-phase-d-gradient-processor-10iter.md`
 - `20-acoustic-validation-gradient-processor-option.md`
+- `21-acoustic-full-record-gradient-processor-10iter.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -115,3 +116,7 @@ Default backward operator profile:
 - Acoustic reduced/full-record validation scripts now expose
   `--gradient-processor legacy|torch`; default remains `legacy`. A reduced
   1-iteration NPU smoke confirmed the `torch` option path and summary output.
+- Full-record 10-iteration validation did not show an end-to-end win for the
+  torch-native gradient processor: numerical differences stayed negligible, but
+  wall time was slower (`232.00 s -> 240.73 s`). Keep `legacy` as the default
+  and treat `torch` as an explicit reduced/NPU profiling option.

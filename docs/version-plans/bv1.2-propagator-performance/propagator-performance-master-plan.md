@@ -239,3 +239,28 @@ Each accepted optimization needs a local record in this folder with:
 - next direction.
 
 No propagator performance commit should be merged without this record.
+
+## Current Status After Phase D
+
+Latest records:
+
+- `18-acoustic-phase-d-gradient-processor-profile.md`
+- `19-acoustic-phase-d-gradient-processor-10iter.md`
+- `20-acoustic-validation-gradient-processor-option.md`
+- `21-acoustic-full-record-gradient-processor-10iter.md`
+
+Decision:
+
+- `TorchGradProcessor` is numerically stable for the measured acoustic NPU
+  cases.
+- It remains an explicit opt-in path because full-record 10-iteration timing
+  was slower than legacy (`232.00 s -> 240.73 s`).
+- Do not continue optimizing Phase D unless a new profile shows gradient
+  processing has become dominant.
+
+Next acoustic direction:
+
+```text
+Return to propagation/backward cost. Profile full-record acoustic per-iteration
+compute before choosing the next kernel or checkpoint-policy target.
+```
