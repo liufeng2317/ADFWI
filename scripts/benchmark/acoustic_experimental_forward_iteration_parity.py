@@ -303,12 +303,6 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         help="Apply the normal FWI waveform normalization before loss evaluation.",
     )
     parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=3,
-        help="FWI shot batch size. The experimental path loops over sources internally.",
-    )
-    parser.add_argument(
         "--candidate-mode",
         choices=("experimental", "experimental-chunk", "production", "production-custom-chunk"),
         default="experimental",
@@ -329,6 +323,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         / "outputs"
         / "experimental_forward_iteration_parity",
         shots=3,
+        batch_size=3,
         nx=64,
         nz=32,
         nt=120,

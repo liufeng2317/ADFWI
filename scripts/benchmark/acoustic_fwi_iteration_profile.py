@@ -88,6 +88,12 @@ def add_arguments(parser: argparse.ArgumentParser, validation_case: str) -> None
     parser.add_argument("--use-custom-chunk-backward", action="store_true")
     parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy")
     parser.add_argument("--policy-repeat", type=int, default=1)
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="FWI shot batch size. Defaults to --shots so existing runs keep full-batch behavior.",
+    )
 
 
 def synchronize(backend) -> None:
@@ -258,7 +264,8 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer, *, keep_tenso
     _, timings["zero_grad"] = timer.measure(lambda: fwi.optimizer.zero_grad())
     loss_epoch = 0.0
     accumulated_wavefield = None
-    batch_ranges = list(iter_batch_ranges(fwi.propagator.src_n, args.shots))
+    batch_size = args.batch_size if args.batch_size is not None else args.shots
+    batch_ranges = list(iter_batch_ranges(fwi.propagator.src_n, batch_size))
 
     for batch_range in batch_ranges:
         forward_batch, elapsed = timer.measure(
@@ -392,6 +399,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
         "backend": rt["ADFWI"].backend_diagnostics(),
         "shape": {
             "shots": args.shots,
+            "batch_size": args.batch_size if args.batch_size is not None else args.shots,
             "receivers": fwi.propagator.rcv_n,
             "nt": fwi.propagator.nt,
             "nx": fwi.model.nx,
@@ -437,6 +445,7 @@ def run_policy_variant(args: argparse.Namespace, *, save_forward_wavefield: bool
         "observed_data": observed_report,
         "shape": {
             "shots": variant_args.shots,
+            "batch_size": variant_args.batch_size if variant_args.batch_size is not None else variant_args.shots,
             "receivers": fwi.propagator.rcv_n,
             "nt": fwi.propagator.nt,
             "nx": fwi.model.nx,

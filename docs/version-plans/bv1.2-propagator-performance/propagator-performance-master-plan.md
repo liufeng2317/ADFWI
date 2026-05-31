@@ -305,6 +305,7 @@ Latest records:
 - `50-acoustic-segmented-custom-chunk-gate.md`
 - `51-acoustic-segmented-custom-chunk-5iter-fwi.md`
 - `52-acoustic-custom-chunk-memory-profile.md`
+- `53-acoustic-custom-chunk-full-record-validation.md`
 
 Decision:
 
@@ -444,4 +445,15 @@ mode, not a memory-equivalent checkpoint replacement. The next acoustic step is
 to document the production API contract for this opt-in path and validate a
 short full-record run before considering deeper rematerializing custom backward
 work.
+
+The full-record validation confirms that positioning. With all `40` shots in a
+single batch, the custom path OOMs on the tested NPU. With the same full-record
+data and `batch_size=20`, three FWI iterations pass: loss trajectories are
+identical, all finite checks pass, and mean iteration time improves
+`55.00 s -> 37.59 s` (`1.463x`). A direct one-iteration tensor parity check
+keeps receiver outputs/loss exact and raw `vp.grad` max abs diff at
+`4.47e-7`, with total speedup `1.486x`. The path should remain an expert
+opt-in high-memory speed mode. Do not make it default. The next task is to
+formalize this API contract and then either stop this line or open a separate
+true-rematerialization design.
 ```
