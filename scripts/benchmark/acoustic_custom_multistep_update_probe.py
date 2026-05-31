@@ -71,11 +71,105 @@ class Timer:
         return value, time.perf_counter() - start
 
 
-def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
-    p, u, w, kappa1, alpha1, kappa2, alpha2, kappa3 = inputs
-    update = timestep_custom if custom else timestep_reference
-    for _ in range(args.steps):
-        p, u, w = update(
+def source_values(args: argparse.Namespace, *, device: torch.device, dtype: torch.dtype):
+    steps = torch.arange(args.steps, device=device, dtype=dtype).reshape(-1, 1)
+    shots = torch.arange(args.shots, device=device, dtype=dtype).reshape(1, -1)
+    return args.source_scale * torch.sin(0.17 * (steps + 1.0)) * (1.0 + shots * 0.01)
+
+
+def timestep_reference_with_features(
+    p,
+    u,
+    w,
+    kappa1,
+    alpha1,
+    kappa2,
+    alpha2,
+    kappa3,
+    *,
+    free_surface_start: int,
+    source_x: int,
+    source_z: int,
+    source_value,
+    use_source: bool,
+    use_free_surface: bool,
+):
+    c1 = 9.0 / 8.0
+    c2 = -1.0 / 24.0
+    nz_pml = p.shape[1]
+    nx_pml = p.shape[2]
+
+    p_new = p.clone()
+    zp = slice(free_surface_start + 1, nz_pml - 2)
+    xp = slice(2, nx_pml - 2)
+    div_p = (
+        c1
+        * (
+            u[:, zp, 2 : nx_pml - 2]
+            - u[:, zp, 1 : nx_pml - 3]
+            + w[:, zp, 2 : nx_pml - 2]
+            - w[:, free_surface_start : nz_pml - 3, 2 : nx_pml - 2]
+        )
+        + c2
+        * (
+            u[:, zp, 3 : nx_pml - 1]
+            - u[:, zp, 0 : nx_pml - 4]
+            + w[:, free_surface_start + 2 : nz_pml - 1, 2 : nx_pml - 2]
+            - w[:, free_surface_start - 1 : nz_pml - 4, 2 : nx_pml - 2]
+        )
+    )
+    p_new[:, zp, xp] = (1.0 - kappa1[zp, xp]) * p[:, zp, xp] - alpha1[zp, xp] * div_p
+    if use_source:
+        p_new[:, source_z, source_x] = p_new[:, source_z, source_x] + source_value
+    if use_free_surface:
+        p_new[:, free_surface_start - 1, :] = -p_new[:, free_surface_start + 1, :]
+
+    u_new = u.clone()
+    zu = slice(free_surface_start, nz_pml - 1)
+    xu = slice(1, nx_pml - 2)
+    div_u = (
+        c1 * (p_new[:, zu, 2 : nx_pml - 1] - p_new[:, zu, 1 : nx_pml - 2])
+        + c2 * (p_new[:, zu, 3:nx_pml] - p_new[:, zu, 0 : nx_pml - 3])
+    )
+    u_new[:, zu, xu] = (1.0 - kappa2[zu, xu]) * u[:, zu, xu] - alpha2[zu, xu] * div_u
+
+    w_new = w.clone()
+    zw = slice(free_surface_start, nz_pml - 2)
+    xw = slice(1, nx_pml - 1)
+    div_w = (
+        c1 * (p_new[:, free_surface_start + 1 : nz_pml - 1, xw] - p_new[:, zw, xw])
+        + c2
+        * (
+            p_new[:, free_surface_start + 2 : nz_pml, xw]
+            - p_new[:, free_surface_start - 1 : nz_pml - 3, xw]
+        )
+    )
+    w_new[:, zw, xw] = (1.0 - kappa3[zw, xw]) * w[:, zw, xw] - alpha2[zw, xw] * div_w
+    if use_free_surface:
+        w_new[:, free_surface_start - 1, :] = w_new[:, free_surface_start, :]
+    return p_new, u_new, w_new
+
+
+class CustomTimestepUpdateWithFeatures(torch.autograd.Function):
+    @staticmethod
+    def forward(
+        ctx,
+        p,
+        u,
+        w,
+        kappa1,
+        alpha1,
+        kappa2,
+        alpha2,
+        kappa3,
+        free_surface_start: int,
+        source_x: int,
+        source_z: int,
+        source_value,
+        use_source: bool,
+        use_free_surface: bool,
+    ):
+        p_new, u_new, w_new = timestep_reference_with_features(
             p,
             u,
             w,
@@ -84,8 +178,200 @@ def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
             kappa2,
             alpha2,
             kappa3,
-            free_surface_start=args.nabc,
+            free_surface_start=free_surface_start,
+            source_x=source_x,
+            source_z=source_z,
+            source_value=source_value,
+            use_source=use_source,
+            use_free_surface=use_free_surface,
         )
+        c1 = 9.0 / 8.0
+        c2 = -1.0 / 24.0
+        nz_pml = p.shape[1]
+        nx_pml = p.shape[2]
+        zp = slice(free_surface_start + 1, nz_pml - 2)
+        xp = slice(2, nx_pml - 2)
+        div_p = (
+            c1
+            * (
+                u[:, zp, 2 : nx_pml - 2]
+                - u[:, zp, 1 : nx_pml - 3]
+                + w[:, zp, 2 : nx_pml - 2]
+                - w[:, free_surface_start : nz_pml - 3, 2 : nx_pml - 2]
+            )
+            + c2
+            * (
+                u[:, zp, 3 : nx_pml - 1]
+                - u[:, zp, 0 : nx_pml - 4]
+                + w[:, free_surface_start + 2 : nz_pml - 1, 2 : nx_pml - 2]
+                - w[:, free_surface_start - 1 : nz_pml - 4, 2 : nx_pml - 2]
+            )
+        )
+        zu = slice(free_surface_start, nz_pml - 1)
+        xu = slice(1, nx_pml - 2)
+        div_u = (
+            c1 * (p_new[:, zu, 2 : nx_pml - 1] - p_new[:, zu, 1 : nx_pml - 2])
+            + c2 * (p_new[:, zu, 3:nx_pml] - p_new[:, zu, 0 : nx_pml - 3])
+        )
+        zw = slice(free_surface_start, nz_pml - 2)
+        xw = slice(1, nx_pml - 1)
+        div_w = (
+            c1 * (p_new[:, free_surface_start + 1 : nz_pml - 1, xw] - p_new[:, zw, xw])
+            + c2
+            * (
+                p_new[:, free_surface_start + 2 : nz_pml, xw]
+                - p_new[:, free_surface_start - 1 : nz_pml - 3, xw]
+            )
+        )
+        ctx.free_surface_start = free_surface_start
+        ctx.source_x = source_x
+        ctx.source_z = source_z
+        ctx.use_source = use_source
+        ctx.use_free_surface = use_free_surface
+        ctx.save_for_backward(p, u, w, kappa1, alpha1, kappa2, alpha2, kappa3, div_p, div_u, div_w)
+        return p_new, u_new, w_new
+
+    @staticmethod
+    def backward(ctx, grad_p_out, grad_u_out, grad_w_out):
+        p, u, w, kappa1, alpha1, kappa2, alpha2, kappa3, div_p, div_u, div_w = ctx.saved_tensors
+        free_surface_start = ctx.free_surface_start
+        c1 = 9.0 / 8.0
+        c2 = -1.0 / 24.0
+        nz_pml = p.shape[1]
+        nx_pml = p.shape[2]
+
+        grad_p_new = grad_p_out.clone()
+        grad_u = grad_u_out.clone()
+        grad_w = grad_w_out.clone()
+        grad_kappa1 = torch.zeros_like(kappa1)
+        grad_alpha1 = torch.zeros_like(alpha1)
+        grad_kappa2 = torch.zeros_like(kappa2)
+        grad_alpha2 = torch.zeros_like(alpha2)
+        grad_kappa3 = torch.zeros_like(kappa3)
+
+        if ctx.use_free_surface:
+            grad_w[:, free_surface_start, :] += grad_w[:, free_surface_start - 1, :]
+            grad_w[:, free_surface_start - 1, :] = 0.0
+
+        zu = slice(free_surface_start, nz_pml - 1)
+        xu = slice(1, nx_pml - 2)
+        gu = grad_u_out[:, zu, xu]
+        grad_u[:, zu, xu] = gu * (1.0 - kappa2[zu, xu])
+        grad_kappa2[zu, xu] += torch.sum(-u[:, zu, xu] * gu, dim=0)
+        grad_alpha2[zu, xu] += torch.sum(-div_u * gu, dim=0)
+        grad_div_u = -alpha2[zu, xu].unsqueeze(0) * gu
+        grad_p_new[:, zu, 2 : nx_pml - 1] += c1 * grad_div_u
+        grad_p_new[:, zu, 1 : nx_pml - 2] -= c1 * grad_div_u
+        grad_p_new[:, zu, 3:nx_pml] += c2 * grad_div_u
+        grad_p_new[:, zu, 0 : nx_pml - 3] -= c2 * grad_div_u
+
+        zw = slice(free_surface_start, nz_pml - 2)
+        xw = slice(1, nx_pml - 1)
+        gw = grad_w[:, zw, xw]
+        grad_w[:, zw, xw] = gw * (1.0 - kappa3[zw, xw])
+        grad_kappa3[zw, xw] += torch.sum(-w[:, zw, xw] * gw, dim=0)
+        grad_alpha2[zw, xw] += torch.sum(-div_w * gw, dim=0)
+        grad_div_w = -alpha2[zw, xw].unsqueeze(0) * gw
+        grad_p_new[:, free_surface_start + 1 : nz_pml - 1, xw] += c1 * grad_div_w
+        grad_p_new[:, zw, xw] -= c1 * grad_div_w
+        grad_p_new[:, free_surface_start + 2 : nz_pml, xw] += c2 * grad_div_w
+        grad_p_new[:, free_surface_start - 1 : nz_pml - 3, xw] -= c2 * grad_div_w
+
+        if ctx.use_free_surface:
+            grad_p_new[:, free_surface_start + 1, :] -= grad_p_new[:, free_surface_start - 1, :]
+            grad_p_new[:, free_surface_start - 1, :] = 0.0
+
+        zp = slice(free_surface_start + 1, nz_pml - 2)
+        xp = slice(2, nx_pml - 2)
+        gp = grad_p_new[:, zp, xp]
+        grad_p = grad_p_new.clone()
+        grad_p[:, zp, xp] = gp * (1.0 - kappa1[zp, xp])
+        grad_kappa1[zp, xp] = torch.sum(-p[:, zp, xp] * gp, dim=0)
+        grad_alpha1[zp, xp] = torch.sum(-div_p * gp, dim=0)
+        grad_div_p = -alpha1[zp, xp].unsqueeze(0) * gp
+        grad_u[:, zp, 2 : nx_pml - 2] += c1 * grad_div_p
+        grad_u[:, zp, 1 : nx_pml - 3] -= c1 * grad_div_p
+        grad_u[:, zp, 3 : nx_pml - 1] += c2 * grad_div_p
+        grad_u[:, zp, 0 : nx_pml - 4] -= c2 * grad_div_p
+        grad_w[:, zp, 2 : nx_pml - 2] += c1 * grad_div_p
+        grad_w[:, free_surface_start : nz_pml - 3, 2 : nx_pml - 2] -= c1 * grad_div_p
+        grad_w[:, free_surface_start + 2 : nz_pml - 1, 2 : nx_pml - 2] += c2 * grad_div_p
+        grad_w[:, free_surface_start - 1 : nz_pml - 4, 2 : nx_pml - 2] -= c2 * grad_div_p
+
+        return grad_p, grad_u, grad_w, grad_kappa1, grad_alpha1, grad_kappa2, grad_alpha2, grad_kappa3, None, None, None, None, None, None
+
+
+def timestep_custom_with_features(
+    p,
+    u,
+    w,
+    kappa1,
+    alpha1,
+    kappa2,
+    alpha2,
+    kappa3,
+    *,
+    free_surface_start: int,
+    source_x: int,
+    source_z: int,
+    source_value,
+    use_source: bool,
+    use_free_surface: bool,
+):
+    return CustomTimestepUpdateWithFeatures.apply(
+        p,
+        u,
+        w,
+        kappa1,
+        alpha1,
+        kappa2,
+        alpha2,
+        kappa3,
+        free_surface_start,
+        source_x,
+        source_z,
+        source_value,
+        use_source,
+        use_free_surface,
+    )
+
+
+def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
+    p, u, w, kappa1, alpha1, kappa2, alpha2, kappa3 = inputs
+    if args.source_injection or args.free_surface_boundary_write:
+        source = source_values(args, device=p.device, dtype=p.dtype)
+        update = timestep_custom_with_features if custom else timestep_reference_with_features
+        for step in range(args.steps):
+            p, u, w = update(
+                p,
+                u,
+                w,
+                kappa1,
+                alpha1,
+                kappa2,
+                alpha2,
+                kappa3,
+                free_surface_start=args.nabc,
+                source_x=args.nabc + args.nx // 2,
+                source_z=args.nabc + args.source_depth,
+                source_value=source[step],
+                use_source=args.source_injection,
+                use_free_surface=args.free_surface_boundary_write,
+            )
+    else:
+        update = timestep_custom if custom else timestep_reference
+        for _ in range(args.steps):
+            p, u, w = update(
+                p,
+                u,
+                w,
+                kappa1,
+                alpha1,
+                kappa2,
+                alpha2,
+                kappa3,
+                free_surface_start=args.nabc,
+            )
     return p, u, w
 
 
@@ -168,8 +454,10 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
             "kappa_scale": args.kappa_scale,
             "alpha1_scale": args.alpha1_scale,
             "alpha2_scale": args.alpha2_scale,
-            "source_injection": False,
-            "free_surface_boundary_write": False,
+            "source_depth": args.source_depth,
+            "source_scale": args.source_scale,
+            "source_injection": args.source_injection,
+            "free_surface_boundary_write": args.free_surface_boundary_write,
             "receiver_recording": False,
         },
         "summary": {
@@ -217,6 +505,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--kappa-scale", type=float, default=1e-3)
     parser.add_argument("--alpha1-scale", type=float, default=1e-3)
     parser.add_argument("--alpha2-scale", type=float, default=1e-3)
+    parser.add_argument("--source-depth", type=int, default=1)
+    parser.add_argument("--source-scale", type=float, default=1e-4)
+    parser.add_argument("--source-injection", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--free-surface-boundary-write", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     return parser
 

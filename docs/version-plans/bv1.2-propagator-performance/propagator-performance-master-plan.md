@@ -255,6 +255,7 @@ Latest records:
 - `26-acoustic-custom-pressure-update-probe.md`
 - `27-acoustic-custom-timestep-update-probe.md`
 - `28-acoustic-custom-multistep-update-probe.md`
+- `29-acoustic-custom-source-freesurface-probe.md`
 
 Decision:
 
@@ -287,6 +288,8 @@ complete one-timestep p/u/w prototype also preserved output/loss, kept gradient
 max absolute difference at `1.36e-12`, and showed `1.87x` isolated backward
 speedup. The 20-step recurrence prototype preserved final outputs/loss, kept
 gradient max absolute difference at `5.68e-14`, and showed `1.87x` backward
-speedup. The next step is to add source injection and free-surface boundary
-writes to the isolated prototype before any production-kernel integration.
+speedup. The source/free-surface prototype preserved outputs/loss, kept
+gradient max absolute difference at `1.26e-12`, and showed `2.05x` backward
+speedup with `1.58x` total speedup. The next isolated gate is receiver
+recording before any production-kernel integration.
 ```

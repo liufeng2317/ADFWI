@@ -89,6 +89,7 @@ Default backward operator profile:
 - `26-acoustic-custom-pressure-update-probe.md`
 - `27-acoustic-custom-timestep-update-probe.md`
 - `28-acoustic-custom-multistep-update-probe.md`
+- `29-acoustic-custom-source-freesurface-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -150,3 +151,6 @@ Default backward operator profile:
 - The 20-step recurrence prototype preserved final outputs and loss exactly,
   kept gradient maximum absolute difference at `5.68e-14`, and kept backward
   speedup around `1.87x`.
+- Adding source injection and free-surface boundary writes preserved outputs
+  and loss exactly, kept gradient maximum absolute difference at `1.26e-12`,
+  and kept total speedup around `1.58x` despite a slower forward prototype.
