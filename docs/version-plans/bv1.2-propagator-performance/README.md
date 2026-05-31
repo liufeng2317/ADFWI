@@ -82,6 +82,7 @@ Default backward operator profile:
 - `19-acoustic-phase-d-gradient-processor-10iter.md`
 - `20-acoustic-validation-gradient-processor-option.md`
 - `21-acoustic-full-record-gradient-processor-10iter.md`
+- `22-acoustic-full-record-iteration-profile.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -120,3 +121,6 @@ Default backward operator profile:
   torch-native gradient processor: numerical differences stayed negligible, but
   wall time was slower (`232.00 s -> 240.73 s`). Keep `legacy` as the default
   and treat `torch` as an explicit reduced/NPU profiling option.
+- Full-record single-iteration profiling shows the current acoustic bottleneck
+  is still differentiable propagation: backward `16.93 s` (`59.86%`) and
+  forward `9.83 s` (`34.78%`) of a `28.27 s` measured iteration.

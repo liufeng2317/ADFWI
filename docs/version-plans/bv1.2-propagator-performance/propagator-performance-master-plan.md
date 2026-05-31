@@ -248,6 +248,7 @@ Latest records:
 - `19-acoustic-phase-d-gradient-processor-10iter.md`
 - `20-acoustic-validation-gradient-processor-option.md`
 - `21-acoustic-full-record-gradient-processor-10iter.md`
+- `22-acoustic-full-record-iteration-profile.md`
 
 Decision:
 
@@ -261,6 +262,8 @@ Decision:
 Next acoustic direction:
 
 ```text
-Return to propagation/backward cost. Profile full-record acoustic per-iteration
-compute before choosing the next kernel or checkpoint-policy target.
+Return to propagation/backward cost. The full-record single-iteration profile
+measured backward at `16.93 s` (`59.86%`) and forward at `9.83 s` (`34.78%`).
+The next step is a full-record acoustic backward operator profile or bounded
+checkpoint/rematerialization diagnostic before changing the kernel.
 ```

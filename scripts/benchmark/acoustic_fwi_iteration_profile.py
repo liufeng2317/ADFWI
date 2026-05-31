@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Profile one reduced Marmousi2 acoustic FWI iteration.
+"""Profile one Marmousi2 acoustic FWI iteration.
 
 This benchmark is the Phase A gate for propagator performance work. It does not
-change ADFWI runtime behavior. It reproduces the reduced validation inversion
-setup, then times one or more explicit FWI iterations split into forward, loss,
-backward, gradient processing, optimizer, and setup costs.
+change ADFWI runtime behavior. It reproduces a validation inversion setup, then
+times one or more explicit FWI iterations split into forward, loss, backward,
+gradient processing, optimizer, and setup costs.
 """
 
 from __future__ import annotations
@@ -19,10 +19,28 @@ from typing import Any, Dict, List, Optional
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-VALIDATION_SCRIPTS = REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced" / "scripts"
-DEFAULT_OUTPUT_ROOT = (
-    REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced" / "outputs" / "phase_a_profile"
-)
+VALIDATION_CASES = {
+    "reduced": {
+        "case": "marmousi2_acoustic_reduced",
+        "scripts": REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_reduced" / "scripts",
+        "output_root": REPO_ROOT
+        / "examples"
+        / "validation"
+        / "marmousi2_acoustic_reduced"
+        / "outputs"
+        / "phase_a_profile",
+    },
+    "full_record": {
+        "case": "marmousi2_acoustic_full_record",
+        "scripts": REPO_ROOT / "examples" / "validation" / "marmousi2_acoustic_full_record" / "scripts",
+        "output_root": REPO_ROOT
+        / "examples"
+        / "validation"
+        / "marmousi2_acoustic_full_record"
+        / "outputs"
+        / "phase_a_profile",
+    },
+}
 DEFAULT_RESULT = (
     REPO_ROOT
     / "docs"
@@ -30,6 +48,7 @@ DEFAULT_RESULT = (
     / "bv1.2-propagator-performance"
     / "acoustic_fwi_iteration_profile_20260531.json"
 )
+forward_modeling = None
 
 
 def load_module(name: str, path: Path):
@@ -42,12 +61,18 @@ def load_module(name: str, path: Path):
     return module
 
 
-forward_modeling = load_module("phase_a_forward_modeling", VALIDATION_SCRIPTS / "forward_modeling.py")
+def configure_validation_case(case_name: str):
+    global forward_modeling
+    case = VALIDATION_CASES[case_name]
+    forward_modeling = load_module(f"phase_a_{case_name}_forward_modeling", case["scripts"] / "forward_modeling.py")
+    return case
 
 
-def add_arguments(parser: argparse.ArgumentParser) -> None:
+def add_arguments(parser: argparse.ArgumentParser, validation_case: str) -> None:
+    case = configure_validation_case(validation_case)
+    parser.add_argument("--validation-case", choices=tuple(VALIDATION_CASES), default=validation_case)
     forward_modeling.add_case_arguments(parser)
-    parser.set_defaults(output_root=DEFAULT_OUTPUT_ROOT)
+    parser.set_defaults(output_root=case["output_root"])
     parser.add_argument("--result-json", type=Path, default=DEFAULT_RESULT)
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--lr", type=float, default=10.0)
@@ -360,7 +385,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
 
     return {
         "status": "ok",
-        "case": "marmousi2_acoustic_reduced",
+        "case": VALIDATION_CASES[args.validation_case]["case"],
         "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
         "backend": rt["ADFWI"].backend_diagnostics(),
         "shape": {
@@ -515,7 +540,7 @@ def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
 
     return {
         "status": "ok",
-        "case": "marmousi2_acoustic_reduced",
+        "case": VALIDATION_CASES[args.validation_case]["case"],
         "purpose": "Phase B acoustic FWI forward-wavefield policy comparison",
         "policy_repeat": args.policy_repeat,
         "pairs": pairs,
@@ -524,8 +549,12 @@ def run_policy_comparison(args: argparse.Namespace) -> Dict[str, Any]:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--validation-case", choices=tuple(VALIDATION_CASES), default="reduced")
+    pre_args, _ = pre_parser.parse_known_args(argv)
+
     parser = argparse.ArgumentParser(description=__doc__)
-    add_arguments(parser)
+    add_arguments(parser, pre_args.validation_case)
     parser.add_argument("--compare-wavefield-policy", action="store_true")
     args = parser.parse_args(argv)
     forward_modeling.validate_case_args(parser, args)
