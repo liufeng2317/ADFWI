@@ -253,6 +253,7 @@ Latest records:
 - `24-acoustic-timestep-rewrite-decision.md`
 - `25-acoustic-performance-branch-summary.md`
 - `26-acoustic-custom-pressure-update-probe.md`
+- `27-acoustic-custom-timestep-update-probe.md`
 
 Decision:
 
@@ -281,6 +282,8 @@ Current next direction:
 Continue on this branch with custom-gradient acoustic prototypes. The first
 pressure-update probe preserved output/loss, kept gradient max absolute
 difference at `2.27e-13`, and showed `1.67x` isolated backward speedup. The next
-step is a complete one-timestep p/u/w custom-autograd prototype outside
+complete one-timestep p/u/w prototype also preserved output/loss, kept gradient
+max absolute difference at `1.36e-12`, and showed `1.87x` isolated backward
+speedup. The next step is a tiny multi-step recurrence prototype outside
 production kernels.
 ```
