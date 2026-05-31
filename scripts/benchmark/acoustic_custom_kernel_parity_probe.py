@@ -23,11 +23,9 @@ if str(REPO_ROOT) not in sys.path:
 import torch
 
 from ADFWI.backends import configure_backend
-from ADFWI.propagator.acoustic_kernels import forward_kernel, pad_torchSingle
-from scripts.benchmark.acoustic_custom_multistep_update_probe import (
-    tensor_diff,
-    timestep_custom_with_features,
-)
+from ADFWI.propagator.acoustic_kernels import forward_kernel
+from scripts.benchmark.acoustic_custom_multistep_update_probe import tensor_diff
+from scripts.benchmark.acoustic_experimental_forward import experimental_forward_kernel
 from scripts.smoke.acoustic_backend_smoke import parse_dtype
 
 
@@ -129,62 +127,30 @@ def run_custom(case: Dict[str, torch.Tensor], args: argparse.Namespace, backend)
     timer = Timer(backend)
 
     def forward():
-        c = pad_torchSingle(case["v"], args.nabc, args.nz, args.nx, 1, device=backend.device)
-        den = pad_torchSingle(case["rho"], args.nabc, args.nz, args.nx, 1, device=backend.device)
-        nx_pml = args.nx + 2 * args.nabc
-        nz_pml = args.nz + 2 * args.nabc
-        p = torch.zeros((1, nz_pml, nx_pml), dtype=backend.dtype, device=backend.device)
-        u = torch.zeros((1, nz_pml, nx_pml - 1), dtype=backend.dtype, device=backend.device)
-        w = torch.zeros((1, nz_pml - 1, nx_pml), dtype=backend.dtype, device=backend.device)
-        free_surface_start = args.nabc if args.free_surface else 1
-        alpha1 = den * c * c * args.dt / args.dz
-        kappa1 = case["damp"] * args.dt
-        alpha2 = args.dt / (den * args.dz)
-        kappa2 = torch.zeros_like(case["damp"], device=backend.device)
-        kappa2[:, 1 : nx_pml - 2] = (
-            0.5 * (case["damp"][:, 1 : nx_pml - 2] + case["damp"][:, 2 : nx_pml - 1]) * args.dt
+        record = experimental_forward_kernel(
+            args.nx,
+            args.nz,
+            args.dx,
+            args.dz,
+            args.nt,
+            args.dt,
+            args.nabc,
+            args.free_surface,
+            case["src_x"],
+            case["src_z"],
+            1,
+            case["src_v"],
+            case["rcv_x"],
+            case["rcv_z"],
+            args.receivers,
+            case["damp"],
+            case["v"],
+            case["rho"],
+            save_forward_wavefield=False,
+            device=backend.device,
+            dtype=backend.dtype,
         )
-        kappa3 = torch.zeros_like(case["damp"], device=backend.device)
-        kappa3[free_surface_start : nz_pml - 2, :] = (
-            0.5
-            * (
-                case["damp"][free_surface_start : nz_pml - 2, :]
-                + case["damp"][free_surface_start + 1 : nz_pml - 1, :]
-            )
-            * args.dt
-        )
-        src_x = int((case["src_x"][0] + args.nabc).detach().cpu().item())
-        src_z = int((case["src_z"][0] + args.nabc).detach().cpu().item())
-        rcv_x = case["rcv_x"] + args.nabc
-        rcv_z = case["rcv_z"] + args.nabc
-        records_p = []
-        records_u = []
-        records_w = []
-        for it in range(args.nt):
-            p, u, w = timestep_custom_with_features(
-                p,
-                u,
-                w,
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                free_surface_start=free_surface_start,
-                source_x=src_x,
-                source_z=src_z,
-                source_value=args.dt * case["src_v"][:, it],
-                use_source=True,
-                use_free_surface=args.free_surface,
-            )
-            records_p.append(p[:, rcv_z, rcv_x])
-            records_u.append(u[:, rcv_z, rcv_x])
-            records_w.append(w[:, rcv_z, rcv_x])
-        return (
-            torch.stack(records_p, dim=1),
-            torch.stack(records_u, dim=1),
-            torch.stack(records_w, dim=1),
-        )
+        return record["p"], record["u"], record["w"]
 
     outputs, forward_seconds = timer.measure(forward)
     loss = sum(output.pow(2).mean() for output in outputs)

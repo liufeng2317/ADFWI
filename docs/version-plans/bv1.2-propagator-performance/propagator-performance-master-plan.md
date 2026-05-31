@@ -258,6 +258,7 @@ Latest records:
 - `29-acoustic-custom-source-freesurface-probe.md`
 - `30-acoustic-custom-receiver-recording-probe.md`
 - `31-acoustic-custom-kernel-parity-probe.md`
+- `32-acoustic-experimental-forward-path.md`
 
 Decision:
 
@@ -298,7 +299,10 @@ difference at `4.82e-11`, and showed `1.98x` backward speedup with `1.54x`
 total speedup. The first production-interface parity harness against
 `forward_kernel` passed on a tiny NPU case: receiver records/loss matched
 exactly, `v.grad` maximum absolute difference was `4.14e-25`, and total speedup
-was `1.67x`. The next gate is an opt-in experimental acoustic forward path
-callable only from benchmark scripts, followed by tiny-case parity and then
-reduced Marmousi2 iteration parity.
+was `1.67x`. The custom recurrence is now exposed as a benchmark-only
+`experimental_forward_kernel`; the refactored tiny NPU parity kept receiver
+records/loss exact, kept `v.grad` maximum absolute difference at `4.14e-25`,
+and showed `1.77x` total speedup. The next gate is reduced Marmousi2 iteration
+parity with this experimental forward path, still outside default propagator
+APIs.
 ```
