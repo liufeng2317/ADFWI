@@ -27,6 +27,7 @@ from scripts.benchmark.acoustic_experimental_forward import (
     experimental_forward_kernel,
 )
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord
+from ADFWI.propagator.acoustic_custom_kernels import rematerialized_custom_chunk_forward_kernel
 
 
 DEFAULT_OUTPUT = (
@@ -43,6 +44,39 @@ def synchronize(backend) -> None:
         backend.synchronize()
 
 
+def memory_api(torch_module, backend):
+    if backend.name == "npu":
+        return torch_module.npu
+    if backend.name == "cuda":
+        return torch_module.cuda
+    return None
+
+
+def reset_peak_memory(torch_module, backend) -> None:
+    api = memory_api(torch_module, backend)
+    if api is None:
+        return
+    if hasattr(api, "empty_cache"):
+        api.empty_cache()
+    if hasattr(api, "reset_peak_memory_stats"):
+        api.reset_peak_memory_stats()
+    elif hasattr(api, "reset_max_memory_allocated"):
+        api.reset_max_memory_allocated()
+
+
+def max_memory_allocated(torch_module, backend):
+    api = memory_api(torch_module, backend)
+    if api is None or not hasattr(api, "max_memory_allocated"):
+        return None
+    return int(api.max_memory_allocated())
+
+
+def bytes_to_mib(value):
+    if value is None:
+        return None
+    return value / (1024.0 * 1024.0)
+
+
 class Timer:
     def __init__(self, backend) -> None:
         self.backend = backend
@@ -55,15 +89,24 @@ class Timer:
         return value, time.perf_counter() - start
 
 
-def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool, mode: str):
+def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool, mode: str, checkpoint_segments: int = 1):
     propagator.model.forward()
     shot_index = batch_range.shot_index
     if mode == "experimental":
         forward_kernel = experimental_forward_kernel
     elif mode == "experimental-chunk":
         forward_kernel = experimental_chunk_forward_kernel
+    elif mode == "experimental-remat-chunk":
+        forward_kernel = rematerialized_custom_chunk_forward_kernel
     else:
         raise ValueError(f"unknown experimental mode: {mode}")
+    forward_kwargs = {
+        "save_forward_wavefield": save_forward_wavefield,
+        "device": propagator.device,
+        "dtype": propagator.dtype,
+    }
+    if mode == "experimental-remat-chunk":
+        forward_kwargs["checkpoint_segments"] = checkpoint_segments
     record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
@@ -83,9 +126,7 @@ def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefiel
         propagator.damp,
         propagator.model.vp,
         propagator.model.rho,
-        save_forward_wavefield=save_forward_wavefield,
-        device=propagator.device,
-        dtype=propagator.dtype,
+        **forward_kwargs,
     )
     return ForwardBatchRecord(shot_index=shot_index, record_waveform=record_waveform)
 
@@ -131,13 +172,14 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     mode=mode,
                 )
             )
-        elif mode == "experimental-chunk":
+        elif mode in {"experimental-chunk", "experimental-remat-chunk"}:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
                     batch_range,
                     save_forward_wavefield=False,
                     mode=mode,
+                    checkpoint_segments=args.checkpoint_segments,
                 )
             )
         else:
@@ -198,8 +240,13 @@ def run_variant(args: argparse.Namespace, *, mode: str) -> Dict[str, Any]:
     fwi, _ = profile.build_fwi_state(rt, args, backend)
     fwi._validate_forward_wavefield_policy(False)
     fwi.waveform_normalize = args.waveform_normalize
+    torch = rt["torch"]
+    reset_peak_memory(torch, backend)
+    synchronize(backend)
     timer = Timer(backend)
     result = run_iteration(fwi, args, timer, mode=mode)
+    synchronize(backend)
+    peak_memory = max_memory_allocated(torch, backend)
     return {
         "backend": rt["ADFWI"].backend_diagnostics(),
         "shape": {
@@ -210,6 +257,10 @@ def run_variant(args: argparse.Namespace, *, mode: str) -> Dict[str, Any]:
             "nx": fwi.model.nx,
             "nz": fwi.model.nz,
             "checkpoint_segments": args.checkpoint_segments,
+        },
+        "memory": {
+            "peak_allocated_bytes": peak_memory,
+            "peak_allocated_mib": bytes_to_mib(peak_memory),
         },
         "iteration": result,
     }
@@ -231,6 +282,14 @@ def compare(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, A
             "backward": reference["iteration"]["timings"]["backward"] / candidate["iteration"]["timings"]["backward"],
             "total": reference["iteration"]["timing_total"] / candidate["iteration"]["timing_total"],
         },
+        "memory": {
+            "reference_peak_allocated_mib": reference["memory"]["peak_allocated_mib"],
+            "candidate_peak_allocated_mib": candidate["memory"]["peak_allocated_mib"],
+            "candidate_over_reference_peak_allocated": (
+                candidate["memory"]["peak_allocated_mib"] / reference["memory"]["peak_allocated_mib"]
+                if reference["memory"]["peak_allocated_mib"] else None
+            ),
+        },
     }
 
 
@@ -245,6 +304,7 @@ def public_variant(variant: Dict[str, Any]) -> Dict[str, Any]:
             "timings": iteration["timings"],
             "timing_total": iteration["timing_total"],
         },
+        "memory": variant["memory"],
     }
 
 
@@ -266,6 +326,7 @@ def summarize_pair(pair: Dict[str, Any]) -> Dict[str, Any]:
         "raw_grad_max_abs_diff": pair["comparison"]["raw_grad"]["max_abs_diff"],
         "raw_grad_max_rel_diff": pair["comparison"]["raw_grad"]["max_rel_diff"],
         "speedup": pair["comparison"]["speedup"],
+        "memory": pair["comparison"]["memory"],
     }
 
 
@@ -304,7 +365,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--candidate-mode",
-        choices=("experimental", "experimental-chunk", "production", "production-custom-chunk"),
+        choices=("experimental", "experimental-chunk", "experimental-remat-chunk", "production", "production-custom-chunk"),
         default="experimental",
         help="Compare production against an experimental path or a second production run.",
     )

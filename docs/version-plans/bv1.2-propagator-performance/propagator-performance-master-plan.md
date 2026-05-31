@@ -307,6 +307,8 @@ Latest records:
 - `52-acoustic-custom-chunk-memory-profile.md`
 - `53-acoustic-custom-chunk-full-record-validation.md`
 - `54-acoustic-custom-chunk-api-contract.md`
+- `55-acoustic-rematerialized-custom-checkpoint-plan.md`
+- `56-acoustic-rematerialized-custom-checkpoint-gate.md`
 
 Decision:
 
@@ -464,4 +466,19 @@ opt in with `save_forward_wavefield=False`. The FWI layer and propagator layer
 both reject `use_custom_chunk_backward=True` with `save_forward_wavefield=True`
 so the path cannot be confused with the default forward-wavefield output
 contract. This is a wiring/API change only; no default kernel behavior changes.
+
+The next checkpoint-specific line is rematerialized custom backward for
+`checkpoint_segments > 1`. This is distinct from the high-memory custom chunk
+path: forward stores only chunk boundary states, and backward recomputes chunk
+internals before applying the manual adjoint. The initial implementation is an
+experimental kernel only and is not wired into the default propagator path.
+
+The first rematerialized checkpoint gate passes numerically and shows speedup,
+but not checkpoint-equivalent memory. On the fullshape reduced observed-pressure
+gate, receiver outputs/loss match exactly and raw `vp.grad` max abs diff is
+`2.74e-7`; total speed improves `1.229x`. Peak allocated memory is
+`810.92 MiB` versus production checkpoint `292.98 MiB` (`2.77x`). This is much
+better than the high-memory custom chunk path (`28.92x`), but still not close
+enough for default integration. Continue only with memory-focused rematerialized
+backward work, not another speed-only benchmark.
 ```
