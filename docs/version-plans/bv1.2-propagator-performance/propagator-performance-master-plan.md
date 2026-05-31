@@ -260,6 +260,7 @@ Latest records:
 - `31-acoustic-custom-kernel-parity-probe.md`
 - `32-acoustic-experimental-forward-path.md`
 - `33-acoustic-experimental-forward-iteration-parity.md`
+- `34-acoustic-gradient-difference-localization.md`
 
 Decision:
 
@@ -312,4 +313,13 @@ output absolute differences were small, but raw `vp.grad` maximum absolute
 difference was `3.63e-4`, which is too large for a core differentiable
 propagator change. Stop expanding the experimental path and localize the
 gradient difference before considering production integration.
+
+Gradient localization ruled out waveform normalization, NPU repeat
+nondeterminism, long `nt=3000` recurrence length, and production batched-source
+execution versus experimental per-source looping as primary causes. With the
+validation source/survey but synthetic-energy loss, raw gradient difference
+dropped to `3.37e-14`. The next active task is receiver-output difference
+localization under the validation source/wavelet because observed-pressure
+residual loss amplifies a `6.52e-09` receiver-output difference into the failed
+raw-gradient parity.
 ```

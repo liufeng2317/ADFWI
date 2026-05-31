@@ -130,6 +130,14 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
         outputs.append({name: value.detach().clone() for name, value in forward_batch.record_waveform.items() if name in {"p", "u", "w"}})
 
         def evaluate_loss():
+            if args.loss_mode == "synthetic-energy":
+                tensor = sum(
+                    forward_batch.record_waveform[name].pow(2).mean()
+                    for name in ("p", "u", "w")
+                )
+                return type("SyntheticEnergyLoss", (), {"tensor": tensor, "scalar": float(tensor.detach().cpu().item())})()
+            if args.loss_mode != "observed-pressure":
+                raise ValueError(f"unknown loss mode: {args.loss_mode}")
             loss_input = acoustic_pressure_loss_input(
                 forward_batch.record_waveform,
                 fwi.obs_p,
@@ -250,7 +258,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
     backend = rt["ADFWI"].set_backend(args.device, dtype=args.dtype, fallback=args.fallback_cpu)
     profile.ensure_observed_data(rt, args, backend)
     reference = run_variant(args, mode="production")
-    candidate = run_variant(args, mode="experimental")
+    candidate = run_variant(args, mode=args.candidate_mode)
     pair = {
         "reference": public_variant(reference),
         "candidate": public_variant(candidate),
@@ -259,7 +267,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
     return {
         "status": "ok",
         "case": profile.VALIDATION_CASES[args.validation_case]["case"],
-        "purpose": "Reduced Marmousi2 production vs experimental acoustic forward iteration parity",
+        "purpose": f"Reduced Marmousi2 production vs {args.candidate_mode} acoustic forward iteration parity",
         "config": {key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()},
         "pair": pair,
         "summary": summarize_pair(pair),
@@ -283,6 +291,18 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         type=int,
         default=3,
         help="FWI shot batch size. The experimental path loops over sources internally.",
+    )
+    parser.add_argument(
+        "--candidate-mode",
+        choices=("experimental", "production"),
+        default="experimental",
+        help="Compare production against the experimental path or a second production run.",
+    )
+    parser.add_argument(
+        "--loss-mode",
+        choices=("observed-pressure", "synthetic-energy"),
+        default="observed-pressure",
+        help="Use normal observed-data pressure loss or direct synthetic energy loss.",
     )
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,

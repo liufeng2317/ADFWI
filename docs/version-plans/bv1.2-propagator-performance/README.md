@@ -94,6 +94,7 @@ Default backward operator profile:
 - `31-acoustic-custom-kernel-parity-probe.md`
 - `32-acoustic-experimental-forward-path.md`
 - `33-acoustic-experimental-forward-iteration-parity.md`
+- `34-acoustic-gradient-difference-localization.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -173,3 +174,9 @@ Default backward operator profile:
   receiver outputs stayed close and loss matched, but raw `vp.grad` maximum
   absolute difference was `3.63e-4`. Do not integrate the experimental path
   into production until this gradient difference is localized and removed.
+- Gradient localization showed normalization, NPU nondeterminism, long
+  recurrence length, and source batching are not the primary cause. With
+  validation source/survey and synthetic-energy loss, raw gradient difference
+  dropped to `3.37e-14`; the large difference appears only under
+  observed-pressure residual loss, which amplifies a `6.52e-09` receiver-output
+  difference.

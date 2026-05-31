@@ -61,11 +61,13 @@ def build_case(args: argparse.Namespace, *, device: torch.device, dtype: torch.d
     v_cpu = args.velocity_base + args.velocity_scale * torch.rand(args.nz, args.nx, generator=generator, dtype=dtype)
     rho_cpu = torch.ones(args.nz, args.nx, dtype=dtype) * args.rho
     damp_cpu = torch.zeros(args.nz + 2 * args.nabc, args.nx + 2 * args.nabc, dtype=dtype)
-    wavelet_cpu = args.source_scale * torch.sin(torch.arange(args.nt, dtype=dtype) * 0.17).reshape(1, args.nt)
+    base_wavelet = args.source_scale * torch.sin(torch.arange(args.nt, dtype=dtype) * 0.17)
+    source_scale = (1.0 + 0.01 * torch.arange(args.shots, dtype=dtype)).reshape(args.shots, 1)
+    wavelet_cpu = source_scale * base_wavelet.reshape(1, args.nt)
     rcv_x_cpu = torch.linspace(0, args.nx - 1, args.receivers, dtype=dtype).to(torch.long)
     rcv_z_cpu = torch.full((args.receivers,), args.receiver_depth, dtype=torch.long)
-    src_x_cpu = torch.tensor([args.nx // 2], dtype=torch.long)
-    src_z_cpu = torch.tensor([args.source_depth], dtype=torch.long)
+    src_x_cpu = torch.linspace(1, args.nx - 2, args.shots, dtype=dtype).to(torch.long)
+    src_z_cpu = torch.full((args.shots,), args.source_depth, dtype=torch.long)
     return {
         "v": v_cpu.to(device=device).requires_grad_(True),
         "rho": rho_cpu.to(device=device),
@@ -93,7 +95,7 @@ def run_production(case: Dict[str, torch.Tensor], args: argparse.Namespace, back
             args.free_surface,
             case["src_x"],
             case["src_z"],
-            1,
+            args.shots,
             case["src_v"],
             case["rcv_x"],
             case["rcv_z"],
@@ -127,29 +129,39 @@ def run_custom(case: Dict[str, torch.Tensor], args: argparse.Namespace, backend)
     timer = Timer(backend)
 
     def forward():
-        record = experimental_forward_kernel(
-            args.nx,
-            args.nz,
-            args.dx,
-            args.dz,
-            args.nt,
-            args.dt,
-            args.nabc,
-            args.free_surface,
-            case["src_x"],
-            case["src_z"],
-            1,
-            case["src_v"],
-            case["rcv_x"],
-            case["rcv_z"],
-            args.receivers,
-            case["damp"],
-            case["v"],
-            case["rho"],
-            save_forward_wavefield=False,
-            device=backend.device,
-            dtype=backend.dtype,
-        )
+        records = []
+        for index in range(args.shots):
+            one_source = slice(index, index + 1)
+            records.append(
+                experimental_forward_kernel(
+                    args.nx,
+                    args.nz,
+                    args.dx,
+                    args.dz,
+                    args.nt,
+                    args.dt,
+                    args.nabc,
+                    args.free_surface,
+                    case["src_x"][one_source],
+                    case["src_z"][one_source],
+                    1,
+                    case["src_v"][one_source],
+                    case["rcv_x"],
+                    case["rcv_z"],
+                    args.receivers,
+                    case["damp"],
+                    case["v"],
+                    case["rho"],
+                    save_forward_wavefield=False,
+                    device=backend.device,
+                    dtype=backend.dtype,
+                )
+            )
+        record = {
+            "p": torch.cat([item["p"] for item in records], dim=0),
+            "u": torch.cat([item["u"] for item in records], dim=0),
+            "w": torch.cat([item["w"] for item in records], dim=0),
+        }
         return record["p"], record["u"], record["w"]
 
     outputs, forward_seconds = timer.measure(forward)
@@ -244,6 +256,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=20240531)
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--repeat", type=int, default=3)
+    parser.add_argument("--shots", type=int, default=1)
     parser.add_argument("--nx", type=int, default=32)
     parser.add_argument("--nz", type=int, default=24)
     parser.add_argument("--nabc", type=int, default=8)
@@ -272,6 +285,8 @@ def main() -> int:
         parser.error("--receivers must be positive")
     if args.receivers > args.nx:
         parser.error("--receivers must be <= --nx for this parity probe")
+    if args.shots <= 0:
+        parser.error("--shots must be positive")
     report = run_experiment(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
