@@ -100,6 +100,7 @@ Default backward operator profile:
 - `37-acoustic-targeted-backward-exclusions.md`
 - `38-acoustic-observed-upstream-direct-replay.md`
 - `39-acoustic-observed-scale-local-recurrence.md`
+- `40-acoustic-custom-backward-view-alias-fix.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -210,3 +211,9 @@ Default backward operator profile:
   gradient mismatch. `steps=1` passes exactly, while `steps=2` fails even on CPU
   `float64`; the remaining task is a 2-step local adjoint inspection of the
   `p(t+1) -> u/w(t+1) -> p(t+2)` backward path.
+- Direct code analysis found a concrete custom-backward bug: `gw` was kept as a
+  view of `grad_w` and then reused after `grad_w` was overwritten. Cloning `gw`
+  fixed the formula-level CPU float64 failures to machine precision and reduced
+  the full observed-upstream direct replay raw `vp.grad` max abs diff from
+  `3.63e-4` to `2.90e-7`. This is still benchmark-only code, not a production
+  propagator change.

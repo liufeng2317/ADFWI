@@ -218,8 +218,11 @@ The benchmark-only custom recurrence is not production-ready. Direct replay of
 the exact observed-pressure receiver upstream preserves outputs/loss exactly
 but fails raw `vp.grad` parity (`3.63e-4` max abs diff). Further work must stay
 at the formula-level backward-validation stage. The smallest local failing case
-currently identified is a 2-step recurrence with observed-scale receiver
-pressure upstream; a 1-step case passes exactly.
+identified a `gw` view-aliasing bug in the custom backward. After cloning `gw`,
+CPU float64 formula-level tests pass to machine precision and the full
+observed-upstream direct replay improves to `2.90e-7` raw `vp.grad` max abs
+diff, but the custom path remains benchmark-only until a production-interface
+finite-gradient parity gate passes.
 ```
 
 ## Stop Criteria

@@ -1,0 +1,191 @@
+{
+  "backend": {
+    "available": true,
+    "device": "cpu",
+    "dtype": "float64",
+    "fallback": false,
+    "index": null,
+    "memory_allocated": null,
+    "name": "cpu",
+    "reason": null
+  },
+  "config": {
+    "alpha1_scale": 0.001,
+    "alpha2_scale": 0.001,
+    "device": "cpu",
+    "dtype": "float64",
+    "free_surface_boundary_write": true,
+    "kappa_scale": 0.001,
+    "loss_components": [
+      "rcv_p"
+    ],
+    "loss_kind": "receiver-random-linear",
+    "nabc": 16,
+    "nx": 64,
+    "nz": 32,
+    "pressure_scale": 0.001,
+    "receiver_depth": 1,
+    "receiver_recording": true,
+    "receivers": 32,
+    "repeat": 1,
+    "seed": 20240531,
+    "shots": 1,
+    "source_depth": 1,
+    "source_injection": true,
+    "source_scale": 0.0001,
+    "steps": 2,
+    "upstream_scale": 4500.0,
+    "upstream_seed": 20240601,
+    "velocity_scale": 1e-06,
+    "warmup": 0
+  },
+  "pairs": [
+    {
+      "candidate": {
+        "backward_seconds": 0.004563808441162109,
+        "forward_seconds": 0.0031430665403604507,
+        "loss": 0.2675333997701985,
+        "total_seconds": 0.00770687498152256
+      },
+      "comparison": {
+        "grads": {
+          "alpha1": {
+            "candidate_norm": 0.10163473189186566,
+            "max_abs_diff": 6.617444900424222e-24,
+            "max_rel_diff": 2.471535948073724e-16,
+            "reference_norm": 0.10163473189186566
+          },
+          "alpha2": {
+            "candidate_norm": 0.0872853067142933,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.0872853067142933
+          },
+          "kappa1": {
+            "candidate_norm": 42.58289159120263,
+            "max_abs_diff": 3.3881317890172014e-21,
+            "max_rel_diff": 2.453229096182102e-16,
+            "reference_norm": 42.58289159120263
+          },
+          "kappa2": {
+            "candidate_norm": 3.820985346699121e-05,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.820985346699121e-05
+          },
+          "kappa3": {
+            "candidate_norm": 2.459614412687473e-05,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 2.459614412687473e-05
+          },
+          "p0": {
+            "candidate_norm": 33784.19973523605,
+            "max_abs_diff": 1.734723475976807e-18,
+            "max_rel_diff": 2.0687876372501606e-16,
+            "reference_norm": 33784.19973523605
+          },
+          "u0": {
+            "candidate_norm": 82.98562379509097,
+            "max_abs_diff": 3.552713678800501e-15,
+            "max_rel_diff": 4.918284722724239e-16,
+            "reference_norm": 82.98562379509097
+          },
+          "w0": {
+            "candidate_norm": 82.49749655480372,
+            "max_abs_diff": 3.552713678800501e-15,
+            "max_rel_diff": 4.948852297791107e-16,
+            "reference_norm": 82.49749655480372
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "outputs": {
+          "p": {
+            "candidate_norm": 0.07858702791435764,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.07858702791435764
+          },
+          "rcv_p": {
+            "candidate_norm": 0.005966275675482412,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.005966275675482412
+          },
+          "rcv_u": {
+            "candidate_norm": 2.1917079374625874e-05,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 2.1917079374625874e-05
+          },
+          "rcv_w": {
+            "candidate_norm": 1.840830240737049e-05,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 1.840830240737049e-05
+          },
+          "u": {
+            "candidate_norm": 0.00022625278883818924,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.00022625278883818924
+          },
+          "w": {
+            "candidate_norm": 0.00022786195964475292,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.00022786195964475292
+          }
+        },
+        "speedup": {
+          "backward": 6.112812304095706,
+          "forward": 1.3657291215410974,
+          "total": 4.176826791009371
+        }
+      },
+      "reference": {
+        "backward_seconds": 0.027897704392671585,
+        "forward_seconds": 0.004292577505111694,
+        "loss": 0.2675333997701985,
+        "total_seconds": 0.03219028189778328
+      }
+    }
+  ],
+  "purpose": "custom autograd feasibility probe for tiny acoustic multi-step recurrence",
+  "status": "ok",
+  "summary": {
+    "max_differences": {
+      "grad_max_abs_diff": 3.552713678800501e-15,
+      "grad_max_rel_diff": 4.948852297791107e-16,
+      "loss_abs_diff": 0.0,
+      "output_max_abs_diff": 0.0,
+      "output_max_rel_diff": 0.0
+    },
+    "speedup": {
+      "backward": {
+        "max": 6.112812304095706,
+        "mean": 6.112812304095706,
+        "min": 6.112812304095706,
+        "values": [
+          6.112812304095706
+        ]
+      },
+      "forward": {
+        "max": 1.3657291215410974,
+        "mean": 1.3657291215410974,
+        "min": 1.3657291215410974,
+        "values": [
+          1.3657291215410974
+        ]
+      },
+      "total": {
+        "max": 4.176826791009371,
+        "mean": 4.176826791009371,
+        "min": 4.176826791009371,
+        "values": [
+          4.176826791009371
+        ]
+      }
+    }
+  }
+}

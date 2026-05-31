@@ -280,7 +280,10 @@ class CustomTimestepUpdateWithFeatures(torch.autograd.Function):
 
         zw = slice(free_surface_start, nz_pml - 2)
         xw = slice(1, nx_pml - 1)
-        gw = grad_w[:, zw, xw]
+        # Clone before writing back to grad_w. ``gw`` is the upstream gradient
+        # of the overwritten w_new region; keeping it as a view would make the
+        # subsequent parameter and p_new adjoints use the already-scaled value.
+        gw = grad_w[:, zw, xw].clone()
         grad_w[:, zw, xw] = gw * (1.0 - kappa3[zw, xw])
         grad_kappa3[zw, xw] += torch.sum(-w[:, zw, xw] * gw, dim=0)
         grad_alpha2[zw, xw] += torch.sum(-div_w * gw, dim=0)
