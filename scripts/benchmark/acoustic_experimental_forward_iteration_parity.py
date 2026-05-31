@@ -97,6 +97,7 @@ def experimental_forward_batch(
     mode: str,
     checkpoint_segments: int = 1,
     remat_divergence_cache_stride: int = 0,
+    remat_divergence_cache_components: str = "p,u,w",
 ):
     propagator.model.forward()
     shot_index = batch_range.shot_index
@@ -116,6 +117,7 @@ def experimental_forward_batch(
     if mode == "experimental-remat-chunk":
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
+        forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
     record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
@@ -190,6 +192,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     mode=mode,
                     checkpoint_segments=args.checkpoint_segments,
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
+                    remat_divergence_cache_components=args.remat_divergence_cache_components,
                 )
             )
         else:
@@ -392,6 +395,14 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         help=(
             "For experimental-remat-chunk only: 0 recomputes all divergence terms; "
             "1 caches every step; N caches every Nth step."
+        ),
+    )
+    parser.add_argument(
+        "--remat-divergence-cache-components",
+        default="p,u,w",
+        help=(
+            "For experimental-remat-chunk only: comma/space separated subset of "
+            "p,u,w divergence terms to cache; use 'none' to cache no divergence terms."
         ),
     )
     parser.set_defaults(

@@ -501,4 +501,14 @@ receiver outputs/loss and the same raw `vp.grad` max abs diff (`2.74e-7`).
 For this Python-level rematerialized prototype, `divergence_cache_stride=2` is
 the current recommended experimental point. The next gate should be short real
 FWI or full-record validation before any production-facing API.
+
+The component-level divergence cache probe closed a tempting but weak subline.
+Caching only `p`, `u`, `w`, or `p,u` keeps receiver outputs/loss exact and raw
+`vp.grad` max abs diff at `2.74e-7`, but does not keep enough speed. The best
+single-component fullshape result after component-aware recompute is only
+`1.072x` total speedup at `2.07x` peak memory, and `p,u` is `1.039x` at
+`2.42x`. Therefore do not continue component-cache enumeration. The next
+memory-focused task is to measure and reduce stored reverse state lists
+(`p/u/w` states) while using the current `stride=2` all-component cache as the
+speed-preserving reference.
 ```

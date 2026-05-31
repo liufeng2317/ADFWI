@@ -12,6 +12,24 @@ import torch
 from .acoustic_kernels import pad_torchSingle
 
 
+def _normalize_divergence_cache_components(components) -> frozenset[str]:
+    if components is None:
+        return frozenset({"p", "u", "w"})
+    if isinstance(components, str):
+        text = components.strip().lower()
+        if text in {"", "none", "false", "0"}:
+            return frozenset()
+        parts = text.replace(",", " ").split()
+    else:
+        parts = [str(item).strip().lower() for item in components]
+    allowed = {"p", "u", "w"}
+    selected = frozenset(parts)
+    invalid = selected - allowed
+    if invalid:
+        raise ValueError(f"unknown divergence cache component(s): {sorted(invalid)}")
+    return selected
+
+
 def _step_forward_saved(
     p,
     u,
@@ -98,14 +116,44 @@ def _step_divergences_from_state(
     use_free_surface: bool,
 ):
     """Recompute one step's divergence terms without saving next u/w states."""
+    div_p = _step_div_p_from_state(
+        p,
+        u,
+        w,
+        free_surface_start=free_surface_start,
+    )
+    p_new = _step_p_new_from_div_p(
+        p,
+        kappa1,
+        alpha1,
+        div_p,
+        free_surface_start=free_surface_start,
+        source_x=source_x,
+        source_z=source_z,
+        source_value=source_value,
+        use_free_surface=use_free_surface,
+    )
+    return (
+        div_p,
+        _step_div_u_from_p_new(p_new, free_surface_start=free_surface_start),
+        _step_div_w_from_p_new(p_new, free_surface_start=free_surface_start),
+    )
+
+
+def _step_div_p_from_state(
+    p,
+    u,
+    w,
+    *,
+    free_surface_start: int,
+):
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p.shape[1]
     nx_pml = p.shape[2]
 
     zp = slice(free_surface_start + 1, nz_pml - 2)
-    xp = slice(2, nx_pml - 2)
-    div_p = (
+    return (
         c1
         * (
             u[:, zp, 2 : nx_pml - 2]
@@ -122,21 +170,52 @@ def _step_divergences_from_state(
         )
     )
 
+
+def _step_p_new_from_div_p(
+    p,
+    kappa1,
+    alpha1,
+    div_p,
+    *,
+    free_surface_start: int,
+    source_x,
+    source_z,
+    source_value,
+    use_free_surface: bool,
+):
+    nz_pml = p.shape[1]
+    nx_pml = p.shape[2]
+    zp = slice(free_surface_start + 1, nz_pml - 2)
+    xp = slice(2, nx_pml - 2)
     p_new = p.clone()
     source_index = torch.arange(p_new.shape[0], device=p_new.device)
     p_new[:, zp, xp] = (1.0 - kappa1[zp, xp]) * p[:, zp, xp] - alpha1[zp, xp] * div_p
     p_new[source_index, source_z, source_x] = p_new[source_index, source_z, source_x] + source_value
     if use_free_surface:
         p_new[:, free_surface_start - 1, :] = -p_new[:, free_surface_start + 1, :]
+    return p_new
 
+
+def _step_div_u_from_p_new(p_new, *, free_surface_start: int):
+    c1 = 9.0 / 8.0
+    c2 = -1.0 / 24.0
+    nz_pml = p_new.shape[1]
+    nx_pml = p_new.shape[2]
     zu = slice(free_surface_start, nz_pml - 1)
-    div_u = (
+    return (
         c1 * (p_new[:, zu, 2 : nx_pml - 1] - p_new[:, zu, 1 : nx_pml - 2])
         + c2 * (p_new[:, zu, 3:nx_pml] - p_new[:, zu, 0 : nx_pml - 3])
     )
+
+
+def _step_div_w_from_p_new(p_new, *, free_surface_start: int):
+    c1 = 9.0 / 8.0
+    c2 = -1.0 / 24.0
+    nz_pml = p_new.shape[1]
+    nx_pml = p_new.shape[2]
     xw = slice(1, nx_pml - 1)
     zw = slice(free_surface_start, nz_pml - 2)
-    div_w = (
+    return (
         c1 * (p_new[:, free_surface_start + 1 : nz_pml - 1, xw] - p_new[:, zw, xw])
         + c2
         * (
@@ -144,7 +223,6 @@ def _step_divergences_from_state(
             - p_new[:, free_surface_start - 1 : nz_pml - 3, xw]
         )
     )
-    return div_p, div_u, div_w
 
 
 def _step_backward_saved(
@@ -415,6 +493,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         free_surface_start: int,
         use_free_surface: bool,
         divergence_cache_stride: int,
+        divergence_cache_components,
     ):
         records_p = []
         records_u = []
@@ -446,6 +525,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
         ctx.divergence_cache_stride = divergence_cache_stride
+        ctx.divergence_cache_components = _normalize_divergence_cache_components(divergence_cache_components)
         ctx.save_for_backward(
             p_start,
             u_start,
@@ -506,13 +586,18 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 source_value=source_v[step],
                 use_free_surface=ctx.use_free_surface,
             )
-            if ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0:
+            should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
+            if should_cache and "p" in ctx.divergence_cache_components:
                 div_p_values.append(div_p)
-                div_u_values.append(div_u)
-                div_w_values.append(div_w)
             else:
                 div_p_values.append(None)
+            if should_cache and "u" in ctx.divergence_cache_components:
+                div_u_values.append(div_u)
+            else:
                 div_u_values.append(None)
+            if should_cache and "w" in ctx.divergence_cache_components:
+                div_w_values.append(div_w)
+            else:
                 div_w_values.append(None)
 
         grad_kappa1 = torch.zeros_like(kappa1)
@@ -525,23 +610,32 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
             grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
             grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
-            if div_p_values[step] is None:
-                div_p, div_u, div_w = _step_divergences_from_state(
+            div_p = div_p_values[step]
+            div_u = div_u_values[step]
+            div_w = div_w_values[step]
+            if div_p is None:
+                div_p = _step_div_p_from_state(
                     p_states[step],
                     u_states[step],
                     w_states[step],
+                    free_surface_start=ctx.free_surface_start,
+                )
+            if div_u is None or div_w is None:
+                p_new = _step_p_new_from_div_p(
+                    p_states[step],
                     kappa1,
                     alpha1,
+                    div_p,
                     free_surface_start=ctx.free_surface_start,
                     source_x=source_x,
                     source_z=source_z,
                     source_value=source_v[step],
                     use_free_surface=ctx.use_free_surface,
                 )
-            else:
-                div_p = div_p_values[step]
-                div_u = div_u_values[step]
-                div_w = div_w_values[step]
+                if div_u is None:
+                    div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                if div_w is None:
+                    div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
             (
                 grad_p,
                 grad_u,
@@ -584,6 +678,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -722,6 +817,7 @@ def rematerialized_custom_chunk_forward_kernel(
     checkpoint_segments: int = 1,
     save_forward_wavefield: bool = False,
     divergence_cache_stride: int = 0,
+    divergence_cache_components=None,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
@@ -737,6 +833,7 @@ def rematerialized_custom_chunk_forward_kernel(
         raise ValueError("rematerialized custom chunk acoustic forward does not support save_forward_wavefield=True")
     if divergence_cache_stride < 0:
         raise ValueError("divergence_cache_stride must be non-negative")
+    _normalize_divergence_cache_components(divergence_cache_components)
     if src_v.shape != (src_n, nt):
         raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
     if dx <= 0 or dz <= 0:
@@ -790,6 +887,7 @@ def rematerialized_custom_chunk_forward_kernel(
             free_surface_start,
             free_surface,
             divergence_cache_stride,
+            divergence_cache_components,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
