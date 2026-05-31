@@ -91,6 +91,7 @@ Default backward operator profile:
 - `28-acoustic-custom-multistep-update-probe.md`
 - `29-acoustic-custom-source-freesurface-probe.md`
 - `30-acoustic-custom-receiver-recording-probe.md`
+- `31-acoustic-custom-kernel-parity-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -158,3 +159,7 @@ Default backward operator profile:
 - Adding receiver recording preserved final outputs, recorded traces, and loss
   exactly, kept gradient maximum absolute difference at `4.82e-11`, and kept
   total speedup around `1.54x`.
+- The first production-interface parity harness compared production
+  `forward_kernel` against the experimental custom recurrence on a tiny NPU
+  case. Receiver records and loss matched exactly, `v.grad` maximum absolute
+  difference was `4.14e-25`, and total speedup was `1.67x`.
