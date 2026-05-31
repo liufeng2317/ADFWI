@@ -69,3 +69,12 @@ Current default-path next direction:
 Return to Phase B and profile the default acoustic backward path at finer
 granularity before making another kernel change.
 ```
+
+Default backward operator profile:
+
+- `12-acoustic-default-backward-operator-profile.md`
+- Representative NPU profile shows default backward dominated by sliced update
+  autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
+  `empty_tensor`.
+- Next mainline task is a bounded timestep-update microbenchmark, not a direct
+  kernel rewrite.
