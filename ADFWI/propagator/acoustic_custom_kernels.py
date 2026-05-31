@@ -1,8 +1,8 @@
 """Opt-in custom-autograd acoustic propagation kernels.
 
 These kernels are not the default acoustic propagator path. They exist as a
-guarded performance option for the no-checkpoint, receiver-loss workflow after
-the benchmark-only chunk prototype passed output/loss and gradient parity gates.
+guarded performance option for receiver-loss workflows after the benchmark-only
+chunk prototype passed output/loss and gradient parity gates.
 """
 
 from typing import Dict
@@ -359,11 +359,12 @@ def custom_chunk_forward_kernel(
 ) -> Dict[str, torch.Tensor]:
     """Run the guarded custom-chunk acoustic path.
 
-    This opt-in path is intentionally narrower than ``forward_kernel``. It is
-    currently valid only for no-checkpoint receiver-loss workflows.
+    This opt-in path is intentionally narrower than ``forward_kernel``.
+    ``checkpoint_segments`` controls custom chunk segmentation here; it is not
+    PyTorch checkpoint rematerialization.
     """
-    if checkpoint_segments != 1:
-        raise ValueError("custom chunk acoustic forward currently requires checkpoint_segments == 1")
+    if checkpoint_segments < 1:
+        raise ValueError("checkpoint_segments must be positive")
     if save_forward_wavefield:
         raise ValueError("custom chunk acoustic forward does not support save_forward_wavefield=True")
     if src_v.shape != (src_n, nt):
@@ -397,23 +398,33 @@ def custom_chunk_forward_kernel(
         * dt
     )
 
-    p, u, w, rcv_p, rcv_u, rcv_w = _CustomChunkForward.apply(
-        p,
-        u,
-        w,
-        kappa1,
-        alpha1,
-        kappa2,
-        alpha2,
-        kappa3,
-        src_x + nabc,
-        src_z + nabc,
-        (dt * src_v).transpose(0, 1).contiguous(),
-        rcv_x + nabc,
-        rcv_z + nabc,
-        free_surface_start,
-        free_surface,
-    )
+    rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    step = 0
+    for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
+        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _CustomChunkForward.apply(
+            p,
+            u,
+            w,
+            kappa1,
+            alpha1,
+            kappa2,
+            alpha2,
+            kappa3,
+            src_x + nabc,
+            src_z + nabc,
+            (dt * chunk).transpose(0, 1).contiguous(),
+            rcv_x + nabc,
+            rcv_z + nabc,
+            free_surface_start,
+            free_surface,
+        )
+        next_step = step + chunk.shape[-1]
+        rcv_p[:, step:next_step] = rcv_p_temp
+        rcv_u[:, step:next_step] = rcv_u_temp
+        rcv_w[:, step:next_step] = rcv_w_temp
+        step = next_step
 
     return {
         "p": rcv_p,

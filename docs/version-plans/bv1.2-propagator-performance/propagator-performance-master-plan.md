@@ -302,6 +302,7 @@ Latest records:
 - `47-acoustic-chunk-forward-overhead.md`
 - `48-acoustic-production-custom-chunk-opt-in.md`
 - `49-acoustic-custom-chunk-5iter-fwi-validation.md`
+- `50-acoustic-segmented-custom-chunk-gate.md`
 
 Decision:
 
@@ -417,4 +418,12 @@ single-step gain transfers to a short real loop: loss trajectories match to
 post-step models are finite, and total compute improves `124.33 s -> 102.32 s`
 (`1.215x`). The gain is from backward (`1.329x` mean speedup), while forward is
 roughly neutral.
+
+The opt-in path now supports segmented execution through `checkpoint_segments`.
+For `checkpoint_segments=10`, the fullshape observed-pressure gate passes with
+exact receiver outputs/loss, raw `vp.grad` max abs diff `2.74e-7`, backward
+speedup `1.93x`, and total speedup `1.51x`. This is not yet a memory-equivalent
+checkpoint replacement because the custom path does not rematerialize states in
+backward. The next task is a short FWI loop with `checkpoint_segments=10`, then
+peak-memory measurement before any stronger claim.
 ```
