@@ -215,23 +215,26 @@ Current acoustic custom-gradient status:
 
 ```text
 The benchmark-only custom recurrence is not production-ready. Direct replay of
-the exact observed-pressure receiver upstream preserves outputs/loss exactly
-but fails raw `vp.grad` parity (`3.63e-4` max abs diff). Further work must stay
-at the formula-level backward-validation stage. The smallest local failing case
-identified a `gw` view-aliasing bug in the custom backward. After cloning `gw`,
-CPU float64 formula-level tests pass to machine precision and the full
-observed-upstream direct replay improves to `2.90e-7` raw `vp.grad` max abs
-diff, but the custom path remains benchmark-only until a production-interface
-finite-gradient parity gate passes. The first reduced validation
-production-interface parity gate preserves outputs/loss exactly and keeps raw
-`vp.grad` max abs diff at `2.90e-7`, but the candidate is slower because it is
-still a Python-loop prototype. After adding batched source execution to the
-benchmark-only prototype, reduced validation FWI-style parity keeps raw
-`vp.grad` max abs diff at `2.89e-7`, improves backward by `1.34x`, and improves
-total measured iteration by `1.04x`; the next step is production-facing design,
-not more formula debugging. The accepted production-facing route is a
-chunk-level custom autograd wrapper; timestep-level production replacement is
-rejected because it preserves Python dispatch overhead.
+the exact observed-pressure receiver upstream preserved outputs/loss exactly
+but failed raw `vp.grad` parity (`3.63e-4` max abs diff). Further work stayed at
+the formula-level backward-validation stage until the smallest local failing
+case identified a `gw` view-aliasing bug in the custom backward. After cloning
+`gw`, CPU float64 formula-level tests passed to machine precision and the full
+observed-upstream direct replay improved to `2.90e-7` raw `vp.grad` max abs
+diff. The first reduced validation production-interface parity gate preserved
+outputs/loss exactly and kept raw `vp.grad` max abs diff at `2.90e-7`, but the
+candidate was slower because it was still a Python-loop prototype. After adding
+batched source execution to the benchmark-only prototype, reduced validation
+FWI-style parity kept raw `vp.grad` max abs diff at `2.89e-7`, improved backward
+by `1.34x`, and improved total measured iteration by `1.04x`. The accepted
+production-facing route is a chunk-level custom autograd wrapper; timestep-level
+production replacement is rejected because it preserves Python dispatch
+overhead. The first chunk-level benchmark-only prototype preserves outputs/loss
+exactly, passes a 300-step CPU float64 gradient gate with `1.82e-11` max abs
+diff, and gives `1.80x` total speedup on a 300-step NPU float32 probe. Its NPU
+float32 raw-gradient difference is `5.86e-3` max abs (`7.40e-4` max rel), so it
+must next pass a production-interface validation-geometry parity gate before
+any production kernel edit.
 ```
 
 ## Stop Criteria
@@ -287,6 +290,13 @@ Latest records:
 - `35-acoustic-receiver-difference-location.md`
 - `36-acoustic-observed-loss-upstream-probe.md`
 - `37-acoustic-targeted-backward-exclusions.md`
+- `38-acoustic-observed-upstream-direct-replay.md`
+- `39-acoustic-observed-scale-local-recurrence.md`
+- `40-acoustic-custom-backward-view-alias-fix.md`
+- `41-acoustic-production-interface-parity.md`
+- `42-acoustic-batch-source-custom-prototype.md`
+- `43-acoustic-production-facing-design.md`
+- `44-acoustic-custom-chunk-forward-prototype.md`
 
 Decision:
 
@@ -365,7 +375,18 @@ fixed external upstream gradients.
 
 Targeted exclusions ruled out free-surface adjoint, pressure-only receiver
 loss, random pressure upstream, and long-time random pressure upstream as
-primary causes. The next active task is to measure and replay the exact
-observed-pressure upstream distribution through the direct kernel parity
-harness, outside the FWI wrapper.
+primary causes. Direct observed-upstream replay then exposed and fixed a
+`gw` view-aliasing issue in the custom backward. After that fix,
+production-interface parity kept outputs/loss exact and reduced raw `vp.grad`
+max abs diff to `2.90e-7`, but the timestep-level prototype was too slow for
+production. Batched source execution improved the benchmark-only reduced
+validation path to `1.34x` backward speedup and `1.04x` total speedup while
+keeping raw `vp.grad` max abs diff at `2.89e-7`.
+
+The active route is now chunk-level custom autograd, not more timestep-level
+debugging. The first chunk-level benchmark prototype preserved outputs/loss
+exactly, passed the 300-step CPU float64 gradient gate with `1.82e-11` max abs
+diff, and measured `1.80x` total speedup on a 300-step NPU float32 probe. The
+next task is a production-interface chunk parity harness on validation geometry,
+still outside `ADFWI/propagator/acoustic_kernels.py`.
 ```

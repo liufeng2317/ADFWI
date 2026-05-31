@@ -1,0 +1,189 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 781312,
+    "name": "npu",
+    "reason": null
+  },
+  "config": {
+    "alpha1_scale": 0.001,
+    "alpha2_scale": 0.001,
+    "device": "npu:0",
+    "dtype": "float32",
+    "free_surface_boundary_write": true,
+    "kappa_scale": 0.001,
+    "loss_components": [
+      "rcv_p"
+    ],
+    "loss_kind": "receiver-random-linear",
+    "nabc": 16,
+    "nx": 64,
+    "nz": 32,
+    "pressure_scale": 0.001,
+    "receiver_depth": 1,
+    "receivers": 32,
+    "repeat": 1,
+    "seed": 20240531,
+    "shots": 1,
+    "source_depth": 1,
+    "source_scale": 0.0001,
+    "steps": 300,
+    "upstream_scale": 4500.0,
+    "upstream_seed": 20240601,
+    "velocity_scale": 1e-06,
+    "warmup": 0
+  },
+  "pairs": [
+    {
+      "candidate": {
+        "backward_seconds": 1.472618730738759,
+        "forward_seconds": 0.6693694926798344,
+        "loss": 341.21636962890625,
+        "total_seconds": 2.1419882234185934
+      },
+      "comparison": {
+        "grads": {
+          "alpha1": {
+            "candidate_norm": 34777.546875,
+            "max_abs_diff": 6.103515625e-05,
+            "max_rel_diff": 0.0001904597447719425,
+            "reference_norm": 34777.546875
+          },
+          "alpha2": {
+            "candidate_norm": 23684.40234375,
+            "max_abs_diff": 0.0029296875,
+            "max_rel_diff": 0.0007396862492896616,
+            "reference_norm": 23684.40234375
+          },
+          "kappa1": {
+            "candidate_norm": 43660.98046875,
+            "max_abs_diff": 6.103515625e-05,
+            "max_rel_diff": 8.187725325115025e-05,
+            "reference_norm": 43660.98046875
+          },
+          "kappa2": {
+            "candidate_norm": 1552.80224609375,
+            "max_abs_diff": 9.1552734375e-05,
+            "max_rel_diff": 6.848707016615663e-06,
+            "reference_norm": 1552.80224609375
+          },
+          "kappa3": {
+            "candidate_norm": 1338.71435546875,
+            "max_abs_diff": 4.57763671875e-05,
+            "max_rel_diff": 4.7524055844405666e-05,
+            "reference_norm": 1338.71435546875
+          },
+          "p0": {
+            "candidate_norm": 366310.8125,
+            "max_abs_diff": 0.0008544921875,
+            "max_rel_diff": 3.6726756661664695e-05,
+            "reference_norm": 366310.8125
+          },
+          "u0": {
+            "candidate_norm": 104363.4609375,
+            "max_abs_diff": 0.005859375,
+            "max_rel_diff": 3.142727291560732e-05,
+            "reference_norm": 104363.4609375
+          },
+          "w0": {
+            "candidate_norm": 104596.28125,
+            "max_abs_diff": 0.001953125,
+            "max_rel_diff": 5.9444068028824404e-05,
+            "reference_norm": 104596.2890625
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "outputs": {
+          "p": {
+            "candidate_norm": 0.06072618067264557,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.06072618067264557
+          },
+          "rcv_p": {
+            "candidate_norm": 0.08748084306716919,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.08748084306716919
+          },
+          "rcv_u": {
+            "candidate_norm": 0.022716963663697243,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.022716963663697243
+          },
+          "rcv_w": {
+            "candidate_norm": 0.02443239465355873,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.02443239465355873
+          },
+          "u": {
+            "candidate_norm": 0.025289906188845634,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.025289906188845634
+          },
+          "w": {
+            "candidate_norm": 0.025306206196546555,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.025306206196546555
+          }
+        },
+        "speedup": {
+          "backward": 1.8255424030271377,
+          "forward": 1.7399405495821645,
+          "total": 1.7987918968448644
+        }
+      },
+      "reference": {
+        "backward_seconds": 2.6883279364556074,
+        "forward_seconds": 1.1646631229668856,
+        "loss": 341.21636962890625,
+        "total_seconds": 3.852991059422493
+      }
+    }
+  ],
+  "purpose": "chunk-level custom autograd feasibility probe for acoustic recurrence",
+  "status": "ok",
+  "summary": {
+    "max_differences": {
+      "grad_max_abs_diff": 0.005859375,
+      "grad_max_rel_diff": 0.0007396862492896616,
+      "loss_abs_diff": 0.0,
+      "output_max_abs_diff": 0.0,
+      "output_max_rel_diff": 0.0
+    },
+    "speedup": {
+      "backward": {
+        "max": 1.8255424030271377,
+        "mean": 1.8255424030271377,
+        "min": 1.8255424030271377,
+        "values": [
+          1.8255424030271377
+        ]
+      },
+      "forward": {
+        "max": 1.7399405495821645,
+        "mean": 1.7399405495821645,
+        "min": 1.7399405495821645,
+        "values": [
+          1.7399405495821645
+        ]
+      },
+      "total": {
+        "max": 1.7987918968448644,
+        "mean": 1.7987918968448644,
+        "min": 1.7987918968448644,
+        "values": [
+          1.7987918968448644
+        ]
+      }
+    }
+  }
+}

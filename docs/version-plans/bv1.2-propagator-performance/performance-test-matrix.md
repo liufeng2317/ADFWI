@@ -72,6 +72,31 @@ conda run -n adfwi python -m unittest \
 The opt-in FWI path is valid only when active gradient processors explicitly set
 `forw_illumination=False`.
 
+For benchmark-only custom backward prototypes, use the chunk-level probe before
+considering production integration:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_custom_chunk_forward.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 0 \
+  --repeat 1 \
+  --steps 300 \
+  --shots 1 \
+  --nx 64 \
+  --nz 32 \
+  --nabc 16 \
+  --receivers 32 \
+  --loss-kind receiver-random-linear \
+  --loss-components rcv_p \
+  --upstream-scale 4500
+```
+
+Pair it with a CPU float64 formula gate using the same shape before any
+production-facing custom backward change. Required result: exact outputs/loss,
+CPU float64 gradients close to machine precision, and documented NPU float32
+gradient difference with max absolute and relative errors.
+
 ## Static And Unit Commands
 
 ```bash
