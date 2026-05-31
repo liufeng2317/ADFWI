@@ -103,6 +103,7 @@ Default backward operator profile:
 - `40-acoustic-custom-backward-view-alias-fix.md`
 - `41-acoustic-production-interface-parity.md`
 - `42-acoustic-batch-source-custom-prototype.md`
+- `43-acoustic-production-facing-design.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -231,3 +232,8 @@ Default backward operator profile:
   `2.89e-7`; backward improves by `1.34x` and total measured iteration improves
   by `1.04x`, while forward remains slower. This is the first positive
   end-to-end custom-backward signal, but still not a production implementation.
+- Production-facing design is now constrained to a chunk-level custom autograd
+  wrapper. Timestep-level custom Function replacement is rejected because it
+  keeps the Python dispatch overhead that made the prototype forward slower.
+  The next implementation task is a benchmark-only chunk-level prototype before
+  any production kernel edit.

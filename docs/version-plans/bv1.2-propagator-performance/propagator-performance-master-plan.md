@@ -229,7 +229,9 @@ still a Python-loop prototype. After adding batched source execution to the
 benchmark-only prototype, reduced validation FWI-style parity keeps raw
 `vp.grad` max abs diff at `2.89e-7`, improves backward by `1.34x`, and improves
 total measured iteration by `1.04x`; the next step is production-facing design,
-not more formula debugging.
+not more formula debugging. The accepted production-facing route is a
+chunk-level custom autograd wrapper; timestep-level production replacement is
+rejected because it preserves Python dispatch overhead.
 ```
 
 ## Stop Criteria
