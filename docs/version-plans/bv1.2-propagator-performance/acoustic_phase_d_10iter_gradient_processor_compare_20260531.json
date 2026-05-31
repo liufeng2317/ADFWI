@@ -1,0 +1,295 @@
+{
+  "case": "marmousi2_acoustic_reduced_10iter_gradient_processor_compare",
+  "legacy_profile_source": "/tmp/adfwi_phase_d_10iter_legacy.json",
+  "loss_pairs": [
+    {
+      "abs_diff": 0.0,
+      "iteration": 1,
+      "legacy": 6375.7919921875,
+      "rel_diff": 0.0,
+      "torch": 6375.7919921875
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 2,
+      "legacy": 6006.28125,
+      "rel_diff": 0.0,
+      "torch": 6006.28125
+    },
+    {
+      "abs_diff": 0.00048828125,
+      "iteration": 3,
+      "legacy": 5718.1337890625,
+      "rel_diff": 8.539171485178816e-08,
+      "torch": 5718.13330078125
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 4,
+      "legacy": 5495.1796875,
+      "rel_diff": 0.0,
+      "torch": 5495.1796875
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 5,
+      "legacy": 5338.6748046875,
+      "rel_diff": 0.0,
+      "torch": 5338.6748046875
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 6,
+      "legacy": 5215.0068359375,
+      "rel_diff": 0.0,
+      "torch": 5215.0068359375
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 7,
+      "legacy": 5091.3740234375,
+      "rel_diff": 0.0,
+      "torch": 5091.3740234375
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 8,
+      "legacy": 4978.3076171875,
+      "rel_diff": 0.0,
+      "torch": 4978.3076171875
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 9,
+      "legacy": 4875.275390625,
+      "rel_diff": 0.0,
+      "torch": 4875.275390625
+    },
+    {
+      "abs_diff": 0.0,
+      "iteration": 10,
+      "legacy": 4776.75927734375,
+      "rel_diff": 0.0,
+      "torch": 4776.75927734375
+    }
+  ],
+  "numerical": {
+    "all_finite_legacy": true,
+    "all_finite_torch": true,
+    "final_loss_abs_diff": 0.0,
+    "final_loss_legacy": 4776.75927734375,
+    "final_loss_torch": 4776.75927734375,
+    "max_loss_abs_diff": 0.00048828125,
+    "max_loss_rel_diff": 8.539171485178816e-08,
+    "max_processed_grad_norm_abs_diff": 0.265625,
+    "max_processed_grad_norm_rel_diff": 5.582462507949194e-06,
+    "max_raw_grad_norm_abs_diff": 8.940696716308594e-07,
+    "max_raw_grad_norm_rel_diff": 1.330539909145413e-06,
+    "vp_update_norm_abs_diff": 0.0,
+    "vp_update_norm_legacy": 8410.6181640625,
+    "vp_update_norm_torch": 8410.6181640625
+  },
+  "observed_data_path": "/tmp/adfwi_phase_d_10iter_shared/waveform/obs_data.npz",
+  "processed_grad_norm_pairs": [
+    {
+      "abs_diff": 0.265625,
+      "iteration": 1,
+      "legacy": 67952.5546875,
+      "rel_diff": 3.908977391969374e-06,
+      "torch": 67952.2890625
+    },
+    {
+      "abs_diff": 0.21875,
+      "iteration": 2,
+      "legacy": 56409.91015625,
+      "rel_diff": 3.877864711964328e-06,
+      "torch": 56409.69140625
+    },
+    {
+      "abs_diff": 0.12109375,
+      "iteration": 3,
+      "legacy": 59677.66015625,
+      "rel_diff": 2.029130325869821e-06,
+      "torch": 59677.5390625
+    },
+    {
+      "abs_diff": 0.0625,
+      "iteration": 4,
+      "legacy": 39432.94921875,
+      "rel_diff": 1.5849689469912088e-06,
+      "torch": 39432.88671875
+    },
+    {
+      "abs_diff": 0.0390625,
+      "iteration": 5,
+      "legacy": 43908.87109375,
+      "rel_diff": 8.896266068102162e-07,
+      "torch": 43908.83203125
+    },
+    {
+      "abs_diff": 0.14453125,
+      "iteration": 6,
+      "legacy": 59043.81640625,
+      "rel_diff": 2.447864294637649e-06,
+      "torch": 59043.671875
+    },
+    {
+      "abs_diff": 0.03125,
+      "iteration": 7,
+      "legacy": 47413.62890625,
+      "rel_diff": 6.590931915755697e-07,
+      "torch": 47413.66015625
+    },
+    {
+      "abs_diff": 0.05859375,
+      "iteration": 8,
+      "legacy": 42467.37890625,
+      "rel_diff": 1.37973549366798e-06,
+      "torch": 42467.4375
+    },
+    {
+      "abs_diff": 0.234375,
+      "iteration": 9,
+      "legacy": 41984.16015625,
+      "rel_diff": 5.582462507949194e-06,
+      "torch": 41983.92578125
+    },
+    {
+      "abs_diff": 0.06640625,
+      "iteration": 10,
+      "legacy": 34727.37109375,
+      "rel_diff": 1.9122164422043266e-06,
+      "torch": 34727.3046875
+    }
+  ],
+  "raw_grad_norm_pairs": [
+    {
+      "abs_diff": 0.0,
+      "iteration": 1,
+      "legacy": 0.8779116272926331,
+      "rel_diff": 0.0,
+      "torch": 0.8779116272926331
+    },
+    {
+      "abs_diff": 5.960464477539063e-08,
+      "iteration": 2,
+      "legacy": 0.7982844710350037,
+      "rel_diff": 7.466592040568085e-08,
+      "torch": 0.7982845306396484
+    },
+    {
+      "abs_diff": 1.1920928955078125e-07,
+      "iteration": 3,
+      "legacy": 0.7173623442649841,
+      "rel_diff": 1.6617723317067075e-07,
+      "torch": 0.7173624634742737
+    },
+    {
+      "abs_diff": 1.1920928955078125e-07,
+      "iteration": 4,
+      "legacy": 0.6609861850738525,
+      "rel_diff": 1.803506521659933e-07,
+      "torch": 0.6609863042831421
+    },
+    {
+      "abs_diff": 1.1920928955078125e-07,
+      "iteration": 5,
+      "legacy": 0.6748422384262085,
+      "rel_diff": 1.7664764112689184e-07,
+      "torch": 0.674842119216919
+    },
+    {
+      "abs_diff": 2.384185791015625e-07,
+      "iteration": 6,
+      "legacy": 0.7255237698554993,
+      "rel_diff": 3.28615806962531e-07,
+      "torch": 0.7255240082740784
+    },
+    {
+      "abs_diff": 8.940696716308594e-07,
+      "iteration": 7,
+      "legacy": 0.6719600558280945,
+      "rel_diff": 1.330539909145413e-06,
+      "torch": 0.6719609498977661
+    },
+    {
+      "abs_diff": 5.960464477539062e-07,
+      "iteration": 8,
+      "legacy": 0.6229472160339355,
+      "rel_diff": 9.568169379561626e-07,
+      "torch": 0.6229478120803833
+    },
+    {
+      "abs_diff": 4.172325134277344e-07,
+      "iteration": 9,
+      "legacy": 0.6073695421218872,
+      "rel_diff": 6.869500106477251e-07,
+      "torch": 0.6073699593544006
+    },
+    {
+      "abs_diff": 5.960464477539063e-08,
+      "iteration": 10,
+      "legacy": 0.5907254815101624,
+      "rel_diff": 1.0090075109510108e-07,
+      "torch": 0.5907254219055176
+    }
+  ],
+  "shape": {
+    "checkpoint_segments": 1,
+    "grad_forw_illumination": true,
+    "gradient_processor": "torch",
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "receivers": 200,
+    "save_forward_wavefield": true,
+    "shots": 3
+  },
+  "timing": {
+    "components": {
+      "backward": {
+        "legacy": 178.90090257674456,
+        "speedup": 1.0999858915792966,
+        "torch": 162.63927014544606
+      },
+      "forward": {
+        "legacy": 66.17098269425333,
+        "speedup": 0.9212685145328233,
+        "torch": 71.82594612799585
+      },
+      "gradient_processing": {
+        "legacy": 6.58511558920145,
+        "speedup": 36.448190186276086,
+        "torch": 0.180670578032732
+      },
+      "loss_evaluation": {
+        "legacy": 0.06952694989740849,
+        "speedup": 0.982484159293999,
+        "torch": 0.07076648436486721
+      },
+      "optimizer_step": {
+        "legacy": 0.8313753381371498,
+        "speedup": 1.023172392716721,
+        "torch": 0.8125466872006655
+      },
+      "wavefield_accumulation": {
+        "legacy": 0.006067739799618721,
+        "speedup": 2.248411490003741,
+        "torch": 0.0026986785233020782
+      },
+      "zero_grad": {
+        "legacy": 0.0038169827312231064,
+        "speedup": 0.8319541367574597,
+        "torch": 0.004587972536683083
+      }
+    },
+    "compute_speedup": 1.072308547338697,
+    "legacy_compute_seconds": 252.56778787076473,
+    "legacy_observed_generation_seconds": 37.13758138380945,
+    "legacy_setup_seconds": 93.36764758266509,
+    "torch_compute_seconds": 235.53648667410016,
+    "torch_observed_generation_seconds": 0.0,
+    "torch_setup_seconds": 58.05147711187601
+  },
+  "torch_profile_source": "/tmp/adfwi_phase_d_10iter_torch.json"
+}
