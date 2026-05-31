@@ -262,6 +262,7 @@ Latest records:
 - `33-acoustic-experimental-forward-iteration-parity.md`
 - `34-acoustic-gradient-difference-localization.md`
 - `35-acoustic-receiver-difference-location.md`
+- `36-acoustic-observed-loss-upstream-probe.md`
 
 Decision:
 
@@ -331,4 +332,10 @@ difference came from the experimental benchmark path skipping
 exactly, but raw `vp.grad` still differed by `3.63e-4`. The active issue is now
 custom-backward parity under the observed-pressure loss upstream gradient, not
 receiver-output location.
+
+Observed-loss upstream probing confirmed that the loss itself is not the
+mismatch source: receiver outputs and receiver upstream gradients are exactly
+equal. The same external receiver upstream gradient still yields raw `vp.grad`
+max abs diff `3.63e-4`. The active target is custom backward localization under
+fixed external upstream gradients.
 ```
