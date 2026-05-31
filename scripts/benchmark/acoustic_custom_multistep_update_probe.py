@@ -414,9 +414,12 @@ def run_variant(args: argparse.Namespace, backend, *, custom: bool) -> Dict[str,
     timer = Timer(backend)
     inputs = build_inputs(args, device=backend.device, dtype=backend.dtype)
     outputs, forward_seconds = timer.measure(lambda: run_recurrence(inputs, args, custom=custom))
-    loss = sum(output.pow(2).mean() for output in outputs)
+    loss = build_loss(outputs, args)
     _, backward_seconds = timer.measure(lambda: loss.backward())
-    grads = [tensor.grad.detach().clone() for tensor in inputs]
+    grads = [
+        tensor.grad.detach().clone() if tensor.grad is not None else torch.zeros_like(tensor)
+        for tensor in inputs
+    ]
     return {
         "outputs": [output.detach() for output in outputs],
         "loss": float(loss.detach().cpu().item()),
@@ -425,6 +428,26 @@ def run_variant(args: argparse.Namespace, backend, *, custom: bool) -> Dict[str,
         "backward_seconds": backward_seconds,
         "total_seconds": forward_seconds + backward_seconds,
     }
+
+
+def build_loss(outputs, args: argparse.Namespace):
+    if args.loss_kind == "energy":
+        return sum(output.pow(2).mean() for output in outputs)
+    if args.loss_kind == "receiver-random-linear":
+        if len(outputs) != 6:
+            raise ValueError("--loss-kind receiver-random-linear requires --receiver-recording")
+        torch.manual_seed(args.upstream_seed)
+        loss = None
+        for name, output in zip(("p", "u", "w", "rcv_p", "rcv_u", "rcv_w"), outputs):
+            if name not in args.loss_components:
+                continue
+            upstream = args.upstream_scale * torch.randn_like(output)
+            term = (output * upstream).sum()
+            loss = term if loss is None else loss + term
+        if loss is None:
+            raise ValueError("no active loss components")
+        return loss
+    raise ValueError(f"unknown --loss-kind: {args.loss_kind}")
 
 
 def compare_pair(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, Any]:
@@ -498,6 +521,10 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
             "receiver_recording": args.receiver_recording,
             "receivers": args.receivers,
             "receiver_depth": args.receiver_depth,
+            "loss_kind": args.loss_kind,
+            "loss_components": args.loss_components,
+            "upstream_seed": args.upstream_seed,
+            "upstream_scale": args.upstream_scale,
         },
         "summary": {
             "speedup": {
@@ -551,6 +578,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--receiver-recording", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--receivers", type=int, default=8)
     parser.add_argument("--receiver-depth", type=int, default=1)
+    parser.add_argument("--loss-kind", choices=("energy", "receiver-random-linear"), default="energy")
+    parser.add_argument(
+        "--loss-components",
+        default="p,u,w,rcv_p,rcv_u,rcv_w",
+        help="Comma-separated outputs used by --loss-kind receiver-random-linear.",
+    )
+    parser.add_argument("--upstream-seed", type=int, default=20240601)
+    parser.add_argument("--upstream-scale", type=float, default=1.0)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     return parser
 
@@ -568,6 +603,12 @@ def main() -> int:
         parser.error("--shots must be positive")
     if args.receivers <= 0:
         parser.error("--receivers must be positive")
+    args.loss_components = tuple(item.strip() for item in args.loss_components.split(",") if item.strip())
+    if not args.loss_components:
+        parser.error("--loss-components must not be empty")
+    unsupported = set(args.loss_components) - {"p", "u", "w", "rcv_p", "rcv_u", "rcv_w"}
+    if unsupported:
+        parser.error(f"unsupported --loss-components: {sorted(unsupported)}")
     report = run_experiment(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

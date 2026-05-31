@@ -217,7 +217,9 @@ Current acoustic custom-gradient status:
 The benchmark-only custom recurrence is not production-ready. Direct replay of
 the exact observed-pressure receiver upstream preserves outputs/loss exactly
 but fails raw `vp.grad` parity (`3.63e-4` max abs diff). Further work must stay
-at the formula-level backward-validation stage.
+at the formula-level backward-validation stage. The smallest local failing case
+currently identified is a 2-step recurrence with observed-scale receiver
+pressure upstream; a 1-step case passes exactly.
 ```
 
 ## Stop Criteria

@@ -99,6 +99,7 @@ Default backward operator profile:
 - `36-acoustic-observed-loss-upstream-probe.md`
 - `37-acoustic-targeted-backward-exclusions.md`
 - `38-acoustic-observed-upstream-direct-replay.md`
+- `39-acoustic-observed-scale-local-recurrence.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -204,3 +205,8 @@ Default backward operator profile:
   at `3.63e-4`. The issue is now localized to the experimental custom backward
   under the observed-pressure upstream distribution. Do not integrate the
   custom path into production.
+- A local recurrence probe reproduced the issue without the FWI wrapper:
+  observed-scale receiver-pressure linear upstream gives output/loss parity but
+  gradient mismatch. `steps=1` passes exactly, while `steps=2` fails even on CPU
+  `float64`; the remaining task is a 2-step local adjoint inspection of the
+  `p(t+1) -> u/w(t+1) -> p(t+2)` backward path.
