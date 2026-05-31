@@ -90,6 +90,7 @@ Default backward operator profile:
 - `27-acoustic-custom-timestep-update-probe.md`
 - `28-acoustic-custom-multistep-update-probe.md`
 - `29-acoustic-custom-source-freesurface-probe.md`
+- `30-acoustic-custom-receiver-recording-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -154,3 +155,6 @@ Default backward operator profile:
 - Adding source injection and free-surface boundary writes preserved outputs
   and loss exactly, kept gradient maximum absolute difference at `1.26e-12`,
   and kept total speedup around `1.58x` despite a slower forward prototype.
+- Adding receiver recording preserved final outputs, recorded traces, and loss
+  exactly, kept gradient maximum absolute difference at `4.82e-11`, and kept
+  total speedup around `1.54x`.

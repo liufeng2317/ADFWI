@@ -77,6 +77,19 @@ def source_values(args: argparse.Namespace, *, device: torch.device, dtype: torc
     return args.source_scale * torch.sin(0.17 * (steps + 1.0)) * (1.0 + shots * 0.01)
 
 
+def receiver_indices(args: argparse.Namespace, *, device: torch.device):
+    nx_pml = args.nx + 2 * args.nabc
+    count = min(args.receivers, args.nx)
+    if count >= args.nx:
+        x = torch.arange(args.nx, device=device, dtype=torch.long) + args.nabc
+    else:
+        x = torch.linspace(args.nabc, args.nabc + args.nx - 1, count, device=device).to(torch.long)
+    z = torch.full_like(x, args.nabc + args.receiver_depth)
+    if bool(torch.any(x < 0).item()) or bool(torch.any(x >= nx_pml).item()):
+        raise ValueError("receiver x index out of bounds")
+    return z, x
+
+
 def timestep_reference_with_features(
     p,
     u,
@@ -338,6 +351,11 @@ def timestep_custom_with_features(
 
 def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
     p, u, w, kappa1, alpha1, kappa2, alpha2, kappa3 = inputs
+    records_p = []
+    records_u = []
+    records_w = []
+    if args.receiver_recording:
+        rcv_z, rcv_x = receiver_indices(args, device=p.device)
     if args.source_injection or args.free_surface_boundary_write:
         source = source_values(args, device=p.device, dtype=p.dtype)
         update = timestep_custom_with_features if custom else timestep_reference_with_features
@@ -358,6 +376,10 @@ def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
                 use_source=args.source_injection,
                 use_free_surface=args.free_surface_boundary_write,
             )
+            if args.receiver_recording:
+                records_p.append(p[:, rcv_z, rcv_x])
+                records_u.append(u[:, rcv_z, rcv_x])
+                records_w.append(w[:, rcv_z, rcv_x])
     else:
         update = timestep_custom if custom else timestep_reference
         for _ in range(args.steps):
@@ -372,6 +394,19 @@ def run_recurrence(inputs, args: argparse.Namespace, *, custom: bool):
                 kappa3,
                 free_surface_start=args.nabc,
             )
+            if args.receiver_recording:
+                records_p.append(p[:, rcv_z, rcv_x])
+                records_u.append(u[:, rcv_z, rcv_x])
+                records_w.append(w[:, rcv_z, rcv_x])
+    if args.receiver_recording:
+        return (
+            p,
+            u,
+            w,
+            torch.stack(records_p, dim=1),
+            torch.stack(records_u, dim=1),
+            torch.stack(records_w, dim=1),
+        )
     return p, u, w
 
 
@@ -394,6 +429,8 @@ def run_variant(args: argparse.Namespace, backend, *, custom: bool) -> Dict[str,
 
 def compare_pair(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, Any]:
     output_names = ("p", "u", "w")
+    if len(reference["outputs"]) == 6:
+        output_names = ("p", "u", "w", "rcv_p", "rcv_u", "rcv_w")
     grad_names = ("p0", "u0", "w0", "kappa1", "alpha1", "kappa2", "alpha2", "kappa3")
     return {
         "loss_abs_diff": abs(candidate["loss"] - reference["loss"]),
@@ -458,7 +495,9 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
             "source_scale": args.source_scale,
             "source_injection": args.source_injection,
             "free_surface_boundary_write": args.free_surface_boundary_write,
-            "receiver_recording": False,
+            "receiver_recording": args.receiver_recording,
+            "receivers": args.receivers,
+            "receiver_depth": args.receiver_depth,
         },
         "summary": {
             "speedup": {
@@ -509,6 +548,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-scale", type=float, default=1e-4)
     parser.add_argument("--source-injection", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--free-surface-boundary-write", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--receiver-recording", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--receivers", type=int, default=8)
+    parser.add_argument("--receiver-depth", type=int, default=1)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     return parser
 
@@ -524,6 +566,8 @@ def main() -> int:
         parser.error("--steps must be positive")
     if args.shots <= 0:
         parser.error("--shots must be positive")
+    if args.receivers <= 0:
+        parser.error("--receivers must be positive")
     report = run_experiment(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

@@ -256,6 +256,7 @@ Latest records:
 - `27-acoustic-custom-timestep-update-probe.md`
 - `28-acoustic-custom-multistep-update-probe.md`
 - `29-acoustic-custom-source-freesurface-probe.md`
+- `30-acoustic-custom-receiver-recording-probe.md`
 
 Decision:
 
@@ -290,6 +291,10 @@ speedup. The 20-step recurrence prototype preserved final outputs/loss, kept
 gradient max absolute difference at `5.68e-14`, and showed `1.87x` backward
 speedup. The source/free-surface prototype preserved outputs/loss, kept
 gradient max absolute difference at `1.26e-12`, and showed `2.05x` backward
-speedup with `1.58x` total speedup. The next isolated gate is receiver
-recording before any production-kernel integration.
+speedup with `1.58x` total speedup. Adding receiver recording preserved final
+outputs, recorded traces, and loss exactly, kept gradient max absolute
+difference at `4.82e-11`, and showed `1.98x` backward speedup with `1.54x`
+total speedup. The next gate is an opt-in experimental acoustic-kernel parity
+harness against production `forward_kernel` on a tiny case before any
+production-kernel integration.
 ```
