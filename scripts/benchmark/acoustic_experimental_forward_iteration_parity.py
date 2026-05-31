@@ -53,6 +53,7 @@ class Timer:
 
 
 def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool):
+    propagator.model.forward()
     shot_index = batch_range.shot_index
     records = []
     for index in shot_index:

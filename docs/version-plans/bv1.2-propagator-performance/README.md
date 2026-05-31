@@ -95,6 +95,7 @@ Default backward operator profile:
 - `32-acoustic-experimental-forward-path.md`
 - `33-acoustic-experimental-forward-iteration-parity.md`
 - `34-acoustic-gradient-difference-localization.md`
+- `35-acoustic-receiver-difference-location.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -180,3 +181,9 @@ Default backward operator profile:
   dropped to `3.37e-14`; the large difference appears only under
   observed-pressure residual loss, which amplifies a `6.52e-09` receiver-output
   difference.
+- Receiver-difference localization found that the `6.52e-09` output difference
+  was caused by the benchmark experimental path skipping the production
+  `model.forward()` refresh. After matching that wrapper contract, receiver
+  outputs and loss were exactly equal, but raw `vp.grad` still differed by
+  `3.63e-4`; the remaining issue is custom-backward parity under the
+  observed-pressure loss upstream gradient.

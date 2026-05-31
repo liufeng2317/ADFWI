@@ -261,6 +261,7 @@ Latest records:
 - `32-acoustic-experimental-forward-path.md`
 - `33-acoustic-experimental-forward-iteration-parity.md`
 - `34-acoustic-gradient-difference-localization.md`
+- `35-acoustic-receiver-difference-location.md`
 
 Decision:
 
@@ -322,4 +323,12 @@ dropped to `3.37e-14`. The next active task is receiver-output difference
 localization under the validation source/wavelet because observed-pressure
 residual loss amplifies a `6.52e-09` receiver-output difference into the failed
 raw-gradient parity.
+
+Receiver-difference localization found no remaining receiver-output difference
+after matching the production wrapper contract. The previous `6.52e-09`
+difference came from the experimental benchmark path skipping
+`model.forward()`. After adding the refresh, receiver outputs and loss matched
+exactly, but raw `vp.grad` still differed by `3.63e-4`. The active issue is now
+custom-backward parity under the observed-pressure loss upstream gradient, not
+receiver-output location.
 ```
