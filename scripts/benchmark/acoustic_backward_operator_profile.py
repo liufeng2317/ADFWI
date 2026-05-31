@@ -26,7 +26,8 @@ import torch
 
 from ADFWI.backends import configure_backend
 from ADFWI.propagator import AcousticPropagator
-from scripts.smoke.acoustic_backend_smoke import build_model, build_survey, parse_dtype
+from ADFWI.survey import Receiver, Source, Survey
+from scripts.smoke.acoustic_backend_smoke import build_model, parse_dtype, ricker_wavelet
 
 
 DEFAULT_OUTPUT = (
@@ -66,11 +67,29 @@ def tensor_summary(value: torch.Tensor) -> Dict[str, Any]:
     }
 
 
+def build_profile_survey(args: argparse.Namespace) -> Survey:
+    source = Source(nt=args.nt, dt=args.dt, f0=args.f0)
+    src_x = np.array([i for i in range(2, args.nx - 1, args.source_spacing)], dtype=np.int64)[: args.shots]
+    src_z = np.full_like(src_x, args.source_depth)
+    src_wavelet = ricker_wavelet(args.nt, args.dt, args.f0)
+    for x, z in zip(src_x, src_z):
+        source.add_source(int(x), int(z), src_wavelet, src_type="mt")
+
+    receiver = Receiver(nt=args.nt, dt=args.dt)
+    if args.receivers >= args.nx:
+        rcv_x = np.arange(args.nx, dtype=np.int64)
+    else:
+        rcv_x = np.linspace(0, args.nx - 1, args.receivers, dtype=np.int64)
+    rcv_z = np.full_like(rcv_x, args.receiver_depth)
+    receiver.add_receivers(rcv_x, rcv_z, rcv_type="pr")
+    return Survey(source, receiver)
+
+
 def build_case(args: argparse.Namespace):
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     model = build_model(args.nx, args.nz, args.dx, args.dz, args.nabc)
-    survey = build_survey(args.nt, args.dt, args.f0, args.nx, args.nz)
+    survey = build_profile_survey(args)
     propagator = AcousticPropagator(model, survey)
     model.zero_grad(set_to_none=True)
     return model, propagator
@@ -105,10 +124,11 @@ def event_payload(event, *, index: int) -> Dict[str, Any]:
 def run_once(args: argparse.Namespace, backend) -> Dict[str, Any]:
     timer = Timer(backend)
     model, propagator = build_case(args)
+    shot_index = np.arange(args.shots, dtype=np.int64)
 
     record, forward_seconds = timer.measure(
         lambda: propagator.forward(
-            shot_index=np.array([0]),
+            shot_index=shot_index,
             checkpoint_segments=args.checkpoint_segments,
             save_forward_wavefield=args.save_forward_wavefield,
         )
@@ -173,7 +193,7 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
         timer = Timer(backend)
         record, _ = timer.measure(
             lambda: propagator.forward(
-                shot_index=np.array([0]),
+                shot_index=np.arange(args.shots, dtype=np.int64),
                 checkpoint_segments=args.checkpoint_segments,
                 save_forward_wavefield=args.save_forward_wavefield,
             )
@@ -198,6 +218,11 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
             "loss_component": args.loss_component,
+            "shots": args.shots,
+            "receivers": args.receivers,
+            "source_spacing": args.source_spacing,
+            "source_depth": args.source_depth,
+            "receiver_depth": args.receiver_depth,
             "nx": args.nx,
             "nz": args.nz,
             "nabc": args.nabc,
@@ -231,6 +256,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--loss-component", choices=("p", "u", "w"), default="p")
+    parser.add_argument("--shots", type=int, default=1)
+    parser.add_argument("--receivers", type=int, default=3)
+    parser.add_argument("--source-spacing", type=int, default=5)
+    parser.add_argument("--source-depth", type=int, default=2)
+    parser.add_argument("--receiver-depth", type=int, default=2)
     parser.add_argument("--nx", type=int, default=100)
     parser.add_argument("--nz", type=int, default=50)
     parser.add_argument("--nabc", type=int, default=20)
@@ -253,6 +283,12 @@ def main() -> int:
         parser.error("--repeat must be positive")
     if args.warmup < 0:
         parser.error("--warmup must be non-negative")
+    if args.shots <= 0:
+        parser.error("--shots must be positive")
+    if args.receivers <= 0:
+        parser.error("--receivers must be positive")
+    if args.source_spacing <= 0:
+        parser.error("--source-spacing must be positive")
 
     report = run_experiment(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)

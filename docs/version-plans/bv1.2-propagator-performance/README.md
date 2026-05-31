@@ -83,6 +83,7 @@ Default backward operator profile:
 - `20-acoustic-validation-gradient-processor-option.md`
 - `21-acoustic-full-record-gradient-processor-10iter.md`
 - `22-acoustic-full-record-iteration-profile.md`
+- `23-acoustic-full-record-backward-operator-profile.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -124,3 +125,7 @@ Default backward operator profile:
 - Full-record single-iteration profiling shows the current acoustic bottleneck
   is still differentiable propagation: backward `16.93 s` (`59.86%`) and
   forward `9.83 s` (`34.78%`) of a `28.27 s` measured iteration.
+- Full-record backward operator profiling confirms the earlier small-profile
+  conclusion: backward is dominated by slice/copy/zero/allocation autograd
+  overhead, not a single physical math operator. Stop repeating this profile
+  and move to a timestep update feasibility decision.

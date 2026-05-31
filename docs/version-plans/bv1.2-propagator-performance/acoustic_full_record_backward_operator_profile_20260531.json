@@ -1,0 +1,390 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 0,
+    "name": "npu",
+    "reason": null
+  },
+  "config": {
+    "checkpoint_segments": 1,
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "loss_component": "p",
+    "nabc": 30,
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "prefer": "npu,cpu",
+    "profile_memory": false,
+    "receiver_depth": 1,
+    "receivers": 200,
+    "record_shapes": false,
+    "repeat": 1,
+    "save_forward_wavefield": true,
+    "seed": 20240523,
+    "shots": 40,
+    "source_depth": 1,
+    "source_spacing": 5,
+    "topk": 25,
+    "warmup": 0
+  },
+  "purpose": "Phase B default acoustic backward operator profile",
+  "repeats": [
+    {
+      "backward_seconds": 122.59679520502687,
+      "forward_seconds": 9.463138159364462,
+      "loss": 6.1377627424974435e-09,
+      "memory_allocated": 290931200,
+      "record": {
+        "p": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "norm": 0.3838050365447998,
+          "shape": [
+            40,
+            3000,
+            200
+          ]
+        },
+        "u": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "norm": 1.1887595263715411e-07,
+          "shape": [
+            40,
+            3000,
+            200
+          ]
+        },
+        "w": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "norm": 5.48621841289787e-08,
+          "shape": [
+            40,
+            3000,
+            200
+          ]
+        }
+      },
+      "top_events": [
+        {
+          "count": 179941,
+          "cpu_time_self_us": 14356188.486999165,
+          "cpu_time_total_us": 56963735.05400211,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 58962734.0,
+          "key": "aten::slice_backward",
+          "rank": 1,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 10444706.0
+        },
+        {
+          "count": 218949,
+          "cpu_time_self_us": 1967081.943001879,
+          "cpu_time_total_us": 1967081.943001879,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 10212467.0,
+          "key": "aclnnInplaceCopy",
+          "rank": 2,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 10212467.0
+        },
+        {
+          "count": 179941,
+          "cpu_time_self_us": 9401413.173998812,
+          "cpu_time_total_us": 75730259.7949992,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 77497504.0,
+          "key": "autograd::engine::evaluate_function: SliceBackward0",
+          "rank": 3,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 8636189.0
+        },
+        {
+          "count": 218951,
+          "cpu_time_self_us": 13599101.266999338,
+          "cpu_time_total_us": 15566183.210001219,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 18811079.0,
+          "key": "aten::copy_",
+          "rank": 4,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 8598612.0
+        },
+        {
+          "count": 200943,
+          "cpu_time_self_us": 2015688.8819993513,
+          "cpu_time_total_us": 2015688.8819993513,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 8489193.0,
+          "key": "aclnnInplaceZero",
+          "rank": 5,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 8489193.0
+        },
+        {
+          "count": 315108,
+          "cpu_time_self_us": 4444119.54999651,
+          "cpu_time_total_us": 4444119.54999651,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 7907318.0,
+          "key": "empty_tensor",
+          "rank": 6,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 7907318.0
+        },
+        {
+          "count": 200943,
+          "cpu_time_self_us": 11855024.89700232,
+          "cpu_time_total_us": 13870713.779001672,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 16233106.0,
+          "key": "aten::zero_",
+          "rank": 7,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 7743913.0
+        },
+        {
+          "count": 182943,
+          "cpu_time_self_us": 10010827.259002842,
+          "cpu_time_total_us": 25364202.538002685,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 27182647.0,
+          "key": "aten::zeros",
+          "rank": 8,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 7651679.0
+        },
+        {
+          "count": 179941,
+          "cpu_time_self_us": 4819206.138997261,
+          "cpu_time_total_us": 61782941.19299938,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 63704433.0,
+          "key": "SliceBackward0",
+          "rank": 9,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 4741699.0
+        },
+        {
+          "count": 179940,
+          "cpu_time_self_us": 4552523.113998322,
+          "cpu_time_total_us": 5428280.254999685,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 7032284.0,
+          "key": "aten::slice",
+          "rank": 10,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 4439516.0
+        },
+        {
+          "count": 197971,
+          "cpu_time_self_us": 1006477.3490019463,
+          "cpu_time_total_us": 1006477.3490019463,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 2869579.0,
+          "key": "aten::as_strided",
+          "rank": 11,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 2869579.0
+        },
+        {
+          "count": 65980,
+          "cpu_time_self_us": 4177516.4479999524,
+          "cpu_time_total_us": 4761390.79300129,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 5396596.0,
+          "key": "aten::add_",
+          "rank": 12,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 2734726.0
+        },
+        {
+          "count": 65980,
+          "cpu_time_self_us": 583874.3450013378,
+          "cpu_time_total_us": 583874.3450013378,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 2661870.0,
+          "key": "aclnnInplaceAdd",
+          "rank": 13,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 2661870.0
+        },
+        {
+          "count": 38992,
+          "cpu_time_self_us": 3764563.718000673,
+          "cpu_time_total_us": 4711572.107999789,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 5183335.0,
+          "key": "aten::mul",
+          "rank": 14,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 2472407.0
+        },
+        {
+          "count": 32990,
+          "cpu_time_self_us": 2792744.5860005827,
+          "cpu_time_total_us": 3584528.659000061,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 3890605.0,
+          "key": "aten::neg",
+          "rank": 15,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 1721279.0
+        },
+        {
+          "count": 9002,
+          "cpu_time_self_us": 2391265.666000076,
+          "cpu_time_total_us": 3202970.7650001356,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 3538623.0,
+          "key": "aten::_index_put_impl_",
+          "rank": 16,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 1562105.0
+        },
+        {
+          "count": 12004,
+          "cpu_time_self_us": 1989427.2200004593,
+          "cpu_time_total_us": 9534895.939999923,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 9681582.0,
+          "key": "torch::autograd::CopySlices",
+          "rank": 17,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 1393893.0
+        },
+        {
+          "count": 32990,
+          "cpu_time_self_us": 1360028.7560009847,
+          "cpu_time_total_us": 5812471.458000449,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 6175489.0,
+          "key": "autograd::engine::evaluate_function: SubBackward0",
+          "rank": 18,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 1323357.0
+        },
+        {
+          "count": 32990,
+          "cpu_time_self_us": 321502.69699972955,
+          "cpu_time_total_us": 321502.69699972955,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 1313821.0,
+          "key": "aclnnNeg",
+          "rank": 19,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 1313821.0
+        },
+        {
+          "count": 20996,
+          "cpu_time_self_us": 204740.12900134508,
+          "cpu_time_total_us": 204740.12900134508,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 968209.0,
+          "key": "aclnnMul",
+          "rank": 20,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 968209.0
+        },
+        {
+          "count": 32990,
+          "cpu_time_self_us": 867914.0429994036,
+          "cpu_time_total_us": 4452442.701999465,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 4852132.0,
+          "key": "SubBackward0",
+          "rank": 21,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 961527.0
+        },
+        {
+          "count": 17996,
+          "cpu_time_self_us": 1092446.4249996846,
+          "cpu_time_total_us": 4854803.146000585,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 5021869.0,
+          "key": "autograd::engine::evaluate_function: MulBackward0",
+          "rank": 22,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 956681.0
+        },
+        {
+          "count": 9002,
+          "cpu_time_self_us": 98216.23500003348,
+          "cpu_time_total_us": 98216.23500003348,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 870670.0,
+          "key": "aclnnIndexPutImpl",
+          "rank": 23,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 870670.0
+        },
+        {
+          "count": 17996,
+          "cpu_time_self_us": 180728.50799890567,
+          "cpu_time_total_us": 180728.50799890567,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 782687.0,
+          "key": "aclnnMuls",
+          "rank": 24,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 782687.0
+        },
+        {
+          "count": 17995,
+          "cpu_time_self_us": 657430.1269992592,
+          "cpu_time_total_us": 714441.4400000685,
+          "device_memory_usage_us": 0.0,
+          "device_time_total_us": 918222.0,
+          "key": "autograd::engine::evaluate_function: AddBackward0",
+          "rank": 25,
+          "self_device_memory_usage_us": 0.0,
+          "self_device_time_total_us": 672942.0
+        }
+      ],
+      "top_events_sort": "self_device_time_total",
+      "vp_grad": {
+        "device": "npu:0",
+        "dtype": "float32",
+        "finite": true,
+        "norm": 3.039276079072617e-12,
+        "shape": [
+          88,
+          200
+        ]
+      }
+    }
+  ],
+  "status": "ok",
+  "summary": {
+    "backward_seconds": {
+      "max": 122.59679520502687,
+      "mean": 122.59679520502687,
+      "min": 122.59679520502687
+    },
+    "forward_seconds": {
+      "max": 9.463138159364462,
+      "mean": 9.463138159364462,
+      "min": 9.463138159364462
+    },
+    "loss": {
+      "max": 6.1377627424974435e-09,
+      "mean": 6.1377627424974435e-09,
+      "min": 6.1377627424974435e-09
+    }
+  }
+}

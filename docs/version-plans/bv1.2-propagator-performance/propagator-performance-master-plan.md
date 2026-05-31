@@ -249,6 +249,7 @@ Latest records:
 - `20-acoustic-validation-gradient-processor-option.md`
 - `21-acoustic-full-record-gradient-processor-10iter.md`
 - `22-acoustic-full-record-iteration-profile.md`
+- `23-acoustic-full-record-backward-operator-profile.md`
 
 Decision:
 
@@ -264,6 +265,9 @@ Next acoustic direction:
 ```text
 Return to propagation/backward cost. The full-record single-iteration profile
 measured backward at `16.93 s` (`59.86%`) and forward at `9.83 s` (`34.78%`).
-The next step is a full-record acoustic backward operator profile or bounded
-checkpoint/rematerialization diagnostic before changing the kernel.
+The full-record backward operator profile confirms the earlier small-profile
+conclusion: slice/copy/zero/allocation autograd overhead dominates. Stop
+repeating backward profile runs. The next step is a bounded feasibility decision
+for acoustic timestep state-update rewrite, or closing acoustic kernel
+micro-optimization if that risk is too high.
 ```
