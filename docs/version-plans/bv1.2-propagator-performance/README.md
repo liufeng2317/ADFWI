@@ -73,8 +73,12 @@ granularity before making another kernel change.
 Default backward operator profile:
 
 - `12-acoustic-default-backward-operator-profile.md`
+- `13-acoustic-timestep-update-microbenchmark.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
-- Next mainline task is a bounded timestep-update microbenchmark, not a direct
-  kernel rewrite.
+- The first bounded update-style microbenchmark rejected `torch.cat`
+  functional reconstruction: it preserved output and gradients exactly, but was
+  slower than the current sliced-assignment style in stable NPU timings.
+- Next mainline task should be selected explicitly from the higher-risk Phase B
+  options; do not attempt a full kernel rewrite from this candidate.
