@@ -89,7 +89,15 @@ class Timer:
         return value, time.perf_counter() - start
 
 
-def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool, mode: str, checkpoint_segments: int = 1):
+def experimental_forward_batch(
+    propagator,
+    batch_range,
+    *,
+    save_forward_wavefield: bool,
+    mode: str,
+    checkpoint_segments: int = 1,
+    remat_divergence_cache_stride: int = 0,
+):
     propagator.model.forward()
     shot_index = batch_range.shot_index
     if mode == "experimental":
@@ -107,6 +115,7 @@ def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefiel
     }
     if mode == "experimental-remat-chunk":
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
+        forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
     record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
@@ -180,6 +189,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     save_forward_wavefield=False,
                     mode=mode,
                     checkpoint_segments=args.checkpoint_segments,
+                    remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                 )
             )
         else:
@@ -374,6 +384,15 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         choices=("observed-pressure", "synthetic-energy"),
         default="observed-pressure",
         help="Use normal observed-data pressure loss or direct synthetic energy loss.",
+    )
+    parser.add_argument(
+        "--remat-divergence-cache-stride",
+        type=int,
+        default=0,
+        help=(
+            "For experimental-remat-chunk only: 0 recomputes all divergence terms; "
+            "1 caches every step; N caches every Nth step."
+        ),
     )
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,

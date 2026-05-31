@@ -310,6 +310,7 @@ Latest records:
 - `55-acoustic-rematerialized-custom-checkpoint-plan.md`
 - `56-acoustic-rematerialized-custom-checkpoint-gate.md`
 - `57-acoustic-remat-div-cache-memory-tradeoff.md`
+- `58-acoustic-remat-div-cache-stride-sweep.md`
 
 Decision:
 
@@ -491,4 +492,13 @@ fullshape total speedup drops from `1.229x` to `1.002x`. The next useful
 experiment is not more broad validation; it is a chunk-length/memory-speed sweep
 for the rematerialized path, or a lower-level implementation if Python-level
 state management cannot keep both memory and speed.
+
+The first div-cache stride sweep found a practical experimental compromise.
+Compared with production checkpoint, `stride=2` gives `2.25x` peak memory,
+`1.149x` total speedup, and `1.227x` backward speedup while preserving exact
+receiver outputs/loss and the same raw `vp.grad` max abs diff (`2.74e-7`).
+`stride=4` reaches `1.98x` memory but loses nearly all speedup (`1.001x` total).
+For this Python-level rematerialized prototype, `divergence_cache_stride=2` is
+the current recommended experimental point. The next gate should be short real
+FWI or full-record validation before any production-facing API.
 ```

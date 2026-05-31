@@ -414,6 +414,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         rcv_z,
         free_surface_start: int,
         use_free_surface: bool,
+        divergence_cache_stride: int,
     ):
         records_p = []
         records_u = []
@@ -444,6 +445,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
 
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
+        ctx.divergence_cache_stride = divergence_cache_stride
         ctx.save_for_backward(
             p_start,
             u_start,
@@ -481,12 +483,15 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         p_states = []
         u_states = []
         w_states = []
+        div_p_values = []
+        div_u_values = []
+        div_w_values = []
 
         for step in range(source_v.shape[0]):
             p_states.append(p)
             u_states.append(u)
             w_states.append(w)
-            p, u, w, _, _, _ = _step_forward_saved(
+            p, u, w, div_p, div_u, div_w = _step_forward_saved(
                 p,
                 u,
                 w,
@@ -501,6 +506,14 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 source_value=source_v[step],
                 use_free_surface=ctx.use_free_surface,
             )
+            if ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0:
+                div_p_values.append(div_p)
+                div_u_values.append(div_u)
+                div_w_values.append(div_w)
+            else:
+                div_p_values.append(None)
+                div_u_values.append(None)
+                div_w_values.append(None)
 
         grad_kappa1 = torch.zeros_like(kappa1)
         grad_alpha1 = torch.zeros_like(alpha1)
@@ -512,18 +525,23 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
             grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
             grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
-            div_p, div_u, div_w = _step_divergences_from_state(
-                p_states[step],
-                u_states[step],
-                w_states[step],
-                kappa1,
-                alpha1,
-                free_surface_start=ctx.free_surface_start,
-                source_x=source_x,
-                source_z=source_z,
-                source_value=source_v[step],
-                use_free_surface=ctx.use_free_surface,
-            )
+            if div_p_values[step] is None:
+                div_p, div_u, div_w = _step_divergences_from_state(
+                    p_states[step],
+                    u_states[step],
+                    w_states[step],
+                    kappa1,
+                    alpha1,
+                    free_surface_start=ctx.free_surface_start,
+                    source_x=source_x,
+                    source_z=source_z,
+                    source_value=source_v[step],
+                    use_free_surface=ctx.use_free_surface,
+                )
+            else:
+                div_p = div_p_values[step]
+                div_u = div_u_values[step]
+                div_w = div_w_values[step]
             (
                 grad_p,
                 grad_u,
@@ -566,6 +584,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -702,6 +721,7 @@ def rematerialized_custom_chunk_forward_kernel(
     *,
     checkpoint_segments: int = 1,
     save_forward_wavefield: bool = False,
+    divergence_cache_stride: int = 0,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
@@ -715,6 +735,8 @@ def rematerialized_custom_chunk_forward_kernel(
         raise ValueError("checkpoint_segments must be positive")
     if save_forward_wavefield:
         raise ValueError("rematerialized custom chunk acoustic forward does not support save_forward_wavefield=True")
+    if divergence_cache_stride < 0:
+        raise ValueError("divergence_cache_stride must be non-negative")
     if src_v.shape != (src_n, nt):
         raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
     if dx <= 0 or dz <= 0:
@@ -767,6 +789,7 @@ def rematerialized_custom_chunk_forward_kernel(
             rcv_z + nabc,
             free_surface_start,
             free_surface,
+            divergence_cache_stride,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
