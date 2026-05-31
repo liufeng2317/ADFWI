@@ -74,11 +74,15 @@ Default backward operator profile:
 
 - `12-acoustic-default-backward-operator-profile.md`
 - `13-acoustic-timestep-update-microbenchmark.md`
+- `14-acoustic-checkpoint-segment-sweep.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
 - The first bounded update-style microbenchmark rejected `torch.cat`
   functional reconstruction: it preserved output and gradients exactly, but was
   slower than the current sliced-assignment style in stable NPU timings.
+- Checkpoint segment sweep shows `checkpoint_segments=1` remains fastest when
+  memory is sufficient; segmenting helps memory control but increases backward
+  recomputation cost and total time for the measured NPU case.
 - Next mainline task should be selected explicitly from the higher-risk Phase B
-  options; do not attempt a full kernel rewrite from this candidate.
+  options, or acoustic default-path optimization should pause.
