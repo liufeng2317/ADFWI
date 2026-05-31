@@ -306,6 +306,7 @@ Latest records:
 - `51-acoustic-segmented-custom-chunk-5iter-fwi.md`
 - `52-acoustic-custom-chunk-memory-profile.md`
 - `53-acoustic-custom-chunk-full-record-validation.md`
+- `54-acoustic-custom-chunk-api-contract.md`
 
 Decision:
 
@@ -456,4 +457,11 @@ keeps receiver outputs/loss exact and raw `vp.grad` max abs diff at
 opt-in high-memory speed mode. Do not make it default. The next task is to
 formalize this API contract and then either stop this line or open a separate
 true-rematerialization design.
+
+The API contract is now formalized in the acoustic FWI public entry point:
+`use_custom_chunk_backward=False` remains the default, while expert users may
+opt in with `save_forward_wavefield=False`. The FWI layer and propagator layer
+both reject `use_custom_chunk_backward=True` with `save_forward_wavefield=True`
+so the path cannot be confused with the default forward-wavefield output
+contract. This is a wiring/API change only; no default kernel behavior changes.
 ```

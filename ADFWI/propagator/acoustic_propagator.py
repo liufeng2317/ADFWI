@@ -134,9 +134,9 @@ class AcousticPropagator(torch.nn.Module):
         -----------
         model (Optional[AbstractModel]) : Model to use for simulation, defaults to the instance's model
         shot_index (Optional[int])       : Index of the shot to simulate
-        checkpoint_segments (int)        : Number of segments for checkpointing to save memory
+        checkpoint_segments (int)        : Number of segments for checkpointing to save memory in the default path
         save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
-        use_custom_chunk_backward (bool) : Opt into the guarded custom-chunk backward path
+        use_custom_chunk_backward (bool) : Expert opt-in high-memory custom-chunk backward path. This improves backward speed on measured acoustic FWI cases, but it is not PyTorch checkpoint rematerialization and does not preserve checkpoint memory savings.
 
         Returns:
         --------
@@ -151,6 +151,9 @@ class AcousticPropagator(torch.nn.Module):
         src_z = self.src_z[shot_index] if shot_index is not None else self.src_z
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
+
+        if use_custom_chunk_backward and save_forward_wavefield:
+            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
 
         kernel = custom_chunk_forward_kernel if use_custom_chunk_backward else forward_kernel
         
