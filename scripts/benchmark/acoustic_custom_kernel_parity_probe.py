@@ -129,39 +129,29 @@ def run_custom(case: Dict[str, torch.Tensor], args: argparse.Namespace, backend)
     timer = Timer(backend)
 
     def forward():
-        records = []
-        for index in range(args.shots):
-            one_source = slice(index, index + 1)
-            records.append(
-                experimental_forward_kernel(
-                    args.nx,
-                    args.nz,
-                    args.dx,
-                    args.dz,
-                    args.nt,
-                    args.dt,
-                    args.nabc,
-                    args.free_surface,
-                    case["src_x"][one_source],
-                    case["src_z"][one_source],
-                    1,
-                    case["src_v"][one_source],
-                    case["rcv_x"],
-                    case["rcv_z"],
-                    args.receivers,
-                    case["damp"],
-                    case["v"],
-                    case["rho"],
-                    save_forward_wavefield=False,
-                    device=backend.device,
-                    dtype=backend.dtype,
-                )
-            )
-        record = {
-            "p": torch.cat([item["p"] for item in records], dim=0),
-            "u": torch.cat([item["u"] for item in records], dim=0),
-            "w": torch.cat([item["w"] for item in records], dim=0),
-        }
+        record = experimental_forward_kernel(
+            args.nx,
+            args.nz,
+            args.dx,
+            args.dz,
+            args.nt,
+            args.dt,
+            args.nabc,
+            args.free_surface,
+            case["src_x"],
+            case["src_z"],
+            args.shots,
+            case["src_v"],
+            case["rcv_x"],
+            case["rcv_z"],
+            args.receivers,
+            case["damp"],
+            case["v"],
+            case["rho"],
+            save_forward_wavefield=False,
+            device=backend.device,
+            dtype=backend.dtype,
+        )
         return record["p"], record["u"], record["w"]
 
     outputs, forward_seconds = timer.measure(forward)

@@ -102,6 +102,7 @@ Default backward operator profile:
 - `39-acoustic-observed-scale-local-recurrence.md`
 - `40-acoustic-custom-backward-view-alias-fix.md`
 - `41-acoustic-production-interface-parity.md`
+- `42-acoustic-batch-source-custom-prototype.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -224,3 +225,9 @@ Default backward operator profile:
   still slower (`0.338x` total) because it is a Python-loop prototype, so the
   next task is implementation design rather than immediate production
   replacement.
+- The benchmark-only custom prototype now supports batched source execution
+  instead of looping over sources in Python. Reduced validation FWI-style parity
+  still preserves outputs/loss exactly and raw `vp.grad` max abs diff
+  `2.89e-7`; backward improves by `1.34x` and total measured iteration improves
+  by `1.04x`, while forward remains slower. This is the first positive
+  end-to-end custom-backward signal, but still not a production implementation.

@@ -133,7 +133,11 @@ def timestep_reference_with_features(
     )
     p_new[:, zp, xp] = (1.0 - kappa1[zp, xp]) * p[:, zp, xp] - alpha1[zp, xp] * div_p
     if use_source:
-        p_new[:, source_z, source_x] = p_new[:, source_z, source_x] + source_value
+        if torch.is_tensor(source_x):
+            source_index = torch.arange(p_new.shape[0], device=p_new.device)
+            p_new[source_index, source_z, source_x] = p_new[source_index, source_z, source_x] + source_value
+        else:
+            p_new[:, source_z, source_x] = p_new[:, source_z, source_x] + source_value
     if use_free_surface:
         p_new[:, free_surface_start - 1, :] = -p_new[:, free_surface_start + 1, :]
 

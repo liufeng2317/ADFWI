@@ -42,18 +42,18 @@ def experimental_forward_kernel(
 ) -> Dict[str, torch.Tensor]:
     """Run the experimental custom-gradient acoustic recurrence.
 
-    Limitations are explicit by design: the path currently supports the tiny
+    Limitations are explicit by design: the path currently supports the
     benchmark contract used by the parity harness, not the full public kernel
     surface.
     """
     if dx <= 0 or dz <= 0:
         raise ValueError("dx and dz must be positive")
-    if src_n != 1:
-        raise ValueError("experimental_forward_kernel currently supports src_n=1 only")
-    if src_x.numel() != 1 or src_z.numel() != 1:
-        raise ValueError("experimental_forward_kernel currently supports one source location")
-    if src_v.shape != (1, nt):
-        raise ValueError(f"expected src_v shape (1, {nt}), got {tuple(src_v.shape)}")
+    if src_n <= 0:
+        raise ValueError("src_n must be positive")
+    if src_x.numel() != src_n or src_z.numel() != src_n:
+        raise ValueError("src_x and src_z must contain one location per source")
+    if src_v.shape != (src_n, nt):
+        raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
     if save_forward_wavefield:
         raise ValueError("experimental_forward_kernel does not yet support forward wavefield summaries")
 
@@ -81,8 +81,8 @@ def experimental_forward_kernel(
         * dt
     )
 
-    src_x_pml = int((src_x[0] + nabc).detach().cpu().item())
-    src_z_pml = int((src_z[0] + nabc).detach().cpu().item())
+    src_x_pml = src_x + nabc
+    src_z_pml = src_z + nabc
     rcv_x_pml = rcv_x + nabc
     rcv_z_pml = rcv_z + nabc
     records_p = []

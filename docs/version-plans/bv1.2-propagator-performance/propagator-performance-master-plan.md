@@ -225,7 +225,11 @@ diff, but the custom path remains benchmark-only until a production-interface
 finite-gradient parity gate passes. The first reduced validation
 production-interface parity gate preserves outputs/loss exactly and keeps raw
 `vp.grad` max abs diff at `2.90e-7`, but the candidate is slower because it is
-still a Python-loop prototype.
+still a Python-loop prototype. After adding batched source execution to the
+benchmark-only prototype, reduced validation FWI-style parity keeps raw
+`vp.grad` max abs diff at `2.89e-7`, improves backward by `1.34x`, and improves
+total measured iteration by `1.04x`; the next step is production-facing design,
+not more formula debugging.
 ```
 
 ## Stop Criteria

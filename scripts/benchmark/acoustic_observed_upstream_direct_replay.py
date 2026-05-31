@@ -103,46 +103,33 @@ def run_production_direct(fwi, args: argparse.Namespace):
 
 
 def run_experimental_direct(fwi, args: argparse.Namespace):
-    torch = sys.modules["torch"]
     propagator = fwi.propagator
     batch_range = select_first_batch(propagator, args)
+    shot_index = batch_range.shot_index
     propagator.model.forward()
-    records = []
-    for index in batch_range.shot_index:
-        one_source = slice(int(index), int(index) + 1)
-        records.append(
-            experimental_forward_kernel(
-                propagator.nx,
-                propagator.nz,
-                propagator.dx,
-                propagator.dz,
-                propagator.nt,
-                propagator.dt,
-                propagator.nabc,
-                propagator.free_surface,
-                propagator.src_x[one_source],
-                propagator.src_z[one_source],
-                1,
-                propagator.wavelet[one_source],
-                propagator.rcv_x,
-                propagator.rcv_z,
-                propagator.rcv_n,
-                propagator.damp,
-                propagator.model.vp,
-                propagator.model.rho,
-                save_forward_wavefield=False,
-                device=propagator.device,
-                dtype=propagator.dtype,
-            )
-        )
-    return {
-        "p": torch.cat([record["p"] for record in records], dim=0),
-        "u": torch.cat([record["u"] for record in records], dim=0),
-        "w": torch.cat([record["w"] for record in records], dim=0),
-        "forward_wavefield_p": torch.zeros((propagator.nz, propagator.nx), dtype=propagator.dtype, device=propagator.device),
-        "forward_wavefield_u": torch.zeros((propagator.nz, propagator.nx), dtype=propagator.dtype, device=propagator.device),
-        "forward_wavefield_w": torch.zeros((propagator.nz, propagator.nx), dtype=propagator.dtype, device=propagator.device),
-    }
+    return experimental_forward_kernel(
+        propagator.nx,
+        propagator.nz,
+        propagator.dx,
+        propagator.dz,
+        propagator.nt,
+        propagator.dt,
+        propagator.nabc,
+        propagator.free_surface,
+        propagator.src_x[shot_index],
+        propagator.src_z[shot_index],
+        len(shot_index),
+        propagator.wavelet[shot_index],
+        propagator.rcv_x,
+        propagator.rcv_z,
+        propagator.rcv_n,
+        propagator.damp,
+        propagator.model.vp,
+        propagator.model.rho,
+        save_forward_wavefield=False,
+        device=propagator.device,
+        dtype=propagator.dtype,
+    )
 
 
 def external_receiver_loss(record_waveform: Dict[str, Any], upstream: Dict[str, Any]):
