@@ -297,6 +297,7 @@ Latest records:
 - `42-acoustic-batch-source-custom-prototype.md`
 - `43-acoustic-production-facing-design.md`
 - `44-acoustic-custom-chunk-forward-prototype.md`
+- `45-acoustic-production-interface-chunk-parity.md`
 
 Decision:
 
@@ -387,6 +388,10 @@ The active route is now chunk-level custom autograd, not more timestep-level
 debugging. The first chunk-level benchmark prototype preserved outputs/loss
 exactly, passed the 300-step CPU float64 gradient gate with `1.82e-11` max abs
 diff, and measured `1.80x` total speedup on a 300-step NPU float32 probe. The
-next task is a production-interface chunk parity harness on validation geometry,
-still outside `ADFWI/propagator/acoustic_kernels.py`.
+first production-interface chunk gate passed with synthetic-energy loss:
+outputs/loss exact, raw `vp.grad` max abs diff `3.55e-15`, and total speedup
+`1.58x`. The observed-pressure reduced gate is currently invalid because
+production itself produces non-finite raw gradients in that reduced shape. The
+next task is a finite observed-pressure production baseline, then the same
+chunk comparison.
 ```

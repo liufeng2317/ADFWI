@@ -22,7 +22,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.benchmark import acoustic_fwi_iteration_profile as profile
-from scripts.benchmark.acoustic_experimental_forward import experimental_forward_kernel
+from scripts.benchmark.acoustic_experimental_forward import (
+    experimental_chunk_forward_kernel,
+    experimental_forward_kernel,
+)
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord
 
 
@@ -52,10 +55,16 @@ class Timer:
         return value, time.perf_counter() - start
 
 
-def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool):
+def experimental_forward_batch(propagator, batch_range, *, save_forward_wavefield: bool, mode: str):
     propagator.model.forward()
     shot_index = batch_range.shot_index
-    record_waveform = experimental_forward_kernel(
+    if mode == "experimental":
+        forward_kernel = experimental_forward_kernel
+    elif mode == "experimental-chunk":
+        forward_kernel = experimental_chunk_forward_kernel
+    else:
+        raise ValueError(f"unknown experimental mode: {mode}")
+    record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
         propagator.dx,
@@ -109,6 +118,16 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     fwi.propagator,
                     batch_range,
                     save_forward_wavefield=False,
+                    mode=mode,
+                )
+            )
+        elif mode == "experimental-chunk":
+            forward_batch, elapsed = timer.measure(
+                lambda batch_range=batch_range: experimental_forward_batch(
+                    fwi.propagator,
+                    batch_range,
+                    save_forward_wavefield=False,
+                    mode=mode,
                 )
             )
         else:
@@ -281,9 +300,9 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--candidate-mode",
-        choices=("experimental", "production"),
+        choices=("experimental", "experimental-chunk", "production"),
         default="experimental",
-        help="Compare production against the experimental path or a second production run.",
+        help="Compare production against an experimental path or a second production run.",
     )
     parser.add_argument(
         "--loss-mode",

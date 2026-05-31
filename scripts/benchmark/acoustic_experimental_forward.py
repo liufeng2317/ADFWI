@@ -13,6 +13,7 @@ from typing import Dict
 import torch
 
 from ADFWI.propagator.acoustic_kernels import pad_torchSingle
+from scripts.benchmark.acoustic_custom_chunk_forward import CustomChunkForward
 from scripts.benchmark.acoustic_custom_multistep_update_probe import timestep_custom_with_features
 
 
@@ -114,6 +115,100 @@ def experimental_forward_kernel(
         "p": torch.stack(records_p, dim=1),
         "u": torch.stack(records_u, dim=1),
         "w": torch.stack(records_w, dim=1),
+        "forward_wavefield_p": torch.zeros((nz, nx), dtype=dtype, device=device),
+        "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
+        "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
+    }
+
+
+def experimental_chunk_forward_kernel(
+    nx: int,
+    nz: int,
+    dx: float,
+    dz: float,
+    nt: int,
+    dt: float,
+    nabc: int,
+    free_surface: bool,
+    src_x: torch.Tensor,
+    src_z: torch.Tensor,
+    src_n: int,
+    src_v: torch.Tensor,
+    rcv_x: torch.Tensor,
+    rcv_z: torch.Tensor,
+    rcv_n: int,
+    damp: torch.Tensor,
+    v: torch.Tensor,
+    rho: torch.Tensor,
+    *,
+    save_forward_wavefield: bool = False,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32,
+) -> Dict[str, torch.Tensor]:
+    """Run the chunk-level custom-gradient acoustic recurrence.
+
+    This benchmark-only path mirrors the production ``forward_kernel`` input
+    surface closely enough for validation harnesses, but it intentionally keeps
+    a narrow contract: full wavefield summaries are not implemented because the
+    active custom-backward question is receiver-loss gradient parity.
+    """
+    if dx <= 0 or dz <= 0:
+        raise ValueError("dx and dz must be positive")
+    if src_n <= 0:
+        raise ValueError("src_n must be positive")
+    if src_x.numel() != src_n or src_z.numel() != src_n:
+        raise ValueError("src_x and src_z must contain one location per source")
+    if src_v.shape != (src_n, nt):
+        raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
+    if save_forward_wavefield:
+        raise ValueError("experimental_chunk_forward_kernel does not yet support forward wavefield summaries")
+
+    c = pad_torchSingle(v, nabc, nz, nx, src_n, device=device)
+    den = pad_torchSingle(rho, nabc, nz, nx, src_n, device=device)
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + 2 * nabc
+    p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
+    u = torch.zeros((src_n, nz_pml, nx_pml - 1), dtype=dtype, device=device)
+    w = torch.zeros((src_n, nz_pml - 1, nx_pml), dtype=dtype, device=device)
+    free_surface_start = nabc if free_surface else 1
+
+    alpha1 = den * c * c * dt / dz
+    kappa1 = damp * dt
+    alpha2 = dt / (den * dz)
+    kappa2 = torch.zeros_like(damp, device=device)
+    kappa2[:, 1 : nx_pml - 2] = 0.5 * (damp[:, 1 : nx_pml - 2] + damp[:, 2 : nx_pml - 1]) * dt
+    kappa3 = torch.zeros_like(damp, device=device)
+    kappa3[free_surface_start : nz_pml - 2, :] = (
+        0.5
+        * (
+            damp[free_surface_start : nz_pml - 2, :]
+            + damp[free_surface_start + 1 : nz_pml - 1, :]
+        )
+        * dt
+    )
+
+    p, u, w, rcv_p, rcv_u, rcv_w = CustomChunkForward.apply(
+        p,
+        u,
+        w,
+        kappa1,
+        alpha1,
+        kappa2,
+        alpha2,
+        kappa3,
+        src_x + nabc,
+        src_z + nabc,
+        (dt * src_v).transpose(0, 1).contiguous(),
+        rcv_x + nabc,
+        rcv_z + nabc,
+        free_surface_start,
+        free_surface,
+    )
+
+    return {
+        "p": rcv_p,
+        "u": rcv_u,
+        "w": rcv_w,
         "forward_wavefield_p": torch.zeros((nz, nx), dtype=dtype, device=device),
         "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
         "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
