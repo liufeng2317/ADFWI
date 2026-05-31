@@ -84,6 +84,69 @@ def _step_forward_saved(
     return p_new, u_new, w_new, div_p, div_u, div_w
 
 
+def _step_divergences_from_state(
+    p,
+    u,
+    w,
+    kappa1,
+    alpha1,
+    *,
+    free_surface_start: int,
+    source_x,
+    source_z,
+    source_value,
+    use_free_surface: bool,
+):
+    """Recompute one step's divergence terms without saving next u/w states."""
+    c1 = 9.0 / 8.0
+    c2 = -1.0 / 24.0
+    nz_pml = p.shape[1]
+    nx_pml = p.shape[2]
+
+    zp = slice(free_surface_start + 1, nz_pml - 2)
+    xp = slice(2, nx_pml - 2)
+    div_p = (
+        c1
+        * (
+            u[:, zp, 2 : nx_pml - 2]
+            - u[:, zp, 1 : nx_pml - 3]
+            + w[:, zp, 2 : nx_pml - 2]
+            - w[:, free_surface_start : nz_pml - 3, 2 : nx_pml - 2]
+        )
+        + c2
+        * (
+            u[:, zp, 3 : nx_pml - 1]
+            - u[:, zp, 0 : nx_pml - 4]
+            + w[:, free_surface_start + 2 : nz_pml - 1, 2 : nx_pml - 2]
+            - w[:, free_surface_start - 1 : nz_pml - 4, 2 : nx_pml - 2]
+        )
+    )
+
+    p_new = p.clone()
+    source_index = torch.arange(p_new.shape[0], device=p_new.device)
+    p_new[:, zp, xp] = (1.0 - kappa1[zp, xp]) * p[:, zp, xp] - alpha1[zp, xp] * div_p
+    p_new[source_index, source_z, source_x] = p_new[source_index, source_z, source_x] + source_value
+    if use_free_surface:
+        p_new[:, free_surface_start - 1, :] = -p_new[:, free_surface_start + 1, :]
+
+    zu = slice(free_surface_start, nz_pml - 1)
+    div_u = (
+        c1 * (p_new[:, zu, 2 : nx_pml - 1] - p_new[:, zu, 1 : nx_pml - 2])
+        + c2 * (p_new[:, zu, 3:nx_pml] - p_new[:, zu, 0 : nx_pml - 3])
+    )
+    xw = slice(1, nx_pml - 1)
+    zw = slice(free_surface_start, nz_pml - 2)
+    div_w = (
+        c1 * (p_new[:, free_surface_start + 1 : nz_pml - 1, xw] - p_new[:, zw, xw])
+        + c2
+        * (
+            p_new[:, free_surface_start + 2 : nz_pml, xw]
+            - p_new[:, free_surface_start - 1 : nz_pml - 3, xw]
+        )
+    )
+    return div_p, div_u, div_w
+
+
 def _step_backward_saved(
     p,
     u,
@@ -418,15 +481,12 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         p_states = []
         u_states = []
         w_states = []
-        div_p_values = []
-        div_u_values = []
-        div_w_values = []
 
         for step in range(source_v.shape[0]):
             p_states.append(p)
             u_states.append(u)
             w_states.append(w)
-            p, u, w, div_p, div_u, div_w = _step_forward_saved(
+            p, u, w, _, _, _ = _step_forward_saved(
                 p,
                 u,
                 w,
@@ -441,9 +501,6 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 source_value=source_v[step],
                 use_free_surface=ctx.use_free_surface,
             )
-            div_p_values.append(div_p)
-            div_u_values.append(div_u)
-            div_w_values.append(div_w)
 
         grad_kappa1 = torch.zeros_like(kappa1)
         grad_alpha1 = torch.zeros_like(alpha1)
@@ -455,6 +512,18 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
             grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
             grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+            div_p, div_u, div_w = _step_divergences_from_state(
+                p_states[step],
+                u_states[step],
+                w_states[step],
+                kappa1,
+                alpha1,
+                free_surface_start=ctx.free_surface_start,
+                source_x=source_x,
+                source_z=source_z,
+                source_value=source_v[step],
+                use_free_surface=ctx.use_free_surface,
+            )
             (
                 grad_p,
                 grad_u,
@@ -473,9 +542,9 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 kappa2,
                 alpha2,
                 kappa3,
-                div_p_values[step],
-                div_u_values[step],
-                div_w_values[step],
+                div_p,
+                div_u,
+                div_w,
                 grad_p,
                 grad_u,
                 grad_w,

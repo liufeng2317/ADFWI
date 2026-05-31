@@ -309,6 +309,7 @@ Latest records:
 - `54-acoustic-custom-chunk-api-contract.md`
 - `55-acoustic-rematerialized-custom-checkpoint-plan.md`
 - `56-acoustic-rematerialized-custom-checkpoint-gate.md`
+- `57-acoustic-remat-div-cache-memory-tradeoff.md`
 
 Decision:
 
@@ -481,4 +482,13 @@ gate, receiver outputs/loss match exactly and raw `vp.grad` max abs diff is
 better than the high-memory custom chunk path (`28.92x`), but still not close
 enough for default integration. Continue only with memory-focused rematerialized
 backward work, not another speed-only benchmark.
+
+The memory-focused div-cache experiment explains the `2.77x` ratio. Removing
+persistent `div_p/div_u/div_w` lists from rematerialized backward lowers the
+fullshape peak ratio from `2.77x` to `1.72x` while preserving receiver
+outputs/loss and raw `vp.grad` max abs diff (`2.74e-7`). The cost is speed:
+fullshape total speedup drops from `1.229x` to `1.002x`. The next useful
+experiment is not more broad validation; it is a chunk-length/memory-speed sweep
+for the rematerialized path, or a lower-level implementation if Python-level
+state management cannot keep both memory and speed.
 ```
