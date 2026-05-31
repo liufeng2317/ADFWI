@@ -303,7 +303,20 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                     device, dtype,
                 )
         else:
-            # Step forward with checkpointing for segmented memory savings.
+            # Step forward with PyTorch checkpointing for segmented memory savings.
+            #
+            # Performance-optimization route:
+            # 1. Keep this production checkpoint contract as the numerical
+            #    reference: receiver outputs, loss, and raw vp.grad must match.
+            # 2. Optimize only measured replay overhead in or around
+            #    step_forward, such as invariant tensor setup, repeated small
+            #    allocations, and source/receiver index preparation.
+            # 3. Do not replace this with the experimental custom-autograd or
+            #    boundary-saving kernels without a separate full parity gate;
+            #    those paths have different memory/replay contracts.
+            # 4. Any accepted edit here must be tested with checkpoint_segments
+            #    > 1 and must compare forward, backward, raw gradient, and peak
+            #    memory against this current production path.
             p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
                 checkpoint(step_forward,
                            nx, nz, dx, dz, dt,

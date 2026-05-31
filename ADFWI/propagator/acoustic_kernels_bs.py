@@ -1,8 +1,29 @@
 ###########################################################################################
-#  !!! Important
-# Under development and testing: reducing memory footprint using boundary-saving methods
-# [1] P. Yang, J. Gao, and B. Wang, RTM using effective boundary saving: A staggered grid GPU implementation, Comput. Geosci., vol. 68, pp. 64–72, Jul. 2014, doi: 10.1016/j.cageo.2014.04.004.
-# [2] Wang, S., Jiang, Y., Song, P., Tan, J., Liu, Z. & He, B., 2023. Memory optimization in RNN-based full waveform inversion using boundary saving wavefield reconstruction. IEEE Trans. Geosci. Remote Sens., 61, 1–12. doi:10.1109/TGRS.2023.3317529
+# Boundary-saving acoustic kernel prototype.
+#
+# This file is a research/experimental path for reducing memory with boundary
+# saving and wavefield reconstruction. It is not the current production
+# acoustic propagator and must not be promoted as a replacement for
+# acoustic_kernels.py without a separate validation plan.
+#
+# Current bv1.2-propagator-performance route:
+# 1. Keep acoustic_kernels.py + PyTorch checkpoint as the production reference.
+# 2. Use this file only to study boundary-saving feasibility and memory shape.
+# 3. Before any integration, compare receiver outputs, loss, raw vp.grad,
+#    processed gradients, peak memory, and short FWI loss trajectory against
+#    the production checkpoint path.
+# 4. Watch for nonlocal autograd state in Checkpoint_TimeStep.wavefields and
+#    Checkpoint_TimeStep.counts; these class globals are convenient for the
+#    prototype but are unsafe for production concurrency/reentrancy.
+#
+# References:
+# [1] P. Yang, J. Gao, and B. Wang, RTM using effective boundary saving: A
+#     staggered grid GPU implementation, Comput. Geosci., vol. 68, pp. 64-72,
+#     Jul. 2014, doi:10.1016/j.cageo.2014.04.004.
+# [2] Wang, S., Jiang, Y., Song, P., Tan, J., Liu, Z. & He, B., 2023. Memory
+#     optimization in RNN-based full waveform inversion using boundary saving
+#     wavefield reconstruction. IEEE Trans. Geosci. Remote Sens., 61, 1-12,
+#     doi:10.1109/TGRS.2023.3317529.
 ###########################################################################################
 import torch
 torch.autograd.set_detect_anomaly(True)
