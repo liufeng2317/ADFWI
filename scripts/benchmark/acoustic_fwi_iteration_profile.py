@@ -85,6 +85,7 @@ def add_arguments(parser: argparse.ArgumentParser, validation_case: str) -> None
     parser.add_argument("--generate-observed", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--use-custom-chunk-backward", action="store_true")
     parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy")
     parser.add_argument("--policy-repeat", type=int, default=1)
 
@@ -266,6 +267,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer, *, keep_tenso
                 batch_range,
                 args.checkpoint_segments,
                 save_forward_wavefield=args.save_forward_wavefield,
+                use_custom_chunk_backward=args.use_custom_chunk_backward,
             )
         )
         timings["forward"] += elapsed
@@ -397,6 +399,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
             "grad_forw_illumination": args.grad_forw_illumination,
+            "use_custom_chunk_backward": args.use_custom_chunk_backward,
             "gradient_processor": args.gradient_processor,
         },
         "setup_seconds": setup_seconds,

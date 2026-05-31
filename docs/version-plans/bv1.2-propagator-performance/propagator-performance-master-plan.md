@@ -301,6 +301,7 @@ Latest records:
 - `46-acoustic-observed-finite-chunk-gate.md`
 - `47-acoustic-chunk-forward-overhead.md`
 - `48-acoustic-production-custom-chunk-opt-in.md`
+- `49-acoustic-custom-chunk-5iter-fwi-validation.md`
 
 Decision:
 
@@ -409,4 +410,11 @@ observed-pressure production gate passes with exact receiver outputs/loss, raw
 `vp.grad` max abs diff `2.89e-7`, and total speedup `1.22x`. The next task is a
 short real FWI validation of the opt-in path before considering broader API
 exposure.
+
+The 5-iteration fullshape observed-pressure FWI validation confirms the
+single-step gain transfers to a short real loop: loss trajectories match to
+`4.88e-4` absolute final-loss difference, all raw/processed gradients and
+post-step models are finite, and total compute improves `124.33 s -> 102.32 s`
+(`1.215x`). The gain is from backward (`1.329x` mean speedup), while forward is
+roughly neutral.
 ```
