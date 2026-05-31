@@ -60,6 +60,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--generate-observed", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--gradient-processor", choices=("legacy", "torch"), default="legacy")
     parser.add_argument("--policy-repeat", type=int, default=1)
 
 
@@ -146,7 +147,7 @@ def build_fwi_state(rt: Dict[str, Any], args: argparse.Namespace, backend):
 
     from ADFWI.fwi import AcousticFWI
     from ADFWI.fwi.misfit import Misfit_waveform_L2
-    from ADFWI.propagator import GradProcessor
+    from ADFWI.propagator import GradProcessor, TorchGradProcessor
 
     model, vp_init = build_initial_model(rt, args)
     survey = forward_modeling.build_survey(rt, args)
@@ -164,7 +165,8 @@ def build_fwi_state(rt: Dict[str, Any], args: argparse.Namespace, backend):
     )
     grad_mask = np.ones_like(vp_init)
     grad_mask[: args.grad_mute_top, :] = 0
-    gradient_processor = GradProcessor(
+    processor_cls = TorchGradProcessor if args.gradient_processor == "torch" else GradProcessor
+    gradient_processor = processor_cls(
         grad_mask=grad_mask,
         forw_illumination=args.grad_forw_illumination,
     )
@@ -370,6 +372,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
             "grad_forw_illumination": args.grad_forw_illumination,
+            "gradient_processor": args.gradient_processor,
         },
         "setup_seconds": setup_seconds,
         "observed_data": observed_report,

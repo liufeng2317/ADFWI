@@ -1,0 +1,71 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 15020544,
+    "name": "npu",
+    "reason": null
+  },
+  "case": "marmousi2_acoustic_reduced",
+  "iterations": [
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 3,
+          "loss": 6375.7919921875
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 67952.5546875,
+      "loss": 6375.7919921875,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.8779116272926331,
+      "timing_fraction": {
+        "backward": 0.6738034604612971,
+        "forward": 0.27073261735488635,
+        "gradient_processing": 0.024935228784040992,
+        "loss_evaluation": 0.001418834165765291,
+        "optimizer_step": 0.02906655366712576,
+        "wavefield_accumulation": 1.0358758556438937e-05,
+        "zero_grad": 3.294680832803532e-05
+      },
+      "timing_total": 25.837588807567954,
+      "timings": {
+        "backward": 17.409456748515368,
+        "forward": 6.995078044012189,
+        "gradient_processing": 0.6442661881446838,
+        "loss_evaluation": 0.036659253761172295,
+        "optimizer_step": 0.7510096617043018,
+        "wavefield_accumulation": 0.00026764534413814545,
+        "zero_grad": 0.000851266086101532
+      },
+      "vp_finite_after_optimizer": true
+    }
+  ],
+  "observed_data": {
+    "generated": true,
+    "path": "/tmp/adfwi_phase_d_legacy_profile/waveform/obs_data.npz",
+    "seconds": 37.26912221685052
+  },
+  "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
+  "setup_seconds": 91.8729349039495,
+  "shape": {
+    "checkpoint_segments": 1,
+    "grad_forw_illumination": true,
+    "gradient_processor": "legacy",
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "receivers": 200,
+    "save_forward_wavefield": true,
+    "shots": 3
+  },
+  "status": "ok",
+  "vp_update_norm": 1232.8828125
+}

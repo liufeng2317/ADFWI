@@ -78,6 +78,7 @@ Default backward operator profile:
 - `15-acoustic-compile-feasibility.md`
 - `16-acoustic-receiver-recording-stack-probe.md`
 - `17-acoustic-pressure-inner-state-probe.md`
+- `18-acoustic-phase-d-gradient-processor-profile.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -99,5 +100,9 @@ Default backward operator profile:
   optimization: the isolated Python reference hit autograd in-place version
   constraints before timing comparison, showing that this route is a larger
   research rewrite rather than a safe kernel edit.
-- Acoustic default-path Phase B should pause. The next productive route is
-  Phase D FWI-loop/gradient-processing profiling or Phase E elastic profiling.
+- Acoustic default-path Phase B should pause.
+- Acoustic Phase D found a useful opt-in path: `TorchGradProcessor` reduced
+  gradient-processing time in the reduced Marmousi2 profile from `0.644 s` to
+  `0.052 s`, with total single-iteration speedup `1.071x` and stable reduced
+  FWI numerical metrics. Continue with an acoustic-only short inversion
+  comparison before changing recommended validation/example settings.

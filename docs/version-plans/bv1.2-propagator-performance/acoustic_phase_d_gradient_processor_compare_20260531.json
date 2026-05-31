@@ -1,0 +1,37 @@
+{
+  "case": "marmousi2_acoustic_reduced_phase_d_gradient_processor",
+  "legacy_result_json": "/tmp/adfwi_phase_d_legacy_profile.json",
+  "numerical": {
+    "legacy_finite": true,
+    "loss_abs_diff": 0.0,
+    "processed_grad_norm_abs_diff": 0.265625,
+    "processed_grad_norm_rel_diff": 3.908977391969374e-06,
+    "raw_grad_norm_abs_diff": 0.0,
+    "torch_finite": true,
+    "vp_update_norm_abs_diff": 0.0
+  },
+  "shape": {
+    "checkpoint_segments": 1,
+    "grad_forw_illumination": true,
+    "gradient_processor": "torch",
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "receivers": 200,
+    "save_forward_wavefield": true,
+    "shots": 3
+  },
+  "timing": {
+    "gradient_processing_speedup": 12.287593709979094,
+    "legacy_backward_seconds": 17.409456748515368,
+    "legacy_forward_seconds": 6.995078044012189,
+    "legacy_gradient_processing_seconds": 0.6442661881446838,
+    "legacy_total_seconds": 25.837588807567954,
+    "torch_backward_seconds": 16.62151849269867,
+    "torch_forward_seconds": 6.686066847294569,
+    "torch_gradient_processing_seconds": 0.05243225023150444,
+    "torch_total_seconds": 24.11760327592492,
+    "total_speedup": 1.0713166027305867
+  },
+  "torch_result_json": "/tmp/adfwi_phase_d_torch_profile.json"
+}
