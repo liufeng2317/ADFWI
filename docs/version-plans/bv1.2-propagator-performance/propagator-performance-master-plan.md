@@ -250,6 +250,7 @@ Latest records:
 - `21-acoustic-full-record-gradient-processor-10iter.md`
 - `22-acoustic-full-record-iteration-profile.md`
 - `23-acoustic-full-record-backward-operator-profile.md`
+- `24-acoustic-timestep-rewrite-decision.md`
 
 Decision:
 
@@ -267,7 +268,15 @@ Return to propagation/backward cost. The full-record single-iteration profile
 measured backward at `16.93 s` (`59.86%`) and forward at `9.83 s` (`34.78%`).
 The full-record backward operator profile confirms the earlier small-profile
 conclusion: slice/copy/zero/allocation autograd overhead dominates. Stop
-repeating backward profile runs. The next step is a bounded feasibility decision
-for acoustic timestep state-update rewrite, or closing acoustic kernel
-micro-optimization if that risk is too high.
+repeating backward profile runs. The timestep rewrite decision rejects another
+small default-path rewrite in this branch because the remaining meaningful
+changes would alter the autograd representation of the recurrent wave equation.
+```
+
+Current next direction:
+
+```text
+Write an acoustic performance closeout for this branch. Future custom
+autograd/adjoint work should be a separate research route with explicit
+gradient-parity gates.
 ```

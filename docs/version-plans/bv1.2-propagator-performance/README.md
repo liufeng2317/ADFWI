@@ -84,6 +84,7 @@ Default backward operator profile:
 - `21-acoustic-full-record-gradient-processor-10iter.md`
 - `22-acoustic-full-record-iteration-profile.md`
 - `23-acoustic-full-record-backward-operator-profile.md`
+- `24-acoustic-timestep-rewrite-decision.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -129,3 +130,7 @@ Default backward operator profile:
   conclusion: backward is dominated by slice/copy/zero/allocation autograd
   overhead, not a single physical math operator. Stop repeating this profile
   and move to a timestep update feasibility decision.
+- Acoustic timestep state-update rewrite is not accepted as a small
+  optimization task. Remaining meaningful changes would alter the autograd
+  representation of the recurrent wave-equation update and should move to a
+  separate custom-autograd/adjoint research route.
