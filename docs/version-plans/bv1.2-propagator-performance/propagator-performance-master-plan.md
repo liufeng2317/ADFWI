@@ -511,4 +511,15 @@ single-component fullshape result after component-aware recompute is only
 memory-focused task is to measure and reduce stored reverse state lists
 (`p/u/w` states) while using the current `stride=2` all-component cache as the
 speed-preserving reference.
+
+The state-cache probe confirms that `p/u/w` reverse states are the dominant
+remaining memory source, but the Python-level local replay strategy loses the
+speed benefit. With divergence `stride=2`, `state_cache_stride=20` lowers peak
+memory to `0.569x` of production checkpoint, but total speed is only `0.946x`;
+`state_cache_stride=2` is close to production memory (`1.063x`) but still only
+`0.920x` total speed. Therefore do not continue stride enumeration in the
+Python custom-autograd prototype. The next effective acoustic task should
+return to production PyTorch checkpoint profiling and look for kernel-level
+invariant hoisting or replay-cost reduction that preserves the default autograd
+contract.
 ```

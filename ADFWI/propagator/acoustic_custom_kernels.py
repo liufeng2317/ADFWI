@@ -102,44 +102,6 @@ def _step_forward_saved(
     return p_new, u_new, w_new, div_p, div_u, div_w
 
 
-def _step_divergences_from_state(
-    p,
-    u,
-    w,
-    kappa1,
-    alpha1,
-    *,
-    free_surface_start: int,
-    source_x,
-    source_z,
-    source_value,
-    use_free_surface: bool,
-):
-    """Recompute one step's divergence terms without saving next u/w states."""
-    div_p = _step_div_p_from_state(
-        p,
-        u,
-        w,
-        free_surface_start=free_surface_start,
-    )
-    p_new = _step_p_new_from_div_p(
-        p,
-        kappa1,
-        alpha1,
-        div_p,
-        free_surface_start=free_surface_start,
-        source_x=source_x,
-        source_z=source_z,
-        source_value=source_value,
-        use_free_surface=use_free_surface,
-    )
-    return (
-        div_p,
-        _step_div_u_from_p_new(p_new, free_surface_start=free_surface_start),
-        _step_div_w_from_p_new(p_new, free_surface_start=free_surface_start),
-    )
-
-
 def _step_div_p_from_state(
     p,
     u,
@@ -494,6 +456,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         use_free_surface: bool,
         divergence_cache_stride: int,
         divergence_cache_components,
+        state_cache_stride: int,
     ):
         records_p = []
         records_u = []
@@ -526,6 +489,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         ctx.use_free_surface = use_free_surface
         ctx.divergence_cache_stride = divergence_cache_stride
         ctx.divergence_cache_components = _normalize_divergence_cache_components(divergence_cache_components)
+        ctx.state_cache_stride = state_cache_stride
         ctx.save_for_backward(
             p_start,
             u_start,
@@ -560,45 +524,73 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             rcv_x,
             rcv_z,
         ) = ctx.saved_tensors
-        p_states = []
-        u_states = []
-        w_states = []
-        div_p_values = []
-        div_u_values = []
-        div_w_values = []
+        if ctx.state_cache_stride <= 1:
+            p_states = []
+            u_states = []
+            w_states = []
+            div_p_values = []
+            div_u_values = []
+            div_w_values = []
 
-        for step in range(source_v.shape[0]):
-            p_states.append(p)
-            u_states.append(u)
-            w_states.append(w)
-            p, u, w, div_p, div_u, div_w = _step_forward_saved(
-                p,
-                u,
-                w,
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                free_surface_start=ctx.free_surface_start,
-                source_x=source_x,
-                source_z=source_z,
-                source_value=source_v[step],
-                use_free_surface=ctx.use_free_surface,
-            )
-            should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
-            if should_cache and "p" in ctx.divergence_cache_components:
-                div_p_values.append(div_p)
-            else:
-                div_p_values.append(None)
-            if should_cache and "u" in ctx.divergence_cache_components:
-                div_u_values.append(div_u)
-            else:
-                div_u_values.append(None)
-            if should_cache and "w" in ctx.divergence_cache_components:
-                div_w_values.append(div_w)
-            else:
-                div_w_values.append(None)
+            for step in range(source_v.shape[0]):
+                p_states.append(p)
+                u_states.append(u)
+                w_states.append(w)
+                p, u, w, div_p, div_u, div_w = _step_forward_saved(
+                    p,
+                    u,
+                    w,
+                    kappa1,
+                    alpha1,
+                    kappa2,
+                    alpha2,
+                    kappa3,
+                    free_surface_start=ctx.free_surface_start,
+                    source_x=source_x,
+                    source_z=source_z,
+                    source_value=source_v[step],
+                    use_free_surface=ctx.use_free_surface,
+                )
+                should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
+                if should_cache and "p" in ctx.divergence_cache_components:
+                    div_p_values.append(div_p)
+                else:
+                    div_p_values.append(None)
+                if should_cache and "u" in ctx.divergence_cache_components:
+                    div_u_values.append(div_u)
+                else:
+                    div_u_values.append(None)
+                if should_cache and "w" in ctx.divergence_cache_components:
+                    div_w_values.append(div_w)
+                else:
+                    div_w_values.append(None)
+        else:
+            boundary_steps = []
+            boundary_p_states = []
+            boundary_u_states = []
+            boundary_w_states = []
+
+            for step in range(source_v.shape[0]):
+                if step % ctx.state_cache_stride == 0:
+                    boundary_steps.append(step)
+                    boundary_p_states.append(p)
+                    boundary_u_states.append(u)
+                    boundary_w_states.append(w)
+                p, u, w, _, _, _ = _step_forward_saved(
+                    p,
+                    u,
+                    w,
+                    kappa1,
+                    alpha1,
+                    kappa2,
+                    alpha2,
+                    kappa3,
+                    free_surface_start=ctx.free_surface_start,
+                    source_x=source_x,
+                    source_z=source_z,
+                    source_value=source_v[step],
+                    use_free_surface=ctx.use_free_surface,
+                )
 
         grad_kappa1 = torch.zeros_like(kappa1)
         grad_alpha1 = torch.zeros_like(alpha1)
@@ -606,68 +598,170 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         grad_alpha2 = torch.zeros_like(alpha2)
         grad_kappa3 = torch.zeros_like(kappa3)
 
-        for step in range(len(p_states) - 1, -1, -1):
-            grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-            grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-            grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
-            div_p = div_p_values[step]
-            div_u = div_u_values[step]
-            div_w = div_w_values[step]
-            if div_p is None:
-                div_p = _step_div_p_from_state(
+        if ctx.state_cache_stride <= 1:
+            for step in range(len(p_states) - 1, -1, -1):
+                grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
+                grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                div_p = div_p_values[step]
+                div_u = div_u_values[step]
+                div_w = div_w_values[step]
+                if div_p is None:
+                    div_p = _step_div_p_from_state(
+                        p_states[step],
+                        u_states[step],
+                        w_states[step],
+                        free_surface_start=ctx.free_surface_start,
+                    )
+                if div_u is None or div_w is None:
+                    p_new = _step_p_new_from_div_p(
+                        p_states[step],
+                        kappa1,
+                        alpha1,
+                        div_p,
+                        free_surface_start=ctx.free_surface_start,
+                        source_x=source_x,
+                        source_z=source_z,
+                        source_value=source_v[step],
+                        use_free_surface=ctx.use_free_surface,
+                    )
+                    if div_u is None:
+                        div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                    if div_w is None:
+                        div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                (
+                    grad_p,
+                    grad_u,
+                    grad_w,
+                    step_grad_kappa1,
+                    step_grad_alpha1,
+                    step_grad_kappa2,
+                    step_grad_alpha2,
+                    step_grad_kappa3,
+                ) = _step_backward_saved(
                     p_states[step],
                     u_states[step],
                     w_states[step],
-                    free_surface_start=ctx.free_surface_start,
-                )
-            if div_u is None or div_w is None:
-                p_new = _step_p_new_from_div_p(
-                    p_states[step],
                     kappa1,
                     alpha1,
+                    kappa2,
+                    alpha2,
+                    kappa3,
                     div_p,
+                    div_u,
+                    div_w,
+                    grad_p,
+                    grad_u,
+                    grad_w,
                     free_surface_start=ctx.free_surface_start,
-                    source_x=source_x,
-                    source_z=source_z,
-                    source_value=source_v[step],
                     use_free_surface=ctx.use_free_surface,
                 )
-                if div_u is None:
-                    div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
-                if div_w is None:
-                    div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
-            (
-                grad_p,
-                grad_u,
-                grad_w,
-                step_grad_kappa1,
-                step_grad_alpha1,
-                step_grad_kappa2,
-                step_grad_alpha2,
-                step_grad_kappa3,
-            ) = _step_backward_saved(
-                p_states[step],
-                u_states[step],
-                w_states[step],
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                div_p,
-                div_u,
-                div_w,
-                grad_p,
-                grad_u,
-                grad_w,
-                free_surface_start=ctx.free_surface_start,
-                use_free_surface=ctx.use_free_surface,
-            )
-            grad_kappa1 += step_grad_kappa1
-            grad_alpha1 += step_grad_alpha1
-            grad_kappa2 += step_grad_kappa2
-            grad_alpha2 += step_grad_alpha2
-            grad_kappa3 += step_grad_kappa3
+                grad_kappa1 += step_grad_kappa1
+                grad_alpha1 += step_grad_alpha1
+                grad_kappa2 += step_grad_kappa2
+                grad_alpha2 += step_grad_alpha2
+                grad_kappa3 += step_grad_kappa3
+        else:
+            for block_index in range(len(boundary_steps) - 1, -1, -1):
+                block_start = boundary_steps[block_index]
+                block_end = min(block_start + ctx.state_cache_stride, source_v.shape[0])
+                p_local = boundary_p_states[block_index]
+                u_local = boundary_u_states[block_index]
+                w_local = boundary_w_states[block_index]
+                p_states = []
+                u_states = []
+                w_states = []
+                div_p_values = []
+                div_u_values = []
+                div_w_values = []
+
+                for step in range(block_start, block_end):
+                    p_states.append(p_local)
+                    u_states.append(u_local)
+                    w_states.append(w_local)
+                    p_local, u_local, w_local, div_p, div_u, div_w = _step_forward_saved(
+                        p_local,
+                        u_local,
+                        w_local,
+                        kappa1,
+                        alpha1,
+                        kappa2,
+                        alpha2,
+                        kappa3,
+                        free_surface_start=ctx.free_surface_start,
+                        source_x=source_x,
+                        source_z=source_z,
+                        source_value=source_v[step],
+                        use_free_surface=ctx.use_free_surface,
+                    )
+                    should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
+                    div_p_values.append(div_p if should_cache and "p" in ctx.divergence_cache_components else None)
+                    div_u_values.append(div_u if should_cache and "u" in ctx.divergence_cache_components else None)
+                    div_w_values.append(div_w if should_cache and "w" in ctx.divergence_cache_components else None)
+
+                for local_index in range(len(p_states) - 1, -1, -1):
+                    step = block_start + local_index
+                    grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
+                    grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                    grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                    div_p = div_p_values[local_index]
+                    div_u = div_u_values[local_index]
+                    div_w = div_w_values[local_index]
+                    if div_p is None:
+                        div_p = _step_div_p_from_state(
+                            p_states[local_index],
+                            u_states[local_index],
+                            w_states[local_index],
+                            free_surface_start=ctx.free_surface_start,
+                        )
+                    if div_u is None or div_w is None:
+                        p_new = _step_p_new_from_div_p(
+                            p_states[local_index],
+                            kappa1,
+                            alpha1,
+                            div_p,
+                            free_surface_start=ctx.free_surface_start,
+                            source_x=source_x,
+                            source_z=source_z,
+                            source_value=source_v[step],
+                            use_free_surface=ctx.use_free_surface,
+                        )
+                        if div_u is None:
+                            div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                        if div_w is None:
+                            div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                    (
+                        grad_p,
+                        grad_u,
+                        grad_w,
+                        step_grad_kappa1,
+                        step_grad_alpha1,
+                        step_grad_kappa2,
+                        step_grad_alpha2,
+                        step_grad_kappa3,
+                    ) = _step_backward_saved(
+                        p_states[local_index],
+                        u_states[local_index],
+                        w_states[local_index],
+                        kappa1,
+                        alpha1,
+                        kappa2,
+                        alpha2,
+                        kappa3,
+                        div_p,
+                        div_u,
+                        div_w,
+                        grad_p,
+                        grad_u,
+                        grad_w,
+                        free_surface_start=ctx.free_surface_start,
+                        use_free_surface=ctx.use_free_surface,
+                    )
+                    grad_kappa1 += step_grad_kappa1
+                    grad_alpha1 += step_grad_alpha1
+                    grad_kappa2 += step_grad_kappa2
+                    grad_alpha2 += step_grad_alpha2
+                    grad_kappa3 += step_grad_kappa3
 
         return (
             grad_p,
@@ -678,6 +772,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -818,6 +913,7 @@ def rematerialized_custom_chunk_forward_kernel(
     save_forward_wavefield: bool = False,
     divergence_cache_stride: int = 0,
     divergence_cache_components=None,
+    state_cache_stride: int = 1,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
@@ -833,6 +929,8 @@ def rematerialized_custom_chunk_forward_kernel(
         raise ValueError("rematerialized custom chunk acoustic forward does not support save_forward_wavefield=True")
     if divergence_cache_stride < 0:
         raise ValueError("divergence_cache_stride must be non-negative")
+    if state_cache_stride < 1:
+        raise ValueError("state_cache_stride must be positive")
     _normalize_divergence_cache_components(divergence_cache_components)
     if src_v.shape != (src_n, nt):
         raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
@@ -888,6 +986,7 @@ def rematerialized_custom_chunk_forward_kernel(
             free_surface,
             divergence_cache_stride,
             divergence_cache_components,
+            state_cache_stride,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp

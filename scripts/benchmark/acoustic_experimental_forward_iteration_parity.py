@@ -98,6 +98,7 @@ def experimental_forward_batch(
     checkpoint_segments: int = 1,
     remat_divergence_cache_stride: int = 0,
     remat_divergence_cache_components: str = "p,u,w",
+    remat_state_cache_stride: int = 1,
 ):
     propagator.model.forward()
     shot_index = batch_range.shot_index
@@ -118,6 +119,7 @@ def experimental_forward_batch(
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
+        forward_kwargs["state_cache_stride"] = remat_state_cache_stride
     record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
@@ -193,6 +195,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     checkpoint_segments=args.checkpoint_segments,
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
+                    remat_state_cache_stride=args.remat_state_cache_stride,
                 )
             )
         else:
@@ -403,6 +406,16 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         help=(
             "For experimental-remat-chunk only: comma/space separated subset of "
             "p,u,w divergence terms to cache; use 'none' to cache no divergence terms."
+        ),
+    )
+    parser.add_argument(
+        "--remat-state-cache-stride",
+        type=int,
+        default=1,
+        help=(
+            "For experimental-remat-chunk only: 1 keeps the current all-step "
+            "state replay cache; N stores only every Nth p/u/w state and replays "
+            "local blocks during backward."
         ),
     )
     parser.set_defaults(
