@@ -304,6 +304,7 @@ Latest records:
 - `49-acoustic-custom-chunk-5iter-fwi-validation.md`
 - `50-acoustic-segmented-custom-chunk-gate.md`
 - `51-acoustic-segmented-custom-chunk-5iter-fwi.md`
+- `52-acoustic-custom-chunk-memory-profile.md`
 
 Decision:
 
@@ -432,6 +433,15 @@ The 5-iteration `checkpoint_segments=10` FWI validation also passes: loss
 trajectory is exactly identical, all finite checks pass, `vp_update_norm`
 matches, and total compute improves `131.83 s -> 91.01 s` (`1.449x`). Forward is
 slower (`0.652x`), but backward is much faster (`1.844x`), producing a clear net
-gain. Peak-memory measurement is now the blocking evidence before positioning
-the segmented custom path against checkpoint.
+gain.
+
+Peak-memory profiling resolves the checkpoint-positioning question. On the same
+reduced fullshape one-iteration case, the custom segmented path improves total
+time `29.22 s -> 20.15 s` (`1.451x`) and backward `23.83 s -> 12.79 s`
+(`1.863x`), but peak allocated memory increases from `272.38 MiB` to
+`7876.88 MiB` (`28.92x`). Therefore this is an opt-in high-memory acceleration
+mode, not a memory-equivalent checkpoint replacement. The next acoustic step is
+to document the production API contract for this opt-in path and validate a
+short full-record run before considering deeper rematerializing custom backward
+work.
 ```
