@@ -1,0 +1,646 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 242374656,
+    "name": "npu",
+    "reason": null
+  },
+  "config": {
+    "device": "npu:0",
+    "dtype": "float32",
+    "nabc": 20,
+    "nt": 800,
+    "nx": 100,
+    "nz": 50,
+    "prefer": "npu,cpu",
+    "receivers": 100,
+    "repeat": 5,
+    "scale": 0.001,
+    "seed": 20240523,
+    "shots": 1,
+    "warmup": 1
+  },
+  "pairs": [
+    {
+      "candidate": {
+        "backward_seconds": 0.6550035197287798,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.13882416673004627,
+        "loss": 2.9998789159435546e-06,
+        "mode": "stack",
+        "total_seconds": 0.7938276864588261
+      },
+      "comparison": {
+        "gradients": {
+          "p_seq": {
+            "candidate_norm": 7.067997557896888e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.067997557896888e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 7.064038982207421e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.064038982207421e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 7.0807118390803225e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.0807118390803225e-06,
+            "shape": [
+              800,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "records": {
+          "p": {
+            "candidate_norm": 0.2827201187610626,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.2827201187610626,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "u": {
+            "candidate_norm": 0.28256142139434814,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28256142139434814,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "w": {
+            "candidate_norm": 0.28322863578796387,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28322863578796387,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          }
+        },
+        "speedup": {
+          "backward": 1.6089373522349149,
+          "forward": 2.4686248103246964,
+          "total": 1.759279041059062
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.0538596287369728,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.3427047822624445,
+        "loss": 2.9998789159435546e-06,
+        "mode": "preallocated",
+        "total_seconds": 1.3965644109994173
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.6557553485035896,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.14478606544435024,
+        "loss": 2.997936007886892e-06,
+        "mode": "stack",
+        "total_seconds": 0.8005414139479399
+      },
+      "comparison": {
+        "gradients": {
+          "p_seq": {
+            "candidate_norm": 7.054153684293851e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.054153684293851e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 7.060235020617256e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.060235020617256e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 7.091440693329787e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.091440693329787e-06,
+            "shape": [
+              800,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "records": {
+          "p": {
+            "candidate_norm": 0.28216657042503357,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28216657042503357,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "u": {
+            "candidate_norm": 0.28240951895713806,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28240951895713806,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "w": {
+            "candidate_norm": 0.2836572527885437,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.2836572527885437,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          }
+        },
+        "speedup": {
+          "backward": 1.6772762883283798,
+          "forward": 2.2728702510504535,
+          "total": 1.7849955205410757
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.099882896989584,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.3290799409151077,
+        "loss": 2.997936007886892e-06,
+        "mode": "preallocated",
+        "total_seconds": 1.4289628379046917
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.6499780006706715,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.1430576927959919,
+        "loss": 2.9958951017761137e-06,
+        "mode": "stack",
+        "total_seconds": 0.7930356934666634
+      },
+      "comparison": {
+        "gradients": {
+          "p_seq": {
+            "candidate_norm": 7.069422281347215e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.069422281347215e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 7.064593773975503e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.064593773975503e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 7.064653345878469e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.064653345878469e-06,
+            "shape": [
+              800,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "records": {
+          "p": {
+            "candidate_norm": 0.28277692198753357,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28277692198753357,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "u": {
+            "candidate_norm": 0.28258374333381653,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28258374333381653,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "w": {
+            "candidate_norm": 0.282586008310318,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.282586008310318,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          }
+        },
+        "speedup": {
+          "backward": 1.6188589312109372,
+          "forward": 2.3931583390832873,
+          "total": 1.7585367385733084
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.052222691476345,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.3423597104847431,
+        "loss": 2.9958951017761137e-06,
+        "mode": "preallocated",
+        "total_seconds": 1.3945824019610882
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.6252294164150953,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.13589157350361347,
+        "loss": 2.996492867168854e-06,
+        "mode": "stack",
+        "total_seconds": 0.7611209899187088
+      },
+      "comparison": {
+        "gradients": {
+          "p_seq": {
+            "candidate_norm": 7.0756409513705876e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.0756409513705876e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 7.068605100357672e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.068605100357672e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 7.0565238274866715e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.0565238274866715e-06,
+            "shape": [
+              800,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "records": {
+          "p": {
+            "candidate_norm": 0.2830255329608917,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.2830255329608917,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "u": {
+            "candidate_norm": 0.28274431824684143,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28274431824684143,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "w": {
+            "candidate_norm": 0.282260924577713,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.282260924577713,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          }
+        },
+        "speedup": {
+          "backward": 1.6148963661768052,
+          "forward": 2.4727986298305726,
+          "total": 1.768067399513665
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.009680712595582,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.33603249676525593,
+        "loss": 2.996492867168854e-06,
+        "mode": "preallocated",
+        "total_seconds": 1.345713209360838
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.6182248182594776,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.14180635288357735,
+        "loss": 3.0118437734927284e-06,
+        "mode": "stack",
+        "total_seconds": 0.760031171143055
+      },
+      "comparison": {
+        "gradients": {
+          "p_seq": {
+            "candidate_norm": 7.084101980581181e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.084101980581181e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 7.074412224028492e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.074412224028492e-06,
+            "shape": [
+              800,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 7.096489753166679e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.096489753166679e-06,
+            "shape": [
+              800,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "records": {
+          "p": {
+            "candidate_norm": 0.2833641767501831,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.2833641767501831,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "u": {
+            "candidate_norm": 0.28297659754753113,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28297659754753113,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          },
+          "w": {
+            "candidate_norm": 0.28385937213897705,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.28385937213897705,
+            "shape": [
+              1,
+              800,
+              100
+            ]
+          }
+        },
+        "speedup": {
+          "backward": 1.619514328779199,
+          "forward": 2.3911332159035026,
+          "total": 1.7634827137003313
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.0012239515781403,
+        "finite": {
+          "p_grad": true,
+          "record_p": true,
+          "record_u": true,
+          "record_w": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.33907788060605526,
+        "loss": 3.0118437734927284e-06,
+        "mode": "preallocated",
+        "total_seconds": 1.3403018321841955
+      }
+    }
+  ],
+  "purpose": "Phase B acoustic receiver recording style microbenchmark",
+  "status": "ok",
+  "summary": {
+    "max_differences": {
+      "loss_abs_diff": 0.0,
+      "p_grad_max_abs_diff": 0.0,
+      "p_record_max_abs_diff": 0.0,
+      "u_grad_max_abs_diff": 0.0,
+      "u_record_max_abs_diff": 0.0,
+      "w_grad_max_abs_diff": 0.0,
+      "w_record_max_abs_diff": 0.0
+    },
+    "speedup": {
+      "backward": {
+        "max": 1.6772762883283798,
+        "mean": 1.6278966533460473,
+        "min": 1.6089373522349149,
+        "values": [
+          1.6089373522349149,
+          1.6772762883283798,
+          1.6188589312109372,
+          1.6148963661768052,
+          1.619514328779199
+        ]
+      },
+      "forward": {
+        "max": 2.4727986298305726,
+        "mean": 2.399717049238503,
+        "min": 2.2728702510504535,
+        "values": [
+          2.4686248103246964,
+          2.2728702510504535,
+          2.3931583390832873,
+          2.4727986298305726,
+          2.3911332159035026
+        ]
+      },
+      "total": {
+        "max": 1.7849955205410757,
+        "mean": 1.7668722826774885,
+        "min": 1.7585367385733084,
+        "values": [
+          1.759279041059062,
+          1.7849955205410757,
+          1.7585367385733084,
+          1.768067399513665,
+          1.7634827137003313
+        ]
+      }
+    }
+  },
+  "warmups": []
+}

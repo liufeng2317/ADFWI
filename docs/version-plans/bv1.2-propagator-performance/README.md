@@ -76,6 +76,7 @@ Default backward operator profile:
 - `13-acoustic-timestep-update-microbenchmark.md`
 - `14-acoustic-checkpoint-segment-sweep.md`
 - `15-acoustic-compile-feasibility.md`
+- `16-acoustic-receiver-recording-stack-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -89,5 +90,9 @@ Default backward operator profile:
   the default inductor path fails before the first compiled run because
   `triton` is unavailable. The `backend=eager` control preserves output and
   gradients exactly, but provides no useful optimizing backend.
+- Receiver-output list stacking was rejected for the production acoustic
+  kernel: isolated output recording was faster with exact gradient parity, but
+  the reduced Marmousi2 FWI iteration was slower (`25.68 s -> 26.75 s`). The
+  production kernel change was reverted and only the benchmark record remains.
 - Next mainline task should be selected explicitly from the higher-risk Phase B
   options, or acoustic default-path optimization should pause.

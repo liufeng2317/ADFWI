@@ -1,0 +1,84 @@
+{
+  "loss_abs_diff": 0.0,
+  "record_differences": {
+    "forward_wavefield_p": {
+      "current_norm": 3.066610588575713e-05,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 3.066610588575713e-05,
+      "shape": [
+        30,
+        40
+      ]
+    },
+    "forward_wavefield_u": {
+      "current_norm": 3.8997946966695335e-18,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 3.8997946966695335e-18,
+      "shape": [
+        30,
+        40
+      ]
+    },
+    "forward_wavefield_w": {
+      "current_norm": 3.8984976774690504e-18,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 3.8984976774690504e-18,
+      "shape": [
+        30,
+        40
+      ]
+    },
+    "p": {
+      "current_norm": 0.004476752132177353,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 0.004476752132177353,
+      "shape": [
+        1,
+        80,
+        3
+      ]
+    },
+    "u": {
+      "current_norm": 1.581287878416049e-09,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 1.581287878416049e-09,
+      "shape": [
+        1,
+        80,
+        3
+      ]
+    },
+    "w": {
+      "current_norm": 1.5780499129647296e-09,
+      "max_abs_diff": 0.0,
+      "max_rel_diff": 0.0,
+      "reference_norm": 1.5780499129647296e-09,
+      "shape": [
+        1,
+        80,
+        3
+      ]
+    }
+  },
+  "timing": {
+    "current_backward_seconds": 0.5944004766643047,
+    "current_forward_seconds": 0.5933568831533194,
+    "reference_backward_seconds": 0.5604072995483875,
+    "reference_forward_seconds": 0.49373263865709305
+  },
+  "vp_grad": {
+    "current_norm": 1.9842226472999158e-10,
+    "max_abs_diff": 0.0,
+    "max_rel_diff": 0.0,
+    "reference_norm": 1.9842226472999158e-10,
+    "shape": [
+      30,
+      40
+    ]
+  }
+}
