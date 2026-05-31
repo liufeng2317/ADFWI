@@ -111,7 +111,7 @@ def run_production(case: Dict[str, torch.Tensor], args: argparse.Namespace, back
 
     record, forward_seconds = timer.measure(forward)
     outputs = (record["p"], record["u"], record["w"])
-    loss = sum(output.pow(2).mean() for output in outputs)
+    loss = build_loss(outputs, args, backend)
     _, backward_seconds = timer.measure(lambda: loss.backward())
     if case["v"].grad is None:
         raise RuntimeError("production v.grad is None")
@@ -165,7 +165,7 @@ def run_custom(case: Dict[str, torch.Tensor], args: argparse.Namespace, backend)
         return record["p"], record["u"], record["w"]
 
     outputs, forward_seconds = timer.measure(forward)
-    loss = sum(output.pow(2).mean() for output in outputs)
+    loss = build_loss(outputs, args, backend)
     _, backward_seconds = timer.measure(lambda: loss.backward())
     if case["v"].grad is None:
         raise RuntimeError("custom v.grad is None")
@@ -177,6 +177,28 @@ def run_custom(case: Dict[str, torch.Tensor], args: argparse.Namespace, backend)
         "backward_seconds": backward_seconds,
         "total_seconds": forward_seconds + backward_seconds,
     }
+
+
+def build_loss(outputs, args: argparse.Namespace, backend):
+    if args.loss_kind == "energy":
+        return sum(
+            output.pow(2).mean()
+            for name, output in zip(("p", "u", "w"), outputs)
+            if name in args.loss_components
+        )
+    if args.loss_kind == "random-linear":
+        torch.manual_seed(args.upstream_seed)
+        loss = None
+        for name, output in zip(("p", "u", "w"), outputs):
+            if name not in args.loss_components:
+                continue
+            upstream = args.upstream_scale * torch.randn_like(output)
+            term = (output * upstream).sum()
+            loss = term if loss is None else loss + term
+        if loss is None:
+            raise ValueError("no active loss components")
+        return loss
+    raise ValueError(f"unknown loss kind: {args.loss_kind}")
 
 
 def compare_pair(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, Any]:
@@ -272,6 +294,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--velocity-scale", type=float, default=1200.0)
     parser.add_argument("--rho", type=float, default=1000.0)
     parser.add_argument("--source-scale", type=float, default=1e-4)
+    parser.add_argument(
+        "--loss-components",
+        default="p,u,w",
+        help="Comma-separated receiver components used by the direct synthetic loss.",
+    )
+    parser.add_argument("--loss-kind", choices=("energy", "random-linear"), default="energy")
+    parser.add_argument("--upstream-seed", type=int, default=20240601)
+    parser.add_argument("--upstream-scale", type=float, default=1e-6)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     return parser
 
@@ -287,6 +317,12 @@ def main() -> int:
         parser.error("--receivers must be <= --nx for this parity probe")
     if args.shots <= 0:
         parser.error("--shots must be positive")
+    args.loss_components = tuple(item.strip() for item in args.loss_components.split(",") if item.strip())
+    if not args.loss_components:
+        parser.error("--loss-components must not be empty")
+    unsupported = set(args.loss_components) - {"p", "u", "w"}
+    if unsupported:
+        parser.error(f"unsupported --loss-components: {sorted(unsupported)}")
     report = run_experiment(args)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

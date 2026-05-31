@@ -97,6 +97,7 @@ Default backward operator profile:
 - `34-acoustic-gradient-difference-localization.md`
 - `35-acoustic-receiver-difference-location.md`
 - `36-acoustic-observed-loss-upstream-probe.md`
+- `37-acoustic-targeted-backward-exclusions.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -192,3 +193,7 @@ Default backward operator profile:
   are exactly equal. Applying the same external receiver upstream gradient to
   both paths still gives raw `vp.grad` max abs diff `3.63e-4`, so the remaining
   mismatch is in custom backward under observed-loss-shaped upstream gradients.
+- Targeted exclusions ruled out free-surface adjoint, pressure-only receiver
+  loss, random pressure upstream, and long-time random pressure upstream as
+  primary causes. The remaining likely cause is a distributional property of
+  the observed-pressure upstream itself or the FWI parameter dependency path.

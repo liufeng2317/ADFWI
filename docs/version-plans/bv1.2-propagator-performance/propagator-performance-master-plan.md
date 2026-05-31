@@ -263,6 +263,7 @@ Latest records:
 - `34-acoustic-gradient-difference-localization.md`
 - `35-acoustic-receiver-difference-location.md`
 - `36-acoustic-observed-loss-upstream-probe.md`
+- `37-acoustic-targeted-backward-exclusions.md`
 
 Decision:
 
@@ -338,4 +339,10 @@ mismatch source: receiver outputs and receiver upstream gradients are exactly
 equal. The same external receiver upstream gradient still yields raw `vp.grad`
 max abs diff `3.63e-4`. The active target is custom backward localization under
 fixed external upstream gradients.
+
+Targeted exclusions ruled out free-surface adjoint, pressure-only receiver
+loss, random pressure upstream, and long-time random pressure upstream as
+primary causes. The next active task is to measure and replay the exact
+observed-pressure upstream distribution through the direct kernel parity
+harness, outside the FWI wrapper.
 ```
