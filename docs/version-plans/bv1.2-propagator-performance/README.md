@@ -77,6 +77,7 @@ Default backward operator profile:
 - `14-acoustic-checkpoint-segment-sweep.md`
 - `15-acoustic-compile-feasibility.md`
 - `16-acoustic-receiver-recording-stack-probe.md`
+- `17-acoustic-pressure-inner-state-probe.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -94,5 +95,9 @@ Default backward operator profile:
   kernel: isolated output recording was faster with exact gradient parity, but
   the reduced Marmousi2 FWI iteration was slower (`25.68 s -> 26.75 s`). The
   production kernel change was reverted and only the benchmark record remains.
-- Next mainline task should be selected explicitly from the higher-risk Phase B
-  options, or acoustic default-path optimization should pause.
+- A pressure inner-state recurrence rewrite was rejected as a small default
+  optimization: the isolated Python reference hit autograd in-place version
+  constraints before timing comparison, showing that this route is a larger
+  research rewrite rather than a safe kernel edit.
+- Acoustic default-path Phase B should pause. The next productive route is
+  Phase D FWI-loop/gradient-processing profiling or Phase E elastic profiling.
