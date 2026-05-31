@@ -1,0 +1,80 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 0,
+    "name": "npu",
+    "reason": null
+  },
+  "config": {
+    "compile_backend": "torch_default",
+    "compile_mode": "torch_default",
+    "device": "npu:0",
+    "dtype": "float32",
+    "free_surface": true,
+    "modes": [
+      "inner_only",
+      "sliced_assignment"
+    ],
+    "nabc": 8,
+    "nx": 48,
+    "nz": 32,
+    "prefer": "npu,cpu",
+    "repeat": 2,
+    "scale": 0.001,
+    "seed": 20240523,
+    "shots": 1
+  },
+  "purpose": "Phase B torch.compile feasibility probe for acoustic AD hot path",
+  "results": [
+    {
+      "compile_factory_seconds": 0.11412052251398563,
+      "eager_reference": {
+        "backward_seconds": 0.027506066486239433,
+        "finite": {
+          "output": true,
+          "p_grad": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.08155669085681438,
+        "loss": 1.0743599432316842e-06,
+        "mode": "inner_only",
+        "total_seconds": 0.10906275734305382
+      },
+      "error": "BackendCompilerFailed('backend=\\'inductor\\' raised:\\nModuleNotFoundError: No module named \\'triton\\'\\n\\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you\\'re reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\\n')",
+      "mode": "inner_only",
+      "status": "first_compiled_run_failed",
+      "traceback": "Traceback (most recent call last):\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 207, in run_mode\n    first_compiled = run_callable(args, backend, compiled_fn, mode, seed_offset=1000)\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 120, in run_callable\n    p_next, forward_seconds = timer.measure(\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_timestep_update_microbenchmark.py\", line 57, in measure\n    value = fn()\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 121, in <lambda>\n    lambda: fn(state[\"p\"], state[\"u\"], state[\"w\"], state[\"kappa1\"], state[\"alpha1\"])\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/eval_frame.py\", line 749, in compile_wrapper\n    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/output_graph.py\", line 1871, in _call_user_compiler\n    raise BackendCompilerFailed(\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/output_graph.py\", line 1846, in _call_user_compiler\n    compiled_fn = compiler_fn(gm, example_inputs)\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/repro/after_dynamo.py\", line 150, in __call__\n    compiled_gm = compiler_fn(gm, example_inputs)\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 166, in new_call\n    register_inductor_npu()\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 154, in register_inductor_npu\n    _InductorNpuRegistry.register_inductor_npu()\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 120, in register_inductor_npu\n    from torch_npu import _inductor\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/_inductor/__init__.py\", line 32, in <module>\n    from . import config as npu_config\ntorch._dynamo.exc.BackendCompilerFailed: backend='inductor' raised:\nModuleNotFoundError: No module named 'triton'\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n\n"
+    },
+    {
+      "compile_factory_seconds": 0.0042099542915821075,
+      "eager_reference": {
+        "backward_seconds": 0.004254326224327087,
+        "finite": {
+          "output": true,
+          "p_grad": true,
+          "u_grad": true,
+          "w_grad": true
+        },
+        "forward_seconds": 0.0013495422899723053,
+        "loss": 1.0744897736003622e-06,
+        "mode": "sliced_assignment",
+        "total_seconds": 0.005603868514299393
+      },
+      "error": "BackendCompilerFailed('backend=\\'inductor\\' raised:\\nModuleNotFoundError: No module named \\'triton\\'\\n\\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you\\'re reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\\n')",
+      "mode": "sliced_assignment",
+      "status": "first_compiled_run_failed",
+      "traceback": "Traceback (most recent call last):\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 207, in run_mode\n    first_compiled = run_callable(args, backend, compiled_fn, mode, seed_offset=1000)\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 120, in run_callable\n    p_next, forward_seconds = timer.measure(\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_timestep_update_microbenchmark.py\", line 57, in measure\n    value = fn()\n  File \"/liufeng1afs/project/04_Inversion/ADFWI-github/scripts/benchmark/acoustic_compile_feasibility.py\", line 121, in <lambda>\n    lambda: fn(state[\"p\"], state[\"u\"], state[\"w\"], state[\"kappa1\"], state[\"alpha1\"])\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/eval_frame.py\", line 749, in compile_wrapper\n    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/output_graph.py\", line 1871, in _call_user_compiler\n    raise BackendCompilerFailed(\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/output_graph.py\", line 1846, in _call_user_compiler\n    compiled_fn = compiler_fn(gm, example_inputs)\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch/_dynamo/repro/after_dynamo.py\", line 150, in __call__\n    compiled_gm = compiler_fn(gm, example_inputs)\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 166, in new_call\n    register_inductor_npu()\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 154, in register_inductor_npu\n    _InductorNpuRegistry.register_inductor_npu()\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/utils/_dynamo.py\", line 120, in register_inductor_npu\n    from torch_npu import _inductor\n  File \"/liufeng1afs/software/miniconda3/envs/adfwi/lib/python3.9/site-packages/torch_npu/_inductor/__init__.py\", line 32, in <module>\n    from . import config as npu_config\ntorch._dynamo.exc.BackendCompilerFailed: backend='inductor' raised:\nModuleNotFoundError: No module named 'triton'\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n\n"
+    }
+  ],
+  "status": "ok",
+  "versions": {
+    "has_torch_compile": true,
+    "torch": "2.8.0+cpu",
+    "torch_npu": "2.8.0.post4"
+  }
+}
