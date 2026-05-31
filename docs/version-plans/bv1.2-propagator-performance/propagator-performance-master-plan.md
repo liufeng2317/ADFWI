@@ -222,7 +222,10 @@ identified a `gw` view-aliasing bug in the custom backward. After cloning `gw`,
 CPU float64 formula-level tests pass to machine precision and the full
 observed-upstream direct replay improves to `2.90e-7` raw `vp.grad` max abs
 diff, but the custom path remains benchmark-only until a production-interface
-finite-gradient parity gate passes.
+finite-gradient parity gate passes. The first reduced validation
+production-interface parity gate preserves outputs/loss exactly and keeps raw
+`vp.grad` max abs diff at `2.90e-7`, but the candidate is slower because it is
+still a Python-loop prototype.
 ```
 
 ## Stop Criteria

@@ -101,6 +101,7 @@ Default backward operator profile:
 - `38-acoustic-observed-upstream-direct-replay.md`
 - `39-acoustic-observed-scale-local-recurrence.md`
 - `40-acoustic-custom-backward-view-alias-fix.md`
+- `41-acoustic-production-interface-parity.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -217,3 +218,9 @@ Default backward operator profile:
   the full observed-upstream direct replay raw `vp.grad` max abs diff from
   `3.63e-4` to `2.90e-7`. This is still benchmark-only code, not a production
   propagator change.
+- Production-interface parity on reduced validation geometry (`3` shots,
+  `200x88`, `nt=3000`, `200` receivers) preserved receiver outputs and loss
+  exactly, with raw `vp.grad` max abs diff `2.90e-7`. The experimental path is
+  still slower (`0.338x` total) because it is a Python-loop prototype, so the
+  next task is implementation design rather than immediate production
+  replacement.
