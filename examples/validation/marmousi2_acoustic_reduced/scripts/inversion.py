@@ -32,6 +32,12 @@ def add_inversion_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--gaussian-kernel", type=int, default=6)
     parser.add_argument("--rcv-depth", type=int, default=10)
     parser.add_argument("--mask-extra-depth", type=int, default=2)
+    parser.add_argument(
+        "--gradient-processor",
+        choices=("legacy", "torch"),
+        default="legacy",
+        help="Use legacy NumPy/SciPy GradProcessor or torch-native TorchGradProcessor.",
+    )
 
 
 def ensure_inversion_dirs(output_root: Path) -> None:
@@ -47,7 +53,7 @@ def import_inversion_runtime_modules() -> Dict[str, Any]:
 
     from ADFWI.fwi import AcousticFWI
     from ADFWI.fwi.misfit import Misfit_global_correlation, Misfit_waveform_L2
-    from ADFWI.propagator import GradProcessor
+    from ADFWI.propagator import GradProcessor, TorchGradProcessor
     from ADFWI.utils import get_smooth_marmousi_model
 
     rt.update(
@@ -57,6 +63,7 @@ def import_inversion_runtime_modules() -> Dict[str, Any]:
             "Misfit_global_correlation": Misfit_global_correlation,
             "Misfit_waveform_L2": Misfit_waveform_L2,
             "GradProcessor": GradProcessor,
+            "TorchGradProcessor": TorchGradProcessor,
             "get_smooth_marmousi_model": get_smooth_marmousi_model,
         }
     )
@@ -173,7 +180,8 @@ def run_inversion(args: argparse.Namespace, *, iterations: Optional[int] = None)
     loss_fn = rt["Misfit_waveform_L2"](dt=1)
     grad_mask = np.ones_like(vp_init)
     grad_mask[: args.grad_mute_top, :] = 0
-    gradient_processor = rt["GradProcessor"](grad_mask=grad_mask)
+    processor_cls = rt["TorchGradProcessor"] if args.gradient_processor == "torch" else rt["GradProcessor"]
+    gradient_processor = processor_cls(grad_mask=grad_mask)
 
     fwi = rt["AcousticFWI"](
         propagator=propagator,
@@ -212,6 +220,7 @@ def run_inversion(args: argparse.Namespace, *, iterations: Optional[int] = None)
         "iterations": iteration_count,
         "shots": args.shots,
         "checkpoint_segments": args.checkpoint_segments,
+        "gradient_processor": args.gradient_processor,
         "seconds": seconds,
         "initial_loss": iter_loss[0],
         "final_loss": iter_loss[-1],
