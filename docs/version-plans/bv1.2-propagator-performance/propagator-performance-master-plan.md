@@ -211,6 +211,15 @@ both speed and scientific parity.
 | replacing checkpoint strategy globally | can change memory use and backward behavior |
 | promoting `acoustic_kernels_bs.py` | currently experimental and has global autograd side effects |
 
+Current acoustic custom-gradient status:
+
+```text
+The benchmark-only custom recurrence is not production-ready. Direct replay of
+the exact observed-pressure receiver upstream preserves outputs/loss exactly
+but fails raw `vp.grad` parity (`3.63e-4` max abs diff). Further work must stay
+at the formula-level backward-validation stage.
+```
+
 ## Stop Criteria
 
 Stop the current optimization round when any of these is true:

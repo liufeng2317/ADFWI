@@ -98,6 +98,7 @@ Default backward operator profile:
 - `35-acoustic-receiver-difference-location.md`
 - `36-acoustic-observed-loss-upstream-probe.md`
 - `37-acoustic-targeted-backward-exclusions.md`
+- `38-acoustic-observed-upstream-direct-replay.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -197,3 +198,9 @@ Default backward operator profile:
   loss, random pressure upstream, and long-time random pressure upstream as
   primary causes. The remaining likely cause is a distributional property of
   the observed-pressure upstream itself or the FWI parameter dependency path.
+- Directly replaying the exact observed-pressure upstream through production
+  `forward_kernel` and the benchmark-only experimental kernel preserved
+  receiver outputs and replay loss exactly, but kept raw `vp.grad` max abs diff
+  at `3.63e-4`. The issue is now localized to the experimental custom backward
+  under the observed-pressure upstream distribution. Do not integrate the
+  custom path into production.
