@@ -254,6 +254,7 @@ Latest records:
 - `25-acoustic-performance-branch-summary.md`
 - `26-acoustic-custom-pressure-update-probe.md`
 - `27-acoustic-custom-timestep-update-probe.md`
+- `28-acoustic-custom-multistep-update-probe.md`
 
 Decision:
 
@@ -284,6 +285,8 @@ pressure-update probe preserved output/loss, kept gradient max absolute
 difference at `2.27e-13`, and showed `1.67x` isolated backward speedup. The next
 complete one-timestep p/u/w prototype also preserved output/loss, kept gradient
 max absolute difference at `1.36e-12`, and showed `1.87x` isolated backward
-speedup. The next step is a tiny multi-step recurrence prototype outside
-production kernels.
+speedup. The 20-step recurrence prototype preserved final outputs/loss, kept
+gradient max absolute difference at `5.68e-14`, and showed `1.87x` backward
+speedup. The next step is to add source injection and free-surface boundary
+writes to the isolated prototype before any production-kernel integration.
 ```
