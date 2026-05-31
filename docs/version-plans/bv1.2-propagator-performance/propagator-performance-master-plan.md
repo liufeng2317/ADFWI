@@ -300,6 +300,7 @@ Latest records:
 - `45-acoustic-production-interface-chunk-parity.md`
 - `46-acoustic-observed-finite-chunk-gate.md`
 - `47-acoustic-chunk-forward-overhead.md`
+- `48-acoustic-production-custom-chunk-opt-in.md`
 
 Decision:
 
@@ -401,5 +402,11 @@ task was to explain the chunk candidate forward overhead before any production
 kernel edit. The forward-only overhead benchmark shows timestep-custom forward
 is slower, but chunk-custom forward is comparable to production and averaged
 `1.09x` faster across the repeat. The next task is a guarded production
-integration design, not more low-level formula debugging.
+integration design, not more low-level formula debugging. The guarded opt-in
+production path now exists as `use_custom_chunk_backward=True`, limited to
+`checkpoint_segments == 1` and `save_forward_wavefield=False`. The fullshape
+observed-pressure production gate passes with exact receiver outputs/loss, raw
+`vp.grad` max abs diff `2.89e-7`, and total speedup `1.22x`. The next task is a
+short real FWI validation of the opt-in path before considering broader API
+exposure.
 ```

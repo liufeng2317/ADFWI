@@ -112,6 +112,16 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     save_forward_wavefield=False,
                 )
             )
+        elif mode == "production-custom-chunk":
+            forward_batch, elapsed = timer.measure(
+                lambda batch_range=batch_range: acoustic_forward_batch(
+                    fwi.propagator,
+                    batch_range,
+                    args.checkpoint_segments,
+                    save_forward_wavefield=False,
+                    use_custom_chunk_backward=True,
+                )
+            )
         elif mode == "experimental":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
@@ -300,7 +310,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--candidate-mode",
-        choices=("experimental", "experimental-chunk", "production"),
+        choices=("experimental", "experimental-chunk", "production", "production-custom-chunk"),
         default="experimental",
         help="Compare production against an experimental path or a second production run.",
     )

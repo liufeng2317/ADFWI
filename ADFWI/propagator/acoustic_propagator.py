@@ -13,6 +13,7 @@ from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
 from ADFWI.backends import get_backend
 from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
+from .acoustic_custom_kernels import custom_chunk_forward_kernel
 from .acoustic_kernels import forward_kernel
 
 class AcousticPropagator(torch.nn.Module):
@@ -125,6 +126,7 @@ class AcousticPropagator(torch.nn.Module):
                 shot_index: Optional[int] = None,
                 checkpoint_segments: int = 1,
                 save_forward_wavefield: bool = True,
+                use_custom_chunk_backward: bool = False,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
 
@@ -134,6 +136,7 @@ class AcousticPropagator(torch.nn.Module):
         shot_index (Optional[int])       : Index of the shot to simulate
         checkpoint_segments (int)        : Number of segments for checkpointing to save memory
         save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
+        use_custom_chunk_backward (bool) : Opt into the guarded custom-chunk backward path
 
         Returns:
         --------
@@ -148,8 +151,10 @@ class AcousticPropagator(torch.nn.Module):
         src_z = self.src_z[shot_index] if shot_index is not None else self.src_z
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
+
+        kernel = custom_chunk_forward_kernel if use_custom_chunk_backward else forward_kernel
         
-        record_waveform = forward_kernel(
+        record_waveform = kernel(
             self.nx,self.nz,self.dx,self.dz,self.nt,self.dt,
             self.nabc,self.free_surface,
             src_x,src_z,src_n,wavelet,
