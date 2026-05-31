@@ -259,6 +259,7 @@ Latest records:
 - `30-acoustic-custom-receiver-recording-probe.md`
 - `31-acoustic-custom-kernel-parity-probe.md`
 - `32-acoustic-experimental-forward-path.md`
+- `33-acoustic-experimental-forward-iteration-parity.md`
 
 Decision:
 
@@ -305,4 +306,10 @@ records/loss exact, kept `v.grad` maximum absolute difference at `4.14e-25`,
 and showed `1.77x` total speedup. The next gate is reduced Marmousi2 iteration
 parity with this experimental forward path, still outside default propagator
 APIs.
+
+Reduced Marmousi2 FWI-style parity did not pass. Loss matched and receiver
+output absolute differences were small, but raw `vp.grad` maximum absolute
+difference was `3.63e-4`, which is too large for a core differentiable
+propagator change. Stop expanding the experimental path and localize the
+gradient difference before considering production integration.
 ```

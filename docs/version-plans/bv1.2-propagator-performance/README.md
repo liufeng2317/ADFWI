@@ -93,6 +93,7 @@ Default backward operator profile:
 - `30-acoustic-custom-receiver-recording-probe.md`
 - `31-acoustic-custom-kernel-parity-probe.md`
 - `32-acoustic-experimental-forward-path.md`
+- `33-acoustic-experimental-forward-iteration-parity.md`
 - Representative NPU profile shows default backward dominated by sliced update
   autograd overhead: `SliceBackward0`, `copy_`, `zero_`, `zeros`, and
   `empty_tensor`.
@@ -168,3 +169,7 @@ Default backward operator profile:
   `experimental_forward_kernel`. The refactored tiny NPU parity kept receiver
   records/loss exact, kept `v.grad` maximum absolute difference at `4.14e-25`,
   and showed `1.77x` total speedup in the tiny harness.
+- Reduced Marmousi2 FWI-style parity did not pass the core-gradient gate:
+  receiver outputs stayed close and loss matched, but raw `vp.grad` maximum
+  absolute difference was `3.63e-4`. Do not integrate the experimental path
+  into production until this gradient difference is localized and removed.
