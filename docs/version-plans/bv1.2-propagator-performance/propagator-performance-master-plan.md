@@ -541,4 +541,12 @@ timestep loop preserved exact outputs/loss/raw gradients but gave only `1.004x`
 total speedup, so that candidate was reverted. The next meaningful candidate
 must target pressure-update stencil arithmetic or slice-copy behavior itself;
 simple view-hoisting is not enough.
+
+The pressure-update expression-variant benchmark also failed to find a useful
+Python/TorchScript rewrite. `explicit_div` was exactly equivalent but reached
+only `1.017x` total speedup; `split_div` and `addcmul` were slower. This closes
+the current production `acoustic_kernels.py` micro-optimization line. Further
+meaningful acoustic propagator speed work likely requires a lower-level fused
+stencil implementation or a separate boundary-saving research path, not more
+expression rearrangement in Python.
 ```
