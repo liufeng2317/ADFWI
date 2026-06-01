@@ -366,7 +366,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--msopgen", type=Path, default=DEFAULT_MSOPGEN)
     parser.add_argument("--cann-path", type=Path, default=DEFAULT_CANN)
-    parser.add_argument("--compute-unit", default="ai_core-ascend910b")
+    parser.add_argument("--compute-unit", default="ai_core-ascend910b2")
     parser.add_argument("--python-executable", type=Path, default=Path(sys.executable))
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--compile-timeout", type=int, default=300)
