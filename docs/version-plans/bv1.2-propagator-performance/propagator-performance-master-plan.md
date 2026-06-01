@@ -181,6 +181,18 @@ independent scalar Python reference match exactly on a tiny deterministic tensor
 case. This is still not a production-ready operator: the next gate is standalone
 runtime invocation and direct output parity against the PyTorch reference.
 
+Runtime visibility gate:
+
+```text
+72-ascend-custom-op-runtime-visibility.md
+```
+
+The compiled custom-op package can be installed into a temporary
+`ASCEND_CUSTOM_OPP_PATH`, but it is not automatically exposed through
+`torch.ops.npu` or PyTorch dispatcher names. The generated `libcust_opapi.so`
+does export ACLNN symbols, so the next valid gate is a minimal PyTorch/ACL
+wrapper, not production propagator integration.
+
 ## Execution Route
 
 ```text
