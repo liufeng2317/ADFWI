@@ -522,4 +522,14 @@ Python custom-autograd prototype. The next effective acoustic task should
 return to production PyTorch checkpoint profiling and look for kernel-level
 invariant hoisting or replay-cost reduction that preserves the default autograd
 contract.
+
+The first production checkpoint candidate round did not accept code changes.
+Non-reentrant checkpoint failed on the tested NPU/TorchScript backward replay.
+Source pre-scaling preserved exact outputs/loss/raw gradients but gave only
+`1.025x` total speedup; empty receiver allocation preserved exact parity but
+gave only `1.011x`. The earlier forward-wavefield placeholder candidate also
+stayed below threshold. Do not continue small-allocation or per-step scalar
+candidates. The next acoustic task must target measured stencil-update cost
+directly, starting with a focused p/u/w timestep microbenchmark under the
+production checkpoint shape.
 ```
