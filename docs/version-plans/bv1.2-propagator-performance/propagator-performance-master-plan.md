@@ -65,6 +65,55 @@ It is valid only when active gradient processors have
 This is not the default behavior baseline. Do not mix opt-in output reduction
 with default kernel optimization in the same performance conclusion.
 
+## Current Optimization Map
+
+This branch has tested four acoustic performance lines. Only two production
+changes are currently accepted by default; the remaining custom/rematerialized
+paths are recorded but not promoted.
+
+```mermaid
+flowchart TD
+    A["Propagator performance branch<br/>Target: faster acoustic FWI without changing numerics"]
+
+    A --> B["Default production acoustic path<br/>ADFWI/propagator/acoustic_kernels.py"]
+    B --> B1["Accepted: checkpoint_segments == 1 bypass<br/>Effect: small NPU total 9.40s -> 6.86s<br/>Numerics: p/u/w, loss, vp.grad all 0"]
+    B --> B2["Accepted: source index hoist<br/>Effect: small NPU total 6.86s -> 6.55s<br/>Numerics: parity all 0"]
+    B --> B3["Rejected: small allocation/scalar candidates<br/>forward-wavefield placeholder, source pre-scale, receiver empty<br/>Effect: 1.01x-1.03x only"]
+    B --> B4["Rejected: pressure expression rewrites<br/>explicit_div 1.017x, split/addcmul slower<br/>Decision: stop Python expression micro-optimizations"]
+
+    A --> C["Opt-in output policy<br/>save_forward_wavefield=False"]
+    C --> C1["Accepted as guarded opt-in<br/>Requires gradient processors without forward illumination<br/>Default output contract unchanged"]
+
+    A --> D["Opt-in high-memory custom chunk<br/>ADFWI/propagator/acoustic_custom_kernels.py"]
+    D --> D1["Accepted as expert opt-in only<br/>use_custom_chunk_backward=True + save_forward_wavefield=False"]
+    D1 --> D2["5-iter checkpoint_segments=10 FWI<br/>loss trajectory exact, total 131.83s -> 91.01s<br/>Speedup 1.449x"]
+    D1 --> D3["Full-record batch_size=20 3-iter validation<br/>loss exact, mean iter 55.00s -> 37.59s<br/>Speedup 1.463x"]
+    D1 --> D4["Memory caveat<br/>one-iter peak 272.38 MiB -> 7876.88 MiB<br/>28.92x memory, not checkpoint replacement"]
+
+    A --> E["Experimental rematerialized custom chunk<br/>checkpoint-compatible research path"]
+    E --> E1["Initial gate: numerical parity and 1.229x speed<br/>but 2.77x peak memory"]
+    E --> E2["No-div cache: memory 1.72x<br/>but speed drops to 1.002x"]
+    E --> E3["Best stride=2: memory 2.25x<br/>one-iteration speed 1.149x"]
+    E --> E4["5-iter FWI closeout<br/>loss exact, total speed 1.087x<br/>peak memory 2.266x"]
+    E4 --> E5["Decision: do not promote<br/>stop Python remat/cache knob optimization"]
+
+    A --> F["Next valid direction"]
+    F --> F1["Lower-level fused acoustic stencil feasibility<br/>must stay outside production first"]
+    F --> F2["Boundary-saving research path<br/>separate adjoint contract"]
+    F --> F3["Or stop acoustic kernel work<br/>move to another measured bottleneck"]
+```
+
+Status summary:
+
+| Line | Status | Production effect |
+| --- | --- | --- |
+| `checkpoint_segments == 1` checkpoint bypass | accepted | default acoustic path improved for no-checkpoint runs |
+| source index hoist | accepted | default acoustic path improved slightly |
+| `save_forward_wavefield=False` | accepted as guarded opt-in | default output behavior unchanged |
+| `use_custom_chunk_backward=True` | accepted as expert opt-in | high-memory speed mode only |
+| rematerialized custom chunk | closed | not promoted |
+| pressure/stencil Python expression rewrites | closed | not promoted |
+
 ## Execution Route
 
 ```text

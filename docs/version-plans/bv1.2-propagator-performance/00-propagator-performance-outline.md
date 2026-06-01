@@ -5,7 +5,8 @@ Date: 2026-05-30
 Status: superseded as the execution entry point by
 `propagator-performance-master-plan.md`. This file remains as the original
 route and structural audit record. Follow the master plan for all new
-optimization decisions.
+optimization decisions. The current optimization map is maintained in
+`propagator-performance-master-plan.md#current-optimization-map`.
 
 ## Boundary
 
