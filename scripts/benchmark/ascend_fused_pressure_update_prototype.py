@@ -141,6 +141,52 @@ extern "C" __global__ __aicore__ void fused_pressure_update_forward(
 }
 '''
 
+COPY_KERNEL_CPP = r'''
+#include "kernel_operator.h"
+
+using namespace AscendC;
+
+class KernelFusedPressureUpdateForwardCopy {
+public:
+    __aicore__ inline KernelFusedPressureUpdateForwardCopy() {}
+
+    __aicore__ inline void Init(GM_ADDR p, GM_ADDR p_next, uint32_t size) {
+        this->size = size;
+        p_gm.SetGlobalBuffer((__gm__ float*)p, size);
+        p_next_gm.SetGlobalBuffer((__gm__ float*)p_next, size);
+    }
+
+    __aicore__ inline void Process() {
+        const uint32_t block_idx = GetBlockIdx();
+        const uint32_t block_num = GetBlockNum();
+        const uint32_t elems_per_block = (size + block_num - 1) / block_num;
+        const uint32_t begin = block_idx * elems_per_block;
+        uint32_t end = begin + elems_per_block;
+        if (end > size) {
+            end = size;
+        }
+
+        for (uint32_t index = begin; index < end; ++index) {
+            p_next_gm.SetValue(index, p_gm.GetValue(index));
+        }
+    }
+
+private:
+    uint32_t size;
+    GlobalTensor<float> p_gm;
+    GlobalTensor<float> p_next_gm;
+};
+
+extern "C" __global__ __aicore__ void fused_pressure_update_forward(
+    GM_ADDR p, GM_ADDR u, GM_ADDR w, GM_ADDR kappa1, GM_ADDR alpha1,
+    GM_ADDR p_next, GM_ADDR workspace, GM_ADDR tiling) {
+    GET_TILING_DATA(tiling_data, tiling);
+    KernelFusedPressureUpdateForwardCopy op;
+    op.Init(p, p_next, tiling_data.size);
+    op.Process();
+}
+'''
+
 
 HOST_TILING_OLD = '''  FusedPressureUpdateForwardTilingData tiling;
   const gert::StorageShape* x1_shape = context->GetInputShape(0);
@@ -154,7 +200,7 @@ HOST_TILING_OLD = '''  FusedPressureUpdateForwardTilingData tiling;
 '''
 
 
-HOST_TILING_NEW = '''  FusedPressureUpdateForwardTilingData tiling;
+HOST_TILING_NEW_TEMPLATE = '''  FusedPressureUpdateForwardTilingData tiling;
   const gert::StorageShape* x1_shape = context->GetInputShape(0);
   const gert::Shape storage_shape = x1_shape->GetStorageShape();
   int32_t data_sz = 1;
@@ -167,7 +213,7 @@ HOST_TILING_NEW = '''  FusedPressureUpdateForwardTilingData tiling;
   tiling.set_nz_pml(static_cast<uint32_t>(storage_shape.GetDim(1)));
   tiling.set_nx_pml(static_cast<uint32_t>(storage_shape.GetDim(2)));
   tiling.set_free_surface_start(static_cast<uint32_t>(*free_surface_start));
-  context->SetBlockDim(8);
+  context->SetBlockDim(__BLOCK_DIM__);
   tiling.SaveToBuffer(context->GetRawTilingData()->GetData(), context->GetRawTilingData()->GetCapacity());
   context->GetRawTilingData()->SetDataSize(tiling.GetDataSize());
 '''
@@ -261,7 +307,7 @@ def run_reference_contract() -> Dict[str, Any]:
     }
 
 
-def patch_pressure_update_project(project_dir: Path) -> Dict[str, Any]:
+def patch_pressure_update_project(project_dir: Path, *, kernel_mode: str, block_dim: int) -> Dict[str, Any]:
     changed = []
     tiling_header = project_dir / "op_host" / "fused_pressure_update_forward_tiling.h"
     kernel_cpp = project_dir / "op_kernel" / "fused_pressure_update_forward.cpp"
@@ -270,15 +316,17 @@ def patch_pressure_update_project(project_dir: Path) -> Dict[str, Any]:
     tiling_header.write_text(TILING_HEADER)
     changed.append(str(tiling_header.relative_to(project_dir)))
 
-    kernel_cpp.write_text(KERNEL_CPP)
+    kernel_source = COPY_KERNEL_CPP if kernel_mode == "copy" else KERNEL_CPP
+    kernel_cpp.write_text(kernel_source)
     changed.append(str(kernel_cpp.relative_to(project_dir)))
 
     host_text = host_cpp.read_text()
     if HOST_TILING_OLD not in host_text:
         raise RuntimeError("generated host tiling block did not match expected scaffold")
-    host_cpp.write_text(host_text.replace(HOST_TILING_OLD, HOST_TILING_NEW))
+    host_tiling_new = HOST_TILING_NEW_TEMPLATE.replace("__BLOCK_DIM__", str(block_dim))
+    host_cpp.write_text(host_text.replace(HOST_TILING_OLD, host_tiling_new))
     changed.append(str(host_cpp.relative_to(project_dir)))
-    return {"changed_files": changed}
+    return {"changed_files": changed, "kernel_mode": kernel_mode, "block_dim": block_dim}
 
 
 def run_build(project_dir: Path, cann_path: Path, timeout: int) -> Dict[str, Any]:
@@ -339,7 +387,11 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
         status = "generation_failed"
     else:
         python_patch_report = patch_generated_python(project_dir, Path(args.python_executable).resolve())
-        patch_report = patch_pressure_update_project(project_dir)
+        patch_report = patch_pressure_update_project(
+            project_dir,
+            kernel_mode=args.kernel_mode,
+            block_dim=args.block_dim,
+        )
         generated_files = inspect_generated_files(project_dir)
         if args.compile:
             compile_report = run_build(project_dir, Path(args.cann_path).resolve(), args.compile_timeout)
@@ -351,6 +403,8 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
         "purpose": "minimal AscendC pressure-update custom-op compile gate",
         "workspace": str(workspace),
         "compile_requested": args.compile,
+        "kernel_mode": args.kernel_mode,
+        "block_dim": args.block_dim,
         "reference_contract": run_reference_contract(),
         "generation": generation,
         "patch_generated_python": python_patch_report,
@@ -371,6 +425,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--compile-timeout", type=int, default=300)
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument("--kernel-mode", choices=("pressure", "copy"), default="pressure")
+    parser.add_argument("--block-dim", type=int, default=8)
     return parser
 
 
@@ -385,6 +441,8 @@ def main() -> int:
                 "status": report["status"],
                 "workspace": report["workspace"],
                 "compile_requested": report["compile_requested"],
+                "kernel_mode": report["kernel_mode"],
+                "block_dim": report["block_dim"],
                 "compile_returncode": None if report["compile"] is None else report["compile"]["returncode"],
                 "reference_contract": report["reference_contract"],
                 "output": str(args.output),

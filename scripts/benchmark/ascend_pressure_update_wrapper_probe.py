@@ -23,7 +23,9 @@ from pathlib import Path
 from typing import Any, Dict
 
 from ascend_custom_op_scaffold_probe import REPO_ROOT
-from ascend_custom_op_runtime_probe import compile_pressure_update_package, install_package
+from ascend_fused_pressure_update_prototype import build_parser as build_compile_parser
+from ascend_fused_pressure_update_prototype import run_probe as run_compile_probe
+from ascend_custom_op_runtime_probe import install_package
 
 
 DEFAULT_OUTPUT = (
@@ -149,7 +151,11 @@ w_cpu = torch.randn(shape, dtype=torch.float32)
 kappa_cpu = torch.rand(shape[1:], dtype=torch.float32) * 0.1
 alpha_cpu = torch.rand(shape[1:], dtype=torch.float32) * 0.2
 
-expected = reference(p_cpu, u_cpu, w_cpu, kappa_cpu, alpha_cpu, free_surface_start)
+kernel_mode = os.environ.get("ADFWI_KERNEL_MODE", "pressure")
+if kernel_mode == "copy":
+    expected = p_cpu.clone()
+else:
+    expected = reference(p_cpu, u_cpu, w_cpu, kappa_cpu, alpha_cpu, free_surface_start)
 print("ADFWI_WRAPPER_STAGE=prepared_cpu_reference", flush=True)
 
 p = p_cpu.to(device)
@@ -169,6 +175,7 @@ diff = (actual_cpu - expected).abs()
 result = {
     "device": device,
     "shape": list(shape),
+    "kernel_mode": kernel_mode,
     "free_surface_start": free_surface_start,
     "output_shape": list(actual_cpu.shape),
     "max_abs_diff": float(diff.max().item()),
@@ -242,12 +249,41 @@ def run_wrapper(wrapper_dir: Path, env: Dict[str, str], timeout: int) -> Dict[st
     return report
 
 
+def compile_pressure_update_package(workspace: Path, timeout: int, *, kernel_mode: str, block_dim: int) -> Dict[str, Any]:
+    parser = build_compile_parser()
+    args = parser.parse_args(
+        [
+            "--workspace",
+            str(workspace / "compile"),
+            "--compile",
+            "--compile-timeout",
+            str(timeout),
+            "--kernel-mode",
+            kernel_mode,
+            "--block-dim",
+            str(block_dim),
+        ]
+    )
+    report = run_compile_probe(args)
+    package = workspace / "compile" / "out" / "build_out" / "custom_opp_ubuntu_aarch64.run"
+    return {
+        "report": report,
+        "package": str(package),
+        "package_exists": package.exists(),
+    }
+
+
 def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
     workspace = Path(args.workspace).resolve() if args.workspace else Path(tempfile.mkdtemp(prefix="adfwi_pressure_wrapper_"))
     workspace.mkdir(parents=True, exist_ok=True)
     workspace.chmod(0o700)
 
-    compile_report = compile_pressure_update_package(workspace, args.compile_timeout)
+    compile_report = compile_pressure_update_package(
+        workspace,
+        args.compile_timeout,
+        kernel_mode=args.kernel_mode,
+        block_dim=args.block_dim,
+    )
     status = "ok"
     install_report = None
     wrapper_build = None
@@ -264,6 +300,7 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
             env = os.environ.copy()
             env["ASCEND_CUSTOM_OPP_PATH"] = f"{vendor_root}:{env.get('ASCEND_CUSTOM_OPP_PATH', '')}"
             env["LD_LIBRARY_PATH"] = f"{vendor_root / 'op_api' / 'lib'}:{env.get('LD_LIBRARY_PATH', '')}"
+            env["ADFWI_KERNEL_MODE"] = args.kernel_mode
             wrapper_dir = workspace / "wrapper"
             wrapper_build = build_wrapper(wrapper_dir, env, args.wrapper_build_timeout)
             if wrapper_build.get("timed_out"):
@@ -280,6 +317,8 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
     return {
         "status": status,
         "purpose": "minimal PyTorch NPU wrapper feasibility gate for Ascend pressure-update custom op",
+        "kernel_mode": args.kernel_mode,
+        "block_dim": args.block_dim,
         "workspace": str(workspace),
         "compile": compile_report,
         "install": install_report,
@@ -296,6 +335,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--install-timeout", type=int, default=120)
     parser.add_argument("--wrapper-build-timeout", type=int, default=300)
     parser.add_argument("--runtime-timeout", type=int, default=120)
+    parser.add_argument("--kernel-mode", choices=("pressure", "copy"), default="pressure")
+    parser.add_argument("--block-dim", type=int, default=8)
     return parser
 
 
@@ -309,6 +350,8 @@ def main() -> int:
             {
                 "status": report["status"],
                 "workspace": report["workspace"],
+                "kernel_mode": report["kernel_mode"],
+                "block_dim": report["block_dim"],
                 "custom_op_compile_status": report["compile"]["report"]["status"],
                 "install_returncode": None if report["install"] is None else report["install"]["returncode"],
                 "wrapper_build_returncode": None
