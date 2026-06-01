@@ -140,6 +140,20 @@ Ascend/CANN custom operator path through the installed toolkit (`msopgen`) and
 `torch_npu.utils.cpp_extension.NpuExtension`. This should be treated as a
 separate focused custom-op prototype, not as another Python benchmark edit.
 
+Scaffold probe result:
+
+```text
+69-ascend-custom-op-scaffold-probe.md
+```
+
+`msopgen` can generate a minimal `FusedPressureUpdateForward` project for
+`ai_core-ascend910b`, so the custom-op route is not blocked at the IR/schema
+stage. The current blocker is environment setup for compilation: generated
+build scripts default to base `python3` (`Python 3.13`, `NumPy 2.x`), which is
+incompatible with CANN/TBE. Forcing the `adfwi` Python removes that NumPy error
+but exposes a missing `google.protobuf` dependency. Do not implement the actual
+pressure stencil until the scaffold build environment is reproducible.
+
 ## Execution Route
 
 ```text
