@@ -549,4 +549,12 @@ the current production `acoustic_kernels.py` micro-optimization line. Further
 meaningful acoustic propagator speed work likely requires a lower-level fused
 stencil implementation or a separate boundary-saving research path, not more
 expression rearrangement in Python.
+
+The rematerialized custom-chunk line was also closed after a real 5-iteration
+FWI gate. With `checkpoint_segments=10`, `divergence_cache_stride=2`, and
+`state_cache_stride=1`, the remat path preserved the loss trajectory and
+`vp_update_norm` exactly, but improved total loop time by only `1.087x` while
+using `2.266x` peak memory relative to production checkpoint. This is not enough
+to justify production integration, so no more Python-level remat cache knobs
+should be added.
 ```
