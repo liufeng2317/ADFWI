@@ -532,4 +532,13 @@ stayed below threshold. Do not continue small-allocation or per-step scalar
 candidates. The next acoustic task must target measured stencil-update cost
 directly, starting with a focused p/u/w timestep microbenchmark under the
 production checkpoint shape.
+
+The stencil breakdown now shows the cost order:
+`pressure_update > vertical_velocity_update > horizontal_velocity_update`,
+with receiver sampling and source/free-surface below the main stencil updates.
+Hoisting invariant coefficient windows out of the production `step_forward`
+timestep loop preserved exact outputs/loss/raw gradients but gave only `1.004x`
+total speedup, so that candidate was reverted. The next meaningful candidate
+must target pressure-update stencil arithmetic or slice-copy behavior itself;
+simple view-hoisting is not enough.
 ```
