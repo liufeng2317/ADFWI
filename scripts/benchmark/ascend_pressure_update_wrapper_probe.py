@@ -143,7 +143,7 @@ def reference(p, u, w, kappa1, alpha1, free_surface_start):
 
 torch.manual_seed(20260601)
 device = "npu:0"
-shape = (2, 9, 10)
+shape = tuple(int(item) for item in os.environ.get("ADFWI_RUNTIME_SHAPE", "2,9,10").split(","))
 free_surface_start = 2
 p_cpu = torch.randn(shape, dtype=torch.float32)
 u_cpu = torch.randn(shape, dtype=torch.float32)
@@ -152,7 +152,7 @@ kappa_cpu = torch.rand(shape[1:], dtype=torch.float32) * 0.1
 alpha_cpu = torch.rand(shape[1:], dtype=torch.float32) * 0.2
 
 kernel_mode = os.environ.get("ADFWI_KERNEL_MODE", "pressure")
-if kernel_mode == "copy":
+if kernel_mode.startswith("copy"):
     expected = p_cpu.clone()
 else:
     expected = reference(p_cpu, u_cpu, w_cpu, kappa_cpu, alpha_cpu, free_surface_start)
@@ -301,6 +301,7 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
             env["ASCEND_CUSTOM_OPP_PATH"] = f"{vendor_root}:{env.get('ASCEND_CUSTOM_OPP_PATH', '')}"
             env["LD_LIBRARY_PATH"] = f"{vendor_root / 'op_api' / 'lib'}:{env.get('LD_LIBRARY_PATH', '')}"
             env["ADFWI_KERNEL_MODE"] = args.kernel_mode
+            env["ADFWI_RUNTIME_SHAPE"] = ",".join(str(item) for item in args.runtime_shape)
             wrapper_dir = workspace / "wrapper"
             wrapper_build = build_wrapper(wrapper_dir, env, args.wrapper_build_timeout)
             if wrapper_build.get("timed_out"):
@@ -319,6 +320,7 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
         "purpose": "minimal PyTorch NPU wrapper feasibility gate for Ascend pressure-update custom op",
         "kernel_mode": args.kernel_mode,
         "block_dim": args.block_dim,
+        "runtime_shape": list(args.runtime_shape),
         "workspace": str(workspace),
         "compile": compile_report,
         "install": install_report,
@@ -335,8 +337,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--install-timeout", type=int, default=120)
     parser.add_argument("--wrapper-build-timeout", type=int, default=300)
     parser.add_argument("--runtime-timeout", type=int, default=120)
-    parser.add_argument("--kernel-mode", choices=("pressure", "copy"), default="pressure")
+    parser.add_argument("--kernel-mode", choices=("pressure", "copy", "copy_vector"), default="pressure")
     parser.add_argument("--block-dim", type=int, default=8)
+    parser.add_argument("--runtime-shape", type=int, nargs=3, default=(2, 9, 10))
     return parser
 
 
@@ -352,6 +355,7 @@ def main() -> int:
                 "workspace": report["workspace"],
                 "kernel_mode": report["kernel_mode"],
                 "block_dim": report["block_dim"],
+                "runtime_shape": report["runtime_shape"],
                 "custom_op_compile_status": report["compile"]["report"]["status"],
                 "install_returncode": None if report["install"] is None else report["install"]["returncode"],
                 "wrapper_build_returncode": None

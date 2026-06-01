@@ -187,6 +187,68 @@ extern "C" __global__ __aicore__ void fused_pressure_update_forward(
 }
 '''
 
+COPY_VECTOR_KERNEL_CPP = r'''
+#include "kernel_operator.h"
+
+using namespace AscendC;
+
+class KernelFusedPressureUpdateForwardVectorCopy {
+public:
+    __aicore__ inline KernelFusedPressureUpdateForwardVectorCopy() {}
+
+    __aicore__ inline void Init(GM_ADDR p, GM_ADDR p_next, uint32_t size) {
+        this->size = size;
+        p_gm.SetGlobalBuffer((__gm__ float*)p, size);
+        p_next_gm.SetGlobalBuffer((__gm__ float*)p_next, size);
+        pipe.InitBuffer(in_queue, 1, TILE_LENGTH * sizeof(float));
+    }
+
+    __aicore__ inline void Process() {
+        const uint32_t block_idx = GetBlockIdx();
+        const uint32_t block_num = GetBlockNum();
+        const uint32_t elems_per_block = (size + block_num - 1) / block_num;
+        const uint32_t begin = block_idx * elems_per_block;
+        uint32_t end = begin + elems_per_block;
+        if (end > size) {
+            end = size;
+        }
+
+        uint32_t copied = 0;
+        const uint32_t count = end - begin;
+        while (copied < count) {
+            uint32_t tile_len = TILE_LENGTH;
+            if (copied + tile_len > count) {
+                tile_len = count - copied;
+            }
+            LocalTensor<float> local = in_queue.AllocTensor<float>();
+            DataCopy(local, p_gm[begin + copied], tile_len);
+            in_queue.EnQue(local);
+            local = in_queue.DeQue<float>();
+            DataCopy(p_next_gm[begin + copied], local, tile_len);
+            in_queue.FreeTensor(local);
+            copied += tile_len;
+        }
+    }
+
+private:
+    static constexpr uint32_t TILE_LENGTH = 256;
+    uint32_t size;
+    TPipe pipe;
+    TQue<QuePosition::VECIN, 1> in_queue;
+    GlobalTensor<float> p_gm;
+    GlobalTensor<float> p_next_gm;
+};
+
+extern "C" __global__ __aicore__ void fused_pressure_update_forward(
+    GM_ADDR p, GM_ADDR u, GM_ADDR w, GM_ADDR kappa1, GM_ADDR alpha1,
+    GM_ADDR p_next, GM_ADDR workspace, GM_ADDR tiling) {
+    GET_TILING_DATA(tiling_data, tiling);
+    KernelFusedPressureUpdateForwardVectorCopy op;
+    op.Init(p, p_next, tiling_data.size);
+    op.Process();
+}
+'''
+
 
 HOST_TILING_OLD = '''  FusedPressureUpdateForwardTilingData tiling;
   const gert::StorageShape* x1_shape = context->GetInputShape(0);
@@ -316,7 +378,12 @@ def patch_pressure_update_project(project_dir: Path, *, kernel_mode: str, block_
     tiling_header.write_text(TILING_HEADER)
     changed.append(str(tiling_header.relative_to(project_dir)))
 
-    kernel_source = COPY_KERNEL_CPP if kernel_mode == "copy" else KERNEL_CPP
+    if kernel_mode == "copy":
+        kernel_source = COPY_KERNEL_CPP
+    elif kernel_mode == "copy_vector":
+        kernel_source = COPY_VECTOR_KERNEL_CPP
+    else:
+        kernel_source = KERNEL_CPP
     kernel_cpp.write_text(kernel_source)
     changed.append(str(kernel_cpp.relative_to(project_dir)))
 
@@ -443,7 +510,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--compile-timeout", type=int, default=300)
     parser.add_argument("--compile", action="store_true")
-    parser.add_argument("--kernel-mode", choices=("pressure", "copy"), default="pressure")
+    parser.add_argument("--kernel-mode", choices=("pressure", "copy", "copy_vector"), default="pressure")
     parser.add_argument("--block-dim", type=int, default=8)
     return parser
 
