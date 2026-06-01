@@ -332,22 +332,38 @@ def patch_pressure_update_project(project_dir: Path, *, kernel_mode: str, block_
 def run_build(project_dir: Path, cann_path: Path, timeout: int) -> Dict[str, Any]:
     env = os.environ.copy()
     env["ASCEND_HOME_PATH"] = str(cann_path)
-    completed = subprocess.run(
-        ["bash", "build.sh"],
-        cwd=str(project_dir),
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        timeout=timeout,
-        check=False,
-    )
-    return {
-        "command": ["bash", "build.sh"],
-        "cwd": str(project_dir),
-        "returncode": completed.returncode,
-        "output_tail": "\n".join(completed.stdout.splitlines()[-80:]),
-    }
+    try:
+        completed = subprocess.run(
+            ["bash", "build.sh"],
+            cwd=str(project_dir),
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            check=False,
+        )
+        return {
+            "command": ["bash", "build.sh"],
+            "cwd": str(project_dir),
+            "returncode": completed.returncode,
+            "timed_out": False,
+            "timeout_seconds": timeout,
+            "output_tail": "\n".join(completed.stdout.splitlines()[-80:]),
+        }
+    except subprocess.TimeoutExpired as exc:
+        output = exc.stdout
+        if isinstance(output, bytes):
+            output = output.decode(errors="replace")
+        output = output or ""
+        return {
+            "command": ["bash", "build.sh"],
+            "cwd": str(project_dir),
+            "returncode": None,
+            "timed_out": True,
+            "timeout_seconds": timeout,
+            "output_tail": "\n".join(output.splitlines()[-80:]),
+        }
 
 
 def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
@@ -395,7 +411,9 @@ def run_probe(args: argparse.Namespace) -> Dict[str, Any]:
         generated_files = inspect_generated_files(project_dir)
         if args.compile:
             compile_report = run_build(project_dir, Path(args.cann_path).resolve(), args.compile_timeout)
-            if compile_report["returncode"] != 0:
+            if compile_report.get("timed_out"):
+                status = "compile_timed_out"
+            elif compile_report["returncode"] != 0:
                 status = "compile_failed"
 
     return {
