@@ -169,6 +169,18 @@ the generated scaffold also compiles and packages successfully. The next gate is
 to implement the smallest standalone pressure-update custom op and validate it
 against the PyTorch tensor reference before any production propagator hook.
 
+Minimal pressure-update prototype compile gate:
+
+```text
+71-ascend-pressure-update-prototype-compile.md
+```
+
+A generated scaffold with a real scalar AscendC pressure-update body now
+compiles and packages successfully. The PyTorch vector reference and an
+independent scalar Python reference match exactly on a tiny deterministic tensor
+case. This is still not a production-ready operator: the next gate is standalone
+runtime invocation and direct output parity against the PyTorch reference.
+
 ## Execution Route
 
 ```text
