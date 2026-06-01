@@ -59,6 +59,7 @@ conda run -n adfwi python scripts/benchmark/ascend_custom_op_scaffold_probe.py \
 | --- | --- | --- |
 | generation only | `ok` | `msopgen` generated the required project files |
 | compile requested | `compile_skipped` | skipped because `google.protobuf` is missing in `adfwi` |
+| compile after protobuf install | `ok` | generated scaffold compiled and packaged successfully |
 
 Generated required files were present in both runs:
 
@@ -87,24 +88,39 @@ google: false
 google.protobuf: false
 ```
 
-## Decision
-
-The Ascend custom-op route remains feasible at the scaffold generation level,
-but production implementation should not start yet.
-
-The next gate is environment readiness:
+After installing `protobuf` in the `adfwi` environment:
 
 ```text
-Install or provide google.protobuf inside the adfwi environment, then rerun the
-same script with --compile.
+google.protobuf: true
+protobuf version: 5.29.3
+compile returncode: 0
 ```
 
-Only after the generated empty scaffold compiles reproducibly should we write
-the fused pressure-update kernel body.
+The generated scaffold package was created successfully:
+
+```text
+custom_opp_ubuntu_aarch64.run
+```
+
+## Decision
+
+The Ascend custom-op route is now feasible at the generated scaffold compile
+level.
+
+The environment-readiness gate is cleared:
+
+```text
+conda run -n adfwi python scripts/benchmark/ascend_custom_op_scaffold_probe.py --compile
+```
+
+The next gate is no longer package generation. The next gate is to replace the
+generated placeholder kernel body with the smallest real pressure-update kernel
+and validate it against the PyTorch reference on a tiny deterministic tensor
+case before connecting it to any production propagator path.
 
 ## Next Direction
 
-Continue the lower-level fused-stencil line only if the compile gate is cleared.
-Otherwise, stop acoustic Python-kernel optimization and move to another measured
-bottleneck. The previous Python rematerialization/cache line has already been
-closed because its speed/memory tradeoff is not sufficient for default use.
+Continue the lower-level fused-stencil line with a separate prototype kernel.
+Do not edit `ADFWI/propagator/acoustic_kernels.py` until a standalone custom op
+matches the PyTorch pressure update numerically and demonstrates a meaningful
+runtime benefit on NPU.

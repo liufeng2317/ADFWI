@@ -164,9 +164,10 @@ The manual scaffold probe is now captured by
 `scripts/benchmark/ascend_custom_op_scaffold_probe.py`. The script can generate
 the minimal `FusedPressureUpdateForward` project, patch generated build files to
 use the active `adfwi` Python, and record a compile-gated result. Current status:
-generation succeeds, compile is intentionally skipped because
-`google.protobuf` is not available in the `adfwi` environment. The next gate is
-environment readiness, not production kernel coding.
+generation succeeds. After installing `protobuf` in the `adfwi` environment,
+the generated scaffold also compiles and packages successfully. The next gate is
+to implement the smallest standalone pressure-update custom op and validate it
+against the PyTorch tensor reference before any production propagator hook.
 
 ## Execution Route
 
