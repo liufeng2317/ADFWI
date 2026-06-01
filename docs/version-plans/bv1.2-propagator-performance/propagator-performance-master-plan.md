@@ -101,6 +101,7 @@ flowchart TD
     F --> F1["Lower-level fused acoustic stencil feasibility<br/>must stay outside production first"]
     F --> F2["Boundary-saving research path<br/>separate adjoint contract"]
     F --> F3["Or stop acoustic kernel work<br/>move to another measured bottleneck"]
+    F1 --> F4["Current active plan<br/>67-fused-acoustic-stencil-feasibility.md"]
 ```
 
 Status summary:
@@ -113,6 +114,17 @@ Status summary:
 | `use_custom_chunk_backward=True` | accepted as expert opt-in | high-memory speed mode only |
 | rematerialized custom chunk | closed | not promoted |
 | pressure/stencil Python expression rewrites | closed | not promoted |
+
+Active next document:
+
+```text
+67-fused-acoustic-stencil-feasibility.md
+```
+
+This is a feasibility contract, not an implementation. Its first gate is to
+verify whether a lower-level fused operator path is available in the current
+`adfwi` environment. If no viable path exists, acoustic kernel performance work
+should stop instead of restarting Python micro-optimizations.
 
 ## Execution Route
 
