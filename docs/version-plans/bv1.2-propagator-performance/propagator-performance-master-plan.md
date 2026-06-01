@@ -154,6 +154,20 @@ incompatible with CANN/TBE. Forcing the `adfwi` Python removes that NumPy error
 but exposes a missing `google.protobuf` dependency. Do not implement the actual
 pressure stencil until the scaffold build environment is reproducible.
 
+Reproducible scaffold script:
+
+```text
+70-ascend-custom-op-scaffold-script.md
+```
+
+The manual scaffold probe is now captured by
+`scripts/benchmark/ascend_custom_op_scaffold_probe.py`. The script can generate
+the minimal `FusedPressureUpdateForward` project, patch generated build files to
+use the active `adfwi` Python, and record a compile-gated result. Current status:
+generation succeeds, compile is intentionally skipped because
+`google.protobuf` is not available in the `adfwi` environment. The next gate is
+environment readiness, not production kernel coding.
+
 ## Execution Route
 
 ```text
