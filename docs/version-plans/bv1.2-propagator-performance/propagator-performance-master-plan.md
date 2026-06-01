@@ -126,6 +126,20 @@ verify whether a lower-level fused operator path is available in the current
 `adfwi` environment. If no viable path exists, acoustic kernel performance work
 should stop instead of restarting Python micro-optimizations.
 
+Gate 0 result:
+
+```text
+68-fused-stencil-gate0-implementation-path.md
+```
+
+The current environment does not support `torch.compile` as a practical fused
+route because the NPU inductor path fails without `triton`. Generic
+`torch.utils.cpp_extension.load_inline` also did not produce a stable quick
+prototype within the timeout. The only plausible lower-level route found is an
+Ascend/CANN custom operator path through the installed toolkit (`msopgen`) and
+`torch_npu.utils.cpp_extension.NpuExtension`. This should be treated as a
+separate focused custom-op prototype, not as another Python benchmark edit.
+
 ## Execution Route
 
 ```text
