@@ -102,6 +102,59 @@ Current reduced checkpoint=10 baseline with AcousticFWI's auto pressure policy:
 | forward seconds / iteration, excluding first | `3.8509 s` |
 | backward seconds / iteration, excluding first | `21.4941 s` |
 
+Current pressure-only backward operator profile:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_backward_operator_profile.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 1 \
+  --repeat 1 \
+  --checkpoint-segments 10 \
+  --save-forward-wavefield \
+  --pressure-only \
+  --shots 1 \
+  --receivers 24 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --nt 400 \
+  --topk 25
+```
+
+Result file:
+`docs/version-plans/bv1.2-propagator-performance/acoustic_pressure_only_backward_operator_profile_20260602.json`
+
+| Item | Result |
+| --- | ---: |
+| forward time | `0.4680 s` |
+| backward time | `21.6333 s` |
+| pressure record shape | `[1, 400, 24]` |
+| `vp.grad` finite | `true` |
+| `vp.grad` norm | `1.2599950249825298e-10` |
+
+Top self-device events:
+
+| Rank | Operator | Count | Self device time |
+| --- | --- | ---: | ---: |
+| 1 | `aten::copy_` | `31115` | `1.9107 s` |
+| 2 | `aten::slice` | `56771` | `1.7485 s` |
+| 3 | `CheckpointFunctionBackward` | `10` | `1.5004 s` |
+| 4 | `aten::slice_backward` | `23971` | `1.4482 s` |
+| 5 | `empty_tensor` | `58886` | `1.3587 s` |
+| 6 | `aclnnInplaceCopy` | `30833` | `1.2739 s` |
+| 7 | `autograd::engine::evaluate_function: SliceBackward0` | `23971` | `1.1574 s` |
+| 8 | `aclnnInplaceZero` | `26808` | `1.1383 s` |
+| 9 | `aten::zero_` | `26808` | `1.0332 s` |
+| 10 | `aten::zeros` | `24406` | `1.0193 s` |
+
+Decision: the current pressure-only checkpoint path remains dominated by
+autograd bookkeeping around slicing, copying, zero allocation, and checkpoint
+replay. Further Python-level receiver/output cleanup is unlikely to give a
+large gain. The next valid optimization must reduce the number of autograd
+slice-assignment nodes in a bounded pressure-only prototype, while preserving
+loss and raw `vp.grad` parity.
+
 Custom chunk speed/memory gate:
 
 ```bash

@@ -236,6 +236,9 @@ What is not stable enough for promotion:
 - output/placeholder cleanup is exhausted: lazy zero placeholders were accepted,
   but omitting pressure-only velocity keys from the internal FWI record regressed
   steady-state total iteration from `25.9895 s` to `26.5913 s`;
+- the current pressure-only backward operator profile shows that remaining cost
+  is still dominated by autograd bookkeeping around `copy_`, `slice`,
+  `slice_backward`, `empty_tensor`, zero allocation, and checkpoint replay;
 - elastic optimization has not been profiled independently.
 
 ## Next Active Route
@@ -272,10 +275,23 @@ Current reduced checkpoint=10 baseline:
 | forward seconds / iteration, excluding first | `3.8509 s` |
 | backward seconds / iteration, excluding first | `21.4941 s` |
 
-The next task should not replace production code. It should first isolate the
-remaining pressure-only recurrence cost inside `step_forward_pressure_only`.
-Do not continue receiver-output, placeholder, or Python rematerialization
-micro-optimizations unless a new profile shows they are dominant.
+The next task should not replace production code. It should build one bounded
+pressure-only recurrence prototype that reduces autograd slice-assignment graph
+cost, then compare it against the production pressure-only checkpoint path.
+Do not continue receiver-output, placeholder, source-shape, or Python
+rematerialization micro-optimizations unless a new profile shows they are
+dominant.
+
+Current pressure-only operator-profile gate:
+
+| Item | Result |
+| --- | ---: |
+| command shape | `shots=1`, `receivers=24`, `nx=100`, `nz=50`, `nt=400` |
+| checkpoint policy | `checkpoint_segments=10`, `pressure_only=True` |
+| forward time | `0.4680 s` |
+| backward time | `21.6333 s` |
+| top operators | `copy_`, `slice`, `CheckpointFunctionBackward`, `slice_backward`, `empty_tensor`, `InplaceCopy`, `SliceBackward0`, `zero_`, `zeros` |
+| result file | `acoustic_pressure_only_backward_operator_profile_20260602.json` |
 
 Current custom chunk result:
 

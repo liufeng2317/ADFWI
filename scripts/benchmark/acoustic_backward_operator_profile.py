@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-"""Profile default acoustic backward operators on NPU/CPU.
+"""Profile acoustic backward operators on NPU/CPU.
 
 This is a Phase B diagnostic. It profiles the default acoustic propagator path
 without changing kernels, then records top backward operators and wall-clock
-forward/backward timings. The default shape is intentionally smaller than the
-reduced Marmousi2 validation case so profiler traces stay manageable.
+forward/backward timings. Use ``--pressure-only`` to profile the current
+AcousticFWI pressure-loss production route. The default shape is intentionally
+smaller than the reduced Marmousi2 validation case so profiler traces stay
+manageable.
 """
 
 from __future__ import annotations
@@ -131,6 +133,7 @@ def run_once(args: argparse.Namespace, backend) -> Dict[str, Any]:
             shot_index=shot_index,
             checkpoint_segments=args.checkpoint_segments,
             save_forward_wavefield=args.save_forward_wavefield,
+            pressure_only=args.pressure_only,
         )
     )
     loss = record[args.loss_component].pow(2).mean()
@@ -196,6 +199,7 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
                 shot_index=np.arange(args.shots, dtype=np.int64),
                 checkpoint_segments=args.checkpoint_segments,
                 save_forward_wavefield=args.save_forward_wavefield,
+                pressure_only=args.pressure_only,
             )
         )
         loss = record[args.loss_component].pow(2).mean()
@@ -205,7 +209,7 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
     repeats = [run_once(args, backend) for _ in range(args.repeat)]
     return {
         "status": "ok",
-        "purpose": "Phase B default acoustic backward operator profile",
+        "purpose": "Phase B acoustic backward operator profile",
         "backend": backend.diagnostics(),
         "config": {
             "device": args.device,
@@ -217,6 +221,7 @@ def run_experiment(args: argparse.Namespace) -> Dict[str, Any]:
             "repeat": args.repeat,
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
+            "pressure_only": args.pressure_only,
             "loss_component": args.loss_component,
             "shots": args.shots,
             "receivers": args.receivers,
@@ -255,6 +260,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--checkpoint-segments", type=int, default=1)
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--pressure-only", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--loss-component", choices=("p", "u", "w"), default="p")
     parser.add_argument("--shots", type=int, default=1)
     parser.add_argument("--receivers", type=int, default=3)

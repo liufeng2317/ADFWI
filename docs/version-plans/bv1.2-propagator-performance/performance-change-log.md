@@ -58,6 +58,12 @@ This is the only active modification record for
 | --- | --- | --- | --- | --- |
 | 2026-06-02 | clarified custom-kernel internal names and removed stale acoustic debug remnants | `ADFWI/propagator/acoustic_custom_kernels.py`, `ADFWI/propagator/acoustic_kernels.py`, `ADFWI/propagator/acoustic_propagator.py` | `py_compile`; custom chunk backend integration tests passed | accepted cleanup |
 
+## Diagnostic Records
+
+| Date | Diagnostic | Files | Result | Decision |
+| --- | --- | --- | --- | --- |
+| 2026-06-02 | pressure-only acoustic backward operator profile | `scripts/benchmark/acoustic_backward_operator_profile.py`, `acoustic_pressure_only_backward_operator_profile_20260602.json` | `checkpoint_segments=10`, `pressure_only=True`, `nt=400`; backward `21.6333 s`; top self-device events are `aten::copy_`, `aten::slice`, `CheckpointFunctionBackward`, `aten::slice_backward`, `empty_tensor`, `aclnnInplaceCopy`, `SliceBackward0`, and zero/allocation ops | use this as the gate for the next route: stop receiver/output micro-cleanups and only continue with a bounded prototype that reduces autograd slice-assignment graph cost |
+
 ## Current Remaining Boundary
 
 | Item | Status | Next action |
