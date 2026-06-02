@@ -273,9 +273,9 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
         choices=("production-custom-chunk", "experimental-remat-chunk"),
         default="experimental-remat-chunk",
     )
-    parser.add_argument("--remat-divergence-cache-stride", type=int, default=2)
+    parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")
-    parser.add_argument("--remat-state-cache-stride", type=int, default=1)
+    parser.add_argument("--remat-state-cache-stride", type=int, default=10)
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,
         iterations=5,

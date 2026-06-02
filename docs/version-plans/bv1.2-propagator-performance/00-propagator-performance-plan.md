@@ -218,7 +218,8 @@ What is not stable enough for promotion:
   but peak allocation rises from `272.5190 MiB` to `7882.8569 MiB`;
 - rematerialized custom checkpoint controls memory but is still too slow:
   forward-saved boundary caching gives exact loss/update parity and lowers peak
-  allocation to `527.9731 MiB`, but total speedup is only `1.1312x`;
+  allocation to `527.9731 MiB`; every-step divergence caching improves total
+  speedup to `1.1989x`, which is still below the saved-state custom path;
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
   recompute;
@@ -284,9 +285,9 @@ Current rematerialized boundary-cache candidate:
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| mean seconds / iteration | `29.1892 s` | `25.8036 s` |
-| backward speedup | baseline | `1.2437x` |
-| total speedup | baseline | `1.1312x` |
+| mean seconds / iteration | `28.1126 s` | `23.4491 s` |
+| backward speedup | baseline | `1.3619x` |
+| total speedup | baseline | `1.1989x` |
 | peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
 
 This is accepted only as an experimental path. The next optimization must

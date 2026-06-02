@@ -136,20 +136,21 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
   --iterations 5 \
   --checkpoint-segments 10 \
   --candidate-mode experimental-remat-chunk \
-  --remat-divergence-cache-stride 2 \
+  --remat-divergence-cache-stride 1 \
   --remat-divergence-cache-components p,u,w \
   --remat-state-cache-stride 10
 ```
 
-Current result after forward-saved boundary caching:
+Current result after forward-saved boundary caching and every-step divergence
+caching inside each remat replay block:
 
 | Metric | Production full-output path | Rematerialized custom path |
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| mean seconds / iteration | `29.1892 s` | `25.8036 s` |
-| total speedup | baseline | `1.1312x` |
-| backward speedup | baseline | `1.2437x` |
+| mean seconds / iteration | `28.1126 s` | `23.4491 s` |
+| total speedup | baseline | `1.1989x` |
+| backward speedup | baseline | `1.3619x` |
 | peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
 | memory ratio | baseline | `1.9374x` |
 
@@ -168,7 +169,7 @@ for new comparisons.
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
 | `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
-| rematerialized custom boundary cache | experimental benchmark path | total `145.9461s -> 129.0180s` over 5 iterations, `1.1312x`; backward `1.2437x`; loss and update exact | not run | keeps memory near production (`1.94x`) but loses most saved-state speed benefit; not a production promotion candidate |
+| rematerialized custom boundary/divergence cache | experimental benchmark path | total `140.5631s -> 117.2454s` over 5 iterations, `1.1989x`; backward `1.3619x`; loss and update exact | not run | keeps memory near production (`1.94x`) but still loses much of saved-state speed benefit; not a production promotion candidate |
 
 Closed candidates with measured regressions:
 

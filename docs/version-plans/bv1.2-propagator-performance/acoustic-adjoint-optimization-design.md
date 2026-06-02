@@ -94,10 +94,10 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
   --iterations 5 \
   --checkpoint-segments 10 \
   --candidate-mode experimental-remat-chunk \
-  --remat-divergence-cache-stride 2 \
+  --remat-divergence-cache-stride 1 \
   --remat-divergence-cache-components p,u,w \
   --remat-state-cache-stride 10 \
-  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_boundary_cache_fwi_loop_compare_20260602.json
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_div1_state10_fwi_loop_compare_20260602.json
 ```
 
 Result:
@@ -106,15 +106,15 @@ Result:
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| total seconds, 5 iterations | `145.9461 s` | `129.0180 s` |
-| mean seconds / iteration | `29.1892 s` | `25.8036 s` |
-| backward seconds | `123.7662 s` | `99.5178 s` |
+| total seconds, 5 iterations | `140.5631 s` | `117.2454 s` |
+| mean seconds / iteration | `28.1126 s` | `23.4491 s` |
+| backward seconds | `119.6037 s` | `87.8184 s` |
 | peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
 
 Decision:
 
 - keep this as an experimental benchmark improvement;
-- do not promote it: total speedup is only `1.1312x`;
+- do not promote it: total speedup is only `1.1989x`;
 - this confirms that rematerialization controls memory, but the replay cost is
   still too high to replace saved-state custom backward.
 
