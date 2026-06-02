@@ -188,6 +188,7 @@ Not promoted:
 - rematerialized custom checkpoint path;
 - Ascend custom-op production path;
 - no-checkpoint direct return path.
+- non-reentrant PyTorch checkpoint on the current NPU TorchScript path.
 
 ## Current Progress
 
@@ -206,6 +207,8 @@ What is not stable enough for promotion:
 - custom autograd is useful only as an expert high-memory path;
 - rematerialized custom checkpoint did not provide a good memory/runtime result;
 - Ascend custom op is blocked by standalone multi-block copy parity;
+- non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
+  recompute;
 - elastic optimization has not been profiled independently.
 
 ## Next Active Route

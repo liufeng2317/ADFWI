@@ -29,6 +29,7 @@ This is the only active modification record for
 | 2026-06-01 | rematerialized custom checkpoint | small end-to-end gain with significant memory increase | not promoted |
 | 2026-06-01 | Ascend custom-op pressure kernel | single-block parity passed, multi-block copy failed | paused |
 | 2026-06-02 | no-checkpoint direct return | parity exact, NPU timing slightly worse | reverted and closed |
+| 2026-06-02 | non-reentrant PyTorch checkpoint for `checkpoint_segments > 1` | reduced checkpoint=10 baseline ran, but non-reentrant candidate failed during NPU TorchScript backward recompute | reverted and closed |
 
 ## Readability And Cleanup
 
