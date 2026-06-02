@@ -12,6 +12,7 @@ This is the only active modification record for
 | 2026-05-31 | acoustic source-index hoist | `ADFWI/propagator/acoustic_kernels.py` | parity exact; small loop cleanup | accepted |
 | 2026-06-02 | skip detached illumination summaries during checkpoint replay | `ADFWI/propagator/acoustic_kernels.py` | reduced/full-record checkpoint=10 loss trajectories matched exactly; steady-state total iteration improved 3.52% reduced and 2.81% full-record | accepted |
 | 2026-06-02 | AcousticFWI `pressure_only="auto"` default | `ADFWI/fwi/acoustic_fwi.py`, `scripts/benchmark/acoustic_fwi_iteration_profile.py` | reduced/full-record checkpoint=10 loss trajectories matched exactly; steady-state total iteration improved 9.74% reduced and 10.33% full-record versus forced full-output FWI | accepted |
+| 2026-06-02 | lazy zero placeholders for acoustic pressure-only outputs | `ADFWI/propagator/acoustic_kernels.py` | pressure-only loss and `vp.grad` parity test passed; reduced checkpoint=10 10-iteration loss trajectory and `vp_update_norm` matched baseline; steady-state total iteration improved from `26.4793 s` to `25.9895 s` | accepted |
 
 ## Accepted Opt-In Changes
 

@@ -349,11 +349,19 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
 
     # Initialize recorded waveforms
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    if pressure_only:
+        rcv_u = None
+        rcv_w = None
+    else:
+        rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+        rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     forward_wavefield_p = torch.zeros((nz, nx), dtype=dtype, device=device)
-    forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
-    forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
+    if pressure_only:
+        forward_wavefield_u = None
+        forward_wavefield_w = None
+    else:
+        forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
+        forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
 
     # Coefficients for the staggered grid
     c1_staggered = 9.0 / 8.0
@@ -459,6 +467,14 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
             
         k = k + chunk.shape[-1]
     
+    if pressure_only:
+        # Preserve the public waveform dictionary contract while avoiding
+        # up-front allocation of velocity outputs that pressure-loss FWI ignores.
+        rcv_u = torch.zeros_like(rcv_p)
+        rcv_w = torch.zeros_like(rcv_p)
+        forward_wavefield_u = torch.zeros_like(forward_wavefield_p)
+        forward_wavefield_w = torch.zeros_like(forward_wavefield_p)
+
     record_waveform = {
         "p": rcv_p,
         "u": rcv_u,

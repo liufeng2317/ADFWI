@@ -98,9 +98,9 @@ Current reduced checkpoint=10 baseline with AcousticFWI's auto pressure policy:
 | initial loss | `6375.7919921875` |
 | final loss, 10 iterations | `4776.7587890625` |
 | `vp_update_norm` | `8410.6171875` |
-| seconds / iteration, excluding first | `26.4793 s` |
-| forward seconds / iteration, excluding first | `3.7645 s` |
-| backward seconds / iteration, excluding first | `22.0680 s` |
+| seconds / iteration, excluding first | `25.9895 s` |
+| forward seconds / iteration, excluding first | `3.8509 s` |
+| backward seconds / iteration, excluding first | `21.4941 s` |
 
 Custom chunk speed/memory gate:
 
@@ -202,6 +202,7 @@ for new comparisons.
 | skip detached illumination summaries during checkpoint replay | production checkpoint path | total `30.2897s -> 29.2227s`, `+3.52%`; backward `+4.34%` | total `28.2031s -> 27.4098s`, `+2.81%`; backward `+3.41%` | reduces useless detached illumination work during checkpoint backward replay |
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
+| lazy zero placeholders for pressure-only `u/w` outputs | production pressure-only kernel path | steady-state total `26.4793s -> 25.9895s`, `+1.85%`; backward `22.0680s -> 21.4941s`, `+2.60%`; loss and update exact | not run | removes up-front allocation of unused velocity receiver and wavefield placeholder tensors |
 | `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
 | saved-state divergence compression | experimental benchmark path | best candidate saves only `div_p`: total `139.9340s -> 106.0862s`, `1.3191x`; backward `1.5719x`; loss and update exact | not run | reduces memory from saved-all `7882.8569 MiB` to `5643.8008 MiB`, but still `20.7x` production; not promotion-ready |
 | rematerialized pressure-only boundary/divergence cache | experimental benchmark path | latest same-run gate total `131.5525s -> 106.6786s` over 5 iterations, `1.2332x`; backward `1.3994x`; loss and update exact | not run | keeps memory near production (`1.94x`); candidate absolute time improved from prior `111.2747s`, but still below saved-state speed ceiling |

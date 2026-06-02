@@ -175,6 +175,7 @@ Accepted default production changes:
 - acoustic source-index hoist.
 - skip detached illumination summaries during checkpoint backward replay.
 - AcousticFWI `pressure_only="auto"` default for pressure-loss inversion loops.
+- lazy zero placeholders for unused acoustic pressure-only `u/w` outputs.
 
 Accepted opt-in paths:
 
@@ -263,9 +264,9 @@ Current reduced checkpoint=10 baseline:
 | Metric | Baseline |
 | --- | ---: |
 | final loss, 10 iterations | `4776.7587890625` |
-| total seconds / iteration, excluding first | `26.4793 s` |
-| forward seconds / iteration, excluding first | `3.7645 s` |
-| backward seconds / iteration, excluding first | `22.0680 s` |
+| total seconds / iteration, excluding first | `25.9895 s` |
+| forward seconds / iteration, excluding first | `3.8509 s` |
+| backward seconds / iteration, excluding first | `21.4941 s` |
 
 The next task should not replace production code. It should create a tiny
 memory-reduced custom-backward candidate and compare it against both the
