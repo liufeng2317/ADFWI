@@ -39,36 +39,133 @@ docs/version-plans/bv1.2/full-record-marmousi2-baseline.md
 
 ## Top-To-Bottom Map
 
+### Overview
+
 ```mermaid
 flowchart TD
     A["ADFWI propagator performance"]
 
     A --> B["Wrapper layer"]
-    B --> B1["AcousticPropagator / ElasticPropagator"]
-    B --> B2["prepare model, survey, backend"]
-
     A --> C["Kernel layer"]
+    A --> D["FWI loop layer"]
+    A --> E["Allowed optimization classes"]
+    A --> F["Rejected or paused classes"]
+```
+
+### Wrapper Layer
+
+```mermaid
+flowchart TD
+    B["Wrapper layer"]
+    B --> B1["AcousticPropagator"]
+    B --> B2["ElasticPropagator"]
+    B --> B3["model / survey / backend preparation"]
+    B --> B4["option validation"]
+
+    B1 --> B11["calls acoustic forward kernel"]
+    B1 --> B12["guards custom chunk and wavefield policy"]
+    B2 --> B21["calls elastic forward kernel"]
+    B3 --> B31["device / dtype"]
+    B3 --> B32["source / receiver tensors"]
+```
+
+Optimization rule: wrappers may clarify contracts or remove repeated setup, but
+must not hide numerical behavior changes.
+
+### Kernel Layer
+
+```mermaid
+flowchart TD
+    C["Kernel layer"]
+
     C --> C1["acoustic_kernels.py<br/>default production acoustic path"]
     C --> C2["elastic_kernels.py<br/>default elastic path"]
     C --> C3["acoustic_custom_kernels.py<br/>expert opt-in / benchmark path"]
     C --> C4["acoustic_kernels_bs.py<br/>research prototype, not production-wired"]
 
-    A --> D["FWI loop layer"]
+    C1 --> C11["pad model"]
+    C1 --> C12["time-step recurrence"]
+    C1 --> C13["receiver recording"]
+    C1 --> C14["forward-wavefield accumulation"]
+    C1 --> C15["checkpoint segmentation"]
+
+    C2 --> C21["PML / ABL branches"]
+    C2 --> C22["fd_order variants"]
+    C2 --> C23["five output components"]
+
+    C3 --> C31["manual autograd chunk"]
+    C3 --> C32["high-memory speed path"]
+    C3 --> C33["not default"]
+
+    C4 --> C41["boundary-saving prototype"]
+    C4 --> C42["do not use as active task unless explicitly resumed"]
+```
+
+Optimization rule: kernel edits require waveform, loss, and raw-gradient parity.
+
+### FWI Loop Layer
+
+```mermaid
+flowchart TD
+    D["FWI loop layer"]
     D --> D1["forward / loss / backward"]
     D --> D2["gradient processing"]
     D --> D3["save / plot / logging"]
 
-    A --> E["Allowed optimization classes"]
+    D1 --> D11["per-batch propagation"]
+    D1 --> D12["misfit construction"]
+    D1 --> D13["autograd backward"]
+
+    D2 --> D21["raw gradient"]
+    D2 --> D22["mask / smooth / illumination"]
+    D2 --> D23["processed gradient parity"]
+
+    D3 --> D31["CPU/device transfers"]
+    D3 --> D32["output artifacts"]
+```
+
+Optimization rule: FWI-loop changes must report seconds per iteration and loss
+trajectory, not only single-forward timing.
+
+### Allowed Optimization Classes
+
+```mermaid
+flowchart TD
+    E["Allowed optimization classes"]
     E --> E1["measured PyTorch hot-path cleanup"]
     E --> E2["checkpoint/rematerialization policy"]
     E --> E3["output policy with explicit guards"]
     E --> E4["expert opt-in custom backward"]
 
-    A --> F["Rejected or paused classes"]
+    E1 --> E11["only after profiling identifies cost"]
+    E1 --> E12["one bounded code change"]
+    E2 --> E21["memory/runtime tradeoff measured"]
+    E2 --> E22["checkpoint semantics documented"]
+    E3 --> E31["default output contract unchanged"]
+    E3 --> E32["invalid combinations rejected"]
+    E4 --> E41["not default"]
+    E4 --> E42["full FWI timing required"]
+```
+
+Optimization rule: a valid task must define the expected performance mechanism
+before implementation.
+
+### Rejected Or Paused Classes
+
+```mermaid
+flowchart TD
+    F["Rejected or paused classes"]
     F --> F1["readability-only expression rewrites"]
     F --> F2["custom op production promotion"]
     F --> F3["elastic-by-analogy optimization"]
+
+    F1 --> F11["closed unless backed by timing"]
+    F2 --> F21["paused until standalone multi-block copy parity is solved"]
+    F3 --> F31["paused until elastic-specific profiling"]
 ```
+
+Optimization rule: do not restart these lines from archive notes unless a new
+measurement changes the premise.
 
 ## Current Decisions
 
