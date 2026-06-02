@@ -327,11 +327,27 @@ Current coupled custom-backward gate:
 | mean total speedup | `1.5144x` |
 | result file | `acoustic_custom_multistep_pressure_loss_probe_repeat_20260603.json` |
 
-This is now the main high-value route. The next task should scale this gate
-from a tiny 20-step recurrence toward production chunk length and production
-input preparation. Do not make `acoustic_kernels.py` call this path until the
-longer-step gate preserves pressure receiver output, pressure-loss, and raw
-model-gradient parity.
+Longer-step coupled gate:
+
+| Item | Result |
+| --- | ---: |
+| recurrence steps | `80` |
+| enabled features | source injection, free-surface write, receiver recording |
+| loss components | `p,rcv_p` |
+| output/loss max abs diff | `0.0` |
+| max gradient abs diff | `4.76837158203125e-07` |
+| max gradient rel diff | `7.764155452605337e-05` |
+| mean forward speedup | `0.8916x` |
+| mean backward speedup | `2.0144x` |
+| mean total speedup | `1.5444x` |
+| result file | `acoustic_custom_multistep_pressure_loss_steps80_20260603.json` |
+
+This is now the main high-value route. The next task should stop extending toy
+recurrence length and instead build a production-chunk gate: same model/survey
+input preparation as `AcousticPropagator`, pressure receiver output and
+pressure-loss comparison, and raw `vp.grad` parity against the production
+pressure-only checkpoint path. Do not make `acoustic_kernels.py` call this path
+until the production-chunk gate passes.
 
 Current custom chunk result:
 

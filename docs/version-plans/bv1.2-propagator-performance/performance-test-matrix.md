@@ -235,6 +235,47 @@ with exact outputs/loss and small absolute gradient differences. It is still a
 tiny benchmark, so the next step is a longer-step or production-chunk gate
 before wiring anything into `acoustic_kernels.py`.
 
+Longer-step coupled `p/u/w` pressure-loss gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_custom_multistep_update_probe.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 2 \
+  --repeat 3 \
+  --steps 80 \
+  --shots 1 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --source-injection \
+  --free-surface-boundary-write \
+  --receiver-recording \
+  --receivers 24 \
+  --loss-kind receiver-random-linear \
+  --loss-components p,rcv_p
+```
+
+Result file:
+`docs/version-plans/bv1.2-propagator-performance/acoustic_custom_multistep_pressure_loss_steps80_20260603.json`
+
+| Item | Reference | Candidate |
+| --- | ---: | ---: |
+| recurrence steps | `80` | `80` |
+| output max abs diff | baseline | `0.0` |
+| loss abs diff | baseline | `0.0` |
+| max gradient abs diff | baseline | `4.76837158203125e-07` |
+| max gradient rel diff | baseline | `7.764155452605337e-05` |
+| mean forward speedup | baseline | `0.8916x` |
+| mean backward speedup | baseline | `2.0144x` |
+| mean total speedup | baseline | `1.5444x` |
+
+Decision: the custom-backward route remains stable at a longer recurrence
+length. Forward is slower, but backward speedup dominates total time. The next
+valid gate is a production-chunk benchmark that uses real acoustic-propagator
+input preparation and compares pressure receiver output, pressure loss, and raw
+`vp.grad` against the production pressure-only checkpoint path.
+
 Custom chunk speed/memory gate:
 
 ```bash
