@@ -214,6 +214,7 @@ Closed candidates with measured regressions:
 | detach-before-summary accumulation | total `+0.64%` only, forward regressed; reverted |
 | empty placeholders for skipped replay summaries | reduced checkpoint=10 total regressed `-2.10%`; reverted |
 | concatenate segmented receiver chunks | reduced checkpoint=10 total regressed `-1.93%`; reverted |
+| omit pressure-only velocity placeholders from internal FWI record | loss and `vp_update_norm` exact, but reduced checkpoint=10 total regressed `25.9895s -> 26.5913s`; reverted |
 
 Pressure-only acoustic FWI opt-in comparison:
 

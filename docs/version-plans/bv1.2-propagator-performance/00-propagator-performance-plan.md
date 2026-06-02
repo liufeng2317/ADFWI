@@ -233,6 +233,9 @@ What is not stable enough for promotion:
   recompute;
 - checkpoint replay wavefield-skip reduced checkpoint=10 backward only
   slightly but regressed checkpoint=1 timing;
+- output/placeholder cleanup is exhausted: lazy zero placeholders were accepted,
+  but omitting pressure-only velocity keys from the internal FWI record regressed
+  steady-state total iteration from `25.9895 s` to `26.5913 s`;
 - elastic optimization has not been profiled independently.
 
 ## Next Active Route
@@ -240,7 +243,7 @@ What is not stable enough for promotion:
 The next optimization should be:
 
 ```text
-Acoustic custom-backward memory reduction.
+Acoustic pressure-only recurrence hot path.
 ```
 
 Detailed design:
@@ -254,7 +257,8 @@ Target scope:
 - acoustic only;
 - pressure-loss FWI only;
 - keep the current production path unchanged;
-- use `use_custom_chunk_backward=True` as the speed baseline;
+- use the production `AcousticFWI pressure_only="auto"` checkpoint path as the
+  primary baseline;
 - no elastic changes;
 - no finite-difference equation changes;
 - no `AcousticPropagator.forward` default output-contract change.
@@ -268,9 +272,10 @@ Current reduced checkpoint=10 baseline:
 | forward seconds / iteration, excluding first | `3.8509 s` |
 | backward seconds / iteration, excluding first | `21.4941 s` |
 
-The next task should not replace production code. It should create a tiny
-memory-reduced custom-backward candidate and compare it against both the
-production full-output path and the current saved-state custom chunk path.
+The next task should not replace production code. It should first isolate the
+remaining pressure-only recurrence cost inside `step_forward_pressure_only`.
+Do not continue receiver-output, placeholder, or Python rematerialization
+micro-optimizations unless a new profile shows they are dominant.
 
 Current custom chunk result:
 
@@ -283,9 +288,7 @@ Current custom chunk result:
 | total speedup | baseline | `1.5367x` |
 | peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
 
-Next candidate must reduce the custom path peak memory substantially while
-keeping exact loss/update parity and preserving a meaningful backward speed
-advantage.
+This remains the speed ceiling reference, not the active production route.
 
 Current rematerialized pressure-only candidate:
 
@@ -298,9 +301,10 @@ Current rematerialized pressure-only candidate:
 | total speedup | baseline | `1.2332x` |
 | peak allocated memory | `272.5190 MiB` | `528.1079 MiB` |
 
-This is accepted only as an experimental path. The next optimization must
-attack rematerialized backward replay cost directly. Small receiver-output
-cleanup alone is not enough to close the gap to the saved-state speed ceiling.
+This is accepted only as an experimental path. Do not spend another round on
+Python-level remat branch cleanup without a lower-level fusion plan; small
+receiver-output cleanup alone is not enough to close the gap to the saved-state
+speed ceiling.
 
 Saved-state custom chunk conclusion:
 
