@@ -1,0 +1,45 @@
+# Propagator Performance Change Log
+
+This is the only active modification record for
+`bv1.2-propagator-performance`. Detailed per-round notes and raw outputs are in
+`archive/` and should not be used as the active plan.
+
+## Accepted Production Changes
+
+| Date | Change | Files | Validation | Decision |
+| --- | --- | --- | --- | --- |
+| 2026-05-30 | `checkpoint_segments == 1` checkpoint bypass | `ADFWI/propagator/acoustic_kernels.py` | acoustic output/loss/`vp.grad` parity exact on checkpoint-overhead probe | accepted |
+| 2026-05-31 | acoustic source-index hoist | `ADFWI/propagator/acoustic_kernels.py` | parity exact; small loop cleanup | accepted |
+
+## Accepted Opt-In Changes
+
+| Date | Change | Files | Validation | Decision |
+| --- | --- | --- | --- | --- |
+| 2026-05-31 | `save_forward_wavefield=False` guarded output policy | `ADFWI/propagator`, `ADFWI/fwi` | output/loss/raw-gradient parity when illumination is off; guard rejects incompatible illumination use | accepted opt-in |
+| 2026-05-31 | `use_custom_chunk_backward=True` expert path | `ADFWI/propagator/acoustic_custom_kernels.py`, acoustic wrapper/FWI plumbing | custom chunk receiver-loss and `vp.grad` parity tests; real FWI timing recorded | accepted opt-in, not default |
+
+## Closed Or Not Promoted
+
+| Date | Line | Result | Decision |
+| --- | --- | --- | --- |
+| 2026-05-31 | receiver stack rewrite | isolated improvement did not transfer to reduced FWI | closed |
+| 2026-05-31 | pressure expression rewrites | too small or slower | closed |
+| 2026-05-31 | `torch.compile` | current NPU/compiler environment blocked practical use | closed |
+| 2026-05-31 | `TorchGradProcessor` as default | reduced case improved, full-record case did not | not promoted |
+| 2026-06-01 | rematerialized custom checkpoint | small end-to-end gain with significant memory increase | not promoted |
+| 2026-06-01 | Ascend custom-op pressure kernel | single-block parity passed, multi-block copy failed | paused |
+| 2026-06-02 | no-checkpoint direct return | parity exact, NPU timing slightly worse | reverted and closed |
+
+## Readability And Cleanup
+
+| Date | Change | Files | Validation | Decision |
+| --- | --- | --- | --- | --- |
+| 2026-06-02 | clarified custom-kernel internal names and removed stale acoustic debug remnants | `ADFWI/propagator/acoustic_custom_kernels.py`, `ADFWI/propagator/acoustic_kernels.py`, `ADFWI/propagator/acoustic_propagator.py` | `py_compile`; custom chunk backend integration tests passed | accepted cleanup |
+
+## Current Remaining Boundary
+
+| Item | Status | Next action |
+| --- | --- | --- |
+| `ADFWI/propagator/acoustic_custom_kernels.py` | valid expert opt-in / benchmark path | keep, but do not make default without new full FWI evidence |
+| `ADFWI/propagator/acoustic_kernels_bs.py` | research prototype, not production-wired | archive or delete only in a separate explicit cleanup |
+| Ascend custom-op route | paused | resume only after standalone multi-block copy parity is solved |
