@@ -99,7 +99,7 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
   --remat-divergence-cache-stride 1 \
   --remat-divergence-cache-components p,u,w \
   --remat-state-cache-stride 10 \
-  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_pressure_fwi_loop_compare_20260602.json
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_pressure_skip_velocity_copy_fwi_loop_compare_20260602.json
 ```
 
 Result:
@@ -108,16 +108,19 @@ Result:
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| total seconds, 5 iterations | `142.1277 s` | `111.2747 s` |
-| mean seconds / iteration | `28.4255 s` | `22.2549 s` |
-| backward seconds | `121.1730 s` | `83.6597 s` |
-| peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
+| total seconds, 5 iterations | `131.5525 s` | `106.6786 s` |
+| mean seconds / iteration | `26.3105 s` | `21.3357 s` |
+| backward seconds | `111.4665 s` | `79.6526 s` |
+| peak allocated memory | `272.5190 MiB` | `528.1079 MiB` |
 
 Decision:
 
 - keep this as the active rematerialized benchmark gate;
-- do not promote it yet: total speedup is `1.2773x`, still below the
+- do not promote it yet: same-run total speedup is `1.2332x`, still below the
   saved-state speed ceiling;
+- compared with the previous remat pressure-only run, candidate absolute total
+  time improved from `111.2747 s` to `106.6786 s` by skipping unnecessary
+  velocity receiver chunk allocation/copy;
 - this confirms that rematerialization controls memory, but the replay cost is
   still too high to replace saved-state custom backward.
 

@@ -175,17 +175,18 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
 ```
 
 Current pressure-loss remat result after forward-saved boundary caching,
-every-step divergence caching, and receiver-pressure-only recording:
+every-step divergence caching, receiver-pressure-only recording, and skipped
+velocity receiver chunk copies:
 
 | Metric | Production full-output path | Rematerialized custom path |
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| mean seconds / iteration | `28.4255 s` | `22.2549 s` |
-| total speedup | baseline | `1.2773x` |
-| backward speedup | baseline | `1.4484x` |
-| peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
-| memory ratio | baseline | `1.9374x` |
+| mean seconds / iteration | `26.3105 s` | `21.3357 s` |
+| total speedup | baseline | `1.2332x` |
+| backward speedup | baseline | `1.3994x` |
+| peak allocated memory | `272.5190 MiB` | `528.1079 MiB` |
+| memory ratio | baseline | `1.9379x` |
 
 ## Efficiency Summary From Accepted Changes
 
@@ -203,7 +204,7 @@ for new comparisons.
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
 | `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
 | saved-state divergence compression | experimental benchmark path | best candidate saves only `div_p`: total `139.9340s -> 106.0862s`, `1.3191x`; backward `1.5719x`; loss and update exact | not run | reduces memory from saved-all `7882.8569 MiB` to `5643.8008 MiB`, but still `20.7x` production; not promotion-ready |
-| rematerialized pressure-only boundary/divergence cache | experimental benchmark path | total `142.1277s -> 111.2747s` over 5 iterations, `1.2773x`; backward `1.4484x`; loss and update exact | not run | keeps memory near production (`1.94x`) and improves remat speed; still below saved-state speed ceiling |
+| rematerialized pressure-only boundary/divergence cache | experimental benchmark path | latest same-run gate total `131.5525s -> 106.6786s` over 5 iterations, `1.2332x`; backward `1.3994x`; loss and update exact | not run | keeps memory near production (`1.94x`); candidate absolute time improved from prior `111.2747s`, but still below saved-state speed ceiling |
 
 Closed candidates with measured regressions:
 

@@ -224,7 +224,9 @@ What is not stable enough for promotion:
   forward-saved boundary caching gives exact loss/update parity and lowers peak
   allocation to `527.9731 MiB`; every-step divergence caching improves total
   speedup to `1.1989x`; pressure-only receiver recording improves the current
-  remat gate to `1.2773x`, which is still below the saved-state custom path;
+  remat gate to `1.2773x`; skipping velocity receiver chunk copies lowers the
+  candidate absolute time from `111.2747 s` to `106.6786 s`, but same-run speedup
+  is `1.2332x` because the production reference run was also faster;
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
   recompute;
@@ -290,14 +292,14 @@ Current rematerialized pressure-only candidate:
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| mean seconds / iteration | `28.4255 s` | `22.2549 s` |
-| backward speedup | baseline | `1.4484x` |
-| total speedup | baseline | `1.2773x` |
-| peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
+| mean seconds / iteration | `26.3105 s` | `21.3357 s` |
+| backward speedup | baseline | `1.3994x` |
+| total speedup | baseline | `1.2332x` |
+| peak allocated memory | `272.5190 MiB` | `528.1079 MiB` |
 
 This is accepted only as an experimental path. The next optimization must
-attack rematerialized backward replay cost directly; otherwise this line should
-stop.
+attack rematerialized backward replay cost directly. Small receiver-output
+cleanup alone is not enough to close the gap to the saved-state speed ceiling.
 
 Saved-state custom chunk conclusion:
 

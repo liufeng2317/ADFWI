@@ -693,8 +693,8 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             rcv_u = torch.stack(records_u, dim=1)
             rcv_w = torch.stack(records_w, dim=1)
         else:
-            rcv_u = p.new_zeros((p.shape[0], source_v.shape[0], rcv_x.numel()))
-            rcv_w = p.new_zeros((p.shape[0], source_v.shape[0], rcv_x.numel()))
+            rcv_u = p.new_empty((p.shape[0], 0, 0))
+            rcv_w = p.new_empty((p.shape[0], 0, 0))
         return p, u, w, rcv_p, rcv_u, rcv_w
 
     @staticmethod
@@ -1236,8 +1236,12 @@ def rematerialized_custom_chunk_forward_kernel(
     )
 
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    if record_velocity_receivers:
+        rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+        rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    else:
+        rcv_u = None
+        rcv_w = None
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
         p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _RematerializedChunkFunction.apply(
@@ -1263,9 +1267,15 @@ def rematerialized_custom_chunk_forward_kernel(
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
-        rcv_u[:, step:next_step] = rcv_u_temp
-        rcv_w[:, step:next_step] = rcv_w_temp
+        if record_velocity_receivers:
+            rcv_u[:, step:next_step] = rcv_u_temp
+            rcv_w[:, step:next_step] = rcv_w_temp
         step = next_step
+    if not record_velocity_receivers:
+        # Preserve the legacy waveform dictionary shape without spending chunk
+        # time recording velocity receiver traces that pressure-loss FWI ignores.
+        rcv_u = torch.zeros_like(rcv_p)
+        rcv_w = torch.zeros_like(rcv_p)
 
     return {
         "p": rcv_p,
