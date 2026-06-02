@@ -193,3 +193,50 @@ Next route:
 
 Stop optimizing replay summary placeholders. The remaining useful work must
 target recurrence replay or checkpoint segment assembly more directly.
+
+## Trial 4: concatenate segmented receiver chunks
+
+Date: 2026-06-02
+
+Hypothesis:
+
+For `checkpoint_segments > 1`, the current kernel preallocates full receiver
+output tensors and writes each segment into a slice. Collecting receiver chunks
+in Python lists and concatenating once at the end could reduce repeated slice
+assignment overhead.
+
+Implementation:
+
+- only for segmented paths, collect `rcv_*_temp` tensors in Python lists;
+- concatenate along time dimension after the segment loop;
+- keep `checkpoint_segments == 1` on the original preallocated path.
+
+Validation:
+
+- `py_compile ADFWI/propagator/acoustic_kernels.py`: passed
+- backend integration parity tests for acoustic output policy and pressure-only:
+  passed
+- reduced checkpoint=10 loss trajectory matched exactly:
+  `6375.7919921875 -> 6006.28125 -> 5718.13330078125`
+- raw and processed gradients remained finite
+
+Timing, compared against the accepted Trial 2 state, steady-state average over
+iterations 2-3:
+
+| Metric | Trial 2 | Candidate | Result |
+| --- | ---: | ---: | ---: |
+| total iteration | 29.2227 s | 29.7857 s | -1.93% |
+| forward | 4.4721 s | 4.7183 s | -5.51% |
+| backward | 24.1039 s | 24.4163 s | -1.30% |
+
+Decision:
+
+Closed and reverted. Receiver chunk concatenation preserved numerical behavior,
+but it slowed both forward and backward. The original preallocated slice writes
+are better for the current segmented acoustic path.
+
+Next route:
+
+Stop treating segment output assembly as a likely performance source. The useful
+remaining target is recurrence replay itself, or a larger algorithmic change
+with an explicit memory/gradient contract.

@@ -35,6 +35,7 @@ This is the only active modification record for
 | 2026-06-02 | skip detached forward-wavefield summaries during checkpoint replay | checkpoint=10 backward improved only slightly, while checkpoint=1 path regressed due TorchScript signature/branch overhead | reverted and closed |
 | 2026-06-02 | detach-before-summary accumulation | backward improved only slightly, forward regressed, and steady-state total iteration improved only 0.64% | reverted and closed |
 | 2026-06-02 | empty placeholders for skipped replay summaries | preserved loss/gradient behavior but slowed reduced checkpoint=10 steady-state total iteration by 2.10% | reverted and closed |
+| 2026-06-02 | concatenate segmented receiver chunks | preserved loss/gradient behavior but slowed reduced checkpoint=10 steady-state total iteration by 1.93% | reverted and closed |
 
 ## Readability And Cleanup
 
