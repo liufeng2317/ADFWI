@@ -155,6 +155,41 @@ large gain. The next valid optimization must reduce the number of autograd
 slice-assignment nodes in a bounded pressure-only prototype, while preserving
 loss and raw `vp.grad` parity.
 
+Pressure inner-state recurrence prototype:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_pressure_inner_state_microbenchmark.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 1 \
+  --repeat 3 \
+  --shots 1 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --nt 400
+```
+
+Result file:
+`docs/version-plans/bv1.2-propagator-performance/acoustic_pressure_inner_state_microbenchmark_20260602.json`
+
+| Item | Reference | Candidate |
+| --- | ---: | ---: |
+| recurrent state | full pressure field with sliced assignment | pressure interior only |
+| output max abs diff | baseline | `0.0` |
+| loss abs diff | baseline | `0.0` |
+| `p/u_seq/w_seq/kappa1/alpha1` grad max abs diff | baseline | `0.0` |
+| mean forward speedup | baseline | `1.1977x` |
+| mean backward speedup | baseline | `1.1645x` |
+| mean total speedup | baseline | `1.1714x` |
+
+Decision: this is the first useful evidence that reducing recurrent sliced
+assignment can help without gradient drift. It is still only a pressure-update
+subproblem where `u/w` are provided as external time sequences, so it is not
+promotion-ready. The next bounded prototype should extend the same idea to the
+coupled pressure-only acoustic recurrence state (`p/u/w`) before any production
+kernel edit is considered.
+
 Custom chunk speed/memory gate:
 
 ```bash

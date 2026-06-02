@@ -107,9 +107,13 @@ def run_reference(args: argparse.Namespace, state: Dict[str, torch.Tensor]) -> t
     kappa_inner = state["kappa1"][z0:z1, x0:x1]
     alpha_inner = state["alpha1"][z0:z1, x0:x1]
     for it in range(args.nt):
+        # Clone the RHS view before the sliced assignment. The production
+        # TorchScript/checkpoint path can replay its in-place state updates, but
+        # this standalone Python autograd probe needs an unmodified RHS tensor
+        # to make the reference branch a valid gradient baseline.
         p[:, z0:z1, x0:x1] = pressure_update(
             args,
-            p[:, z0:z1, x0:x1],
+            p[:, z0:z1, x0:x1].clone(),
             state["u_seq"][it],
             state["w_seq"][it],
             kappa_inner,

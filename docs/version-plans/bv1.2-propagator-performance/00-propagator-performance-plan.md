@@ -293,6 +293,25 @@ Current pressure-only operator-profile gate:
 | top operators | `copy_`, `slice`, `CheckpointFunctionBackward`, `slice_backward`, `empty_tensor`, `InplaceCopy`, `SliceBackward0`, `zero_`, `zeros` |
 | result file | `acoustic_pressure_only_backward_operator_profile_20260602.json` |
 
+Current bounded prototype gate:
+
+| Item | Result |
+| --- | ---: |
+| prototype | pressure inner-state recurrence |
+| reference | full pressure field with sliced assignment |
+| candidate | pressure interior as recurrent state |
+| output/loss/gradient max abs diff | `0.0` |
+| mean forward speedup | `1.1977x` |
+| mean backward speedup | `1.1645x` |
+| mean total speedup | `1.1714x` |
+| result file | `acoustic_pressure_inner_state_microbenchmark_20260602.json` |
+
+This prototype validates the mechanism but not the full production recurrence.
+The next task is to test whether the same state-reduction idea can handle the
+coupled acoustic `p/u/w` recurrence, receiver sampling, and source injection in
+a benchmark-only implementation. Production `acoustic_kernels.py` should remain
+unchanged until that coupled prototype passes output/loss/raw-gradient parity.
+
 Current custom chunk result:
 
 | Metric | Production full-output path | Current custom chunk |

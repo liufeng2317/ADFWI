@@ -1,0 +1,399 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 82274304,
+    "name": "npu",
+    "reason": null
+  },
+  "config": {
+    "device": "npu:0",
+    "dtype": "float32",
+    "free_surface": true,
+    "nabc": 20,
+    "nt": 400,
+    "nx": 100,
+    "nz": 50,
+    "prefer": "npu,cpu",
+    "repeat": 3,
+    "scale": 0.001,
+    "seed": 20240523,
+    "shots": 1,
+    "warmup": 1
+  },
+  "pairs": [
+    {
+      "candidate": {
+        "backward_seconds": 0.9203884564340115,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.2424145694822073,
+        "loss": 2.2090952711550926e-07,
+        "mode": "candidate",
+        "total_seconds": 1.1628030259162188
+      },
+      "comparison": {
+        "gradients": {
+          "alpha1": {
+            "candidate_norm": 4.200297496481653e-07,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.200297496481653e-07,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "kappa1": {
+            "candidate_norm": 4.527143573795911e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.527143573795911e-06,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "p": {
+            "candidate_norm": 6.343583208945347e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 6.343583208945347e-06,
+            "shape": [
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 3.230824631828e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.230824631828e-06,
+            "shape": [
+              400,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 3.2576785997662228e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.2576785997662228e-06,
+            "shape": [
+              400,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "output": {
+          "candidate_norm": 0.04486566036939621,
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0,
+          "reference_norm": 0.04486566036939621,
+          "shape": [
+            1,
+            67,
+            136
+          ]
+        },
+        "speedup": {
+          "backward": 1.1875515013980436,
+          "forward": 1.2260050420095363,
+          "total": 1.1955680771074648
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.0930086933076382,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.2972014844417572,
+        "loss": 2.2090952711550926e-07,
+        "mode": "reference",
+        "total_seconds": 1.3902101777493954
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.926398728042841,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.24576321430504322,
+        "loss": 2.138845189847416e-07,
+        "mode": "candidate",
+        "total_seconds": 1.1721619423478842
+      },
+      "comparison": {
+        "gradients": {
+          "alpha1": {
+            "candidate_norm": 4.6737690695408673e-07,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.6737690695408673e-07,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "kappa1": {
+            "candidate_norm": 4.206225185043877e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.206225185043877e-06,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "p": {
+            "candidate_norm": 6.110918548074551e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 6.110918548074551e-06,
+            "shape": [
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 3.2325979191227816e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.2325979191227816e-06,
+            "shape": [
+              400,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 3.2303653370036045e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.2303653370036045e-06,
+            "shape": [
+              400,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "output": {
+          "candidate_norm": 0.04414652660489082,
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0,
+          "reference_norm": 0.04414652660489082,
+          "shape": [
+            1,
+            67,
+            136
+          ]
+        },
+        "speedup": {
+          "backward": 1.164340333482703,
+          "forward": 1.212265139612697,
+          "total": 1.1743885648523902
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.0786434039473534,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.29793017730116844,
+        "loss": 2.138845189847416e-07,
+        "mode": "reference",
+        "total_seconds": 1.3765735812485218
+      }
+    },
+    {
+      "candidate": {
+        "backward_seconds": 0.9297026768326759,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.2414170801639557,
+        "loss": 2.1262167138047516e-07,
+        "mode": "candidate",
+        "total_seconds": 1.1711197569966316
+      },
+      "comparison": {
+        "gradients": {
+          "alpha1": {
+            "candidate_norm": 4.277588629975071e-07,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.277588629975071e-07,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "kappa1": {
+            "candidate_norm": 4.23961228079861e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 4.23961228079861e-06,
+            "shape": [
+              90,
+              140
+            ]
+          },
+          "p": {
+            "candidate_norm": 6.094884156482294e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 6.094884156482294e-06,
+            "shape": [
+              1,
+              90,
+              140
+            ]
+          },
+          "u_seq": {
+            "candidate_norm": 3.1725442113383906e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.1725442113383906e-06,
+            "shape": [
+              400,
+              1,
+              90,
+              139
+            ]
+          },
+          "w_seq": {
+            "candidate_norm": 3.1687948194303317e-06,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.1687948194303317e-06,
+            "shape": [
+              400,
+              1,
+              89,
+              140
+            ]
+          }
+        },
+        "loss_abs_diff": 0.0,
+        "output": {
+          "candidate_norm": 0.04401600733399391,
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0,
+          "reference_norm": 0.04401600733399391,
+          "shape": [
+            1,
+            67,
+            136
+          ]
+        },
+        "speedup": {
+          "backward": 1.1414832652002926,
+          "forward": 1.1548052057912161,
+          "total": 1.144229477942725
+        }
+      },
+      "reference": {
+        "backward_seconds": 1.0612400472164154,
+        "finite": {
+          "alpha1_grad": true,
+          "kappa1_grad": true,
+          "output": true,
+          "p_grad": true,
+          "u_seq_grad": true,
+          "w_seq_grad": true
+        },
+        "forward_seconds": 0.27878970094025135,
+        "loss": 2.1262167138047516e-07,
+        "mode": "reference",
+        "total_seconds": 1.3400297481566668
+      }
+    }
+  ],
+  "purpose": "Phase B acoustic pressure inner-state recurrence probe",
+  "status": "ok",
+  "summary": {
+    "max_differences": {
+      "alpha1_grad_max_abs_diff": 0.0,
+      "kappa1_grad_max_abs_diff": 0.0,
+      "loss_abs_diff": 0.0,
+      "output_max_abs_diff": 0.0,
+      "p_grad_max_abs_diff": 0.0,
+      "u_seq_grad_max_abs_diff": 0.0,
+      "w_seq_grad_max_abs_diff": 0.0
+    },
+    "speedup": {
+      "backward": {
+        "max": 1.1875515013980436,
+        "mean": 1.1644583666936796,
+        "min": 1.1414832652002926,
+        "values": [
+          1.1875515013980436,
+          1.164340333482703,
+          1.1414832652002926
+        ]
+      },
+      "forward": {
+        "max": 1.2260050420095363,
+        "mean": 1.1976917958044833,
+        "min": 1.1548052057912161,
+        "values": [
+          1.2260050420095363,
+          1.212265139612697,
+          1.1548052057912161
+        ]
+      },
+      "total": {
+        "max": 1.1955680771074648,
+        "mean": 1.17139537330086,
+        "min": 1.144229477942725,
+        "values": [
+          1.1955680771074648,
+          1.1743885648523902,
+          1.144229477942725
+        ]
+      }
+    }
+  },
+  "warmups": []
+}
