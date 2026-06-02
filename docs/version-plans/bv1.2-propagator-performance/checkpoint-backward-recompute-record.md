@@ -146,3 +146,50 @@ Next route:
 The remaining checkpoint cost is still dominated by full wavefield recompute.
 Further work should focus on reducing replayed recurrence cost or checkpoint
 assembly overhead, not detached summary expressions.
+
+## Trial 3: use empty placeholders for skipped replay summaries
+
+Date: 2026-06-02
+
+Hypothesis:
+
+After Trial 2, checkpoint backward replay no longer accumulates detached
+illumination summaries, but the segment still initializes same-shape
+`forward_wavefield_*` outputs with zeros. Replacing those replay-only
+placeholders with `torch.empty` could avoid zero-fill cost while preserving
+output metadata.
+
+Implementation:
+
+- only initialize `forward_wavefield_*` with zeros when the segment will
+  actually accumulate summaries;
+- use same-shape `torch.empty` placeholders when summaries are skipped.
+
+Validation:
+
+- `py_compile ADFWI/propagator/acoustic_kernels.py`: passed
+- backend integration parity tests for acoustic output policy and pressure-only:
+  passed
+- reduced checkpoint=10 loss trajectory matched exactly:
+  `6375.7919921875 -> 6006.28125 -> 5718.13330078125`
+- raw and processed gradients remained finite
+
+Timing, compared against the accepted Trial 2 state, steady-state average over
+iterations 2-3:
+
+| Metric | Trial 2 | Candidate | Result |
+| --- | ---: | ---: | ---: |
+| total iteration | 29.2227 s | 29.8362 s | -2.10% |
+| forward | 4.4721 s | 4.4712 s | +0.02% |
+| backward | 24.1039 s | 24.7174 s | -2.55% |
+
+Decision:
+
+Closed and reverted. The candidate preserved numerical behavior, but it slowed
+the target checkpoint path. Keeping the zero-initialized placeholder is better
+for the current NPU/TorchScript execution path.
+
+Next route:
+
+Stop optimizing replay summary placeholders. The remaining useful work must
+target recurrence replay or checkpoint segment assembly more directly.
