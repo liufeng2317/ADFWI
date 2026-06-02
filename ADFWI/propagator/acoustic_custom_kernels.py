@@ -27,8 +27,8 @@ import torch
 from .acoustic_kernels import pad_torchSingle
 
 
-def _normalize_divergence_cache_components(components) -> frozenset[str]:
-    """Normalize the rematerialized backward divergence-cache selection.
+def _parse_divergence_cache_components(components) -> frozenset[str]:
+    """Parse the rematerialized backward divergence-cache selection.
 
     Parameters:
     --------------
@@ -58,7 +58,7 @@ def _normalize_divergence_cache_components(components) -> frozenset[str]:
     return selected
 
 
-def _step_forward_saved(
+def _forward_step_with_saved_divergence(
     p,
     u,
     w,
@@ -74,7 +74,7 @@ def _step_forward_saved(
     source_value,
     use_free_surface: bool,
 ):
-    """Run one acoustic time step and return saved intermediates.
+    """Run one acoustic time step and return divergence intermediates.
 
     Description
     --------------
@@ -150,7 +150,7 @@ def _step_forward_saved(
     return p_new, u_new, w_new, div_p, div_u, div_w
 
 
-def _step_div_p_from_state(
+def _pressure_divergence_from_state(
     p,
     u,
     w,
@@ -182,7 +182,7 @@ def _step_div_p_from_state(
     )
 
 
-def _step_p_new_from_div_p(
+def _rebuild_pressure_from_divergence(
     p,
     kappa1,
     alpha1,
@@ -208,7 +208,7 @@ def _step_p_new_from_div_p(
     return p_new
 
 
-def _step_div_u_from_p_new(p_new, *, free_surface_start: int):
+def _horizontal_velocity_divergence(p_new, *, free_surface_start: int):
     """Recompute the horizontal-velocity divergence from updated pressure."""
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
@@ -221,7 +221,7 @@ def _step_div_u_from_p_new(p_new, *, free_surface_start: int):
     )
 
 
-def _step_div_w_from_p_new(p_new, *, free_surface_start: int):
+def _vertical_velocity_divergence(p_new, *, free_surface_start: int):
     """Recompute the vertical-velocity divergence from updated pressure."""
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
@@ -239,7 +239,7 @@ def _step_div_w_from_p_new(p_new, *, free_surface_start: int):
     )
 
 
-def _step_backward_saved(
+def _backward_step_from_saved_divergence(
     p,
     u,
     w,
@@ -262,7 +262,8 @@ def _step_backward_saved(
 
     Description
     --------------
-        This function is the backward counterpart of ``_step_forward_saved``.
+        This function is the backward counterpart of
+        ``_forward_step_with_saved_divergence``.
         It propagates gradients from ``p_new``, ``u_new``, and ``w_new`` back to
         the previous states and model coefficients.
 
@@ -356,14 +357,14 @@ def _step_backward_saved(
     )
 
 
-class _CustomChunkForward(torch.autograd.Function):
+class _SavedStateChunkFunction(torch.autograd.Function):
     """Custom autograd for a fully saved acoustic chunk.
 
     Description
     --------------
         The forward pass stores every internal time-step state and divergence
         term for the chunk. The backward pass then walks the chunk in reverse
-        and applies ``_step_backward_saved``.
+        and applies ``_backward_step_from_saved_divergence``.
 
         This path is faster for some receiver-loss workflows, but it stores
         more internal state than checkpointed production execution. It is used
@@ -403,7 +404,7 @@ class _CustomChunkForward(torch.autograd.Function):
             p_states.append(p)
             u_states.append(u)
             w_states.append(w)
-            p, u, w, div_p, div_u, div_w = _step_forward_saved(
+            p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
                 p,
                 u,
                 w,
@@ -480,7 +481,7 @@ class _CustomChunkForward(torch.autograd.Function):
                 step_grad_kappa2,
                 step_grad_alpha2,
                 step_grad_kappa3,
-            ) = _step_backward_saved(
+            ) = _backward_step_from_saved_divergence(
                 p_states[step],
                 u_states[step],
                 w_states[step],
@@ -523,7 +524,7 @@ class _CustomChunkForward(torch.autograd.Function):
         )
 
 
-class _RematerializedCustomChunkForward(torch.autograd.Function):
+class _RematerializedChunkFunction(torch.autograd.Function):
     """Custom autograd for a rematerialized acoustic chunk.
 
     Description
@@ -567,7 +568,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         w_start = w
 
         for step in range(source_v.shape[0]):
-            p, u, w, _, _, _ = _step_forward_saved(
+            p, u, w, _, _, _ = _forward_step_with_saved_divergence(
                 p,
                 u,
                 w,
@@ -589,7 +590,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
         ctx.divergence_cache_stride = divergence_cache_stride
-        ctx.divergence_cache_components = _normalize_divergence_cache_components(divergence_cache_components)
+        ctx.divergence_cache_components = _parse_divergence_cache_components(divergence_cache_components)
         ctx.state_cache_stride = state_cache_stride
         ctx.save_for_backward(
             p_start,
@@ -637,7 +638,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 p_states.append(p)
                 u_states.append(u)
                 w_states.append(w)
-                p, u, w, div_p, div_u, div_w = _step_forward_saved(
+                p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
                     p,
                     u,
                     w,
@@ -677,7 +678,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                     boundary_p_states.append(p)
                     boundary_u_states.append(u)
                     boundary_w_states.append(w)
-                p, u, w, _, _, _ = _step_forward_saved(
+                p, u, w, _, _, _ = _forward_step_with_saved_divergence(
                     p,
                     u,
                     w,
@@ -708,14 +709,14 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                 div_u = div_u_values[step]
                 div_w = div_w_values[step]
                 if div_p is None:
-                    div_p = _step_div_p_from_state(
+                    div_p = _pressure_divergence_from_state(
                         p_states[step],
                         u_states[step],
                         w_states[step],
                         free_surface_start=ctx.free_surface_start,
                     )
                 if div_u is None or div_w is None:
-                    p_new = _step_p_new_from_div_p(
+                    p_new = _rebuild_pressure_from_divergence(
                         p_states[step],
                         kappa1,
                         alpha1,
@@ -727,9 +728,9 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                         use_free_surface=ctx.use_free_surface,
                     )
                     if div_u is None:
-                        div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                        div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
                     if div_w is None:
-                        div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                        div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
                 (
                     grad_p,
                     grad_u,
@@ -739,7 +740,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                     step_grad_kappa2,
                     step_grad_alpha2,
                     step_grad_kappa3,
-                ) = _step_backward_saved(
+                ) = _backward_step_from_saved_divergence(
                     p_states[step],
                     u_states[step],
                     w_states[step],
@@ -780,7 +781,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                     p_states.append(p_local)
                     u_states.append(u_local)
                     w_states.append(w_local)
-                    p_local, u_local, w_local, div_p, div_u, div_w = _step_forward_saved(
+                    p_local, u_local, w_local, div_p, div_u, div_w = _forward_step_with_saved_divergence(
                         p_local,
                         u_local,
                         w_local,
@@ -809,14 +810,14 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                     div_u = div_u_values[local_index]
                     div_w = div_w_values[local_index]
                     if div_p is None:
-                        div_p = _step_div_p_from_state(
+                        div_p = _pressure_divergence_from_state(
                             p_states[local_index],
                             u_states[local_index],
                             w_states[local_index],
                             free_surface_start=ctx.free_surface_start,
                         )
                     if div_u is None or div_w is None:
-                        p_new = _step_p_new_from_div_p(
+                        p_new = _rebuild_pressure_from_divergence(
                             p_states[local_index],
                             kappa1,
                             alpha1,
@@ -828,9 +829,9 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                             use_free_surface=ctx.use_free_surface,
                         )
                         if div_u is None:
-                            div_u = _step_div_u_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                            div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
                         if div_w is None:
-                            div_w = _step_div_w_from_p_new(p_new, free_surface_start=ctx.free_surface_start)
+                            div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
                     (
                         grad_p,
                         grad_u,
@@ -840,7 +841,7 @@ class _RematerializedCustomChunkForward(torch.autograd.Function):
                         step_grad_kappa2,
                         step_grad_alpha2,
                         step_grad_kappa3,
-                    ) = _step_backward_saved(
+                    ) = _backward_step_from_saved_divergence(
                         p_states[local_index],
                         u_states[local_index],
                         w_states[local_index],
@@ -916,7 +917,7 @@ def custom_chunk_forward_kernel(
     Description
     --------------
         This function follows the public return contract of the acoustic
-        propagator, but uses ``_CustomChunkForward`` for each chunk.
+        propagator, but uses ``_SavedStateChunkFunction`` for each chunk.
 
         ``checkpoint_segments`` controls custom chunk segmentation here; it is
         not PyTorch checkpoint rematerialization.
@@ -983,7 +984,7 @@ def custom_chunk_forward_kernel(
     rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _CustomChunkForward.apply(
+        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _SavedStateChunkFunction.apply(
             p,
             u,
             w,
@@ -1079,7 +1080,7 @@ def rematerialized_custom_chunk_forward_kernel(
         raise ValueError("divergence_cache_stride must be non-negative")
     if state_cache_stride < 1:
         raise ValueError("state_cache_stride must be positive")
-    _normalize_divergence_cache_components(divergence_cache_components)
+    _parse_divergence_cache_components(divergence_cache_components)
     if src_v.shape != (src_n, nt):
         raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
     if dx <= 0 or dz <= 0:
@@ -1116,7 +1117,7 @@ def rematerialized_custom_chunk_forward_kernel(
     rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _RematerializedCustomChunkForward.apply(
+        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _RematerializedChunkFunction.apply(
             p,
             u,
             w,

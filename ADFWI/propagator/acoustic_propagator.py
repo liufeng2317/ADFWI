@@ -153,7 +153,7 @@ class AcousticPropagator(torch.nn.Module):
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
 
         if use_custom_chunk_backward and save_forward_wavefield:
-            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
+            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False, got save_forward_wavefield=True")
 
         kernel = custom_chunk_forward_kernel if use_custom_chunk_backward else forward_kernel
         
