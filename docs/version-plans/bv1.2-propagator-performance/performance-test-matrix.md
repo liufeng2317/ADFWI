@@ -102,6 +102,30 @@ Current reduced checkpoint=10 baseline with AcousticFWI's auto pressure policy:
 | forward seconds / iteration, excluding first | `3.7645 s` |
 | backward seconds / iteration, excluding first | `22.0680 s` |
 
+Custom chunk speed/memory gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 5 \
+  --checkpoint-segments 10 \
+  --candidate-mode production-custom-chunk
+```
+
+Current result:
+
+| Metric | Production full-output path | Custom chunk path |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| mean seconds / iteration | `27.9942 s` | `18.2167 s` |
+| total speedup | baseline | `1.5367x` |
+| backward speedup | baseline | `1.9362x` |
+| peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
+| memory ratio | baseline | `28.9259x` |
+
 ## Efficiency Summary From Accepted Changes
 
 The following numbers summarize accepted performance changes from
@@ -116,6 +140,7 @@ for new comparisons.
 | skip detached illumination summaries during checkpoint replay | production checkpoint path | total `30.2897s -> 29.2227s`, `+3.52%`; backward `+4.34%` | total `28.2031s -> 27.4098s`, `+2.81%`; backward `+3.41%` | reduces useless detached illumination work during checkpoint backward replay |
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
+| `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
 
 Closed candidates with measured regressions:
 

@@ -213,7 +213,9 @@ What is stable:
 
 What is not stable enough for promotion:
 
-- custom autograd is useful only as an expert high-memory path;
+- custom autograd is useful only as an expert high-memory path: reduced
+  5-iteration FWI shows exact loss/update parity and `1.5367x` total speedup,
+  but peak allocation rises from `272.5190 MiB` to `7882.8569 MiB`;
 - rematerialized custom checkpoint did not provide a good memory/runtime result;
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
@@ -227,7 +229,7 @@ What is not stable enough for promotion:
 The next optimization should be:
 
 ```text
-Acoustic pressure-only adjoint/custom-backward prototype.
+Acoustic custom-backward memory reduction.
 ```
 
 Detailed design:
@@ -240,7 +242,8 @@ Target scope:
 
 - acoustic only;
 - pressure-loss FWI only;
-- prototype path first, no production replacement at the start;
+- keep the current production path unchanged;
+- use `use_custom_chunk_backward=True` as the speed baseline;
 - no elastic changes;
 - no finite-difference equation changes;
 - no `AcousticPropagator.forward` default output-contract change.
@@ -255,17 +258,23 @@ Current reduced checkpoint=10 baseline:
 | backward seconds / iteration, excluding first | `22.0680 s` |
 
 The next task should not replace production code. It should create a tiny
-adjoint parity harness that compares custom backward gradients against PyTorch
-autograd for:
+memory-reduced custom-backward candidate and compare it against both the
+production full-output path and the current saved-state custom chunk path.
 
-```text
-one-step pressure receiver loss
-two-step pressure receiver loss
-tiny multi-step source-injection recurrence
-```
+Current custom chunk result:
 
-Only after CPU float64 and NPU float32 parity pass should the prototype move to
-chunk-level integration.
+| Metric | Production full-output path | Current custom chunk |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| mean seconds / iteration | `27.9942 s` | `18.2167 s` |
+| backward speedup | baseline | `1.9362x` |
+| total speedup | baseline | `1.5367x` |
+| peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
+
+Next candidate must reduce the custom path peak memory substantially while
+keeping exact loss/update parity and preserving a meaningful backward speed
+advantage.
 
 ## Comparison Scheme For Next Task
 

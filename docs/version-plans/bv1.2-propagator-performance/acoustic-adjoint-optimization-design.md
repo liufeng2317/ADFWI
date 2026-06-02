@@ -34,6 +34,50 @@ Interpretation:
 - a useful next optimization must reduce recurrence replay or replace PyTorch
   autograd for the time loop.
 
+## Current Custom-Backward Baseline
+
+Command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 5 \
+  --checkpoint-segments 10 \
+  --candidate-mode production-custom-chunk \
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_custom_chunk_fwi_loop_compare_20260602.json
+```
+
+Result:
+
+| Metric | Production full-output path | `use_custom_chunk_backward=True` |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| total seconds, 5 iterations | `139.9710 s` | `91.0837 s` |
+| mean seconds / iteration | `27.9942 s` | `18.2167 s` |
+| forward seconds | `20.2829 s` | `29.6301 s` |
+| backward seconds | `118.8969 s` | `61.4076 s` |
+| peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
+
+Derived:
+
+- total loop speedup: `1.5367x`;
+- backward speedup: `1.9362x`;
+- forward path slows down to `0.6845x`;
+- peak allocation increases by `28.9259x`;
+- loss and final model update are identical for this 5-iteration gate.
+
+Interpretation:
+
+- the custom chunk backward is the current measured speed ceiling inside
+  Python/Torch production integration;
+- its speedup is real enough to continue;
+- the memory increase is too large for default promotion;
+- the next useful work is not another micro-optimization, but reducing saved
+  custom-backward state while preserving the measured backward benefit.
+
 ## Why Stop Small PyTorch Cleanup
 
 Accepted small changes gave useful but limited gains:
@@ -63,7 +107,8 @@ expression-level TorchScript changes.
 
 ## Selected Route
 
-Build a staged acoustic pressure-only adjoint/custom-backward prototype.
+Continue the acoustic custom-backward line, but shift the objective from
+proving speed to reducing memory.
 
 Scope:
 
@@ -71,7 +116,7 @@ Scope:
 - pressure-loss FWI only;
 - current second-order staggered-grid equations;
 - current PML/free-surface behavior;
-- start with reduced model and small synthetic tests;
+- reduced FWI timing remains the main gate;
 - do not change `AcousticPropagator.forward` default;
 - do not make the prototype default until full validation passes.
 
@@ -98,11 +143,12 @@ Required record:
 - total/forward/backward seconds per iteration;
 - memory if available.
 
-### Phase 1: One-Step And Tiny Multi-Step Parity
+### Phase 1: Local Parity Gate
 
 Goal:
 
-Validate the local adjoint math before touching real FWI.
+Keep local adjoint tests as the safety gate for any change to custom backward
+state storage.
 
 Required tests:
 
@@ -125,12 +171,12 @@ Stop condition:
 - any nonfinite gradient;
 - need for unsupported source/receiver assumptions.
 
-### Phase 2: Chunk-Level Custom Backward
+### Phase 2: Memory-Reduced Custom Backward
 
 Goal:
 
-Replace PyTorch checkpoint replay for one acoustic chunk with a custom backward
-that computes the pressure-loss gradient explicitly.
+Reduce saved custom-backward state without giving away the backward speedup
+already measured by `use_custom_chunk_backward=True`.
 
 Required features:
 
@@ -142,16 +188,22 @@ Required features:
 
 Required comparisons:
 
-- PyTorch checkpoint path vs custom chunk path;
+- current saved-state custom chunk path vs memory-reduced candidate;
+- PyTorch checkpoint path as the scientific reference;
 - receiver pressure;
 - loss;
 - raw `vp.grad`;
+- peak allocated memory;
 - seconds for forward/backward/total.
 
 Promotion target:
 
-- reduced checkpoint=10 FWI speedup >= `1.5x` on total iteration, or clear
-  memory reduction with no speed regression.
+- loss trajectory and `vp_update_norm` match the production reference;
+- peak allocation is materially below the current `7882.8569 MiB`;
+- total iteration remains meaningfully faster than the production full-output
+  path;
+- if the candidate cannot beat the current saved-state path on memory, stop
+  this line.
 
 ### Phase 3: Reduced FWI Gate
 
@@ -210,6 +262,14 @@ Do:
 
 ## Next Concrete Task
 
-Create a tiny adjoint parity test harness for acoustic pressure receiver loss.
-It should run on CPU float64 first and compare custom backward gradients against
-PyTorch autograd for one-step and two-step updates.
+Design and test one memory-reduced custom-backward candidate against the current
+saved-state custom chunk baseline:
+
+1. keep production `acoustic_kernels.py` unchanged;
+2. work only in `acoustic_custom_kernels.py` and benchmark scripts;
+3. compare production full-output, current saved-state custom chunk, and the
+   memory-reduced candidate on reduced FWI;
+4. report loss trajectory, `vp_update_norm`, gradient finiteness, peak memory,
+   forward/backward/total timing;
+5. continue only if memory drops substantially without losing the core backward
+   speed benefit.
