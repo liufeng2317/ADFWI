@@ -1,8 +1,23 @@
 """Opt-in custom-autograd acoustic propagation kernels.
 
-These kernels are not the default acoustic propagator path. They exist as a
-guarded performance option for receiver-loss workflows after the benchmark-only
-chunk prototype passed output/loss and gradient parity gates.
+Description
+--------------
+    This module contains experimental acoustic kernels with manually defined
+    PyTorch autograd for chunk-level propagation. They are not the default
+    acoustic propagator path in ``acoustic_kernels.py``.
+
+    The default kernel relies on PyTorch autograd through the full time
+    recurrence. The kernels here keep the same finite-difference update
+    equations, but replace part of the backward graph with explicit adjoint
+    updates inside ``torch.autograd.Function``.
+
+Optimization boundary
+--------------
+    These paths are opt-in only. They are intended for measured receiver-loss
+    workflows where forward wavefield summaries are not required. Do not use
+    them as a drop-in replacement for the default kernel unless forward
+    waveforms, loss, and raw model gradients have been compared for the target
+    case.
 """
 
 from typing import Dict
@@ -13,6 +28,19 @@ from .acoustic_kernels import pad_torchSingle
 
 
 def _normalize_divergence_cache_components(components) -> frozenset[str]:
+    """Normalize the rematerialized backward divergence-cache selection.
+
+    Parameters:
+    --------------
+        components : None, str, or iterable
+            Component names to cache during backward replay. Valid component
+            names are ``p``, ``u``, and ``w``.
+
+    Returns:
+    ------------------
+        frozenset[str]
+            Normalized component names.
+    """
     if components is None:
         return frozenset({"p", "u", "w"})
     if isinstance(components, str):
@@ -46,6 +74,26 @@ def _step_forward_saved(
     source_value,
     use_free_surface: bool,
 ):
+    """Run one acoustic time step and return saved intermediates.
+
+    Description
+    --------------
+        This is the custom-autograd counterpart of one iteration in
+        ``acoustic_kernels.step_forward``. It updates pressure ``p`` first,
+        injects the source, applies the optional free-surface condition, then
+        updates particle velocities ``u`` and ``w``.
+
+        The returned divergence terms are saved because the manual backward
+        formulas need them for gradients with respect to ``alpha`` and
+        ``kappa`` coefficients.
+
+    Returns:
+    ------------------
+        p_new, u_new, w_new
+            Updated wavefield states.
+        div_p, div_u, div_w
+            Finite-difference divergence terms used by the adjoint update.
+    """
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p.shape[1]
@@ -109,6 +157,7 @@ def _step_div_p_from_state(
     *,
     free_surface_start: int,
 ):
+    """Recompute the pressure-update divergence from a saved state."""
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p.shape[1]
@@ -145,6 +194,7 @@ def _step_p_new_from_div_p(
     source_value,
     use_free_surface: bool,
 ):
+    """Rebuild ``p_new`` from a saved state and a pressure divergence term."""
     nz_pml = p.shape[1]
     nx_pml = p.shape[2]
     zp = slice(free_surface_start + 1, nz_pml - 2)
@@ -159,6 +209,7 @@ def _step_p_new_from_div_p(
 
 
 def _step_div_u_from_p_new(p_new, *, free_surface_start: int):
+    """Recompute the horizontal-velocity divergence from updated pressure."""
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p_new.shape[1]
@@ -171,6 +222,7 @@ def _step_div_u_from_p_new(p_new, *, free_surface_start: int):
 
 
 def _step_div_w_from_p_new(p_new, *, free_surface_start: int):
+    """Recompute the vertical-velocity divergence from updated pressure."""
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p_new.shape[1]
@@ -206,6 +258,29 @@ def _step_backward_saved(
     free_surface_start: int,
     use_free_surface: bool,
 ):
+    """Apply the manual adjoint update for one acoustic time step.
+
+    Description
+    --------------
+        This function is the backward counterpart of ``_step_forward_saved``.
+        It propagates gradients from ``p_new``, ``u_new``, and ``w_new`` back to
+        the previous states and model coefficients.
+
+        The order mirrors the forward dependency graph:
+
+        1. receiver/free-surface gradient contributions are already included in
+           the incoming gradients;
+        2. velocity updates contribute to ``grad_p_new`` and coefficient
+           gradients;
+        3. pressure free-surface handling is reversed;
+        4. pressure update contributes to previous ``p``, ``u``, ``w`` and
+           coefficient gradients.
+
+    Returns:
+    ------------------
+        Gradients for ``p``, ``u``, ``w``, ``kappa1``, ``alpha1``, ``kappa2``,
+        ``alpha2``, and ``kappa3``.
+    """
     c1 = 9.0 / 8.0
     c2 = -1.0 / 24.0
     nz_pml = p.shape[1]
@@ -282,6 +357,19 @@ def _step_backward_saved(
 
 
 class _CustomChunkForward(torch.autograd.Function):
+    """Custom autograd for a fully saved acoustic chunk.
+
+    Description
+    --------------
+        The forward pass stores every internal time-step state and divergence
+        term for the chunk. The backward pass then walks the chunk in reverse
+        and applies ``_step_backward_saved``.
+
+        This path is faster for some receiver-loss workflows, but it stores
+        more internal state than checkpointed production execution. It is used
+        only behind explicit opt-in controls.
+    """
+
     @staticmethod
     def forward(
         ctx,
@@ -436,6 +524,19 @@ class _CustomChunkForward(torch.autograd.Function):
 
 
 class _RematerializedCustomChunkForward(torch.autograd.Function):
+    """Custom autograd for a rematerialized acoustic chunk.
+
+    Description
+    --------------
+        The forward pass records receiver data but saves only chunk boundary
+        state. The backward pass rebuilds internal states as needed, optionally
+        caching selected divergence terms or boundary states.
+
+        This is a memory/speed research path. It is intentionally separate from
+        the default propagator because changing saved state changes the
+        checkpoint and replay contract.
+    """
+
     @staticmethod
     def forward(
         ctx,
@@ -812,9 +913,35 @@ def custom_chunk_forward_kernel(
 ) -> Dict[str, torch.Tensor]:
     """Run the guarded custom-chunk acoustic path.
 
-    This opt-in path is intentionally narrower than ``forward_kernel``.
-    ``checkpoint_segments`` controls custom chunk segmentation here; it is not
-    PyTorch checkpoint rematerialization.
+    Description
+    --------------
+        This function follows the public return contract of the acoustic
+        propagator, but uses ``_CustomChunkForward`` for each chunk.
+
+        ``checkpoint_segments`` controls custom chunk segmentation here; it is
+        not PyTorch checkpoint rematerialization.
+
+    Parameters:
+    --------------
+        nx, nz, dx, dz, nt, dt, nabc, free_surface
+            Acoustic grid and time-stepping settings.
+        src_x, src_z, src_n, src_v
+            Source coordinates and wavelet values.
+        rcv_x, rcv_z, rcv_n
+            Receiver coordinates.
+        damp, v, rho
+            Absorbing boundary and acoustic model parameters.
+        checkpoint_segments
+            Number of custom-autograd chunks.
+        save_forward_wavefield
+            Must be ``False``. This path does not produce illumination
+            wavefield summaries.
+
+    Returns:
+    ------------------
+        dict
+            Recorded receiver components ``p``, ``u``, ``w`` and zero-valued
+            forward-wavefield summary placeholders.
     """
     if checkpoint_segments < 1:
         raise ValueError("checkpoint_segments must be positive")
@@ -919,9 +1046,30 @@ def rematerialized_custom_chunk_forward_kernel(
 ) -> Dict[str, torch.Tensor]:
     """Run a checkpoint-compatible custom acoustic chunk prototype.
 
-    The forward pass saves only each chunk's boundary state and rematerializes
-    chunk internals during backward. This is experimental and intentionally not
-    wired into the default acoustic propagator path.
+    Description
+    --------------
+        The forward pass saves only each chunk's boundary state and
+        rematerializes chunk internals during backward. Optional divergence and
+        state caching tune the memory/recompute tradeoff.
+
+        This is experimental and intentionally not wired into the default
+        acoustic propagator path.
+
+    Parameters:
+    --------------
+        divergence_cache_stride
+            Cache divergence terms every N steps. ``0`` disables divergence
+            caching.
+        divergence_cache_components
+            Component subset to cache: ``p``, ``u``, ``w``.
+        state_cache_stride
+            Save internal state every N steps during backward replay.
+
+    Returns:
+    ------------------
+        dict
+            Recorded receiver components ``p``, ``u``, ``w`` and zero-valued
+            forward-wavefield summary placeholders.
     """
     if checkpoint_segments < 1:
         raise ValueError("checkpoint_segments must be positive")
