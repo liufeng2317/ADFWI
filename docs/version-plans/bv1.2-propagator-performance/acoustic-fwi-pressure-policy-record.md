@@ -73,3 +73,67 @@ Next route:
 Use AcousticFWI's auto policy as the new default validation baseline. Further
 performance work should avoid changing AcousticPropagator defaults unless an
 example or visualization workflow explicitly requires it.
+
+## New Reduced Baseline
+
+Date: 2026-06-02
+
+Command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_fwi_iteration_profile.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 10 \
+  --checkpoint-segments 10
+```
+
+Configuration:
+
+| Item | Value |
+| --- | --- |
+| pressure policy | `auto` |
+| shots | 3 |
+| batch size | 3 |
+| receivers | 200 |
+| nt | 3000 |
+| grid | 200 x 88 |
+| checkpoint segments | 10 |
+| gradient processor | legacy |
+
+Loss trajectory:
+
+```text
+6375.7919921875
+6006.28125
+5718.13330078125
+5495.1796875
+5338.6748046875
+5215.0068359375
+5091.37451171875
+4978.30712890625
+4875.275390625
+4776.7587890625
+```
+
+Validation:
+
+- all losses finite;
+- all raw gradients finite;
+- all processed gradients finite;
+- `vp_update_norm = 8410.6171875`.
+
+Timing:
+
+| Metric | Average, all 10 iterations | Average, excluding first |
+| --- | ---: | ---: |
+| total iteration | 26.5615 s | 26.4793 s |
+| forward | 3.7714 s | 3.7645 s |
+| backward | 22.0717 s | 22.0680 s |
+| gradient processing | 0.6404 s | 0.6404 s |
+
+Decision:
+
+Use this as the reduced checkpoint=10 baseline for subsequent acoustic
+performance work on this branch.

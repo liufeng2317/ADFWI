@@ -84,11 +84,23 @@ FWI iteration profile:
 
 ```bash
 conda run -n adfwi python scripts/benchmark/acoustic_fwi_iteration_profile.py \
+  --validation-case reduced \
   --device npu:0 \
   --dtype float32 \
-  --iterations 5 \
-  --checkpoint-segments 1
+  --iterations 10 \
+  --checkpoint-segments 10
 ```
+
+Current reduced checkpoint=10 baseline with AcousticFWI's auto pressure policy:
+
+| Metric | Baseline |
+| --- | ---: |
+| initial loss | `6375.7919921875` |
+| final loss, 10 iterations | `4776.7587890625` |
+| `vp_update_norm` | `8410.6171875` |
+| seconds / iteration, excluding first | `26.4793 s` |
+| forward seconds / iteration, excluding first | `3.7645 s` |
+| backward seconds / iteration, excluding first | `22.0680 s` |
 
 Pressure-only acoustic FWI opt-in comparison:
 
