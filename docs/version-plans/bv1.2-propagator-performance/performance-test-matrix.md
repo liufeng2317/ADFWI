@@ -102,6 +102,29 @@ Current reduced checkpoint=10 baseline with AcousticFWI's auto pressure policy:
 | forward seconds / iteration, excluding first | `3.7645 s` |
 | backward seconds / iteration, excluding first | `22.0680 s` |
 
+## Efficiency Summary From Accepted Changes
+
+The following numbers summarize accepted performance changes from
+`performance-change-log.md`. They are measured on different gates and should not
+be added together directly. Use the current reduced checkpoint=10 baseline above
+for new comparisons.
+
+| Change | Scope | Reduced checkpoint=10 effect | Full-record checkpoint=10 effect | Notes |
+| --- | --- | ---: | ---: | --- |
+| `checkpoint_segments == 1` checkpoint bypass | production kernel, no-checkpoint path | not an FWI checkpoint=10 metric | not an FWI checkpoint=10 metric | exact parity on checkpoint-overhead probe; affects `checkpoint_segments == 1` only |
+| acoustic source-index hoist | production kernel cleanup | small loop cleanup, exact parity | not separately promoted as FWI-level speedup | retained as low-risk cleanup |
+| skip detached illumination summaries during checkpoint replay | production checkpoint path | total `30.2897s -> 29.2227s`, `+3.52%`; backward `+4.34%` | total `28.2031s -> 27.4098s`, `+2.81%`; backward `+3.41%` | reduces useless detached illumination work during checkpoint backward replay |
+| `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
+| AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
+
+Closed candidates with measured regressions:
+
+| Candidate | Result |
+| --- | --- |
+| detach-before-summary accumulation | total `+0.64%` only, forward regressed; reverted |
+| empty placeholders for skipped replay summaries | reduced checkpoint=10 total regressed `-2.10%`; reverted |
+| concatenate segmented receiver chunks | reduced checkpoint=10 total regressed `-1.93%`; reverted |
+
 Pressure-only acoustic FWI opt-in comparison:
 
 ```bash
