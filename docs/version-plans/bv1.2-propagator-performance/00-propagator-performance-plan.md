@@ -174,13 +174,16 @@ Accepted default production changes:
 - `checkpoint_segments == 1` checkpoint bypass;
 - acoustic source-index hoist.
 - skip detached illumination summaries during checkpoint backward replay.
+- AcousticFWI `pressure_only="auto"` default for pressure-loss inversion loops.
 
 Accepted opt-in paths:
 
 - `save_forward_wavefield=False`, only when forward illumination is not used;
 - `use_custom_chunk_backward=True`, expert high-memory speed path.
 - `pressure_only=True`, acoustic FWI pressure-loss path that skips unused `u/w`
-  receiver outputs and `u/w` forward-wavefield summaries.
+  receiver outputs and `u/w` forward-wavefield summaries. It remains opt-in at
+  the `AcousticPropagator.forward` API level, while AcousticFWI uses it
+  automatically.
 
 Not promoted:
 
