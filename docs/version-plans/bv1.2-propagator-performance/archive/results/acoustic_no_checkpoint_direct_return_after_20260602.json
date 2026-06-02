@@ -1,0 +1,673 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 222208,
+    "name": "npu",
+    "reason": null
+  },
+  "command": [
+    "/liufeng1afs/software/miniconda3/envs/adfwi/bin/python",
+    "scripts/benchmark/acoustic_checkpoint_overhead.py",
+    "--device",
+    "npu:0",
+    "--dtype",
+    "float32",
+    "--warmup",
+    "0",
+    "--repeat",
+    "2",
+    "--checkpoint-segments",
+    "1",
+    "--nx",
+    "100",
+    "--nz",
+    "50",
+    "--nabc",
+    "20",
+    "--nt",
+    "800",
+    "--dx",
+    "40",
+    "--dz",
+    "40",
+    "--dt",
+    "0.003",
+    "--f0",
+    "5",
+    "--output",
+    "docs/version-plans/bv1.2-propagator-performance/archive/results/acoustic_no_checkpoint_direct_return_after_20260602.json"
+  ],
+  "config": {
+    "atol_floor": 1e-12,
+    "checkpoint_segments": 1,
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "nabc": 20,
+    "nt": 800,
+    "nx": 100,
+    "nz": 50,
+    "prefer": "npu,cpu",
+    "repeat": 2,
+    "seed": 20240523,
+    "warmup": 0
+  },
+  "pairs": [
+    {
+      "checkpoint": {
+        "backward_seconds": 5.342224391177297,
+        "forward_seconds": 2.7974926754832268,
+        "loss": 3.101359880020027e-07,
+        "memory_allocated": 468992,
+        "mode": "checkpoint",
+        "summaries": {
+          "forward_wavefield_p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0007225892040878534,
+            "min": 4.509076006797841e-06,
+            "norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.281549865512307e-17,
+            "min": 9.425999875556174e-23,
+            "norm": 1.0258511315403398e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.290800722610855e-17,
+            "min": 5.0502152555659993e-23,
+            "norm": 9.84438698132342e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0056326547637581825,
+            "min": -0.004665700253099203,
+            "norm": 0.027282346040010452,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6525349977314363e-09,
+            "min": -7.940872959188994e-10,
+            "norm": 7.390023260001044e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6510098843625087e-09,
+            "min": -7.93331789150642e-10,
+            "norm": 7.260743561943173e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "total_seconds": 8.139717066660523,
+        "vp_grad_summary": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "max": 3.713188437282078e-11,
+          "min": -7.934994883385116e-10,
+          "norm": 8.007337570781203e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      },
+      "comparison": {
+        "backward_speedup": 1.1113861856472929,
+        "candidate": "direct",
+        "forward_speedup": 1.6352417516810835,
+        "loss_abs_diff": 0.0,
+        "loss_rel_diff": 0.0,
+        "output_diffs": {
+          "forward_wavefield_p": {
+            "candidate_norm": 0.0015000043204054236,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "candidate_norm": 1.0258507344936457e-16,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 1.0258507344936457e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "candidate_norm": 9.844383010856479e-17,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 9.844383010856479e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "candidate_norm": 0.027282342314720154,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.027282342314720154,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "candidate_norm": 7.390022815911834e-09,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.390022815911834e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "candidate_norm": 7.260741341497123e-09,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.260741341497123e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "reference": "checkpoint",
+        "total_speedup": 1.2488895328213245,
+        "vp_grad_diff": {
+          "candidate_norm": 8.00733923611574e-10,
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0,
+          "reference_norm": 8.00733923611574e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      },
+      "direct": {
+        "backward_seconds": 4.806811943650246,
+        "forward_seconds": 1.7107517421245575,
+        "loss": 3.101359880020027e-07,
+        "memory_allocated": 580096,
+        "mode": "direct",
+        "summaries": {
+          "forward_wavefield_p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0007225892040878534,
+            "min": 4.509076006797841e-06,
+            "norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.281549865512307e-17,
+            "min": 9.425999875556174e-23,
+            "norm": 1.0258511315403398e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.290800722610855e-17,
+            "min": 5.0502152555659993e-23,
+            "norm": 9.84438698132342e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0056326547637581825,
+            "min": -0.004665700253099203,
+            "norm": 0.027282346040010452,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6525349977314363e-09,
+            "min": -7.940872959188994e-10,
+            "norm": 7.390023260001044e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6510098843625087e-09,
+            "min": -7.93331789150642e-10,
+            "norm": 7.260743561943173e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "total_seconds": 6.517563685774803,
+        "vp_grad_summary": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "max": 3.713188437282078e-11,
+          "min": -7.934994883385116e-10,
+          "norm": 8.007337570781203e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "checkpoint": {
+        "backward_seconds": 4.742072995752096,
+        "forward_seconds": 1.733646035194397,
+        "loss": 3.101359880020027e-07,
+        "memory_allocated": 691200,
+        "mode": "checkpoint",
+        "summaries": {
+          "forward_wavefield_p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0007225892040878534,
+            "min": 4.509076006797841e-06,
+            "norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.281549865512307e-17,
+            "min": 9.425999875556174e-23,
+            "norm": 1.0258511315403398e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.290800722610855e-17,
+            "min": 5.0502152555659993e-23,
+            "norm": 9.84438698132342e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0056326547637581825,
+            "min": -0.004665700253099203,
+            "norm": 0.027282346040010452,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6525349977314363e-09,
+            "min": -7.940872959188994e-10,
+            "norm": 7.390023260001044e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6510098843625087e-09,
+            "min": -7.93331789150642e-10,
+            "norm": 7.260743561943173e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "total_seconds": 6.475719030946493,
+        "vp_grad_summary": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "max": 3.713188437282078e-11,
+          "min": -7.934994883385116e-10,
+          "norm": 8.007337570781203e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      },
+      "comparison": {
+        "backward_speedup": 0.9910874334598706,
+        "candidate": "direct",
+        "forward_speedup": 1.0739225568449229,
+        "loss_abs_diff": 0.0,
+        "loss_rel_diff": 0.0,
+        "output_diffs": {
+          "forward_wavefield_p": {
+            "candidate_norm": 0.0015000043204054236,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "candidate_norm": 1.0258507344936457e-16,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 1.0258507344936457e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "candidate_norm": 9.844383010856479e-17,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 9.844383010856479e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "candidate_norm": 0.027282342314720154,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.027282342314720154,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "candidate_norm": 7.390022815911834e-09,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.390022815911834e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "candidate_norm": 7.260741341497123e-09,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 7.260741341497123e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "reference": "checkpoint",
+        "total_speedup": 1.0119846241836084,
+        "vp_grad_diff": {
+          "candidate_norm": 8.00733923611574e-10,
+          "max_abs_diff": 0.0,
+          "max_rel_diff": 0.0,
+          "reference_norm": 8.00733923611574e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      },
+      "direct": {
+        "backward_seconds": 4.784717105329037,
+        "forward_seconds": 1.6143119670450687,
+        "loss": 3.101359880020027e-07,
+        "memory_allocated": 691200,
+        "mode": "direct",
+        "summaries": {
+          "forward_wavefield_p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0007225892040878534,
+            "min": 4.509076006797841e-06,
+            "norm": 0.0015000043204054236,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.281549865512307e-17,
+            "min": 9.425999875556174e-23,
+            "norm": 1.0258511315403398e-16,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "forward_wavefield_w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 5.290800722610855e-17,
+            "min": 5.0502152555659993e-23,
+            "norm": 9.84438698132342e-17,
+            "shape": [
+              50,
+              100
+            ]
+          },
+          "p": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 0.0056326547637581825,
+            "min": -0.004665700253099203,
+            "norm": 0.027282346040010452,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "u": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6525349977314363e-09,
+            "min": -7.940872959188994e-10,
+            "norm": 7.390023260001044e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          },
+          "w": {
+            "device": "npu:0",
+            "dtype": "float32",
+            "finite": true,
+            "max": 1.6510098843625087e-09,
+            "min": -7.93331789150642e-10,
+            "norm": 7.260743561943173e-09,
+            "shape": [
+              1,
+              800,
+              3
+            ]
+          }
+        },
+        "total_seconds": 6.3990290723741055,
+        "vp_grad_summary": {
+          "device": "npu:0",
+          "dtype": "float32",
+          "finite": true,
+          "max": 3.713188437282078e-11,
+          "min": -7.934994883385116e-10,
+          "norm": 8.007337570781203e-10,
+          "shape": [
+            50,
+            100
+          ]
+        }
+      }
+    }
+  ],
+  "status": "ok",
+  "summary": {
+    "checkpoint": {
+      "backward_seconds": {
+        "max": 5.342224391177297,
+        "mean": 5.042148693464696,
+        "min": 4.742072995752096
+      },
+      "forward_seconds": {
+        "max": 2.7974926754832268,
+        "mean": 2.265569355338812,
+        "min": 1.733646035194397
+      },
+      "loss": {
+        "max": 3.101359880020027e-07,
+        "mean": 3.101359880020027e-07,
+        "min": 3.101359880020027e-07
+      },
+      "total_seconds": {
+        "max": 8.139717066660523,
+        "mean": 7.307718048803508,
+        "min": 6.475719030946493
+      }
+    },
+    "direct": {
+      "backward_seconds": {
+        "max": 4.806811943650246,
+        "mean": 4.795764524489641,
+        "min": 4.784717105329037
+      },
+      "forward_seconds": {
+        "max": 1.7107517421245575,
+        "mean": 1.6625318545848131,
+        "min": 1.6143119670450687
+      },
+      "loss": {
+        "max": 3.101359880020027e-07,
+        "mean": 3.101359880020027e-07,
+        "min": 3.101359880020027e-07
+      },
+      "total_seconds": {
+        "max": 6.517563685774803,
+        "mean": 6.458296379074454,
+        "min": 6.3990290723741055
+      }
+    }
+  },
+  "warmups": []
+}

@@ -33,6 +33,7 @@ far.
 | rematerialized custom checkpoint | not promoted | small end-to-end gain with significant memory increase |
 | experimental custom chunk as default | not promoted | useful as expert opt-in only; not a general checkpoint replacement |
 | Ascend custom op pressure kernel | paused | single-block pressure/copy can pass, but multi-block copy fails parity |
+| no-checkpoint direct return | closed | output/loss/gradient parity stayed exact, but NPU timing slightly worsened |
 
 ## Ascend Custom-Op Status
 
@@ -70,4 +71,3 @@ be validated by:
 4. seconds/iteration comparison on a named case.
 
 Each future round should make one bounded change, record the result, and stop.
-
