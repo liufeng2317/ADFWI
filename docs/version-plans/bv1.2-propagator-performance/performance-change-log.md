@@ -10,6 +10,7 @@ This is the only active modification record for
 | --- | --- | --- | --- | --- |
 | 2026-05-30 | `checkpoint_segments == 1` checkpoint bypass | `ADFWI/propagator/acoustic_kernels.py` | acoustic output/loss/`vp.grad` parity exact on checkpoint-overhead probe | accepted |
 | 2026-05-31 | acoustic source-index hoist | `ADFWI/propagator/acoustic_kernels.py` | parity exact; small loop cleanup | accepted |
+| 2026-06-02 | skip detached illumination summaries during checkpoint replay | `ADFWI/propagator/acoustic_kernels.py` | reduced/full-record checkpoint=10 loss trajectories matched exactly; steady-state total iteration improved 3.52% reduced and 2.81% full-record | accepted |
 
 ## Accepted Opt-In Changes
 

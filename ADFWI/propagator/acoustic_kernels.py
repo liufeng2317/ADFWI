@@ -45,6 +45,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
                  kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
                  p: torch.Tensor, u: torch.Tensor, w: torch.Tensor,
                  save_forward_wavefield: bool = True,
+                 accumulate_wavefield_in_grad: bool = True,
                  device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Description
@@ -78,6 +79,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         u (Tensor)                      : vertical velocity (vx)
         w (Tensor)                      : horizontal velocity (vz)
         save_forward_wavefield (bool)   : whether to accumulate detached forward wavefield summaries
+        accumulate_wavefield_in_grad (bool): whether to accumulate detached summaries when grad is enabled
         device (str)                    : device type
         dtype (torch.dtype)             : data type for tensors
     
@@ -178,7 +180,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         rcv_w[:, it, :] = w[:, rcv_z, rcv_x]
 
         # Accumulate detached forward wavefields for gradient processing and visualization.
-        if save_forward_wavefield:
+        if save_forward_wavefield and (accumulate_wavefield_in_grad or not torch.is_grad_enabled()):
             forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
             forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
             forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
@@ -194,6 +196,7 @@ def step_forward_pressure_only(nx: int, nz: int, dx: float, dz: float, dt: float
                                kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
                                p: torch.Tensor, u: torch.Tensor, w: torch.Tensor,
                                save_forward_wavefield: bool = True,
+                               accumulate_wavefield_in_grad: bool = True,
                                device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Forward segment for acoustic FWI pressure-only loss paths.
 
@@ -267,7 +270,7 @@ def step_forward_pressure_only(nx: int, nz: int, dx: float, dz: float, dt: float
             w[:, free_surface_start - 1, :] = w[:, free_surface_start, :]
 
         rcv_p[:, it, :] = p[:, rcv_z, rcv_x]
-        if save_forward_wavefield:
+        if save_forward_wavefield and (accumulate_wavefield_in_grad or not torch.is_grad_enabled()):
             forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
     return p, u, w, rcv_p, forward_wavefield_p
 
@@ -380,6 +383,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                     kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                     p, u, w,
                     save_forward_wavefield,
+                    True,
                     device, dtype,
                 )
             else:
@@ -392,6 +396,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                     kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                     p, u, w,
                     save_forward_wavefield,
+                    False,
                     device, dtype,
                     use_reentrant=True,
                 )
@@ -407,6 +412,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                     kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                     p, u, w,
                     save_forward_wavefield,
+                    True,
                     device, dtype,
                 )
         else:
@@ -433,6 +439,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                            kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
                            p, u, w,
                            save_forward_wavefield,
+                           False,
                            device, dtype,
                            use_reentrant=True
                            )

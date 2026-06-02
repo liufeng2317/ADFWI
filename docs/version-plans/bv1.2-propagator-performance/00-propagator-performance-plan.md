@@ -173,6 +173,7 @@ Accepted default production changes:
 
 - `checkpoint_segments == 1` checkpoint bypass;
 - acoustic source-index hoist.
+- skip detached illumination summaries during checkpoint backward replay.
 
 Accepted opt-in paths:
 

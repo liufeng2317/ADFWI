@@ -89,3 +89,60 @@ Next route:
 Continue checkpoint/backward work only with changes that reduce recompute or
 checkpoint assembly cost more directly. Avoid small expression rewrites unless a
 profile shows a specific operator-level cost.
+
+## Trial 2: skip detached illumination summaries during checkpoint replay
+
+Date: 2026-06-02
+
+Hypothesis:
+
+PyTorch reentrant checkpoint runs the original forward under `no_grad` and
+replays the segment during backward with gradients enabled. Acoustic
+forward-wavefield summaries are detached illumination/visualization outputs and
+do not participate in the receiver-loss gradient. They need to be accumulated in
+the original forward, but not during checkpoint backward replay.
+
+Implementation:
+
+- added `accumulate_wavefield_in_grad` to the scripted acoustic segment
+  functions;
+- direct `checkpoint_segments == 1` calls pass `True`;
+- checkpointed calls pass `False`, so summaries are accumulated in the original
+  `no_grad` forward and skipped in grad-enabled replay;
+- receiver outputs, wavefield recurrence, loss inputs, and return structure are
+  unchanged.
+
+Validation:
+
+- `py_compile ADFWI/propagator/acoustic_kernels.py`: passed
+- backend integration parity tests for acoustic output policy and pressure-only:
+  passed
+- reduced checkpoint=10 loss trajectory matched exactly:
+  `6375.7919921875 -> 6006.28125 -> 5718.13330078125`
+- full-record checkpoint=10 loss trajectory matched exactly:
+  `74756.2578125 -> 71691.453125 -> 68891.140625`
+- raw and processed gradients remained finite
+- checkpoint=1 sanity run completed with finite loss and gradients
+
+Timing, steady-state average over iterations 2-3:
+
+| Case | Metric | Before | Candidate | Result |
+| --- | --- | ---: | ---: | ---: |
+| reduced, checkpoint=10 | total iteration | 30.2897 s | 29.2227 s | +3.52% |
+| reduced, checkpoint=10 | forward | 4.4441 s | 4.4721 s | -0.63% |
+| reduced, checkpoint=10 | backward | 25.1980 s | 24.1039 s | +4.34% |
+| full-record, checkpoint=10 | total iteration | 28.2031 s | 27.4098 s | +2.81% |
+| full-record, checkpoint=10 | forward | 4.2238 s | 4.2271 s | -0.08% |
+| full-record, checkpoint=10 | backward | 23.3267 s | 22.5318 s | +3.41% |
+
+Decision:
+
+Accepted as a production checkpoint-path optimization. The improvement is
+modest but real on both reduced and full-record FWI loops, and it targets the
+dominant backward replay cost without changing the scientific outputs.
+
+Next route:
+
+The remaining checkpoint cost is still dominated by full wavefield recompute.
+Further work should focus on reducing replayed recurrence cost or checkpoint
+assembly overhead, not detached summary expressions.
