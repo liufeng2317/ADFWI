@@ -179,7 +179,8 @@ Accepted default production changes:
 Accepted opt-in paths:
 
 - `save_forward_wavefield=False`, only when forward illumination is not used;
-- `use_custom_chunk_backward=True`, expert high-memory speed path.
+- `use_custom_chunk_backward=True`, expert high-memory speed path. It is a
+  speed-ceiling reference, not the current optimization main line.
 - `pressure_only=True`, acoustic FWI pressure-loss path that skips unused `u/w`
   receiver outputs and `u/w` forward-wavefield summaries. It remains opt-in at
   the `AcousticPropagator.forward` API level, while AcousticFWI uses it
@@ -222,7 +223,8 @@ What is not stable enough for promotion:
 - rematerialized custom checkpoint controls memory but is still too slow:
   forward-saved boundary caching gives exact loss/update parity and lowers peak
   allocation to `527.9731 MiB`; every-step divergence caching improves total
-  speedup to `1.1989x`, which is still below the saved-state custom path;
+  speedup to `1.1989x`; pressure-only receiver recording improves the current
+  remat gate to `1.2773x`, which is still below the saved-state custom path;
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
   recompute;
@@ -282,22 +284,22 @@ Next candidate must reduce the custom path peak memory substantially while
 keeping exact loss/update parity and preserving a meaningful backward speed
 advantage.
 
-Current rematerialized boundary-cache candidate:
+Current rematerialized pressure-only candidate:
 
 | Metric | Production full-output path | Rematerialized custom path |
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| mean seconds / iteration | `28.1126 s` | `23.4491 s` |
-| backward speedup | baseline | `1.3619x` |
-| total speedup | baseline | `1.1989x` |
+| mean seconds / iteration | `28.4255 s` | `22.2549 s` |
+| backward speedup | baseline | `1.4484x` |
+| total speedup | baseline | `1.2773x` |
 | peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
 
 This is accepted only as an experimental path. The next optimization must
 attack rematerialized backward replay cost directly; otherwise this line should
 stop.
 
-Current saved-state compression candidate:
+Saved-state custom chunk conclusion:
 
 | Candidate | Total speedup | Backward speedup | Peak memory | Decision |
 | --- | ---: | ---: | ---: | --- |
@@ -307,8 +309,21 @@ Current saved-state compression candidate:
 | save all divergence | `1.5367x` | `1.9362x` | `7882.8569 MiB` | speed ceiling, too much memory |
 
 This confirms that divergence-state compression helps, but it does not solve
-the memory problem. The next useful direction must reduce saved `p/u/w` state
-size or count, not continue sweeping divergence combinations.
+the memory problem. Do not continue saved-state divergence sweeps. Keep this
+line as a speed-ceiling reference only.
+
+Current main line:
+
+```text
+checkpoint-compatible rematerialized custom backward
+```
+
+Reason:
+
+- it keeps memory close to PyTorch checkpoint behavior;
+- it preserves exact reduced-FWI loss and update parity;
+- its current speedup is modest (`1.1989x`), so remaining work must reduce
+  replay/output cost without storing full per-step wavefield states.
 
 ## Comparison Scheme For Next Task
 

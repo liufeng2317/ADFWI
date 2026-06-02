@@ -88,6 +88,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
             "experimental-pressure-divergence-chunk",
             "experimental-velocity-divergence-chunk",
             "experimental-remat-chunk",
+            "experimental-remat-pressure-chunk",
         }:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
@@ -281,6 +282,7 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
             "experimental-pressure-divergence-chunk",
             "experimental-velocity-divergence-chunk",
             "experimental-remat-chunk",
+            "experimental-remat-pressure-chunk",
         ),
         default="experimental-remat-chunk",
     )

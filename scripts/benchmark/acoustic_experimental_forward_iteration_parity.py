@@ -30,6 +30,7 @@ from ADFWI.fwi.runtime.forward import ForwardBatchRecord
 from ADFWI.propagator.acoustic_custom_kernels import (
     compressed_custom_chunk_forward_kernel,
     pressure_divergence_custom_chunk_forward_kernel,
+    rematerialized_pressure_custom_chunk_forward_kernel,
     rematerialized_custom_chunk_forward_kernel,
     velocity_divergence_custom_chunk_forward_kernel,
 )
@@ -119,6 +120,8 @@ def experimental_forward_batch(
         forward_kernel = velocity_divergence_custom_chunk_forward_kernel
     elif mode == "experimental-remat-chunk":
         forward_kernel = rematerialized_custom_chunk_forward_kernel
+    elif mode == "experimental-remat-pressure-chunk":
+        forward_kernel = rematerialized_pressure_custom_chunk_forward_kernel
     else:
         raise ValueError(f"unknown experimental mode: {mode}")
     forward_kwargs = {
@@ -131,9 +134,10 @@ def experimental_forward_batch(
         "experimental-pressure-divergence-chunk",
         "experimental-velocity-divergence-chunk",
         "experimental-remat-chunk",
+        "experimental-remat-pressure-chunk",
     }:
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
-    if mode == "experimental-remat-chunk":
+    if mode in {"experimental-remat-chunk", "experimental-remat-pressure-chunk"}:
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
         forward_kwargs["state_cache_stride"] = remat_state_cache_stride
@@ -208,6 +212,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
             "experimental-pressure-divergence-chunk",
             "experimental-velocity-divergence-chunk",
             "experimental-remat-chunk",
+            "experimental-remat-pressure-chunk",
         }:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
@@ -411,6 +416,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
             "experimental-pressure-divergence-chunk",
             "experimental-velocity-divergence-chunk",
             "experimental-remat-chunk",
+            "experimental-remat-pressure-chunk",
             "production",
             "production-custom-chunk",
         ),

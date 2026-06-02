@@ -618,6 +618,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         divergence_cache_stride: int,
         divergence_cache_components,
         state_cache_stride: int,
+        record_velocity_receivers: bool,
     ):
         records_p = []
         records_u = []
@@ -650,8 +651,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                 use_free_surface=use_free_surface,
             )
             records_p.append(p[:, rcv_z, rcv_x])
-            records_u.append(u[:, rcv_z, rcv_x])
-            records_w.append(w[:, rcv_z, rcv_x])
+            if record_velocity_receivers:
+                records_u.append(u[:, rcv_z, rcv_x])
+                records_w.append(w[:, rcv_z, rcv_x])
 
         if state_cache_stride > 1:
             boundary_p_cache = torch.stack(boundary_p_states)
@@ -667,6 +669,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         ctx.divergence_cache_stride = divergence_cache_stride
         ctx.divergence_cache_components = _parse_divergence_cache_components(divergence_cache_components)
         ctx.state_cache_stride = state_cache_stride
+        ctx.record_velocity_receivers = record_velocity_receivers
         ctx.save_for_backward(
             p_start,
             u_start,
@@ -685,7 +688,14 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             boundary_u_cache,
             boundary_w_cache,
         )
-        return p, u, w, torch.stack(records_p, dim=1), torch.stack(records_u, dim=1), torch.stack(records_w, dim=1)
+        rcv_p = torch.stack(records_p, dim=1)
+        if record_velocity_receivers:
+            rcv_u = torch.stack(records_u, dim=1)
+            rcv_w = torch.stack(records_w, dim=1)
+        else:
+            rcv_u = p.new_zeros((p.shape[0], source_v.shape[0], rcv_x.numel()))
+            rcv_w = p.new_zeros((p.shape[0], source_v.shape[0], rcv_x.numel()))
+        return p, u, w, rcv_p, rcv_u, rcv_w
 
     @staticmethod
     def backward(ctx, grad_p, grad_u, grad_w, grad_rcv_p, grad_rcv_u, grad_rcv_w):
@@ -756,8 +766,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         if ctx.state_cache_stride <= 1:
             for step in range(len(p_states) - 1, -1, -1):
                 grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-                grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-                grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                if ctx.record_velocity_receivers:
+                    grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                    grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
                 div_p = div_p_values[step]
                 div_u = div_u_values[step]
                 div_w = div_w_values[step]
@@ -857,8 +868,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                 for local_index in range(len(p_states) - 1, -1, -1):
                     step = block_start + local_index
                     grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-                    grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-                    grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                    if ctx.record_velocity_receivers:
+                        grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                        grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
                     div_p = div_p_values[local_index]
                     div_u = div_u_values[local_index]
                     div_w = div_w_values[local_index]
@@ -927,6 +939,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -1147,6 +1160,7 @@ def rematerialized_custom_chunk_forward_kernel(
     divergence_cache_stride: int = 0,
     divergence_cache_components=None,
     state_cache_stride: int = 1,
+    record_velocity_receivers: bool = True,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
@@ -1170,6 +1184,10 @@ def rematerialized_custom_chunk_forward_kernel(
             Component subset to cache: ``p``, ``u``, ``w``.
         state_cache_stride
             Save internal state every N steps during backward replay.
+        record_velocity_receivers
+            When ``False``, record only pressure receivers and return zero
+            placeholders for receiver ``u/w``. This is for pressure-loss
+            benchmarks only; propagation state ``u/w`` is still maintained.
 
     Returns:
     ------------------
@@ -1241,6 +1259,7 @@ def rematerialized_custom_chunk_forward_kernel(
             divergence_cache_stride,
             divergence_cache_components,
             state_cache_stride,
+            record_velocity_receivers,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
@@ -1256,3 +1275,9 @@ def rematerialized_custom_chunk_forward_kernel(
         "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
         "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
     }
+
+
+def rematerialized_pressure_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
+    """Run the rematerialized custom path with pressure receiver records only."""
+    kwargs["record_velocity_receivers"] = False
+    return rematerialized_custom_chunk_forward_kernel(*args, **kwargs)

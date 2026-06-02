@@ -83,6 +83,8 @@ Interpretation:
 The first memory-reduction candidate stores rematerialized chunk boundary
 states during forward when `state_cache_stride > 1`, so backward can replay
 local blocks without first replaying the full chunk only to collect boundaries.
+The current pressure-loss variant also records only receiver pressure and
+returns zero receiver `u/w` placeholders.
 
 Command:
 
@@ -93,11 +95,11 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
   --dtype float32 \
   --iterations 5 \
   --checkpoint-segments 10 \
-  --candidate-mode experimental-remat-chunk \
+  --candidate-mode experimental-remat-pressure-chunk \
   --remat-divergence-cache-stride 1 \
   --remat-divergence-cache-components p,u,w \
   --remat-state-cache-stride 10 \
-  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_div1_state10_fwi_loop_compare_20260602.json
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_pressure_fwi_loop_compare_20260602.json
 ```
 
 Result:
@@ -106,15 +108,16 @@ Result:
 | --- | ---: | ---: |
 | loss trajectory | exact match | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
-| total seconds, 5 iterations | `140.5631 s` | `117.2454 s` |
-| mean seconds / iteration | `28.1126 s` | `23.4491 s` |
-| backward seconds | `119.6037 s` | `87.8184 s` |
+| total seconds, 5 iterations | `142.1277 s` | `111.2747 s` |
+| mean seconds / iteration | `28.4255 s` | `22.2549 s` |
+| backward seconds | `121.1730 s` | `83.6597 s` |
 | peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
 
 Decision:
 
-- keep this as an experimental benchmark improvement;
-- do not promote it: total speedup is only `1.1989x`;
+- keep this as the active rematerialized benchmark gate;
+- do not promote it yet: total speedup is `1.2773x`, still below the
+  saved-state speed ceiling;
 - this confirms that rematerialization controls memory, but the replay cost is
   still too high to replace saved-state custom backward.
 
@@ -348,14 +351,15 @@ Do:
 
 ## Next Concrete Task
 
-The next useful task should not be another divergence-component sweep. It
-should target structural state compression:
+The next useful task should not be another saved-state divergence sweep. The
+active direction is checkpoint-compatible rematerialized custom backward:
 
 1. keep production `acoustic_kernels.py` unchanged;
 2. work only in `acoustic_custom_kernels.py` and benchmark scripts;
-3. reduce the number or size of saved `p/u/w` state tensors, not only the saved
-   divergence tensors;
-4. compare against production, saved-state full-divergence, saved-state
-   `div_p` only, and remat boundary-cache candidates;
-5. continue only if the candidate either approaches saved-state speed with much
-   lower memory, or approaches remat memory with materially better speed.
+3. avoid saving full per-step `p/u/w` states;
+4. remove pressure-loss-unused output work before attempting deeper adjoint
+   restructuring;
+5. compare against production and the current remat boundary/divergence-cache
+   candidate;
+6. continue only if memory remains close to checkpoint behavior and speed moves
+   materially above the current `1.1989x` remat gate.
