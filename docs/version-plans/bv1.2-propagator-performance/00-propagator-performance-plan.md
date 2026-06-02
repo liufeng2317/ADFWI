@@ -189,6 +189,8 @@ Not promoted:
 - Ascend custom-op production path;
 - no-checkpoint direct return path.
 - non-reentrant PyTorch checkpoint on the current NPU TorchScript path.
+- checkpoint replay skip of detached forward-wavefield summaries through a
+  `step_forward` signature/branch change.
 
 ## Current Progress
 
@@ -209,6 +211,8 @@ What is not stable enough for promotion:
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
   recompute;
+- checkpoint replay wavefield-skip reduced checkpoint=10 backward only
+  slightly but regressed checkpoint=1 timing;
 - elastic optimization has not been profiled independently.
 
 ## Next Active Route
