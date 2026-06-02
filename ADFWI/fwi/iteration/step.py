@@ -66,6 +66,7 @@ def apply_acoustic_batch_loss_step(
     checkpoint_segments,
     save_forward_wavefield=True,
     use_custom_chunk_backward=False,
+    pressure_only=False,
     observed_pressure,
     prepare_loss_pair,
     loss_fn,
@@ -84,6 +85,7 @@ def apply_acoustic_batch_loss_step(
         checkpoint_segments,
         save_forward_wavefield=save_forward_wavefield,
         use_custom_chunk_backward=use_custom_chunk_backward,
+        pressure_only=pressure_only,
     )
     loss_input = acoustic_pressure_loss_input(
         forward_batch.record_waveform,

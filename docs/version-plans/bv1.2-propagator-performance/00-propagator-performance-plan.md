@@ -178,6 +178,8 @@ Accepted opt-in paths:
 
 - `save_forward_wavefield=False`, only when forward illumination is not used;
 - `use_custom_chunk_backward=True`, expert high-memory speed path.
+- `pressure_only=True`, acoustic FWI pressure-loss path that skips unused `u/w`
+  receiver outputs and `u/w` forward-wavefield summaries.
 
 Not promoted:
 
@@ -201,7 +203,8 @@ What is stable:
 - acoustic full-record validation is available as the baseline;
 - the active document set has been reduced to plan, test matrix, and change log;
 - two small production changes are accepted;
-- two opt-in paths are guarded and documented;
+- three opt-in paths are guarded and documented;
+- pressure-only acoustic FWI is accepted as a guarded opt-in path;
 - failed or high-risk routes are explicitly closed or paused.
 
 What is not stable enough for promotion:

@@ -127,6 +127,7 @@ class AcousticPropagator(torch.nn.Module):
                 checkpoint_segments: int = 1,
                 save_forward_wavefield: bool = True,
                 use_custom_chunk_backward: bool = False,
+                pressure_only: bool = False,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
 
@@ -137,6 +138,7 @@ class AcousticPropagator(torch.nn.Module):
         checkpoint_segments (int)        : Number of segments for checkpointing to save memory in the default path
         save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
         use_custom_chunk_backward (bool) : Expert opt-in high-memory custom-chunk backward path. This improves backward speed on measured acoustic FWI cases, but it is not PyTorch checkpoint rematerialization and does not preserve checkpoint memory savings.
+        pressure_only (bool)             : Opt-in acoustic FWI path that records only pressure outputs. Default keeps full p/u/w outputs.
 
         Returns:
         --------
@@ -154,9 +156,20 @@ class AcousticPropagator(torch.nn.Module):
 
         if use_custom_chunk_backward and save_forward_wavefield:
             raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False, got save_forward_wavefield=True")
+        if use_custom_chunk_backward and pressure_only:
+            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
 
         kernel = custom_chunk_forward_kernel if use_custom_chunk_backward else forward_kernel
         
+        kernel_kwargs = {
+            "checkpoint_segments": checkpoint_segments,
+            "save_forward_wavefield": save_forward_wavefield,
+            "device": self.device,
+            "dtype": self.dtype,
+        }
+        if not use_custom_chunk_backward:
+            kernel_kwargs["pressure_only"] = pressure_only
+
         record_waveform = kernel(
             self.nx,self.nz,self.dx,self.dz,self.nt,self.dt,
             self.nabc,self.free_surface,
@@ -164,8 +177,6 @@ class AcousticPropagator(torch.nn.Module):
             self.rcv_x,self.rcv_z,self.rcv_n,
             self.damp,
             model.vp,model.rho,
-            checkpoint_segments=checkpoint_segments,
-            save_forward_wavefield=save_forward_wavefield,
-            device=self.device,dtype=self.dtype
+            **kernel_kwargs,
         )
         return record_waveform

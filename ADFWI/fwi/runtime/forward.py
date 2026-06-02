@@ -24,6 +24,7 @@ def acoustic_forward_batch(
     *,
     save_forward_wavefield=True,
     use_custom_chunk_backward=False,
+    pressure_only=False,
 ):
     """Run one acoustic forward batch and keep its shot selection with the record."""
     shot_index = batch_range.shot_index
@@ -31,6 +32,7 @@ def acoustic_forward_batch(
         "shot_index": shot_index,
         "checkpoint_segments": checkpoint_segments,
         "save_forward_wavefield": save_forward_wavefield,
+        "pressure_only": pressure_only,
     }
     if use_custom_chunk_backward:
         forward_kwargs["use_custom_chunk_backward"] = True

@@ -137,6 +137,33 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertGreater(float(torch.linalg.norm(full_record["forward_wavefield_p"]).item()), 0.0)
         self.assertEqual(float(torch.linalg.norm(skipped_record["forward_wavefield_p"]).item()), 0.0)
 
+    def test_acoustic_pressure_only_matches_pressure_loss_and_gradient(self):
+        configure_backend("cpu", dtype=torch.float64)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        full_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        pressure_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        full_propagator = AcousticPropagator(full_model, survey)
+        pressure_propagator = AcousticPropagator(pressure_model, survey)
+
+        full_record = full_propagator.forward(checkpoint_segments=2, save_forward_wavefield=True)
+        pressure_record = pressure_propagator.forward(
+            checkpoint_segments=2,
+            save_forward_wavefield=True,
+            pressure_only=True,
+        )
+        full_loss = full_record["p"].pow(2).mean()
+        pressure_loss = pressure_record["p"].pow(2).mean()
+        full_loss.backward()
+        pressure_loss.backward()
+
+        self.assertTrue(torch.equal(full_record["p"], pressure_record["p"]))
+        self.assertTrue(torch.equal(full_record["forward_wavefield_p"], pressure_record["forward_wavefield_p"]))
+        self.assertEqual(float(full_loss.item()), float(pressure_loss.item()))
+        self.assertTrue(torch.allclose(full_model.vp.grad, pressure_model.vp.grad, atol=1e-10, rtol=1e-8))
+        for key in ("u", "w", "forward_wavefield_u", "forward_wavefield_w"):
+            self.assertEqual(float(torch.linalg.norm(pressure_record[key]).item()), 0.0, key)
+
     def test_acoustic_custom_chunk_backward_matches_default_receiver_loss(self):
         configure_backend("cpu", dtype=torch.float64)
         survey = self._survey()

@@ -356,6 +356,7 @@ class AcousticFWI(torch.nn.Module):
                 checkpoint_segments:Optional[int]   = 1 ,
                 save_forward_wavefield:bool         = True,
                 use_custom_chunk_backward:bool      = False,
+                pressure_only:bool                  = False,
                 start_iter                          = 0,
                 cutoff_freq                         = None,
                 ):
@@ -367,14 +368,17 @@ class AcousticFWI(torch.nn.Module):
         checkpoint_segments (Optional[int]) : The number of segments into which the time series should be divided for memory efficiency. Default is 1, which means no segmentation.
         save_forward_wavefield (bool)           : Whether to accumulate detached forward wavefield summaries. Set False only when gradient processors do not use forward illumination.
         use_custom_chunk_backward (bool)        : Expert opt-in acoustic speed mode. It can reduce backward time when device memory is sufficient, but it is not a checkpoint memory-saving replacement and requires save_forward_wavefield=False.
+        pressure_only (bool)                    : Opt-in pressure-only acoustic FWI path. It keeps the default off and is valid only when u/w receiver outputs are not used.
         start_iter (int)                    : The starting iteration for the optimization process (e.g., for optimizers like Adam/AdamW, and learning rate schedulers like step_lr). Default is 0.
         cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
         if use_custom_chunk_backward and save_forward_wavefield:
             raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
+        if use_custom_chunk_backward and pressure_only:
+            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
         self._validate_forward_wavefield_policy(save_forward_wavefield)
         if isinstance(self.optimizer,torch.optim.LBFGS) or isinstance(self.optimizer,NLCG):
-            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,save_forward_wavefield=save_forward_wavefield,use_custom_chunk_backward=use_custom_chunk_backward,start_iter=start_iter,cutoff_freq=cutoff_freq)
+            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,save_forward_wavefield=save_forward_wavefield,use_custom_chunk_backward=use_custom_chunk_backward,pressure_only=pressure_only,start_iter=start_iter,cutoff_freq=cutoff_freq)
 
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
@@ -397,6 +401,7 @@ class AcousticFWI(torch.nn.Module):
                     checkpoint_segments=checkpoint_segments,
                     save_forward_wavefield=save_forward_wavefield,
                     use_custom_chunk_backward=use_custom_chunk_backward,
+                    pressure_only=pressure_only,
                     observed_pressure=self.obs_p,
                     prepare_loss_pair=self._prepare_loss_pair,
                     loss_fn=self.loss_fn,
@@ -435,6 +440,7 @@ class AcousticFWI(torch.nn.Module):
                 checkpoint_segments:Optional[int]   = 1 ,
                 save_forward_wavefield:bool         = True,
                 use_custom_chunk_backward:bool      = False,
+                pressure_only:bool                  = False,
                 start_iter                          = 0 ,
                 cutoff_freq                         = None,
                 ):
@@ -442,6 +448,8 @@ class AcousticFWI(torch.nn.Module):
         """
         if use_custom_chunk_backward and save_forward_wavefield:
             raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
+        if use_custom_chunk_backward and pressure_only:
+            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
         self._validate_forward_wavefield_policy(save_forward_wavefield)
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
@@ -467,6 +475,7 @@ class AcousticFWI(torch.nn.Module):
                         checkpoint_segments=checkpoint_segments,
                         save_forward_wavefield=save_forward_wavefield,
                         use_custom_chunk_backward=use_custom_chunk_backward,
+                        pressure_only=pressure_only,
                         observed_pressure=self.obs_p,
                         prepare_loss_pair=self._prepare_loss_pair,
                         loss_fn=self.loss_fn,

@@ -90,6 +90,23 @@ conda run -n adfwi python scripts/benchmark/acoustic_fwi_iteration_profile.py \
   --checkpoint-segments 1
 ```
 
+Pressure-only acoustic FWI opt-in comparison:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_fwi_iteration_profile.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 2 \
+  --checkpoint-segments 10 \
+  --pressure-only
+```
+
+Required result: `p`, `forward_wavefield_p`, pressure loss, and raw `vp.grad`
+match the full-output path. `u/w` receiver outputs and `u/w` wavefield summaries
+are explicit zero placeholders in the pressure-only path and must not be used by
+callers.
+
 Custom chunk gate:
 
 ```bash
