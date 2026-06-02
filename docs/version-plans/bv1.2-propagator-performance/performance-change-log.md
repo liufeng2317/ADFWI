@@ -17,7 +17,7 @@ This is the only active modification record for
 | --- | --- | --- | --- | --- |
 | 2026-05-31 | `save_forward_wavefield=False` guarded output policy | `ADFWI/propagator`, `ADFWI/fwi` | output/loss/raw-gradient parity when illumination is off; guard rejects incompatible illumination use | accepted opt-in |
 | 2026-05-31 | `use_custom_chunk_backward=True` expert path | `ADFWI/propagator/acoustic_custom_kernels.py`, acoustic wrapper/FWI plumbing | custom chunk receiver-loss and `vp.grad` parity tests; real FWI timing recorded | accepted opt-in, not default |
-| 2026-06-02 | `pressure_only=True` acoustic FWI path | `ADFWI/propagator/acoustic_kernels.py`, acoustic wrapper/FWI plumbing | `p`, `forward_wavefield_p`, loss, and `vp.grad` exact parity; reduced checkpoint=10 FWI improved from about 29.86/28.03s to 26.96/25.58s for two iterations | accepted opt-in, not default |
+| 2026-06-02 | `pressure_only=True` acoustic FWI path | `ADFWI/propagator/acoustic_kernels.py`, acoustic wrapper/FWI plumbing | `p`, `forward_wavefield_p`, loss, and `vp.grad` exact parity; reduced checkpoint=10 FWI 5-iteration loss trajectory matched default exactly; steady-state total iteration improved from 29.31s to 25.37s, forward from 4.42s to 3.61s, backward from 24.24s to 21.11s | accepted opt-in, not default |
 
 ## Closed Or Not Promoted
 
