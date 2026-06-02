@@ -312,6 +312,27 @@ coupled acoustic `p/u/w` recurrence, receiver sampling, and source injection in
 a benchmark-only implementation. Production `acoustic_kernels.py` should remain
 unchanged until that coupled prototype passes output/loss/raw-gradient parity.
 
+Current coupled custom-backward gate:
+
+| Item | Result |
+| --- | ---: |
+| prototype | coupled `p/u/w` custom backward |
+| enabled features | source injection, free-surface write, receiver recording |
+| loss components | `p,rcv_p` |
+| output/loss max abs diff | `0.0` |
+| max gradient abs diff | `1.1920928955078125e-07` |
+| max gradient rel diff | `4.812639090232551e-04` |
+| mean forward speedup | `0.8779x` |
+| mean backward speedup | `1.9633x` |
+| mean total speedup | `1.5144x` |
+| result file | `acoustic_custom_multistep_pressure_loss_probe_repeat_20260603.json` |
+
+This is now the main high-value route. The next task should scale this gate
+from a tiny 20-step recurrence toward production chunk length and production
+input preparation. Do not make `acoustic_kernels.py` call this path until the
+longer-step gate preserves pressure receiver output, pressure-loss, and raw
+model-gradient parity.
+
 Current custom chunk result:
 
 | Metric | Production full-output path | Current custom chunk |

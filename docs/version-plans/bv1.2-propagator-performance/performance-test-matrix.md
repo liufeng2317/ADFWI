@@ -190,6 +190,51 @@ promotion-ready. The next bounded prototype should extend the same idea to the
 coupled pressure-only acoustic recurrence state (`p/u/w`) before any production
 kernel edit is considered.
 
+Coupled `p/u/w` custom-backward pressure-loss probe:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_custom_multistep_update_probe.py \
+  --device npu:0 \
+  --dtype float32 \
+  --warmup 3 \
+  --repeat 5 \
+  --steps 20 \
+  --shots 1 \
+  --nx 100 \
+  --nz 50 \
+  --nabc 20 \
+  --source-injection \
+  --free-surface-boundary-write \
+  --receiver-recording \
+  --receivers 24 \
+  --loss-kind receiver-random-linear \
+  --loss-components p,rcv_p
+```
+
+Result file:
+`docs/version-plans/bv1.2-propagator-performance/acoustic_custom_multistep_pressure_loss_probe_repeat_20260603.json`
+
+| Item | Reference | Candidate |
+| --- | ---: | ---: |
+| recurrence | normal PyTorch autograd | custom backward for coupled `p/u/w` recurrence |
+| source injection | enabled | enabled |
+| free-surface boundary write | enabled | enabled |
+| receiver recording | enabled | enabled |
+| loss components | `p,rcv_p` | `p,rcv_p` |
+| output max abs diff | baseline | `0.0` |
+| loss abs diff | baseline | `0.0` |
+| max gradient abs diff | baseline | `1.1920928955078125e-07` |
+| max gradient rel diff | baseline | `4.812639090232551e-04` |
+| mean forward speedup | baseline | `0.8779x` |
+| mean backward speedup | baseline | `1.9633x` |
+| mean total speedup | baseline | `1.5144x` |
+
+Decision: this is now the strongest evidence for the high-value path. The
+custom backward reduces backward cost substantially on the coupled recurrence,
+with exact outputs/loss and small absolute gradient differences. It is still a
+tiny benchmark, so the next step is a longer-step or production-chunk gate
+before wiring anything into `acoustic_kernels.py`.
+
 Custom chunk speed/memory gate:
 
 ```bash
