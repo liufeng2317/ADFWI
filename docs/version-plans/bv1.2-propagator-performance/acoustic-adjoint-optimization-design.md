@@ -118,6 +118,52 @@ Decision:
 - this confirms that rematerialization controls memory, but the replay cost is
   still too high to replace saved-state custom backward.
 
+## Current Saved-State Compression Candidate
+
+The second memory-reduction line keeps every per-step wavefield state, but saves
+only selected divergence terms.
+
+Best measured point:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 5 \
+  --checkpoint-segments 10 \
+  --candidate-mode experimental-pressure-divergence-chunk \
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_pressure_divergence_chunk_fwi_loop_compare_20260602.json
+```
+
+Result:
+
+| Metric | Production full-output path | Saved-state `div_p` only path |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| total seconds, 5 iterations | `139.9340 s` | `106.0862 s` |
+| mean seconds / iteration | `27.9868 s` | `21.2172 s` |
+| backward seconds | `119.3382 s` | `75.9210 s` |
+| peak allocated memory | `272.5190 MiB` | `5643.8008 MiB` |
+
+Candidate comparison:
+
+| Candidate | Total speedup | Peak memory | Decision |
+| --- | ---: | ---: | --- |
+| save no divergence | `1.2730x` | `4524.6577 MiB` | lower memory, slower |
+| save only `div_p` | `1.3191x` | `5643.8008 MiB` | best current saved-state compression point |
+| save only `div_u/div_w` | `1.2912x` | `6799.7402 MiB` | worse than `div_p` only |
+| save all divergence | `1.5367x` | `7882.8569 MiB` | speed ceiling, too much memory |
+
+Decision:
+
+- keep the candidates as benchmark-only tools;
+- do not promote: even the best saved-state compression point still uses
+  `20.7x` production peak memory;
+- stop divergence-component sweeps unless a new structural idea changes the
+  memory model.
+
 ## Why Stop Small PyTorch Cleanup
 
 Accepted small changes gave useful but limited gains:
@@ -302,14 +348,14 @@ Do:
 
 ## Next Concrete Task
 
-The next useful task is no longer generic memory reduction. It should target the
-specific rematerialized replay cost:
+The next useful task should not be another divergence-component sweep. It
+should target structural state compression:
 
 1. keep production `acoustic_kernels.py` unchanged;
 2. work only in `acoustic_custom_kernels.py` and benchmark scripts;
-3. reduce duplicated pressure rebuild/divergence recomputation inside the remat
-   backward block replay;
-4. compare against production, saved-state custom chunk, and current remat
-   boundary-cache candidate;
-5. continue only if total speed moves materially above `1.1312x` without
-   pushing memory back toward the saved-state custom path.
+3. reduce the number or size of saved `p/u/w` state tensors, not only the saved
+   divergence tensors;
+4. compare against production, saved-state full-divergence, saved-state
+   `div_p` only, and remat boundary-cache candidates;
+5. continue only if the candidate either approaches saved-state speed with much
+   lower memory, or approaches remat memory with materially better speed.

@@ -1,0 +1,347 @@
+{
+  "candidate": {
+    "backend": {
+      "available": true,
+      "device": "npu:0",
+      "dtype": "float32",
+      "fallback": false,
+      "index": 0,
+      "memory_allocated": 15020544,
+      "name": "npu",
+      "reason": null
+    },
+    "iterations": [
+      {
+        "loss": 6375.7919921875,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 50162.09765625,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.8779115676879883,
+        "timing_total": 20.731085946783423,
+        "timings": {
+          "backward": 14.24375213868916,
+          "forward": 6.4776984341442585,
+          "gradient_processing": 0.0026280004531145096,
+          "loss_evaluation": 0.003754701465368271,
+          "optimizer_step": 0.0026363320648670197,
+          "wavefield_accumulation": 0.0002998076379299164,
+          "zero_grad": 0.00031653232872486115
+        }
+      },
+      {
+        "loss": 6006.28125,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 41057.2734375,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.7982845306396484,
+        "timing_total": 22.704167960211635,
+        "timings": {
+          "backward": 16.485092820599675,
+          "forward": 6.209980623796582,
+          "gradient_processing": 0.0025536585599184036,
+          "loss_evaluation": 0.0036572106182575226,
+          "optimizer_step": 0.0024062208831310272,
+          "wavefield_accumulation": 0.00026825442910194397,
+          "zero_grad": 0.000209171324968338
+        }
+      },
+      {
+        "loss": 5719.279296875,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 34768.26953125,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.7179953455924988,
+        "timing_total": 22.23765230551362,
+        "timings": {
+          "backward": 16.05570320598781,
+          "forward": 6.1729886047542095,
+          "gradient_processing": 0.0024371128529310226,
+          "loss_evaluation": 0.0036737993359565735,
+          "optimizer_step": 0.0023420192301273346,
+          "wavefield_accumulation": 0.0002910122275352478,
+          "zero_grad": 0.00021655112504959106
+        }
+      },
+      {
+        "loss": 5500.791015625,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 31491.75390625,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.6621088981628418,
+        "timing_total": 22.310141686350107,
+        "timings": {
+          "backward": 16.14510117098689,
+          "forward": 6.155964529141784,
+          "gradient_processing": 0.002574259415268898,
+          "loss_evaluation": 0.0036694109439849854,
+          "optimizer_step": 0.002384372055530548,
+          "wavefield_accumulation": 0.00022863224148750305,
+          "zero_grad": 0.00021931156516075134
+        }
+      },
+      {
+        "loss": 5341.65234375,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 33050.46484375,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.6722345948219299,
+        "timing_total": 22.216165712103248,
+        "timings": {
+          "backward": 16.08399336785078,
+          "forward": 6.123246883973479,
+          "gradient_processing": 0.0024560000747442245,
+          "loss_evaluation": 0.0037452802062034607,
+          "optimizer_step": 0.002215556800365448,
+          "wavefield_accumulation": 0.00029845163226127625,
+          "zero_grad": 0.00021017156541347504
+        }
+      }
+    ],
+    "memory": {
+      "peak_allocated_bytes": 7130044416,
+      "peak_allocated_mib": 6799.740234375
+    },
+    "mode": "experimental-velocity-divergence-chunk",
+    "shape": {
+      "batch_size": 3,
+      "checkpoint_segments": 10,
+      "grad_forw_illumination": false,
+      "nt": 3000,
+      "nx": 200,
+      "nz": 88,
+      "receivers": 200,
+      "save_forward_wavefield": false,
+      "shots": 3
+    },
+    "vp_update_norm": 4970.22314453125
+  },
+  "case": "marmousi2_acoustic_reduced",
+  "config": {
+    "abc_jerjan_alpha": 0.007,
+    "abc_type": "PML",
+    "batch_size": 3,
+    "candidate_mode": "experimental-velocity-divergence-chunk",
+    "checkpoint_segments": 10,
+    "dataset_dir": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/datasets/marmousi2_source",
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "free_surface": true,
+    "gaussian_kernel": 6,
+    "generate_observed": true,
+    "grad_forw_illumination": false,
+    "grad_mute_top": 12,
+    "gradient_processor": "legacy",
+    "iterations": 5,
+    "lr": 10.0,
+    "mask_extra_depth": 2,
+    "nabc": 30,
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "output_root": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_reduced/outputs/experimental_fwi_loop_compare",
+    "ox": 0.0,
+    "oz": 0.0,
+    "policy_repeat": 1,
+    "pressure_only": null,
+    "rcv_depth": 10,
+    "remat_divergence_cache_components": "p,u,w",
+    "remat_divergence_cache_stride": 1,
+    "remat_state_cache_stride": 10,
+    "result_json": "docs/version-plans/bv1.2-propagator-performance/acoustic_velocity_divergence_chunk_fwi_loop_compare_20260602.json",
+    "save_forward_wavefield": false,
+    "scheduler_gamma": 0.75,
+    "scheduler_step_size": 200,
+    "shots": 3,
+    "use_custom_chunk_backward": false,
+    "validation_case": "reduced"
+  },
+  "purpose": "Short FWI loop comparison: production vs experimental-velocity-divergence-chunk",
+  "reference": {
+    "backend": {
+      "available": true,
+      "device": "npu:0",
+      "dtype": "float32",
+      "fallback": false,
+      "index": 0,
+      "memory_allocated": 15020544,
+      "name": "npu",
+      "reason": null
+    },
+    "iterations": [
+      {
+        "loss": 6375.7919921875,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 50162.09765625,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.8779116272926331,
+        "timing_total": 29.19195761345327,
+        "timings": {
+          "backward": 23.651186930015683,
+          "forward": 4.76342779584229,
+          "gradient_processing": 0.0030455347150564194,
+          "loss_evaluation": 0.05907183699309826,
+          "optimizer_step": 0.7133390810340643,
+          "wavefield_accumulation": 0.00027800165116786957,
+          "zero_grad": 0.0016084332019090652
+        }
+      },
+      {
+        "loss": 6006.28125,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 41057.28125,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.7982844114303589,
+        "timing_total": 28.247516341507435,
+        "timings": {
+          "backward": 24.237156074494123,
+          "forward": 4.001025816425681,
+          "gradient_processing": 0.002370677888393402,
+          "loss_evaluation": 0.003706611692905426,
+          "optimizer_step": 0.002742880955338478,
+          "wavefield_accumulation": 0.00023172050714492798,
+          "zero_grad": 0.0002825595438480377
+        }
+      },
+      {
+        "loss": 5719.279296875,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 34768.24609375,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.7179953455924988,
+        "timing_total": 28.698898511007428,
+        "timings": {
+          "backward": 24.65169264189899,
+          "forward": 4.0383110754191875,
+          "gradient_processing": 0.002325788140296936,
+          "loss_evaluation": 0.003611961379647255,
+          "optimizer_step": 0.002457849681377411,
+          "wavefield_accumulation": 0.0002301931381225586,
+          "zero_grad": 0.0002690013498067856
+        }
+      },
+      {
+        "loss": 5500.791015625,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 31491.73828125,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.662108838558197,
+        "timing_total": 28.012210592627525,
+        "timings": {
+          "backward": 24.011112784966826,
+          "forward": 3.99206118658185,
+          "gradient_processing": 0.002382807433605194,
+          "loss_evaluation": 0.0037000011652708054,
+          "optimizer_step": 0.002445898950099945,
+          "wavefield_accumulation": 0.00025523267686367035,
+          "zero_grad": 0.00025268085300922394
+        }
+      },
+      {
+        "loss": 5341.65234375,
+        "loss_finite": true,
+        "processed_grad_finite": true,
+        "processed_grad_norm": 33050.48046875,
+        "raw_grad_finite": true,
+        "raw_grad_norm": 0.672234833240509,
+        "timing_total": 28.143464444205165,
+        "timings": {
+          "backward": 24.17410484328866,
+          "forward": 3.960455382242799,
+          "gradient_processing": 0.002355119213461876,
+          "loss_evaluation": 0.0036315172910690308,
+          "optimizer_step": 0.002484560012817383,
+          "wavefield_accumulation": 0.00022101029753684998,
+          "zero_grad": 0.00021201185882091522
+        }
+      }
+    ],
+    "memory": {
+      "peak_allocated_bytes": 285756928,
+      "peak_allocated_mib": 272.51904296875
+    },
+    "mode": "production",
+    "shape": {
+      "batch_size": 3,
+      "checkpoint_segments": 10,
+      "grad_forw_illumination": false,
+      "nt": 3000,
+      "nx": 200,
+      "nz": 88,
+      "receivers": 200,
+      "save_forward_wavefield": false,
+      "shots": 3
+    },
+    "vp_update_norm": 4970.22314453125
+  },
+  "status": "ok",
+  "summary": {
+    "candidate": {
+      "all_finite": true,
+      "backward_seconds": 79.01364270411432,
+      "forward_seconds": 31.139879075810313,
+      "gradient_processing_seconds": 0.012649031355977058,
+      "losses": [
+        6375.7919921875,
+        6006.28125,
+        5719.279296875,
+        5500.791015625,
+        5341.65234375
+      ],
+      "mean_seconds_per_iteration": 22.039842722192407,
+      "peak_allocated_mib": 6799.740234375,
+      "total_seconds": 110.19921361096203,
+      "vp_update_norm": 4970.22314453125
+    },
+    "loss_abs_diffs": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_loss_abs_diff": 0.0,
+    "memory": {
+      "candidate_over_reference_peak_allocated": 24.95143150475078,
+      "candidate_peak_allocated_mib": 6799.740234375,
+      "reference_peak_allocated_mib": 272.51904296875
+    },
+    "reference": {
+      "all_finite": true,
+      "backward_seconds": 120.72525327466428,
+      "forward_seconds": 20.755281256511807,
+      "gradient_processing_seconds": 0.012479927390813828,
+      "losses": [
+        6375.7919921875,
+        6006.28125,
+        5719.279296875,
+        5500.791015625,
+        5341.65234375
+      ],
+      "mean_seconds_per_iteration": 28.458809500560164,
+      "peak_allocated_mib": 272.51904296875,
+      "total_seconds": 142.29404750280082,
+      "vp_update_norm": 4970.22314453125
+    },
+    "speedup": {
+      "backward": 1.527903905490716,
+      "forward": 0.6665177217285555,
+      "mean_iteration": 1.291243765179157,
+      "total": 1.291243765179157
+    },
+    "vp_update_norm_abs_diff": 0.0
+  }
+}

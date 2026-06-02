@@ -216,6 +216,9 @@ What is not stable enough for promotion:
 - custom autograd is useful only as an expert high-memory path: reduced
   5-iteration FWI shows exact loss/update parity and `1.5367x` total speedup,
   but peak allocation rises from `272.5190 MiB` to `7882.8569 MiB`;
+- saved-state divergence compression improves the memory/speed tradeoff but is
+  still high-memory: best point saves only `div_p`, giving `1.3191x` total
+  speedup with `5643.8008 MiB` peak allocation;
 - rematerialized custom checkpoint controls memory but is still too slow:
   forward-saved boundary caching gives exact loss/update parity and lowers peak
   allocation to `527.9731 MiB`; every-step divergence caching improves total
@@ -293,6 +296,19 @@ Current rematerialized boundary-cache candidate:
 This is accepted only as an experimental path. The next optimization must
 attack rematerialized backward replay cost directly; otherwise this line should
 stop.
+
+Current saved-state compression candidate:
+
+| Candidate | Total speedup | Backward speedup | Peak memory | Decision |
+| --- | ---: | ---: | ---: | --- |
+| save no divergence | `1.2730x` | `1.4730x` | `4524.6577 MiB` | lower memory, slower |
+| save only `div_p` | `1.3191x` | `1.5719x` | `5643.8008 MiB` | best current saved-state compression point |
+| save only `div_u/div_w` | `1.2912x` | `1.5279x` | `6799.7402 MiB` | worse speed/memory tradeoff |
+| save all divergence | `1.5367x` | `1.9362x` | `7882.8569 MiB` | speed ceiling, too much memory |
+
+This confirms that divergence-state compression helps, but it does not solve
+the memory problem. The next useful direction must reduce saved `p/u/w` state
+size or count, not continue sweeping divergence combinations.
 
 ## Comparison Scheme For Next Task
 

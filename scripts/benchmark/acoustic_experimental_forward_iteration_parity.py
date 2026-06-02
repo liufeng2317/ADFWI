@@ -27,7 +27,12 @@ from scripts.benchmark.acoustic_experimental_forward import (
     experimental_forward_kernel,
 )
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord
-from ADFWI.propagator.acoustic_custom_kernels import rematerialized_custom_chunk_forward_kernel
+from ADFWI.propagator.acoustic_custom_kernels import (
+    compressed_custom_chunk_forward_kernel,
+    pressure_divergence_custom_chunk_forward_kernel,
+    rematerialized_custom_chunk_forward_kernel,
+    velocity_divergence_custom_chunk_forward_kernel,
+)
 
 
 DEFAULT_OUTPUT = (
@@ -106,6 +111,12 @@ def experimental_forward_batch(
         forward_kernel = experimental_forward_kernel
     elif mode == "experimental-chunk":
         forward_kernel = experimental_chunk_forward_kernel
+    elif mode == "experimental-compressed-chunk":
+        forward_kernel = compressed_custom_chunk_forward_kernel
+    elif mode == "experimental-pressure-divergence-chunk":
+        forward_kernel = pressure_divergence_custom_chunk_forward_kernel
+    elif mode == "experimental-velocity-divergence-chunk":
+        forward_kernel = velocity_divergence_custom_chunk_forward_kernel
     elif mode == "experimental-remat-chunk":
         forward_kernel = rematerialized_custom_chunk_forward_kernel
     else:
@@ -115,8 +126,14 @@ def experimental_forward_batch(
         "device": propagator.device,
         "dtype": propagator.dtype,
     }
-    if mode == "experimental-remat-chunk":
+    if mode in {
+        "experimental-compressed-chunk",
+        "experimental-pressure-divergence-chunk",
+        "experimental-velocity-divergence-chunk",
+        "experimental-remat-chunk",
+    }:
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
+    if mode == "experimental-remat-chunk":
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
         forward_kwargs["state_cache_stride"] = remat_state_cache_stride
@@ -185,7 +202,13 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     mode=mode,
                 )
             )
-        elif mode in {"experimental-chunk", "experimental-remat-chunk"}:
+        elif mode in {
+            "experimental-chunk",
+            "experimental-compressed-chunk",
+            "experimental-pressure-divergence-chunk",
+            "experimental-velocity-divergence-chunk",
+            "experimental-remat-chunk",
+        }:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -381,7 +404,16 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--candidate-mode",
-        choices=("experimental", "experimental-chunk", "experimental-remat-chunk", "production", "production-custom-chunk"),
+        choices=(
+            "experimental",
+            "experimental-chunk",
+            "experimental-compressed-chunk",
+            "experimental-pressure-divergence-chunk",
+            "experimental-velocity-divergence-chunk",
+            "experimental-remat-chunk",
+            "production",
+            "production-custom-chunk",
+        ),
         default="experimental",
         help="Compare production against an experimental path or a second production run.",
     )

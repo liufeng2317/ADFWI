@@ -126,6 +126,39 @@ Current result:
 | peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
 | memory ratio | baseline | `28.9259x` |
 
+Saved-state custom compression gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 5 \
+  --checkpoint-segments 10 \
+  --candidate-mode experimental-pressure-divergence-chunk
+```
+
+Current best saved-state compression point:
+
+| Metric | Production full-output path | `div_p`-only saved-state path |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| mean seconds / iteration | `27.9868 s` | `21.2172 s` |
+| total speedup | baseline | `1.3191x` |
+| backward speedup | baseline | `1.5719x` |
+| peak allocated memory | `272.5190 MiB` | `5643.8008 MiB` |
+| memory ratio | baseline | `20.7097x` |
+
+Candidate comparison:
+
+| Candidate | Total speedup | Backward speedup | Peak memory | Decision |
+| --- | ---: | ---: | ---: | --- |
+| save no divergence | `1.2730x` | `1.4730x` | `4524.6577 MiB` | lower memory, slower |
+| save only `div_p` | `1.3191x` | `1.5719x` | `5643.8008 MiB` | current best compression point |
+| save only `div_u/div_w` | `1.2912x` | `1.5279x` | `6799.7402 MiB` | worse speed/memory than `div_p` only |
+| save all divergence | `1.5367x` | `1.9362x` | `7882.8569 MiB` | speed ceiling, too much memory |
+
 Rematerialized custom chunk memory-reduction gate:
 
 ```bash
@@ -169,6 +202,7 @@ for new comparisons.
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
 | `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
+| saved-state divergence compression | experimental benchmark path | best candidate saves only `div_p`: total `139.9340s -> 106.0862s`, `1.3191x`; backward `1.5719x`; loss and update exact | not run | reduces memory from saved-all `7882.8569 MiB` to `5643.8008 MiB`, but still `20.7x` production; not promotion-ready |
 | rematerialized custom boundary/divergence cache | experimental benchmark path | total `140.5631s -> 117.2454s` over 5 iterations, `1.1989x`; backward `1.3619x`; loss and update exact | not run | keeps memory near production (`1.94x`) but still loses much of saved-state speed benefit; not a production promotion candidate |
 
 Closed candidates with measured regressions:

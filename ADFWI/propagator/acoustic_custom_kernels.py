@@ -389,7 +389,9 @@ class _SavedStateChunkFunction(torch.autograd.Function):
         rcv_z,
         free_surface_start: int,
         use_free_surface: bool,
+        divergence_save_components,
     ):
+        divergence_save_components = _parse_divergence_cache_components(divergence_save_components)
         p_states = []
         u_states = []
         w_states = []
@@ -419,15 +421,32 @@ class _SavedStateChunkFunction(torch.autograd.Function):
                 source_value=source_v[step],
                 use_free_surface=use_free_surface,
             )
-            div_p_values.append(div_p)
-            div_u_values.append(div_u)
-            div_w_values.append(div_w)
+            if "p" in divergence_save_components:
+                div_p_values.append(div_p)
+            if "u" in divergence_save_components:
+                div_u_values.append(div_u)
+            if "w" in divergence_save_components:
+                div_w_values.append(div_w)
             records_p.append(p[:, rcv_z, rcv_x])
             records_u.append(u[:, rcv_z, rcv_x])
             records_w.append(w[:, rcv_z, rcv_x])
 
+        if "p" in divergence_save_components:
+            div_p_cache = torch.stack(div_p_values)
+        else:
+            div_p_cache = p.new_empty((0,))
+        if "u" in divergence_save_components:
+            div_u_cache = torch.stack(div_u_values)
+        else:
+            div_u_cache = u.new_empty((0,))
+        if "w" in divergence_save_components:
+            div_w_cache = torch.stack(div_w_values)
+        else:
+            div_w_cache = w.new_empty((0,))
+
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
+        ctx.divergence_save_components = divergence_save_components
         ctx.save_for_backward(
             torch.stack(p_states),
             torch.stack(u_states),
@@ -437,9 +456,12 @@ class _SavedStateChunkFunction(torch.autograd.Function):
             kappa2,
             alpha2,
             kappa3,
-            torch.stack(div_p_values),
-            torch.stack(div_u_values),
-            torch.stack(div_w_values),
+            div_p_cache,
+            div_u_cache,
+            div_w_cache,
+            source_x,
+            source_z,
+            source_v,
             rcv_x,
             rcv_z,
         )
@@ -459,6 +481,9 @@ class _SavedStateChunkFunction(torch.autograd.Function):
             div_p_values,
             div_u_values,
             div_w_values,
+            source_x,
+            source_z,
+            source_v,
             rcv_x,
             rcv_z,
         ) = ctx.saved_tensors
@@ -472,6 +497,39 @@ class _SavedStateChunkFunction(torch.autograd.Function):
             grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
             grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
             grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+            if "p" in ctx.divergence_save_components:
+                div_p = div_p_values[step]
+            else:
+                div_p = _pressure_divergence_from_state(
+                    p_states[step],
+                    u_states[step],
+                    w_states[step],
+                    free_surface_start=ctx.free_surface_start,
+                )
+            if "u" in ctx.divergence_save_components:
+                div_u = div_u_values[step]
+            else:
+                div_u = None
+            if "w" in ctx.divergence_save_components:
+                div_w = div_w_values[step]
+            else:
+                div_w = None
+            if div_u is None or div_w is None:
+                p_new = _rebuild_pressure_from_divergence(
+                    p_states[step],
+                    kappa1,
+                    alpha1,
+                    div_p,
+                    free_surface_start=ctx.free_surface_start,
+                    source_x=source_x,
+                    source_z=source_z,
+                    source_value=source_v[step],
+                    use_free_surface=ctx.use_free_surface,
+                )
+                if div_u is None:
+                    div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
+                if div_w is None:
+                    div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
             (
                 grad_p,
                 grad_u,
@@ -490,9 +548,9 @@ class _SavedStateChunkFunction(torch.autograd.Function):
                 kappa2,
                 alpha2,
                 kappa3,
-                div_p_values[step],
-                div_u_values[step],
-                div_w_values[step],
+                div_p,
+                div_u,
+                div_w,
                 grad_p,
                 grad_u,
                 grad_w,
@@ -514,6 +572,7 @@ class _SavedStateChunkFunction(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -903,6 +962,7 @@ def custom_chunk_forward_kernel(
     *,
     checkpoint_segments: int = 1,
     save_forward_wavefield: bool = False,
+    divergence_save_components="p,u,w",
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
@@ -931,6 +991,11 @@ def custom_chunk_forward_kernel(
         save_forward_wavefield
             Must be ``False``. This path does not produce illumination
             wavefield summaries.
+        divergence_save_components
+            Experimental state-memory control. Component subset of divergence
+            terms to save: ``p``, ``u``, and/or ``w``. The default
+            ``p,u,w`` preserves the current high-speed path. ``none`` saves
+            only wavefield states and recomputes divergence terms in backward.
 
     Returns:
     ------------------
@@ -994,6 +1059,7 @@ def custom_chunk_forward_kernel(
             rcv_z + nabc,
             free_surface_start,
             free_surface,
+            divergence_save_components,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
@@ -1009,6 +1075,51 @@ def custom_chunk_forward_kernel(
         "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
         "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
     }
+
+
+def compressed_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
+    """Run the saved-state custom chunk path without saved divergence tensors.
+
+    Description
+    --------------
+        This benchmark-only variant keeps every per-step wavefield state, so it
+        avoids rematerialized full-chunk replay, but drops the saved
+        ``div_p/div_u/div_w`` tensors and recomputes them during backward.
+
+        It is used to test whether the high-memory saved-state custom path can
+        be compressed without losing most of its backward speed advantage.
+    """
+    kwargs["divergence_save_components"] = "none"
+    return custom_chunk_forward_kernel(*args, **kwargs)
+
+
+def pressure_divergence_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
+    """Run the saved-state custom chunk path while saving only pressure divergence.
+
+    Description
+    --------------
+        This benchmark-only middle point keeps all per-step wavefield states and
+        ``div_p``. It recomputes ``div_u`` and ``div_w`` during backward. The
+        goal is to recover more speed than the fully compressed path without
+        returning to the full saved-divergence memory cost.
+    """
+    kwargs["divergence_save_components"] = "p"
+    return custom_chunk_forward_kernel(*args, **kwargs)
+
+
+def velocity_divergence_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
+    """Run the saved-state custom chunk path while saving velocity divergences.
+
+    Description
+    --------------
+        This benchmark-only middle point keeps all per-step wavefield states and
+        saves ``div_u/div_w``. It recomputes only ``div_p`` during backward.
+        This avoids rebuilding ``p_new`` and recomputing velocity divergences,
+        so it tests a higher-speed state-compression point than saving only
+        ``div_p``.
+    """
+    kwargs["divergence_save_components"] = "u,w"
+    return custom_chunk_forward_kernel(*args, **kwargs)
 
 
 def rematerialized_custom_chunk_forward_kernel(

@@ -83,7 +83,12 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     use_custom_chunk_backward=True,
                 )
             )
-        elif mode == "experimental-remat-chunk":
+        elif mode in {
+            "experimental-compressed-chunk",
+            "experimental-pressure-divergence-chunk",
+            "experimental-velocity-divergence-chunk",
+            "experimental-remat-chunk",
+        }:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -270,7 +275,13 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
     profile.add_arguments(parser, pre_args.validation_case)
     parser.add_argument(
         "--candidate-mode",
-        choices=("production-custom-chunk", "experimental-remat-chunk"),
+        choices=(
+            "production-custom-chunk",
+            "experimental-compressed-chunk",
+            "experimental-pressure-divergence-chunk",
+            "experimental-velocity-divergence-chunk",
+            "experimental-remat-chunk",
+        ),
         default="experimental-remat-chunk",
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)

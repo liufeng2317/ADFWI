@@ -27,6 +27,7 @@ This is the only active modification record for
 | --- | --- | --- | --- | --- |
 | 2026-06-02 | forward-saved boundary cache for rematerialized custom chunks | `ADFWI/propagator/acoustic_custom_kernels.py` | reduced 5-iteration FWI loss and update matched exactly; total speedup vs production `1.1312x`; peak allocation `527.9731 MiB` (`1.9374x` production) | accepted for experimental benchmark path only; not enough speed for production promotion |
 | 2026-06-02 | rematerialized benchmark default uses every-step divergence cache and block boundary cache | `scripts/benchmark/acoustic_experimental_fwi_loop_compare.py` | reduced 5-iteration FWI loss and update matched exactly; total speedup vs production improved to `1.1989x`, backward speedup `1.3619x`; peak allocation stayed `527.9731 MiB` | accepted benchmark configuration; still not enough speed for production promotion |
+| 2026-06-02 | saved-state custom divergence-save candidates | `ADFWI/propagator/acoustic_custom_kernels.py`, benchmark scripts | reduced 5-iteration FWI loss and update matched exactly for compressed candidates; best point saves only `div_p`: total speedup `1.3191x`, backward speedup `1.5719x`, peak allocation `5643.8008 MiB` | accepted benchmark candidates; not enough memory reduction for production promotion |
 
 ## Closed Or Not Promoted
 
@@ -57,6 +58,7 @@ This is the only active modification record for
 | --- | --- | --- |
 | `ADFWI/propagator/acoustic_custom_kernels.py` | valid expert opt-in / benchmark path | keep, but do not make default without new full FWI evidence |
 | saved-state custom chunk memory | peak allocation rises `28.9259x` in reduced FWI comparison | optimize memory only if loss/update parity and core backward speed benefit are preserved |
+| saved-state divergence compression | best current point still uses `20.7x` production peak memory | do not promote; next valuable work needs structural state compression, not more divergence-component sweeps |
 | rematerialized custom chunk speed | peak allocation is controlled but current total speedup is only `1.1989x` | continue only if replay cost can be reduced beyond parameter tuning |
 | `ADFWI/propagator/acoustic_kernels_bs.py` | research prototype, not production-wired | archive or delete only in a separate explicit cleanup |
 | Ascend custom-op route | paused | resume only after standalone multi-block copy parity is solved |
