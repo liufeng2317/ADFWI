@@ -566,8 +566,15 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         p_start = p
         u_start = u
         w_start = w
+        boundary_p_states = []
+        boundary_u_states = []
+        boundary_w_states = []
 
         for step in range(source_v.shape[0]):
+            if state_cache_stride > 1 and step % state_cache_stride == 0:
+                boundary_p_states.append(p)
+                boundary_u_states.append(u)
+                boundary_w_states.append(w)
             p, u, w, _, _, _ = _forward_step_with_saved_divergence(
                 p,
                 u,
@@ -586,6 +593,15 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             records_p.append(p[:, rcv_z, rcv_x])
             records_u.append(u[:, rcv_z, rcv_x])
             records_w.append(w[:, rcv_z, rcv_x])
+
+        if state_cache_stride > 1:
+            boundary_p_cache = torch.stack(boundary_p_states)
+            boundary_u_cache = torch.stack(boundary_u_states)
+            boundary_w_cache = torch.stack(boundary_w_states)
+        else:
+            boundary_p_cache = p.new_empty((0,))
+            boundary_u_cache = u.new_empty((0,))
+            boundary_w_cache = w.new_empty((0,))
 
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
@@ -606,6 +622,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             source_v,
             rcv_x,
             rcv_z,
+            boundary_p_cache,
+            boundary_u_cache,
+            boundary_w_cache,
         )
         return p, u, w, torch.stack(records_p, dim=1), torch.stack(records_u, dim=1), torch.stack(records_w, dim=1)
 
@@ -625,6 +644,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             source_v,
             rcv_x,
             rcv_z,
+            boundary_p_cache,
+            boundary_u_cache,
+            boundary_w_cache,
         ) = ctx.saved_tensors
         if ctx.state_cache_stride <= 1:
             p_states = []
@@ -666,34 +688,6 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                     div_w_values.append(div_w)
                 else:
                     div_w_values.append(None)
-        else:
-            boundary_steps = []
-            boundary_p_states = []
-            boundary_u_states = []
-            boundary_w_states = []
-
-            for step in range(source_v.shape[0]):
-                if step % ctx.state_cache_stride == 0:
-                    boundary_steps.append(step)
-                    boundary_p_states.append(p)
-                    boundary_u_states.append(u)
-                    boundary_w_states.append(w)
-                p, u, w, _, _, _ = _forward_step_with_saved_divergence(
-                    p,
-                    u,
-                    w,
-                    kappa1,
-                    alpha1,
-                    kappa2,
-                    alpha2,
-                    kappa3,
-                    free_surface_start=ctx.free_surface_start,
-                    source_x=source_x,
-                    source_z=source_z,
-                    source_value=source_v[step],
-                    use_free_surface=ctx.use_free_surface,
-                )
-
         grad_kappa1 = torch.zeros_like(kappa1)
         grad_alpha1 = torch.zeros_like(alpha1)
         grad_kappa2 = torch.zeros_like(kappa2)
@@ -764,12 +758,12 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                 grad_alpha2 += step_grad_alpha2
                 grad_kappa3 += step_grad_kappa3
         else:
-            for block_index in range(len(boundary_steps) - 1, -1, -1):
-                block_start = boundary_steps[block_index]
+            for block_index in range(boundary_p_cache.shape[0] - 1, -1, -1):
+                block_start = block_index * ctx.state_cache_stride
                 block_end = min(block_start + ctx.state_cache_stride, source_v.shape[0])
-                p_local = boundary_p_states[block_index]
-                u_local = boundary_u_states[block_index]
-                w_local = boundary_w_states[block_index]
+                p_local = boundary_p_cache[block_index]
+                u_local = boundary_u_cache[block_index]
+                w_local = boundary_w_cache[block_index]
                 p_states = []
                 u_states = []
                 w_states = []

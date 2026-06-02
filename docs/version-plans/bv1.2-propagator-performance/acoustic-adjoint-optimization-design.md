@@ -78,6 +78,46 @@ Interpretation:
 - the next useful work is not another micro-optimization, but reducing saved
   custom-backward state while preserving the measured backward benefit.
 
+## Current Rematerialized Candidate
+
+The first memory-reduction candidate stores rematerialized chunk boundary
+states during forward when `state_cache_stride > 1`, so backward can replay
+local blocks without first replaying the full chunk only to collect boundaries.
+
+Command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --iterations 5 \
+  --checkpoint-segments 10 \
+  --candidate-mode experimental-remat-chunk \
+  --remat-divergence-cache-stride 2 \
+  --remat-divergence-cache-components p,u,w \
+  --remat-state-cache-stride 10 \
+  --result-json docs/version-plans/bv1.2-propagator-performance/acoustic_remat_boundary_cache_fwi_loop_compare_20260602.json
+```
+
+Result:
+
+| Metric | Production full-output path | Rematerialized custom path |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| total seconds, 5 iterations | `145.9461 s` | `129.0180 s` |
+| mean seconds / iteration | `29.1892 s` | `25.8036 s` |
+| backward seconds | `123.7662 s` | `99.5178 s` |
+| peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
+
+Decision:
+
+- keep this as an experimental benchmark improvement;
+- do not promote it: total speedup is only `1.1312x`;
+- this confirms that rematerialization controls memory, but the replay cost is
+  still too high to replace saved-state custom backward.
+
 ## Why Stop Small PyTorch Cleanup
 
 Accepted small changes gave useful but limited gains:
@@ -262,14 +302,14 @@ Do:
 
 ## Next Concrete Task
 
-Design and test one memory-reduced custom-backward candidate against the current
-saved-state custom chunk baseline:
+The next useful task is no longer generic memory reduction. It should target the
+specific rematerialized replay cost:
 
 1. keep production `acoustic_kernels.py` unchanged;
 2. work only in `acoustic_custom_kernels.py` and benchmark scripts;
-3. compare production full-output, current saved-state custom chunk, and the
-   memory-reduced candidate on reduced FWI;
-4. report loss trajectory, `vp_update_norm`, gradient finiteness, peak memory,
-   forward/backward/total timing;
-5. continue only if memory drops substantially without losing the core backward
-   speed benefit.
+3. reduce duplicated pressure rebuild/divergence recomputation inside the remat
+   backward block replay;
+4. compare against production, saved-state custom chunk, and current remat
+   boundary-cache candidate;
+5. continue only if total speed moves materially above `1.1312x` without
+   pushing memory back toward the saved-state custom path.

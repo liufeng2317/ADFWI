@@ -21,6 +21,12 @@ This is the only active modification record for
 | 2026-05-31 | `use_custom_chunk_backward=True` expert path | `ADFWI/propagator/acoustic_custom_kernels.py`, acoustic wrapper/FWI plumbing | custom chunk receiver-loss and `vp.grad` parity tests; reduced 5-iteration FWI loss and update matched exactly; total speedup `1.5367x`, backward speedup `1.9362x`, peak allocation `28.9259x` | accepted opt-in, not default; next work is memory reduction |
 | 2026-06-02 | `pressure_only=True` acoustic FWI path | `ADFWI/propagator/acoustic_kernels.py`, acoustic wrapper/FWI plumbing | `p`, `forward_wavefield_p`, loss, and `vp.grad` exact parity; reduced checkpoint=10 FWI 5-iteration loss trajectory matched default exactly, steady-state total iteration improved from 29.31s to 25.37s; full-record checkpoint=10 FWI 3-iteration loss trajectory also matched exactly, steady-state total iteration improved from 28.20s to 26.51s | accepted opt-in, not default |
 
+## Accepted Experimental Changes
+
+| Date | Change | Files | Validation | Decision |
+| --- | --- | --- | --- | --- |
+| 2026-06-02 | forward-saved boundary cache for rematerialized custom chunks | `ADFWI/propagator/acoustic_custom_kernels.py` | reduced 5-iteration FWI loss and update matched exactly; total speedup vs production `1.1312x`; peak allocation `527.9731 MiB` (`1.9374x` production) | accepted for experimental benchmark path only; not enough speed for production promotion |
+
 ## Closed Or Not Promoted
 
 | Date | Line | Result | Decision |

@@ -216,7 +216,9 @@ What is not stable enough for promotion:
 - custom autograd is useful only as an expert high-memory path: reduced
   5-iteration FWI shows exact loss/update parity and `1.5367x` total speedup,
   but peak allocation rises from `272.5190 MiB` to `7882.8569 MiB`;
-- rematerialized custom checkpoint did not provide a good memory/runtime result;
+- rematerialized custom checkpoint controls memory but is still too slow:
+  forward-saved boundary caching gives exact loss/update parity and lowers peak
+  allocation to `527.9731 MiB`, but total speedup is only `1.1312x`;
 - Ascend custom op is blocked by standalone multi-block copy parity;
 - non-reentrant PyTorch checkpoint failed during NPU TorchScript backward
   recompute;
@@ -275,6 +277,21 @@ Current custom chunk result:
 Next candidate must reduce the custom path peak memory substantially while
 keeping exact loss/update parity and preserving a meaningful backward speed
 advantage.
+
+Current rematerialized boundary-cache candidate:
+
+| Metric | Production full-output path | Rematerialized custom path |
+| --- | ---: | ---: |
+| loss trajectory | exact match | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| mean seconds / iteration | `29.1892 s` | `25.8036 s` |
+| backward speedup | baseline | `1.2437x` |
+| total speedup | baseline | `1.1312x` |
+| peak allocated memory | `272.5190 MiB` | `527.9731 MiB` |
+
+This is accepted only as an experimental path. The next optimization must
+attack rematerialized backward replay cost directly; otherwise this line should
+stop.
 
 ## Comparison Scheme For Next Task
 
