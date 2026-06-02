@@ -49,6 +49,7 @@ This is the only active modification record for
 | 2026-06-02 | empty placeholders for skipped replay summaries | preserved loss/gradient behavior but slowed reduced checkpoint=10 steady-state total iteration by 2.10% | reverted and closed |
 | 2026-06-02 | concatenate segmented receiver chunks | preserved loss/gradient behavior but slowed reduced checkpoint=10 steady-state total iteration by 1.93% | reverted and closed |
 | 2026-06-02 | remat every-step divergence fast path | reduced 5-iteration FWI loss and update matched exactly, but candidate total time regressed versus the current best remat candidate (`116.2597 s` vs `106.6786 s`) | reverted and closed |
+| 2026-06-02 | omit pressure-only velocity placeholders from internal FWI record | reduced checkpoint=10 10-iteration loss trajectory and `vp_update_norm` matched exactly, but steady-state total iteration regressed from `25.9895 s` to `26.5913 s` | reverted and closed |
 
 ## Readability And Cleanup
 
