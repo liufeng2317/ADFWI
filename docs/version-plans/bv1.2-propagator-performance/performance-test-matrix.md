@@ -207,3 +207,29 @@ A performance change is acceptable only if:
 - timing improves enough to matter for the target case;
 - the result is added to `performance-change-log.md`;
 - the next direction is explicitly stated.
+
+## High-Value Adjoint Route Gate
+
+Use this gate before any custom adjoint/backward code is wired into production.
+
+Required prototype levels:
+
+| Level | Purpose | Required comparison |
+| --- | --- | --- |
+| one-step | validate local adjoint signs and indices | custom gradient vs PyTorch autograd |
+| two-step | validate state dependency through time | custom gradient vs PyTorch autograd |
+| tiny multi-step | validate source injection and receiver accumulation | custom gradient vs PyTorch autograd |
+| reduced FWI | validate real-loop transfer | loss trajectory, raw/processed gradients, seconds/iteration |
+
+Required tolerances:
+
+| Device/dtype | Receiver/loss target | Gradient target |
+| --- | ---: | ---: |
+| CPU float64 | max relative <= `1e-10` | max relative <= `1e-8` |
+| NPU float32 | max relative <= `1e-4` | max relative <= `1e-3` |
+
+Promotion target:
+
+- reduced checkpoint=10 total iteration speedup should be at least `1.5x`; or
+- memory reduction must be large enough to run a case that the current baseline
+  cannot run, with no loss/gradient regression.

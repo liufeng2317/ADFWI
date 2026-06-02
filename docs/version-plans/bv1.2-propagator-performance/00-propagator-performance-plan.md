@@ -206,9 +206,9 @@ What is stable:
 
 - acoustic full-record validation is available as the baseline;
 - the active document set has been reduced to plan, test matrix, and change log;
-- two small production changes are accepted;
-- three opt-in paths are guarded and documented;
-- pressure-only acoustic FWI is accepted as a guarded opt-in path;
+- checkpoint replay and AcousticFWI pressure-policy changes are accepted;
+- opt-in experimental paths are guarded and documented;
+- AcousticFWI auto pressure policy is the current FWI default;
 - failed or high-risk routes are explicitly closed or paused.
 
 What is not stable enough for promotion:
@@ -227,43 +227,45 @@ What is not stable enough for promotion:
 The next optimization should be:
 
 ```text
-Production acoustic PyTorch hot path, measured before implementation.
+Acoustic pressure-only adjoint/custom-backward prototype.
 ```
 
-Target file:
+Detailed design:
 
 ```text
-ADFWI/propagator/acoustic_kernels.py
+docs/version-plans/bv1.2-propagator-performance/acoustic-adjoint-optimization-design.md
 ```
 
 Target scope:
 
-- default acoustic path only;
-- no custom autograd promotion;
+- acoustic only;
+- pressure-loss FWI only;
+- prototype path first, no production replacement at the start;
 - no elastic changes;
 - no finite-difference equation changes;
-- no output-contract change.
+- no `AcousticPropagator.forward` default output-contract change.
 
-Primary candidates to measure:
+Current reduced checkpoint=10 baseline:
 
-| Candidate | Why it is still valid | Boundary |
-| --- | --- | --- |
-| receiver recording cost | happens every timestep and stores `p/u/w` | must keep exact receiver output ordering and shape |
-| forward-wavefield accumulation cost | three reductions every timestep when enabled | only optimize default behavior, do not silently skip outputs |
-| checkpoint segment overhead for `checkpoint_segments > 1` | production still uses PyTorch checkpoint for memory-saving mode | must preserve checkpoint memory semantics |
-| repeated output allocation/copy across chunks | visible in `forward_kernel` chunk assembly | no direct-return change unless timing improves |
+| Metric | Baseline |
+| --- | ---: |
+| final loss, 10 iterations | `4776.7587890625` |
+| total seconds / iteration, excluding first | `26.4793 s` |
+| forward seconds / iteration, excluding first | `3.7645 s` |
+| backward seconds / iteration, excluding first | `22.0680 s` |
 
-The next task should not directly edit code first. It should run a focused
-profile comparison that separates:
+The next task should not replace production code. It should create a tiny
+adjoint parity harness that compares custom backward gradients against PyTorch
+autograd for:
 
 ```text
-receiver recording
-forward-wavefield accumulation
-checkpoint segment assembly
-backward/autograd cost
+one-step pressure receiver loss
+two-step pressure receiver loss
+tiny multi-step source-injection recurrence
 ```
 
-Then select exactly one code change from the measured dominant cost.
+Only after CPU float64 and NPU float32 parity pass should the prototype move to
+chunk-level integration.
 
 ## Comparison Scheme For Next Task
 
@@ -278,33 +280,15 @@ Before/after comparison must use the same:
 - `save_forward_wavefield` setting;
 - loss definition.
 
-Minimum commands:
+Minimum baseline command:
 
 ```bash
 conda run -n adfwi python scripts/benchmark/acoustic_fwi_iteration_profile.py \
+  --validation-case reduced \
   --device npu:0 \
   --dtype float32 \
-  --iterations 5 \
-  --checkpoint-segments 1
-```
-
-and, if the selected target touches output recording or wavefield accumulation:
-
-```bash
-conda run -n adfwi python scripts/benchmark/acoustic_checkpoint_overhead.py \
-  --device npu:0 \
-  --dtype float32 \
-  --warmup 0 \
-  --repeat 2 \
-  --checkpoint-segments 1 \
-  --nx 100 \
-  --nz 50 \
-  --nabc 20 \
-  --nt 800 \
-  --dx 40 \
-  --dz 40 \
-  --dt 0.003 \
-  --f0 5
+  --iterations 10 \
+  --checkpoint-segments 10
 ```
 
 Required record:
