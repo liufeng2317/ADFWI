@@ -736,6 +736,43 @@ This confirms that expression-level slice cleanup and single-clone removal are
 too small/noisy. The next useful route needs a structural reduction inside the
 manual adjoint step, not more local variable rewrites.
 
+## Production Wrapper Opt-In Remat Strategy Gate
+
+The validated stride=2 remat policy is exposed through
+`AcousticPropagator.forward(custom_chunk_strategy="remat_pressure_stride2")`.
+This path requires `save_forward_wavefield=False` and `pressure_only=True`; the
+default production path is unchanged.
+
+One-iteration wrapper gate:
+
+| Candidate | Total time | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| production wrapper `remat_pressure_stride2` | `24.5541 s` | `1.2339x` | `657.3506 MiB` | `2.2436x` | `0.0` | `2.7381e-07` |
+
+Short reduced-FWI wrapper gate:
+
+| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| --- | ---: | ---: |
+| losses | `[6375.7920, 6006.2812, 5719.2793, 5500.7910, 5341.6523]` | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| total seconds, 5 iterations | `136.8379 s` | `114.2028 s` |
+| mean seconds / iteration | `27.3676 s` | `22.8406 s` |
+| backward seconds | `117.6703 s` | `96.5886 s` |
+| forward seconds | `18.4045 s` | `17.5732 s` |
+| peak memory | `272.5190 MiB` | `616.2178 MiB` |
+| peak memory ratio | baseline | `2.2612x` |
+| total speedup | baseline | `1.1982x` |
+
+Interpretation:
+
+- the accepted stride=2 remat policy is now usable without benchmark-only
+  helper calls;
+- the strategy remains expert opt-in because it changes the memory/speed
+  policy and only supports pressure-loss workflows without forward-wavefield
+  summaries;
+- the next validation should be a longer full-record run before considering
+  any default or AcousticFWI-level automatic policy change.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid

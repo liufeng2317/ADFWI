@@ -13,7 +13,7 @@ from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
 from ADFWI.backends import get_backend
 from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
-from .acoustic_custom_kernels import custom_chunk_forward_kernel
+from .acoustic_custom_kernels import custom_chunk_forward_kernel, rematerialized_pressure_custom_chunk_forward_kernel
 from .acoustic_kernels import forward_kernel
 
 class AcousticPropagator(torch.nn.Module):
@@ -127,6 +127,7 @@ class AcousticPropagator(torch.nn.Module):
                 checkpoint_segments: int = 1,
                 save_forward_wavefield: bool = True,
                 use_custom_chunk_backward: bool = False,
+                custom_chunk_strategy: Optional[str] = None,
                 pressure_only: bool = False,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
@@ -137,7 +138,8 @@ class AcousticPropagator(torch.nn.Module):
         shot_index (Optional[int])       : Index of the shot to simulate
         checkpoint_segments (int)        : Number of segments for checkpointing to save memory in the default path
         save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
-        use_custom_chunk_backward (bool) : Expert opt-in high-memory custom-chunk backward path. This improves backward speed on measured acoustic FWI cases, but it is not PyTorch checkpoint rematerialization and does not preserve checkpoint memory savings.
+        use_custom_chunk_backward (bool) : Backward-compatible alias for custom_chunk_strategy="saved_state".
+        custom_chunk_strategy (Optional[str]): Expert opt-in custom backward strategy. Supported values are None, "saved_state", and "remat_pressure_stride2".
         pressure_only (bool)             : Opt-in acoustic FWI path that records only pressure outputs. Default keeps full p/u/w outputs.
 
         Returns:
@@ -154,12 +156,27 @@ class AcousticPropagator(torch.nn.Module):
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
 
-        if use_custom_chunk_backward and save_forward_wavefield:
-            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False, got save_forward_wavefield=True")
-        if use_custom_chunk_backward and pressure_only:
-            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
+        if custom_chunk_strategy is None and use_custom_chunk_backward:
+            custom_chunk_strategy = "saved_state"
+        if custom_chunk_strategy not in {None, "saved_state", "remat_pressure_stride2"}:
+            raise ValueError(
+                "custom_chunk_strategy must be None, 'saved_state', or 'remat_pressure_stride2'"
+            )
+        if custom_chunk_strategy is not None and save_forward_wavefield:
+            raise ValueError(
+                "custom_chunk_strategy requires save_forward_wavefield=False, got save_forward_wavefield=True"
+            )
+        if custom_chunk_strategy == "saved_state" and pressure_only:
+            raise ValueError("pressure_only=True is not supported with custom_chunk_strategy='saved_state'")
+        if custom_chunk_strategy == "remat_pressure_stride2" and not pressure_only:
+            raise ValueError("custom_chunk_strategy='remat_pressure_stride2' requires pressure_only=True")
 
-        kernel = custom_chunk_forward_kernel if use_custom_chunk_backward else forward_kernel
+        if custom_chunk_strategy == "saved_state":
+            kernel = custom_chunk_forward_kernel
+        elif custom_chunk_strategy == "remat_pressure_stride2":
+            kernel = rematerialized_pressure_custom_chunk_forward_kernel
+        else:
+            kernel = forward_kernel
         
         kernel_kwargs = {
             "checkpoint_segments": checkpoint_segments,
@@ -167,8 +184,12 @@ class AcousticPropagator(torch.nn.Module):
             "device": self.device,
             "dtype": self.dtype,
         }
-        if not use_custom_chunk_backward:
+        if custom_chunk_strategy is None:
             kernel_kwargs["pressure_only"] = pressure_only
+        elif custom_chunk_strategy == "remat_pressure_stride2":
+            kernel_kwargs["divergence_cache_stride"] = 2
+            kernel_kwargs["divergence_cache_components"] = "p,u,w"
+            kernel_kwargs["state_cache_stride"] = 1
 
         record_waveform = kernel(
             self.nx,self.nz,self.dx,self.dz,self.nt,self.dt,

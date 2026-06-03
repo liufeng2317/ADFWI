@@ -87,6 +87,12 @@ def add_arguments(parser: argparse.ArgumentParser, validation_case: str) -> None
     parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--use-custom-chunk-backward", action="store_true")
     parser.add_argument(
+        "--custom-chunk-strategy",
+        choices=("saved_state", "remat_pressure_stride2"),
+        default=None,
+        help="Expert opt-in AcousticPropagator custom backward strategy. Default keeps the production path.",
+    )
+    parser.add_argument(
         "--pressure-only",
         action=argparse.BooleanOptionalAction,
         default=None,
@@ -281,6 +287,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer, *, keep_tenso
                 args.checkpoint_segments,
                 save_forward_wavefield=args.save_forward_wavefield,
                 use_custom_chunk_backward=args.use_custom_chunk_backward,
+                custom_chunk_strategy=args.custom_chunk_strategy,
                 pressure_only="auto" if args.pressure_only is None else args.pressure_only,
             )
         )
@@ -415,6 +422,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
             "save_forward_wavefield": args.save_forward_wavefield,
             "grad_forw_illumination": args.grad_forw_illumination,
             "use_custom_chunk_backward": args.use_custom_chunk_backward,
+            "custom_chunk_strategy": args.custom_chunk_strategy,
             "pressure_only": "auto" if args.pressure_only is None else args.pressure_only,
             "gradient_processor": args.gradient_processor,
         },
@@ -577,6 +585,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     add_arguments(parser, pre_args.validation_case)
     parser.add_argument("--compare-wavefield-policy", action="store_true")
     args = parser.parse_args(argv)
+    if args.use_custom_chunk_backward and args.custom_chunk_strategy is not None:
+        parser.error("--use-custom-chunk-backward and --custom-chunk-strategy are mutually exclusive")
     forward_modeling.validate_case_args(parser, args)
 
     if args.compare_wavefield_policy:

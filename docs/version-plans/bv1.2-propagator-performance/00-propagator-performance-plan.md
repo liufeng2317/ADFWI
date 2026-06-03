@@ -472,6 +472,25 @@ optimization should start from this stride=2 configuration and target backward
 replay/reverse-loop cost while keeping peak memory below `2.5x` production
 checkpoint=10.
 
+The stride=2 candidate is now available through the production wrapper as an
+expert opt-in strategy:
+
+```python
+propagator.forward(
+    checkpoint_segments=10,
+    save_forward_wavefield=False,
+    pressure_only=True,
+    custom_chunk_strategy="remat_pressure_stride2",
+)
+```
+
+This is not the default production path. The wrapper gate preserves the same
+numerical contract as the experimental helper: one-iteration loss diff `0.0`,
+raw `vp.grad` max abs diff `2.7381e-07`, memory ratio `2.2436x`, and total
+speedup `1.2339x`. The 5-iteration reduced FWI wrapper gate matched the full
+loss trajectory and `vp_update_norm`, with mean iteration time improving from
+`27.3676 s` to `22.8406 s` and memory ratio `2.2612x`.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the

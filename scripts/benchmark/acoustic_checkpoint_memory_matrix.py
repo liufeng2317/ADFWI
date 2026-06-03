@@ -40,6 +40,7 @@ FORWARD_MODES = {
     "experimental-remat-pressure-chunk",
     "production",
     "production-custom-chunk",
+    "production-remat-pressure-stride2",
 }
 
 

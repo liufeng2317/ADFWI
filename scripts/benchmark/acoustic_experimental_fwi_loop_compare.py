@@ -83,6 +83,17 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     use_custom_chunk_backward=True,
                 )
             )
+        elif mode == "production-remat-pressure-stride2":
+            forward_batch, elapsed = timer.measure(
+                lambda batch_range=batch_range: acoustic_forward_batch(
+                    fwi.propagator,
+                    batch_range,
+                    args.checkpoint_segments,
+                    save_forward_wavefield=False,
+                    custom_chunk_strategy="remat_pressure_stride2",
+                    pressure_only=True,
+                )
+            )
         elif mode in {
             "experimental-compressed-chunk",
             "experimental-pressure-divergence-chunk",
@@ -278,6 +289,7 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
         "--candidate-mode",
         choices=(
             "production-custom-chunk",
+            "production-remat-pressure-stride2",
             "experimental-compressed-chunk",
             "experimental-pressure-divergence-chunk",
             "experimental-velocity-divergence-chunk",

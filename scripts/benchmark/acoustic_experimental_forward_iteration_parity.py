@@ -197,6 +197,17 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     use_custom_chunk_backward=True,
                 )
             )
+        elif mode == "production-remat-pressure-stride2":
+            forward_batch, elapsed = timer.measure(
+                lambda batch_range=batch_range: acoustic_forward_batch(
+                    fwi.propagator,
+                    batch_range,
+                    args.checkpoint_segments,
+                    save_forward_wavefield=False,
+                    custom_chunk_strategy="remat_pressure_stride2",
+                    pressure_only=True,
+                )
+            )
         elif mode == "experimental":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
@@ -419,6 +430,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
             "experimental-remat-pressure-chunk",
             "production",
             "production-custom-chunk",
+            "production-remat-pressure-stride2",
         ),
         default="experimental",
         help="Compare production against an experimental path or a second production run.",
