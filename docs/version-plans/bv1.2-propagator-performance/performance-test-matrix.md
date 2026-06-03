@@ -763,6 +763,23 @@ Short reduced-FWI wrapper gate:
 | peak memory ratio | baseline | `2.2612x` |
 | total speedup | baseline | `1.1982x` |
 
+Longer full-record-geometry wrapper gate:
+
+| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| --- | ---: | ---: |
+| case | `marmousi2_acoustic_full_record` | same |
+| shape | `shots=3`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
+| iterations | `10` | `10` |
+| max loss abs diff | baseline | `4.8828125e-04` |
+| `vp_update_norm` | `8376.34765625` | `8376.34765625` |
+| total seconds, 10 iterations | `282.3262 s` | `237.4528 s` |
+| mean seconds / iteration | `28.2326 s` | `23.7453 s` |
+| backward seconds | `242.8129 s` | `201.1972 s` |
+| forward seconds | `38.6939 s` | `36.1719 s` |
+| peak memory | `272.5190 MiB` | `616.2178 MiB` |
+| peak memory ratio | baseline | `2.2612x` |
+| total speedup | baseline | `1.1890x` |
+
 Interpretation:
 
 - the accepted stride=2 remat policy is now usable without benchmark-only
@@ -770,8 +787,10 @@ Interpretation:
 - the strategy remains expert opt-in because it changes the memory/speed
   policy and only supports pressure-loss workflows without forward-wavefield
   summaries;
-- the next validation should be a longer full-record run before considering
-  any default or AcousticFWI-level automatic policy change.
+- the 10-iteration full-record-geometry run preserves the model update exactly
+  and keeps memory within the `2.5x` budget;
+- the next validation should use either more shots or more iterations before
+  considering any default or AcousticFWI-level automatic policy change.
 
 ## Memory-Budget Remat Backward Stage Timing
 

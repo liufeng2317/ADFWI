@@ -491,6 +491,11 @@ speedup `1.2339x`. The 5-iteration reduced FWI wrapper gate matched the full
 loss trajectory and `vp_update_norm`, with mean iteration time improving from
 `27.3676 s` to `22.8406 s` and memory ratio `2.2612x`.
 
+A longer 10-iteration full-record-geometry wrapper gate also passed with
+`shots=3`, `receivers=200`, `nt=3000`, `nx=200`, and `nz=88`: max loss abs
+diff `4.8828125e-04`, exact `vp_update_norm`, mean iteration time
+`28.2326 s -> 23.7453 s`, total speedup `1.1890x`, and memory ratio `2.2612x`.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the
