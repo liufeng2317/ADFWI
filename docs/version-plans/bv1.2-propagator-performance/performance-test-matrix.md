@@ -725,6 +725,16 @@ Interpretation:
   preserving the exact per-step coefficient-gradient return and accumulation
   semantics.
 
+Closed local-view cleanup:
+
+| Candidate | Total time | Speedup vs ckpt10 | Peak memory ratio | Loss diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| cache repeated manual-adjoint slices as local views | `23.0946 s` | `1.1989x` | `2.2436x` | `0.0` | `2.7381e-07` | rejected: no improvement over stride=2 baseline |
+
+This confirms that expression-level slice cleanup is too small/noisy. The next
+useful route needs a structural reduction inside the manual adjoint step, not
+more local variable rewrites.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid
