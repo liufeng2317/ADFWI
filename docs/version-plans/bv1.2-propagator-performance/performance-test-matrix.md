@@ -780,6 +780,23 @@ Longer full-record-geometry wrapper gate:
 | peak memory ratio | baseline | `2.2612x` |
 | total speedup | baseline | `1.1890x` |
 
+Full 40-shot full-batch wrapper gate:
+
+| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| --- | ---: | ---: |
+| case | `marmousi2_acoustic_full_record` | same |
+| shape | `shots=40`, `batch_size=40`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
+| iterations | `10` | `10` |
+| max loss abs diff | baseline | `0.00390625` |
+| `vp_update_norm` | `8810.4013671875` | `8810.4013671875` |
+| total seconds, 10 iterations | `272.2230 s` | `221.9705 s` |
+| mean seconds / iteration | `27.2223 s` | `22.1970 s` |
+| backward seconds | `232.4114 s` | `185.5846 s` |
+| forward seconds | `38.8391 s` | `36.2758 s` |
+| peak memory | `2345.7451 MiB` | `8169.3687 MiB` |
+| peak memory ratio | baseline | `3.4826x` |
+| total speedup | baseline | `1.2264x` |
+
 Interpretation:
 
 - the accepted stride=2 remat policy is now usable without benchmark-only
@@ -789,8 +806,12 @@ Interpretation:
   summaries;
 - the 10-iteration full-record-geometry run preserves the model update exactly
   and keeps memory within the `2.5x` budget;
-- the next validation should use either more shots or more iterations before
-  considering any default or AcousticFWI-level automatic policy change.
+- the 40-shot full-batch run preserves the model update and improves speed, but
+  exceeds the memory budget (`3.4826x`), so it is not accepted as a
+  memory-budget configuration;
+- the next validation should keep 40 shots but reduce `batch_size`, then check
+  whether the full-record workflow can stay below the `2.5x` memory budget
+  while retaining a useful iteration speedup.
 
 ## Memory-Budget Remat Backward Stage Timing
 

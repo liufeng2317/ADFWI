@@ -496,6 +496,14 @@ A longer 10-iteration full-record-geometry wrapper gate also passed with
 diff `4.8828125e-04`, exact `vp_update_norm`, mean iteration time
 `28.2326 s -> 23.7453 s`, total speedup `1.1890x`, and memory ratio `2.2612x`.
 
+The 10-iteration full 40-shot full-batch wrapper gate also preserved the model
+update, but it exceeded the memory budget: max loss abs diff `0.00390625`,
+exact `vp_update_norm`, mean iteration time `27.2223 s -> 22.1970 s`, total
+speedup `1.2264x`, and peak memory ratio `3.4826x`. This is useful as a
+speed/numerical validation, but it is not an accepted memory-budget
+configuration under the current `<=2.5x` rule. The next validation for full
+40-shot use should reduce `batch_size` before changing kernel code again.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the
