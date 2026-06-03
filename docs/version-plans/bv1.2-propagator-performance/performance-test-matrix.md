@@ -666,6 +666,36 @@ Interpretation:
   production). In the full one-iteration gate, total speedup improved from
   `1.0654x` to `1.1752x` with unchanged peak-memory ratio (`2.0635x`).
 
+## Memory-Budget Remat Backward Stage Timing
+
+This diagnostic enables coarse stage timing only for the current budget-valid
+remat pressure path: `div_p` cache, scripted pressure forward, and
+`state_cache_stride=1`. The same reduced observed-pressure case is used.
+
+| Backward stage | Seconds | Fraction of candidate backward |
+| --- | ---: | ---: |
+| replay states and divergence | `5.3446 s` | `27.34%` |
+| initialize gradient buffers | `0.0020 s` | `0.01%` |
+| reverse adjoint loop | `14.1475 s` | `72.36%` |
+
+Candidate timing in this diagnostic run:
+
+| Metric | Value |
+| --- | ---: |
+| forward | `3.5645 s` |
+| backward | `19.5506 s` |
+| loss | `6375.7919921875` |
+| raw `vp.grad` finite | `true` |
+
+Interpretation:
+
+- replay state construction is meaningful but not the dominant remaining cost;
+- gradient-buffer initialization is negligible;
+- the reverse adjoint loop is the next optimization target. Work should focus
+  on reducing `p_new` rebuild, `div_u/div_w` recomputation, receiver adjoint
+  scatter, or `_backward_step_from_saved_divergence` cost without increasing
+  peak memory above `2.5x` checkpoint=10.
+
 ## Full-Record Baseline
 
 | Metric | Baseline |

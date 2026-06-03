@@ -461,6 +461,21 @@ stage timing inside the rematerialized backward replay or a formula-level
 analysis of which recomputed terms can be reduced without storing full
 per-step state.
 
+The lightweight stage timing result is now available:
+
+| Stage | Fraction of backward | Seconds |
+| --- | ---: | ---: |
+| replay states and divergence | `27.34%` | `5.3446 s` |
+| initialize gradient buffers | `0.01%` | `0.0020 s` |
+| reverse adjoint loop | `72.36%` | `14.1475 s` |
+
+Therefore the next optimization should focus on the reverse adjoint loop:
+
+- avoid or cheapen `p_new` reconstruction for `div_u/div_w`;
+- reduce receiver adjoint scatter cost;
+- reduce `_backward_step_from_saved_divergence` cost;
+- keep the memory ratio below `2.5x`.
+
 ## Comparison Scheme For Next Task
 
 Before/after comparison must use the same:

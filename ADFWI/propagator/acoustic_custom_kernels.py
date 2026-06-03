@@ -20,11 +20,62 @@ Optimization boundary
     case.
 """
 
+import time
+from contextlib import contextmanager
 from typing import Dict, Tuple
 
 import torch
 
 from .acoustic_kernels import pad_torchSingle
+
+
+_REMAT_BACKWARD_STAGE_TIMING = False
+_REMAT_BACKWARD_STAGE_TIMES = {}
+
+
+def _sync_if_needed(device) -> None:
+    if device.type == "npu" and hasattr(torch, "npu"):
+        torch.npu.synchronize()
+    elif device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
+@contextmanager
+def _stage_timer(name: str, device):
+    if not _REMAT_BACKWARD_STAGE_TIMING:
+        yield
+        return
+    _sync_if_needed(device)
+    start = time.perf_counter()
+    yield
+    _sync_if_needed(device)
+    _REMAT_BACKWARD_STAGE_TIMES[name] = _REMAT_BACKWARD_STAGE_TIMES.get(name, 0.0) + (time.perf_counter() - start)
+
+
+def clear_remat_backward_stage_timings() -> None:
+    """Clear accumulated rematerialized backward stage timings."""
+    _REMAT_BACKWARD_STAGE_TIMES.clear()
+
+
+def get_remat_backward_stage_timings() -> Dict[str, float]:
+    """Return accumulated rematerialized backward stage timings."""
+    return dict(_REMAT_BACKWARD_STAGE_TIMES)
+
+
+@contextmanager
+def remat_backward_stage_timing(enabled: bool = True):
+    """Temporarily enable coarse rematerialized backward stage timing.
+
+    This diagnostic is intentionally opt-in and coarse grained. It synchronizes
+    only around large replay/backward phases, not inside each time step.
+    """
+    global _REMAT_BACKWARD_STAGE_TIMING
+    previous = _REMAT_BACKWARD_STAGE_TIMING
+    _REMAT_BACKWARD_STAGE_TIMING = enabled
+    try:
+        yield
+    finally:
+        _REMAT_BACKWARD_STAGE_TIMING = previous
 
 
 @torch.jit.script
@@ -837,108 +888,111 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             div_u_values = []
             div_w_values = []
 
-            for step in range(source_v.shape[0]):
-                p_states.append(p)
-                u_states.append(u)
-                w_states.append(w)
-                p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
-                    p,
-                    u,
-                    w,
-                    kappa1,
-                    alpha1,
-                    kappa2,
-                    alpha2,
-                    kappa3,
-                    free_surface_start=ctx.free_surface_start,
-                    source_x=source_x,
-                    source_z=source_z,
-                    source_value=source_v[step],
-                    use_free_surface=ctx.use_free_surface,
-                )
-                should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
-                if should_cache and "p" in ctx.divergence_cache_components:
-                    div_p_values.append(div_p)
-                else:
-                    div_p_values.append(None)
-                if should_cache and "u" in ctx.divergence_cache_components:
-                    div_u_values.append(div_u)
-                else:
-                    div_u_values.append(None)
-                if should_cache and "w" in ctx.divergence_cache_components:
-                    div_w_values.append(div_w)
-                else:
-                    div_w_values.append(None)
-        grad_kappa1 = torch.zeros_like(kappa1)
-        grad_alpha1 = torch.zeros_like(alpha1)
-        grad_kappa2 = torch.zeros_like(kappa2)
-        grad_alpha2 = torch.zeros_like(alpha2)
-        grad_kappa3 = torch.zeros_like(kappa3)
-
-        if ctx.state_cache_stride <= 1:
-            for step in range(len(p_states) - 1, -1, -1):
-                grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-                if ctx.record_velocity_receivers:
-                    grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-                    grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
-                div_p = div_p_values[step]
-                div_u = div_u_values[step]
-                div_w = div_w_values[step]
-                if div_p is None:
-                    div_p = _pressure_divergence_from_state(
-                        p_states[step],
-                        u_states[step],
-                        w_states[step],
-                        free_surface_start=ctx.free_surface_start,
-                    )
-                if div_u is None or div_w is None:
-                    p_new = _rebuild_pressure_from_divergence(
-                        p_states[step],
+            with _stage_timer("replay_states_and_divergence", p.device):
+                for step in range(source_v.shape[0]):
+                    p_states.append(p)
+                    u_states.append(u)
+                    w_states.append(w)
+                    p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
+                        p,
+                        u,
+                        w,
                         kappa1,
                         alpha1,
-                        div_p,
+                        kappa2,
+                        alpha2,
+                        kappa3,
                         free_surface_start=ctx.free_surface_start,
                         source_x=source_x,
                         source_z=source_z,
                         source_value=source_v[step],
                         use_free_surface=ctx.use_free_surface,
                     )
-                    if div_u is None:
-                        div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
-                    if div_w is None:
-                        div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
-                (
-                    grad_p,
-                    grad_u,
-                    grad_w,
-                    step_grad_kappa1,
-                    step_grad_alpha1,
-                    step_grad_kappa2,
-                    step_grad_alpha2,
-                    step_grad_kappa3,
-                ) = _backward_step_from_saved_divergence(
-                    p_states[step],
-                    u_states[step],
-                    w_states[step],
-                    kappa1,
-                    alpha1,
-                    kappa2,
-                    alpha2,
-                    kappa3,
-                    div_p,
-                    div_u,
-                    div_w,
-                    grad_p,
-                    grad_u,
-                    grad_w,
-                    free_surface_start=ctx.free_surface_start,
-                    use_free_surface=ctx.use_free_surface,
-                )
-                grad_kappa1 += step_grad_kappa1
-                grad_alpha1 += step_grad_alpha1
-                grad_kappa2 += step_grad_kappa2
-                grad_alpha2 += step_grad_alpha2
-                grad_kappa3 += step_grad_kappa3
+                    should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
+                    if should_cache and "p" in ctx.divergence_cache_components:
+                        div_p_values.append(div_p)
+                    else:
+                        div_p_values.append(None)
+                    if should_cache and "u" in ctx.divergence_cache_components:
+                        div_u_values.append(div_u)
+                    else:
+                        div_u_values.append(None)
+                    if should_cache and "w" in ctx.divergence_cache_components:
+                        div_w_values.append(div_w)
+                    else:
+                        div_w_values.append(None)
+        with _stage_timer("initialize_gradient_buffers", p.device):
+            grad_kappa1 = torch.zeros_like(kappa1)
+            grad_alpha1 = torch.zeros_like(alpha1)
+            grad_kappa2 = torch.zeros_like(kappa2)
+            grad_alpha2 = torch.zeros_like(alpha2)
+            grad_kappa3 = torch.zeros_like(kappa3)
+
+        if ctx.state_cache_stride <= 1:
+            with _stage_timer("reverse_adjoint_loop", p.device):
+                for step in range(len(p_states) - 1, -1, -1):
+                    grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
+                    if ctx.record_velocity_receivers:
+                        grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                        grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                    div_p = div_p_values[step]
+                    div_u = div_u_values[step]
+                    div_w = div_w_values[step]
+                    if div_p is None:
+                        div_p = _pressure_divergence_from_state(
+                            p_states[step],
+                            u_states[step],
+                            w_states[step],
+                            free_surface_start=ctx.free_surface_start,
+                        )
+                    if div_u is None or div_w is None:
+                        p_new = _rebuild_pressure_from_divergence(
+                            p_states[step],
+                            kappa1,
+                            alpha1,
+                            div_p,
+                            free_surface_start=ctx.free_surface_start,
+                            source_x=source_x,
+                            source_z=source_z,
+                            source_value=source_v[step],
+                            use_free_surface=ctx.use_free_surface,
+                        )
+                        if div_u is None:
+                            div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
+                        if div_w is None:
+                            div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
+                    (
+                        grad_p,
+                        grad_u,
+                        grad_w,
+                        step_grad_kappa1,
+                        step_grad_alpha1,
+                        step_grad_kappa2,
+                        step_grad_alpha2,
+                        step_grad_kappa3,
+                    ) = _backward_step_from_saved_divergence(
+                        p_states[step],
+                        u_states[step],
+                        w_states[step],
+                        kappa1,
+                        alpha1,
+                        kappa2,
+                        alpha2,
+                        kappa3,
+                        div_p,
+                        div_u,
+                        div_w,
+                        grad_p,
+                        grad_u,
+                        grad_w,
+                        free_surface_start=ctx.free_surface_start,
+                        use_free_surface=ctx.use_free_surface,
+                    )
+                    grad_kappa1 += step_grad_kappa1
+                    grad_alpha1 += step_grad_alpha1
+                    grad_kappa2 += step_grad_kappa2
+                    grad_alpha2 += step_grad_alpha2
+                    grad_kappa3 += step_grad_kappa3
         else:
             for block_index in range(boundary_p_cache.shape[0] - 1, -1, -1):
                 block_start = block_index * ctx.state_cache_stride
