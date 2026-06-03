@@ -585,6 +585,58 @@ conda run -n adfwi python examples/validation/marmousi2_acoustic_full_record/scr
 Full 300-iteration inversion is reserved for major milestones after reduced
 tests and full-record forward pass.
 
+## Checkpoint Memory And Speed Upper Bound
+
+This matrix compares the same reduced observed-pressure one-iteration gate
+under segmented production checkpointing, production `checkpoint_segments=1`,
+and the current opt-in custom chunk path. The reference is production
+`checkpoint_segments=10`.
+
+Command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_checkpoint_memory_matrix.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --loss-mode observed-pressure \
+  --waveform-normalize \
+  --shots 3 \
+  --batch-size 3 \
+  --nx 200 \
+  --nz 88 \
+  --nt 3000 \
+  --checkpoint-segments 10 \
+  --no-save-forward-wavefield \
+  --no-grad-forw-illumination \
+  --matrix-variants production:10,production:1,production-custom-chunk:10 \
+  --reference-variant production:ckpt10
+```
+
+Result file:
+`acoustic_checkpoint_memory_matrix_observed_reduced_20260603.json`.
+
+| Variant | Total time | Forward | Backward | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| production `checkpoint_segments=10` | `26.2625 s` | `3.5302 s` | `22.6946 s` | baseline | `292.9844 MiB` | baseline | baseline | baseline |
+| production `checkpoint_segments=1` | `21.7277 s` | `5.7821 s` | `15.9400 s` | `1.2087x` | `2180.5459 MiB` | `7.4425x` | `0.0` | `2.2352e-08` |
+| production custom chunk `checkpoint_segments=10` | `19.5471 s` | `5.9790 s` | `13.5624 s` | `1.3435x` | `7948.4272 MiB` | `27.1292x` | `0.0` | `2.7381e-07` |
+
+Interpretation:
+
+- `checkpoint_segments=1` is the practical no-checkpoint production upper
+  bound for this gate: it is faster than checkpoint=10, but only by `1.21x`
+  total while using `7.44x` peak memory.
+- current custom chunk is faster than checkpoint=1 in backward/total time, but
+  its memory cost is much larger (`27.13x` checkpoint=10 and `3.65x`
+  checkpoint=1).
+- both alternatives preserve receiver output and pressure loss exactly against
+  production checkpoint=10; raw `vp.grad` absolute differences remain small,
+  while relative differences are inflated by near-zero gradient entries.
+- the next valuable route is not more speed-only saved-state custom chunking;
+  it is a memory-aware custom backward/rematerialization route that approaches
+  checkpoint=1 speed without exceeding the checkpoint=1 memory envelope.
+
 ## Full-Record Baseline
 
 | Metric | Baseline |

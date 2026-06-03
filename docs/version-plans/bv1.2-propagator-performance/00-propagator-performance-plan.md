@@ -408,15 +408,27 @@ line as a speed-ceiling reference only.
 Current main line:
 
 ```text
-checkpoint-compatible rematerialized custom backward
+checkpoint=1 memory-envelope custom/rematerialized backward
 ```
 
 Reason:
 
 - it keeps memory close to PyTorch checkpoint behavior;
 - it preserves exact reduced-FWI loss and update parity;
-- its current speedup is modest (`1.1989x`), so remaining work must reduce
-  replay/output cost without storing full per-step wavefield states.
+- the measured production `checkpoint_segments=1` upper-bound gate gives only
+  `1.2087x` total speedup over checkpoint=10 while using `7.4425x` memory;
+- the saved-state custom chunk is faster (`1.3435x` total speedup on the same
+  one-iteration gate), but its `27.1292x` memory cost is too high;
+- remaining work must reduce replay/output cost without storing full per-step
+  wavefield states, and any candidate should be judged against both
+  checkpoint=10 and checkpoint=1.
+
+Next bounded target:
+
+```text
+match or beat checkpoint=1 total time while keeping peak memory near the
+checkpoint=1 envelope, not the saved-state custom-chunk envelope.
+```
 
 ## Comparison Scheme For Next Task
 
