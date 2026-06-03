@@ -453,6 +453,14 @@ overhead without increasing memory. Next code-level optimization should start
 from this `div_p`-only scripted-forward configuration and target backward
 replay cost while keeping peak memory below `2.5x` production checkpoint=10.
 
+Do not use full `torch.autograd.profiler` as the next step for this route.
+Observed-pressure short gates can be numerically invalid, while finite
+`nt=3000` and even tiny synthetic-energy profiler runs were too slow on the
+current NPU/custom-autograd path. The next useful diagnostic is lightweight
+stage timing inside the rematerialized backward replay or a formula-level
+analysis of which recomputed terms can be reduced without storing full
+per-step state.
+
 ## Comparison Scheme For Next Task
 
 Before/after comparison must use the same:
