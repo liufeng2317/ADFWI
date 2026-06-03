@@ -446,10 +446,12 @@ target:
 | remat pressure, cache `p,u,w` divergence | `1.2049x` | `2.7631x` | too much memory |
 | remat pressure, no divergence cache | `1.0390x` | `1.7192x` | valid but weak |
 | remat pressure, cache `div_p` only | `1.0654x` | `2.0635x` | current budget-valid baseline |
+| remat pressure, cache `div_p` only, scripted forward | `1.1752x` | `2.0635x` | current budget-valid baseline |
 
-Next code-level optimization should start from the `div_p`-only remat pressure
-configuration. It must target replay/output overhead while keeping peak memory
-below `2.5x` production checkpoint=10.
+The scripted pressure-only remat forward removed the largest candidate forward
+overhead without increasing memory. Next code-level optimization should start
+from this `div_p`-only scripted-forward configuration and target backward
+replay cost while keeping peak memory below `2.5x` production checkpoint=10.
 
 ## Comparison Scheme For Next Task
 

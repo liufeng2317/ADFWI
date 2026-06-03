@@ -76,6 +76,25 @@ def run_forward_mode(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) 
                     mode=mode,
                 )
             )
+        elif mode in {
+            "experimental-compressed-chunk",
+            "experimental-pressure-divergence-chunk",
+            "experimental-velocity-divergence-chunk",
+            "experimental-remat-chunk",
+            "experimental-remat-pressure-chunk",
+        }:
+            forward_batch, elapsed = timer.measure(
+                lambda batch_range=batch_range: experimental_forward_batch(
+                    fwi.propagator,
+                    batch_range,
+                    save_forward_wavefield=False,
+                    mode=mode,
+                    checkpoint_segments=args.checkpoint_segments,
+                    remat_divergence_cache_stride=args.remat_divergence_cache_stride,
+                    remat_divergence_cache_components=args.remat_divergence_cache_components,
+                    remat_state_cache_stride=args.remat_state_cache_stride,
+                )
+            )
         else:
             raise ValueError(f"unknown mode: {mode}")
         elapsed_total += elapsed
@@ -206,15 +225,26 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     profile.add_arguments(parser, pre_args.validation_case)
     parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=3,
-        help="Shot batch size for the forward comparison.",
-    )
-    parser.add_argument(
         "--modes",
         default="production,experimental,experimental-chunk",
         help="Comma-separated forward modes to compare. Must include production.",
+    )
+    parser.add_argument(
+        "--remat-divergence-cache-stride",
+        type=int,
+        default=0,
+        help="For rematerialized modes: 0 disables divergence caching; N caches every Nth step.",
+    )
+    parser.add_argument(
+        "--remat-divergence-cache-components",
+        default="p,u,w",
+        help="For rematerialized modes: comma/space separated subset of p,u,w divergence terms.",
+    )
+    parser.add_argument(
+        "--remat-state-cache-stride",
+        type=int,
+        default=1,
+        help="For rematerialized modes: internal replay state cache stride.",
     )
     parser.add_argument("--warmup", type=int, default=0)
     parser.add_argument("--repeat", type=int, default=1)

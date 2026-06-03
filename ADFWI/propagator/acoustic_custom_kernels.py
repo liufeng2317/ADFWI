@@ -20,11 +20,102 @@ Optimization boundary
     case.
 """
 
-from typing import Dict
+from typing import Dict, Tuple
 
 import torch
 
 from .acoustic_kernels import pad_torchSingle
+
+
+@torch.jit.script
+def _remat_pressure_forward_chunk_script(
+    p: torch.Tensor,
+    u: torch.Tensor,
+    w: torch.Tensor,
+    kappa1: torch.Tensor,
+    alpha1: torch.Tensor,
+    kappa2: torch.Tensor,
+    alpha2: torch.Tensor,
+    kappa3: torch.Tensor,
+    source_x: torch.Tensor,
+    source_z: torch.Tensor,
+    source_v: torch.Tensor,
+    rcv_x: torch.Tensor,
+    rcv_z: torch.Tensor,
+    free_surface_start: int,
+    use_free_surface: bool,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Scripted pressure-only remat forward loop.
+
+    This helper mirrors the forward equations used by the Python remat step,
+    but keeps the pressure-only receiver loop in TorchScript. The custom
+    backward still owns gradient replay; this function only reduces forward
+    Python/list/stack overhead for the memory-budget pressure-loss path.
+    """
+    c1 = 9.0 / 8.0
+    c2 = -1.0 / 24.0
+    nt = source_v.shape[0]
+    src_n = p.shape[0]
+    rcv_n = rcv_x.numel()
+    nz_pml = p.shape[1]
+    nx_pml = p.shape[2]
+    source_index = torch.arange(src_n, dtype=torch.long, device=p.device)
+    rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=p.dtype, device=p.device)
+
+    for step in range(nt):
+        p_new = p.clone()
+        zp = slice(free_surface_start + 1, nz_pml - 2)
+        xp = slice(2, nx_pml - 2)
+        div_p = (
+            c1
+            * (
+                u[:, zp, 2 : nx_pml - 2]
+                - u[:, zp, 1 : nx_pml - 3]
+                + w[:, zp, 2 : nx_pml - 2]
+                - w[:, free_surface_start : nz_pml - 3, 2 : nx_pml - 2]
+            )
+            + c2
+            * (
+                u[:, zp, 3 : nx_pml - 1]
+                - u[:, zp, 0 : nx_pml - 4]
+                + w[:, free_surface_start + 2 : nz_pml - 1, 2 : nx_pml - 2]
+                - w[:, free_surface_start - 1 : nz_pml - 4, 2 : nx_pml - 2]
+            )
+        )
+        p_new[:, zp, xp] = (1.0 - kappa1[zp, xp]) * p[:, zp, xp] - alpha1[zp, xp] * div_p
+        p_new[source_index, source_z, source_x] = p_new[source_index, source_z, source_x] + source_v[step]
+        if use_free_surface:
+            p_new[:, free_surface_start - 1, :] = -p_new[:, free_surface_start + 1, :]
+
+        u_new = u.clone()
+        zu = slice(free_surface_start, nz_pml - 1)
+        xu = slice(1, nx_pml - 2)
+        div_u = (
+            c1 * (p_new[:, zu, 2 : nx_pml - 1] - p_new[:, zu, 1 : nx_pml - 2])
+            + c2 * (p_new[:, zu, 3:nx_pml] - p_new[:, zu, 0 : nx_pml - 3])
+        )
+        u_new[:, zu, xu] = (1.0 - kappa2[zu, xu]) * u[:, zu, xu] - alpha2[zu, xu] * div_u
+
+        w_new = w.clone()
+        zw = slice(free_surface_start, nz_pml - 2)
+        xw = slice(1, nx_pml - 1)
+        div_w = (
+            c1 * (p_new[:, free_surface_start + 1 : nz_pml - 1, xw] - p_new[:, zw, xw])
+            + c2
+            * (
+                p_new[:, free_surface_start + 2 : nz_pml, xw]
+                - p_new[:, free_surface_start - 1 : nz_pml - 3, xw]
+            )
+        )
+        w_new[:, zw, xw] = (1.0 - kappa3[zw, xw]) * w[:, zw, xw] - alpha2[zw, xw] * div_w
+        if use_free_surface:
+            w_new[:, free_surface_start - 1, :] = w_new[:, free_surface_start, :]
+
+        p = p_new
+        u = u_new
+        w = w_new
+        rcv_p[:, step, :] = p[:, rcv_z, rcv_x]
+    return p, u, w, rcv_p
 
 
 def _parse_divergence_cache_components(components) -> frozenset[str]:
@@ -630,12 +721,9 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         boundary_u_states = []
         boundary_w_states = []
 
-        for step in range(source_v.shape[0]):
-            if state_cache_stride > 1 and step % state_cache_stride == 0:
-                boundary_p_states.append(p)
-                boundary_u_states.append(u)
-                boundary_w_states.append(w)
-            p, u, w, _, _, _ = _forward_step_with_saved_divergence(
+        use_scripted_pressure_forward = (not record_velocity_receivers) and state_cache_stride <= 1
+        if use_scripted_pressure_forward:
+            p, u, w, rcv_p = _remat_pressure_forward_chunk_script(
                 p,
                 u,
                 w,
@@ -644,16 +732,39 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                 kappa2,
                 alpha2,
                 kappa3,
-                free_surface_start=free_surface_start,
-                source_x=source_x,
-                source_z=source_z,
-                source_value=source_v[step],
-                use_free_surface=use_free_surface,
+                source_x,
+                source_z,
+                source_v,
+                rcv_x,
+                rcv_z,
+                free_surface_start,
+                use_free_surface,
             )
-            records_p.append(p[:, rcv_z, rcv_x])
-            if record_velocity_receivers:
-                records_u.append(u[:, rcv_z, rcv_x])
-                records_w.append(w[:, rcv_z, rcv_x])
+        else:
+            for step in range(source_v.shape[0]):
+                if state_cache_stride > 1 and step % state_cache_stride == 0:
+                    boundary_p_states.append(p)
+                    boundary_u_states.append(u)
+                    boundary_w_states.append(w)
+                p, u, w, _, _, _ = _forward_step_with_saved_divergence(
+                    p,
+                    u,
+                    w,
+                    kappa1,
+                    alpha1,
+                    kappa2,
+                    alpha2,
+                    kappa3,
+                    free_surface_start=free_surface_start,
+                    source_x=source_x,
+                    source_z=source_z,
+                    source_value=source_v[step],
+                    use_free_surface=use_free_surface,
+                )
+                records_p.append(p[:, rcv_z, rcv_x])
+                if record_velocity_receivers:
+                    records_u.append(u[:, rcv_z, rcv_x])
+                    records_w.append(w[:, rcv_z, rcv_x])
 
         if state_cache_stride > 1:
             boundary_p_cache = torch.stack(boundary_p_states)
@@ -688,7 +799,8 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             boundary_u_cache,
             boundary_w_cache,
         )
-        rcv_p = torch.stack(records_p, dim=1)
+        if not use_scripted_pressure_forward:
+            rcv_p = torch.stack(records_p, dim=1)
         if record_velocity_receivers:
             rcv_u = torch.stack(records_u, dim=1)
             rcv_w = torch.stack(records_w, dim=1)

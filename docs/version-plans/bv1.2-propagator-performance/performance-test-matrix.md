@@ -649,6 +649,7 @@ rematerialized pressure-only candidate. The reference is production
 | cache `p,u,w` divergence every step | `23.0602 s` | `17.4832 s` | `1.2049x` | `809.5479 MiB` | `2.7631x` | `0.0` | `2.7381e-07` | fails memory budget |
 | no divergence cache | `26.1894 s` | `20.7801 s` | `1.0390x` | `503.6885 MiB` | `1.7192x` | `0.0` | `2.7381e-07` | valid but weak speedup |
 | cache `div_p` only every step | `24.7118 s` | `19.3851 s` | `1.0654x` | `604.5718 MiB` | `2.0635x` | `0.0` | `2.7381e-07` | current budget-valid baseline |
+| cache `div_p` only, scripted pressure forward | `23.7018 s` | `20.0202 s` | `1.1752x` | `604.5718 MiB` | `2.0635x` | `0.0` | `2.7381e-07` | accepted budget-valid improvement |
 
 Interpretation:
 
@@ -658,6 +659,12 @@ Interpretation:
 - no divergence caching is memory-safe but gives only a small total speedup.
 - `div_p`-only caching is the best measured budget-valid point and should be
   the baseline for the next code-level optimization.
+- scripted pressure-only remat forward removes Python list/stack overhead from
+  the candidate forward pass. Forward-only timing changed from slower than
+  production (`5.4453 s` candidate vs `4.0970 s` production before scripting)
+  to slightly faster than production (`3.4458 s` candidate vs `3.6684 s`
+  production). In the full one-iteration gate, total speedup improved from
+  `1.0654x` to `1.1752x` with unchanged peak-memory ratio (`2.0635x`).
 
 ## Full-Record Baseline
 
