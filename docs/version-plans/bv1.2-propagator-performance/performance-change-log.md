@@ -51,6 +51,7 @@ This is the only active modification record for
 | 2026-06-02 | remat every-step divergence fast path | reduced 5-iteration FWI loss and update matched exactly, but candidate total time regressed versus the current best remat candidate (`116.2597 s` vs `106.6786 s`) | reverted and closed |
 | 2026-06-02 | omit pressure-only velocity placeholders from internal FWI record | reduced checkpoint=10 10-iteration loss trajectory and `vp_update_norm` matched exactly, but steady-state total iteration regressed from `25.9895 s` to `26.5913 s` | reverted and closed |
 | 2026-06-02 | hoist pressure-only source-shape checks outside the time loop | reduced checkpoint=10 10-iteration loss trajectory and `vp_update_norm` matched exactly, but steady-state total iteration regressed from `25.9895 s` to `26.2773 s` | reverted and closed |
+| 2026-06-03 | remat reverse-loop coefficient-gradient in-place accumulation | output and loss parity held, total speedup was `1.2070x` and peak memory ratio `2.0585x`, but raw `vp.grad` max abs diff increased to `9.5673e-02` | reverted and closed; coefficient-gradient accumulation order is part of the numerical contract |
 
 ## Readability And Cleanup
 

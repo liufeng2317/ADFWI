@@ -476,6 +476,12 @@ Therefore the next optimization should focus on the reverse adjoint loop:
 - reduce `_backward_step_from_saved_divergence` cost;
 - keep the memory ratio below `2.5x`.
 
+A direct in-place coefficient-gradient buffer accumulation test has been
+rejected. It stayed within the speed/memory envelope, but changed raw
+`vp.grad` by `9.5673e-02`. Do not optimize this loop by changing the order or
+location of coefficient-gradient accumulation. Future reverse-loop work must
+preserve the original per-step accumulation semantics exactly.
+
 ## Comparison Scheme For Next Task
 
 Before/after comparison must use the same:

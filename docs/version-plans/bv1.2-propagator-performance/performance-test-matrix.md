@@ -696,6 +696,26 @@ Interpretation:
   scatter, or `_backward_step_from_saved_divergence` cost without increasing
   peak memory above `2.5x` checkpoint=10.
 
+## Closed Reverse-Loop Buffer Accumulation Test
+
+This test tried to reduce reverse-adjoint allocation overhead by replacing
+per-time-step coefficient-gradient temporary tensors with in-place accumulation
+into outer buffers. The finite-difference equations and receiver output were
+unchanged, but the coefficient-gradient accumulation order changed.
+
+| Candidate | Total time | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Output max abs diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| remat `div_p` with in-place coefficient-gradient buffers | `23.0359 s` | `1.2070x` | `603.1021 MiB` | `2.0585x` | `0.0` | `2.5390e-08` | `9.5673e-02` | rejected |
+
+Interpretation:
+
+- speed and memory were inside the target envelope, but raw gradient parity
+  failed by a large absolute margin;
+- for FWI, coefficient-gradient accumulation order is part of the numerical
+  contract, not a harmless implementation detail;
+- do not revive this line unless it preserves the original per-step
+  accumulation semantics exactly.
+
 ## Full-Record Baseline
 
 | Metric | Baseline |
