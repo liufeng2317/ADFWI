@@ -529,6 +529,17 @@ The next useful memory investigation is therefore not another stride scan; it
 should locate non-divergence peak contributors such as state cache, receiver
 outputs/loss tensors, saved autograd tensors, and allocator peak behavior.
 
+The phase-level 40-shot memory breakdown narrows the source further. Production
+and remat have almost identical forward peaks (`~665 MiB`) and observed-loss
+peaks (`~1282 MiB`). The full remat peak appears only during backward:
+production backward peaks at `2290.0200 MiB`, while remat stride=2 peaks at
+`8168.2461 MiB`, then both drop back to `461.0835 MiB` current allocation after
+backward. Replacing observed-pressure loss with synthetic-energy loss still
+peaks at `8166.6865 MiB`, so the receiver/loss graph is not the dominant
+source. The next optimization/research boundary is now specific: inspect and
+reduce temporary tensors inside the rematerialized custom backward replay, or
+confirm that the excess is NPU allocator peak behavior.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the

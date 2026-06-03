@@ -855,6 +855,38 @@ Interpretation:
   memory should be cut to about `2.9 GiB`, and `batch_size=10` only as a
   conservative memory-first setting.
 
+## Full 40-Shot Phase-Level Memory Breakdown
+
+This diagnostic records current and peak allocated memory around each phase of
+one full-batch iteration. It uses `shots=40`, `batch_size=40`, `nt=3000`,
+`nx=200`, `nz=88`, `receivers=200`, and `checkpoint_segments=10`.
+
+Observed-pressure loss:
+
+| Mode | Forward peak | Loss peak | Backward peak | Current after backward | Backward seconds | Raw `vp.grad` finite |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| production ckpt10 | `664.9644 MiB` | `1282.3184 MiB` | `2290.0200 MiB` | `461.0835 MiB` | `22.0001 s` | `true` |
+| remat stride=2 | `665.5532 MiB` | `1282.4995 MiB` | `8168.2461 MiB` | `461.0835 MiB` | `19.0149 s` | `true` |
+
+Remat stride=2 with synthetic-energy loss:
+
+| Mode | Forward peak | Loss peak | Backward peak | Current after backward | Backward seconds | Raw `vp.grad` finite |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| remat stride=2 | `665.7427 MiB` | `730.5503 MiB` | `8166.6865 MiB` | `461.0835 MiB` | `18.8825 s` | `true` |
+
+Interpretation:
+
+- production and remat have essentially identical forward and observed-loss
+  memory peaks;
+- remat peak memory appears only during backward and drops back to the same
+  current allocation as production after backward;
+- replacing observed-pressure loss with synthetic-energy loss keeps the remat
+  backward peak at about `8.17 GiB`, so receiver/loss graph construction is not
+  the dominant source;
+- the remaining memory target is inside the rematerialized custom backward
+  temporary tensors or NPU allocator peak behavior during the backward replay,
+  not the forward cache, receiver output, or loss evaluation.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid
