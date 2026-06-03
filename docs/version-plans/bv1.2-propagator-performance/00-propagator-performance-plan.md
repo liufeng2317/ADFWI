@@ -509,6 +509,19 @@ The next code-level optimization should therefore target
 `_backward_step_from_saved_divergence` itself. Divergence recovery is now a
 secondary target because stride=2 already reduced the recompute pressure.
 
+Two direct manual-adjoint micro-edits were rejected after one-iteration gates:
+
+- repeated-slice local view cleanup: numerically valid, but slower/no better
+  than the active stride=2 candidate;
+- pressure-gradient clone removal: numerically valid, but slower/no better than
+  the active stride=2 candidate.
+
+Do not continue local expression or single-clone rewrites in this function.
+The next useful route must be a structural candidate, for example a stricter
+pressure-only adjoint specialization or a fused manual-adjoint helper that
+reduces kernel launches without changing per-step coefficient-gradient
+semantics.
+
 A direct in-place coefficient-gradient buffer accumulation test has been
 rejected. It stayed within the speed/memory envelope, but changed raw
 `vp.grad` by `9.5673e-02`. Do not optimize this loop by changing the order or

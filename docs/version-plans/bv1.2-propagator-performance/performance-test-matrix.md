@@ -730,10 +730,11 @@ Closed local-view cleanup:
 | Candidate | Total time | Speedup vs ckpt10 | Peak memory ratio | Loss diff | Raw `vp.grad` max abs diff | Decision |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | cache repeated manual-adjoint slices as local views | `23.0946 s` | `1.1989x` | `2.2436x` | `0.0` | `2.7381e-07` | rejected: no improvement over stride=2 baseline |
+| reuse `grad_p_new` instead of cloning pressure gradient | `23.2341 s` | `1.1940x` | `2.2421x` | `0.0` | `2.7381e-07` | rejected: no improvement over stride=2 baseline |
 
-This confirms that expression-level slice cleanup is too small/noisy. The next
-useful route needs a structural reduction inside the manual adjoint step, not
-more local variable rewrites.
+This confirms that expression-level slice cleanup and single-clone removal are
+too small/noisy. The next useful route needs a structural reduction inside the
+manual adjoint step, not more local variable rewrites.
 
 ## Memory-Budget Remat Backward Stage Timing
 
