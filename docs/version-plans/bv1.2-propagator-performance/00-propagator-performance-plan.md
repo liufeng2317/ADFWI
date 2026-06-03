@@ -518,6 +518,17 @@ configuration. It is an expert opt-in strategy with a batch-size memory dial:
 `batch_size=40` is speed-first, `batch_size=20` cuts the extra memory by about
 half, and `batch_size=10` is memory-first but slow in absolute time.
 
+The full 40-shot 1-iteration cache-policy probe shows that simple
+divergence-cache tuning is not enough to solve the remaining memory issue.
+The best-speed policy, `p,u,w` divergence stride=2, reached `1.2173x` speedup
+with `8720.5942 MiB` peak memory. Increasing cache stride to `4` reduced peak
+memory only to `7712.2754 MiB` and reduced speedup to `1.1401x`; no-divergence
+cache reduced peak memory to `6670.0513 MiB` but speedup fell to `1.0838x`.
+All variants preserved loss and raw `vp.grad` parity at the one-iteration gate.
+The next useful memory investigation is therefore not another stride scan; it
+should locate non-divergence peak contributors such as state cache, receiver
+outputs/loss tensors, saved autograd tensors, and allocator peak behavior.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the

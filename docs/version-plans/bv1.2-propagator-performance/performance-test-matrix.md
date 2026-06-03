@@ -699,6 +699,35 @@ Interpretation:
 - use `p,u,w` divergence cache stride=2 as the active remat candidate for the
   next code-level optimization and validation round.
 
+## Full 40-Shot Remat Cache-Policy Probe
+
+This probe repeats the cache-policy question on the full-record case with
+`shots=40`, `batch_size=40`, `receivers=200`, `nt=3000`, `nx=200`, and `nz=88`.
+It is a 1-iteration diagnostic, so it is used for memory and hot-path direction
+only; accepted behavior still requires a short FWI loop validation.
+
+| Cache policy | Total time | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| no divergence cache | `24.7152 s` | `1.0838x` | `6670.0513 MiB` | `2.5441x` | `0.0` | `4.5449e-07` | saves memory but gives weak speed |
+| cache `div_p` only every step | `23.1116 s` | `1.1692x` | `8067.3350 MiB` | `3.0771x` | `0.0` | `4.5449e-07` | speed improves, memory remains high |
+| cache `p,u,w` divergence every 2 steps | `23.0941 s` | `1.2173x` | `8720.5942 MiB` | `3.3263x` | `0.0` | `4.5449e-07` | fastest 1-iteration point, highest memory |
+| cache `p,u,w` divergence every 3 steps | `24.1780 s` | `1.1479x` | `8043.3745 MiB` | `3.0679x` | `0.0` | `4.5449e-07` | little memory relief, slower |
+| cache `p,u,w` divergence every 4 steps | `23.6235 s` | `1.1401x` | `7712.2754 MiB` | `2.9417x` | `0.0` | `4.5449e-07` | modest memory relief, slower |
+
+Interpretation:
+
+- all tested cache policies preserve the one-iteration numerical contract;
+- reducing full-divergence cache density from stride `2` to `4` only reduces
+  peak memory by about `1008 MiB` in this diagnostic, while total speedup drops
+  from `1.2173x` to `1.1401x`;
+- no-divergence cache gives the lowest measured remat peak memory
+  (`6670.0513 MiB`) but the speedup falls to `1.0838x`;
+- therefore simple divergence-cache stride tuning is not enough to reach the
+  target `5-6 GiB` full-batch remat memory range while retaining the current
+  speed. The next memory work should locate non-divergence peak contributors:
+  state cache, receiver output/loss tensors, saved autograd tensors, and NPU
+  allocator peak behavior.
+
 ## Remat Stride=2 Reverse-Loop Detail Timing
 
 This diagnostic temporarily added opt-in sub-stage timers inside the
