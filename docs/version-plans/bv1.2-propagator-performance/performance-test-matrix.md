@@ -356,6 +356,61 @@ finite synthetic-energy gradient gate and remains faster in backward. This is
 not sufficient for production promotion because the active FWI use case is
 pressure-loss inversion; next work must create a finite observed-pressure gate.
 
+Observed-pressure finite-gradient gate:
+
+Small-shape attempts:
+
+| Gate | Result |
+| --- | --- |
+| `nx=64`, `nz=32`, `nt=120`, unnormalized observed pressure | reference and candidate raw `vp.grad` non-finite |
+| `nx=64`, `nz=32`, `nt=120`, normalized observed pressure | reference and candidate raw `vp.grad` non-finite |
+| production-only `nx=64`, `nz=32`, `nt=120` | production raw and processed gradients non-finite |
+
+Decision: the small observed-pressure gate is invalid because the production
+reference itself is non-finite. Do not use it for custom-backward promotion.
+
+Reduced-shape observed-pressure production-interface gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_forward_iteration_parity.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --candidate-mode experimental-chunk \
+  --loss-mode observed-pressure \
+  --waveform-normalize \
+  --shots 3 \
+  --batch-size 3 \
+  --nx 200 \
+  --nz 88 \
+  --nt 3000 \
+  --checkpoint-segments 10 \
+  --no-save-forward-wavefield \
+  --no-grad-forw-illumination
+```
+
+Result file:
+`acoustic_production_chunk_observed_reduced_nt3000_20260603.json`
+
+| Item | Result |
+| --- | ---: |
+| output max abs diff | `0.0` |
+| loss abs diff | `0.0` |
+| reference raw `vp.grad` finite | `true` |
+| candidate raw `vp.grad` finite | `true` |
+| raw `vp.grad` max abs diff | `2.8032809495925903e-07` |
+| raw `vp.grad` max rel diff | `0.15190739929676056` |
+| backward speedup | `1.8051x` |
+| total speedup | `1.3829x` |
+| reference peak memory | `292.9844 MiB` |
+| candidate peak memory | `16138.0376 MiB` |
+| candidate / reference peak memory | `55.0816x` |
+
+Decision: the production-interface custom chunk passes the finite observed
+pressure-loss gate and gives meaningful speedup, but its saved-state memory is
+far too high for promotion. The next valid optimization is memory reduction for
+this observed-pressure production-chunk path, not more speed-only testing.
+
 Custom chunk speed/memory gate:
 
 ```bash

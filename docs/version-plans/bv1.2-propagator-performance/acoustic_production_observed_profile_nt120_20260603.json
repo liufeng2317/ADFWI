@@ -1,0 +1,74 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 288768,
+    "name": "npu",
+    "reason": null
+  },
+  "case": "marmousi2_acoustic_reduced",
+  "iterations": [
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 3,
+          "loss": 0.00019976586918346584
+        }
+      ],
+      "grad_finite_after_processing": false,
+      "grad_norm_after_processing": NaN,
+      "loss": 0.00019976586918346584,
+      "loss_finite": true,
+      "raw_grad_finite": false,
+      "raw_grad_norm": NaN,
+      "timing_fraction": {
+        "backward": 0.5173980533445862,
+        "forward": 0.11034348871010581,
+        "gradient_processing": 0.0006169232019362415,
+        "loss_evaluation": 0.018442952976013987,
+        "optimizer_step": 0.35270310311297653,
+        "wavefield_accumulation": 0.0001062008237963822,
+        "zero_grad": 0.0003892778305848523
+      },
+      "timing_total": 1.939170440658927,
+      "timings": {
+        "backward": 1.0033230111002922,
+        "forward": 0.2139748316258192,
+        "gradient_processing": 0.0011963192373514175,
+        "loss_evaluation": 0.03576402924954891,
+        "optimizer_step": 0.6839514318853617,
+        "wavefield_accumulation": 0.00020594149827957153,
+        "zero_grad": 0.0007548760622739792
+      },
+      "vp_finite_after_optimizer": false
+    }
+  ],
+  "observed_data": {
+    "generated": true,
+    "path": "/tmp/adfwi_production_observed_profile_nt120/waveform/obs_data.npz",
+    "seconds": 27.556410886347294
+  },
+  "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
+  "setup_seconds": 84.26963895186782,
+  "shape": {
+    "batch_size": 3,
+    "checkpoint_segments": 10,
+    "grad_forw_illumination": false,
+    "gradient_processor": "legacy",
+    "nt": 120,
+    "nx": 64,
+    "nz": 32,
+    "pressure_only": "auto",
+    "receivers": 64,
+    "save_forward_wavefield": false,
+    "shots": 3,
+    "use_custom_chunk_backward": false
+  },
+  "status": "ok",
+  "vp_update_norm": NaN
+}

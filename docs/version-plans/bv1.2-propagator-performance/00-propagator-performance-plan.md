@@ -356,11 +356,12 @@ Current production-interface gate status:
 | observed-pressure, `nt=120` | output/loss diff `0.0`, but production and candidate raw `vp.grad` are non-finite | invalid acceptance gate |
 | observed-pressure, `nt=240` | output/loss diff `0.0`, but production and candidate raw `vp.grad` are non-finite | invalid acceptance gate |
 | synthetic-energy, `nt=120` | output/loss diff `0.0`, raw `vp.grad` max abs diff `7.11e-15`, backward speedup `1.9353x`, total speedup `1.4474x` | useful finite-gradient production-interface evidence |
+| observed-pressure reduced shape, `nt=3000` | output/loss diff `0.0`, raw `vp.grad` max abs diff `2.80e-7`, backward speedup `1.8051x`, total speedup `1.3829x`, memory ratio `55.08x` | finite pressure-loss speed gate passed, memory not acceptable |
 
-The next task is to make the observed-pressure production-interface gate
-scientifically valid by choosing a finite-gradient observed-data setup. Do not
-use a non-finite reference gradient as evidence for or against production
-promotion.
+The next task is memory reduction for the finite observed-pressure
+production-chunk path. Do not continue speed-only gates until peak memory is
+reduced substantially while keeping pressure receiver output, pressure loss,
+and raw `vp.grad` within the established NPU float32 tolerance band.
 
 Current custom chunk result:
 
