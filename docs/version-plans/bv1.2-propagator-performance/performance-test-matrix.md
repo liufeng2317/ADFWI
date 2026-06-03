@@ -276,6 +276,86 @@ valid gate is a production-chunk benchmark that uses real acoustic-propagator
 input preparation and compares pressure receiver output, pressure loss, and raw
 `vp.grad` against the production pressure-only checkpoint path.
 
+Production-interface chunk gates:
+
+Observed-pressure gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_forward_iteration_parity.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --candidate-mode experimental-chunk \
+  --loss-mode observed-pressure \
+  --shots 3 \
+  --batch-size 3 \
+  --nx 64 \
+  --nz 32 \
+  --nt 120 \
+  --checkpoint-segments 10 \
+  --no-save-forward-wavefield \
+  --no-grad-forw-illumination
+```
+
+Result files:
+
+- `acoustic_production_chunk_gate_nt120_20260603.json`
+- `acoustic_production_chunk_gate_nt240_20260603.json`
+
+| Item | `nt=120` | `nt=240` |
+| --- | ---: | ---: |
+| output max abs diff | `0.0` | `0.0` |
+| loss abs diff | `0.0` | `0.0` |
+| reference raw `vp.grad` finite | `false` | `false` |
+| candidate raw `vp.grad` finite | `false` | `false` |
+| raw `vp.grad` diff | `NaN` | `NaN` |
+| total speedup | `1.4923x` | `1.5705x` |
+| candidate / reference peak memory | `3.1148x` | `8.6007x` |
+
+Decision: this is not an acceptance gate because the production reference raw
+gradient is already non-finite. It still confirms exact receiver output and
+loss parity, but pressure-loss promotion needs a finite-gradient observed-data
+configuration.
+
+Synthetic-energy production-interface gate:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_forward_iteration_parity.py \
+  --validation-case reduced \
+  --device npu:0 \
+  --dtype float32 \
+  --candidate-mode experimental-chunk \
+  --loss-mode synthetic-energy \
+  --shots 3 \
+  --batch-size 3 \
+  --nx 64 \
+  --nz 32 \
+  --nt 120 \
+  --checkpoint-segments 10 \
+  --no-save-forward-wavefield \
+  --no-grad-forw-illumination
+```
+
+Result file:
+`acoustic_production_chunk_synthetic_energy_nt120_20260603.json`
+
+| Item | Result |
+| --- | ---: |
+| output max abs diff | `0.0` |
+| loss abs diff | `0.0` |
+| reference raw `vp.grad` finite | `true` |
+| candidate raw `vp.grad` finite | `true` |
+| raw `vp.grad` max abs diff | `7.105427357601002e-15` |
+| raw `vp.grad` max rel diff | `2.2075703327573137e-06` |
+| backward speedup | `1.9353x` |
+| total speedup | `1.4474x` |
+| candidate / reference peak memory | `5.0694x` |
+
+Decision: the production-interface custom chunk matches raw `vp.grad` under a
+finite synthetic-energy gradient gate and remains faster in backward. This is
+not sufficient for production promotion because the active FWI use case is
+pressure-loss inversion; next work must create a finite observed-pressure gate.
+
 Custom chunk speed/memory gate:
 
 ```bash

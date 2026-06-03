@@ -349,6 +349,19 @@ pressure-loss comparison, and raw `vp.grad` parity against the production
 pressure-only checkpoint path. Do not make `acoustic_kernels.py` call this path
 until the production-chunk gate passes.
 
+Current production-interface gate status:
+
+| Gate | Result | Decision |
+| --- | --- | --- |
+| observed-pressure, `nt=120` | output/loss diff `0.0`, but production and candidate raw `vp.grad` are non-finite | invalid acceptance gate |
+| observed-pressure, `nt=240` | output/loss diff `0.0`, but production and candidate raw `vp.grad` are non-finite | invalid acceptance gate |
+| synthetic-energy, `nt=120` | output/loss diff `0.0`, raw `vp.grad` max abs diff `7.11e-15`, backward speedup `1.9353x`, total speedup `1.4474x` | useful finite-gradient production-interface evidence |
+
+The next task is to make the observed-pressure production-interface gate
+scientifically valid by choosing a finite-gradient observed-data setup. Do not
+use a non-finite reference gradient as evidence for or against production
+promotion.
+
 Current custom chunk result:
 
 | Metric | Production full-output path | Current custom chunk |
