@@ -504,6 +504,20 @@ speed/numerical validation, but it is not an accepted memory-budget
 configuration under the current `<=2.5x` rule. The next validation for full
 40-shot use should reduce `batch_size` before changing kernel code again.
 
+The follow-up 40-shot batch-size probes show that memory can be reduced without
+changing the kernel:
+
+| Batch size | Remat peak memory | Extra memory vs production | Mean iteration remat | Speedup vs matching production |
+| ---: | ---: | ---: | ---: | ---: |
+| `40` | `8169.3687 MiB` | `5823.6236 MiB` | `22.1970 s` | `1.2264x` |
+| `20` | `4278.2402 MiB` | `2957.7300 MiB` | `42.7511 s` | `1.2274x` |
+| `10` | `2229.2886 MiB` | `1413.7686 MiB` | `89.1110 s` | `1.2353x` |
+
+This means the current accepted strategy should not be treated as a single
+configuration. It is an expert opt-in strategy with a batch-size memory dial:
+`batch_size=40` is speed-first, `batch_size=20` cuts the extra memory by about
+half, and `batch_size=10` is memory-first but slow in absolute time.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the

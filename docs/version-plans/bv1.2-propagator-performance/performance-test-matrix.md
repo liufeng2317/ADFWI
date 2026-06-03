@@ -797,6 +797,14 @@ Full 40-shot full-batch wrapper gate:
 | peak memory ratio | baseline | `3.4826x` |
 | total speedup | baseline | `1.2264x` |
 
+40-shot batch-size memory reduction probes:
+
+| Batch size | Iterations | Production peak | Remat peak | Remat extra memory | Remat peak vs full-batch remat | Mean iteration production | Mean iteration remat | Speedup | Max loss abs diff | `vp_update_norm` diff |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `40` | `10` | `2345.7451 MiB` | `8169.3687 MiB` | `5823.6236 MiB` | baseline | `27.2223 s` | `22.1970 s` | `1.2264x` | `0.00390625` | `0.0` |
+| `20` | `10` | `1320.5103 MiB` | `4278.2402 MiB` | `2957.7300 MiB` | `0.5237x` | `52.4744 s` | `42.7511 s` | `1.2274x` | `0.001953125` | `0.0` |
+| `10` | `3` | `815.5200 MiB` | `2229.2886 MiB` | `1413.7686 MiB` | `0.2729x` | `110.0768 s` | `89.1110 s` | `1.2353x` | `0.0009765625` | `0.0` |
+
 Interpretation:
 
 - the accepted stride=2 remat policy is now usable without benchmark-only
@@ -807,11 +815,16 @@ Interpretation:
 - the 10-iteration full-record-geometry run preserves the model update exactly
   and keeps memory within the `2.5x` budget;
 - the 40-shot full-batch run preserves the model update and improves speed, but
-  exceeds the memory budget (`3.4826x`), so it is not accepted as a
-  memory-budget configuration;
-- the next validation should keep 40 shots but reduce `batch_size`, then check
-  whether the full-record workflow can stay below the `2.5x` memory budget
-  while retaining a useful iteration speedup.
+  adds about `5.69 GiB` peak memory over production checkpoint=10;
+- reducing `batch_size` lowers absolute remat peak memory almost linearly:
+  `8169.4 MiB -> 4278.2 MiB -> 2229.3 MiB` for batch sizes `40 -> 20 -> 10`;
+- smaller batches keep the relative remat speedup versus their matching
+  production baselines, but the absolute iteration time becomes much slower
+  because the same 40 shots are propagated in multiple batches;
+- the current practical choice is therefore policy-based: use `batch_size=40`
+  when about `8 GiB` peak memory is acceptable, `batch_size=20` when the extra
+  memory should be cut to about `2.9 GiB`, and `batch_size=10` only as a
+  conservative memory-first setting.
 
 ## Memory-Budget Remat Backward Stage Timing
 
