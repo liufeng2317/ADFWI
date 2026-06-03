@@ -666,6 +666,39 @@ Interpretation:
   production). In the full one-iteration gate, total speedup improved from
   `1.0654x` to `1.1752x` with unchanged peak-memory ratio (`2.0635x`).
 
+## Memory-Budget Remat Divergence Stride Gate
+
+This gate tests whether caching full divergence terms less frequently can keep
+the memory benefit of rematerialization while reducing reverse-loop recompute
+cost. The reference remains production `checkpoint_segments=10`.
+
+| Candidate | Total time | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| cache `p,u,w` divergence every 2 steps | `23.2066 s` | `1.2352x` | `657.3506 MiB` | `2.2436x` | `0.0` | `2.7381e-07` | best current one-iteration budget-valid point |
+| cache `p,u,w` divergence every 3 steps | `24.7077 s` | `1.1720x` | `606.1299 MiB` | `2.0688x` | `0.0` | `2.7381e-07` | valid but slower |
+
+Short reduced-FWI loop validation for stride=2:
+
+| Metric | Production ckpt10 | Remat `p,u,w` stride=2 |
+| --- | ---: | ---: |
+| losses | `[6375.7920, 6006.2812, 5719.2793, 5500.7910, 5341.6523]` | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| total seconds, 5 iterations | `138.7376 s` | `114.8255 s` |
+| mean seconds / iteration | `27.7475 s` | `22.9651 s` |
+| backward seconds | `118.4071 s` | `96.6632 s` |
+| forward seconds | `19.5573 s` | `18.1168 s` |
+| peak memory | `272.5190 MiB` | `616.2178 MiB` |
+| peak memory ratio | baseline | `2.2612x` |
+| total speedup | baseline | `1.2082x` |
+
+Interpretation:
+
+- stride=2 recovers more speed than `div_p`-only caching while staying under
+  the `2.5x` memory budget;
+- stride=3 saves memory but gives up too much speed;
+- use `p,u,w` divergence cache stride=2 as the active remat candidate for the
+  next code-level optimization and validation round.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid

@@ -447,11 +447,30 @@ target:
 | remat pressure, no divergence cache | `1.0390x` | `1.7192x` | valid but weak |
 | remat pressure, cache `div_p` only | `1.0654x` | `2.0635x` | current budget-valid baseline |
 | remat pressure, cache `div_p` only, scripted forward | `1.1752x` | `2.0635x` | current budget-valid baseline |
+| remat pressure, cache `p,u,w` divergence every 2 steps | `1.2352x` | `2.2436x` | current best budget-valid one-iteration point |
+| remat pressure, cache `p,u,w` divergence every 3 steps | `1.1720x` | `2.0688x` | valid but slower than stride=2 |
 
 The scripted pressure-only remat forward removed the largest candidate forward
-overhead without increasing memory. Next code-level optimization should start
-from this `div_p`-only scripted-forward configuration and target backward
-replay cost while keeping peak memory below `2.5x` production checkpoint=10.
+overhead without increasing memory. The latest cache-policy test shows that
+complete divergence caching every 2 steps is a better memory-budget candidate
+than `div_p`-only caching: it keeps peak memory below `2.5x` and improves
+one-iteration speedup from `1.1752x` to `1.2352x`.
+
+The short reduced-FWI loop gate also passed for this stride=2 policy:
+
+| Metric | Production ckpt10 | Remat `p,u,w` stride=2 |
+| --- | ---: | ---: |
+| 5-iteration loss trajectory | exact reference | exact match |
+| `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
+| mean seconds / iteration | `27.7475 s` | `22.9651 s` |
+| total speedup | baseline | `1.2082x` |
+| peak memory | `272.5190 MiB` | `616.2178 MiB` |
+| peak memory ratio | baseline | `2.2612x` |
+
+This is now the active budget-valid remat candidate. Next code-level
+optimization should start from this stride=2 configuration and target backward
+replay/reverse-loop cost while keeping peak memory below `2.5x` production
+checkpoint=10.
 
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
