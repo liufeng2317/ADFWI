@@ -405,30 +405,38 @@ This confirms that divergence-state compression helps, but it does not solve
 the memory problem. Do not continue saved-state divergence sweeps. Keep this
 line as a speed-ceiling reference only.
 
-Current main line:
+Current hard constraint:
 
 ```text
-checkpoint=1 memory-envelope custom/rematerialized backward
+peak memory <= 2.5x production checkpoint_segments=10 baseline
 ```
 
 Reason:
 
-- it keeps memory close to PyTorch checkpoint behavior;
+- checkpointing is used primarily to control memory, so speedups that exceed a
+  bounded memory envelope are not valid main-line optimizations;
 - it preserves exact reduced-FWI loss and update parity;
 - the measured production `checkpoint_segments=1` upper-bound gate gives only
-  `1.2087x` total speedup over checkpoint=10 while using `7.4425x` memory;
+  `1.2087x` total speedup over checkpoint=10 while using `7.4425x` memory, so
+  it fails the new memory constraint;
 - the saved-state custom chunk is faster (`1.3435x` total speedup on the same
-  one-iteration gate), but its `27.1292x` memory cost is too high;
+  one-iteration gate), but its `27.1292x` memory cost also fails the memory
+  constraint;
 - remaining work must reduce replay/output cost without storing full per-step
-  wavefield states, and any candidate should be judged against both
-  checkpoint=10 and checkpoint=1.
+  wavefield states, and any candidate should be judged against production
+  checkpoint=10 for both timing and peak memory.
 
 Next bounded target:
 
 ```text
-match or beat checkpoint=1 total time while keeping peak memory near the
-checkpoint=1 envelope, not the saved-state custom-chunk envelope.
+improve total iteration time while keeping peak memory <= 2.5x production
+checkpoint_segments=10 and preserving receiver output, loss, and raw vp.grad.
 ```
+
+This makes the current rematerialized pressure-only path the only active
+candidate class close to the memory boundary: it was measured at about `1.94x`
+peak memory with `1.2332x` total speedup on the reduced 5-iteration gate. The
+next task should optimize that line, not the high-memory saved-state chunk.
 
 ## Comparison Scheme For Next Task
 

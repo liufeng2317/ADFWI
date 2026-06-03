@@ -626,16 +626,17 @@ Interpretation:
 
 - `checkpoint_segments=1` is the practical no-checkpoint production upper
   bound for this gate: it is faster than checkpoint=10, but only by `1.21x`
-  total while using `7.44x` peak memory.
+  total while using `7.44x` peak memory. It fails the `<= 2.5x` memory
+  constraint and is only a reference upper bound.
 - current custom chunk is faster than checkpoint=1 in backward/total time, but
   its memory cost is much larger (`27.13x` checkpoint=10 and `3.65x`
-  checkpoint=1).
+  checkpoint=1). It also fails the `<= 2.5x` memory constraint.
 - both alternatives preserve receiver output and pressure loss exactly against
   production checkpoint=10; raw `vp.grad` absolute differences remain small,
   while relative differences are inflated by near-zero gradient entries.
 - the next valuable route is not more speed-only saved-state custom chunking;
-  it is a memory-aware custom backward/rematerialization route that approaches
-  checkpoint=1 speed without exceeding the checkpoint=1 memory envelope.
+  it is a memory-aware custom backward/rematerialization route that improves
+  total time while staying under `2.5x` checkpoint=10 peak memory.
 
 ## Full-Record Baseline
 
@@ -657,6 +658,8 @@ A performance change is acceptable only if:
 - the same command, device, dtype, and case are used before and after;
 - waveform/loss/gradient differences are reported;
 - timing improves enough to matter for the target case;
+- peak memory is no more than `2.5x` the production
+  `checkpoint_segments=10` baseline for the same case;
 - the result is added to `performance-change-log.md`;
 - the next direction is explicitly stated.
 
