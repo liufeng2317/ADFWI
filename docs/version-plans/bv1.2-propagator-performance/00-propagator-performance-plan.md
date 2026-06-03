@@ -495,6 +495,20 @@ Therefore the next optimization should focus on the reverse adjoint loop:
 - reduce `_backward_step_from_saved_divergence` cost;
 - keep the memory ratio below `2.5x`.
 
+After switching the active candidate to `p,u,w` divergence cache stride=2, the
+fine-grained reverse-loop diagnostic shows the current cost order:
+
+| Reverse-loop sub-stage | Fraction of backward |
+| --- | ---: |
+| manual adjoint step | `53.96%` |
+| divergence recovery | `11.05%` |
+| receiver scatter | `4.30%` |
+| coefficient accumulation | `1.63%` |
+
+The next code-level optimization should therefore target
+`_backward_step_from_saved_divergence` itself. Divergence recovery is now a
+secondary target because stride=2 already reduced the recompute pressure.
+
 A direct in-place coefficient-gradient buffer accumulation test has been
 rejected. It stayed within the speed/memory envelope, but changed raw
 `vp.grad` by `9.5673e-02`. Do not optimize this loop by changing the order or

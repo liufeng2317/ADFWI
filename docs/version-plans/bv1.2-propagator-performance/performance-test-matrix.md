@@ -699,6 +699,32 @@ Interpretation:
 - use `p,u,w` divergence cache stride=2 as the active remat candidate for the
   next code-level optimization and validation round.
 
+## Remat Stride=2 Reverse-Loop Detail Timing
+
+This diagnostic temporarily added opt-in sub-stage timers inside the
+`state_cache_stride <= 1` reverse loop, then reverted the timing code to avoid
+leaving per-step context-manager overhead in the hot path. The result should be
+used only as guidance for the next optimization target.
+
+| Stage | Seconds | Fraction of backward |
+| --- | ---: | ---: |
+| replay states and divergence | `5.5405 s` | `26.13%` |
+| reverse receiver scatter | `0.9114 s` | `4.30%` |
+| reverse divergence recovery | `2.3424 s` | `11.05%` |
+| reverse manual adjoint step | `11.4408 s` | `53.96%` |
+| reverse coefficient accumulation | `0.3462 s` | `1.63%` |
+| initialize gradient buffers | `0.0021 s` | `0.01%` |
+
+Interpretation:
+
+- the dominant cost is `_backward_step_from_saved_divergence`, not receiver
+  scatter or divergence recovery;
+- coefficient-gradient accumulation itself is small, and a previous attempt to
+  change its accumulation order broke raw `vp.grad` parity;
+- next code work should focus on the manual adjoint step internals while
+  preserving the exact per-step coefficient-gradient return and accumulation
+  semantics.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid
