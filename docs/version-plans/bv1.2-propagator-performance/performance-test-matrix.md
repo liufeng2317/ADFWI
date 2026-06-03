@@ -638,6 +638,27 @@ Interpretation:
   it is a memory-aware custom backward/rematerialization route that improves
   total time while staying under `2.5x` checkpoint=10 peak memory.
 
+## Memory-Budget Remat Cache Policy Gate
+
+This gate keeps the same reduced observed-pressure case and tests only the
+rematerialized pressure-only candidate. The reference is production
+`checkpoint_segments=10`; the hard budget is peak memory `<= 2.5x` reference.
+
+| Remat cache policy | Total time | Backward | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| cache `p,u,w` divergence every step | `23.0602 s` | `17.4832 s` | `1.2049x` | `809.5479 MiB` | `2.7631x` | `0.0` | `2.7381e-07` | fails memory budget |
+| no divergence cache | `26.1894 s` | `20.7801 s` | `1.0390x` | `503.6885 MiB` | `1.7192x` | `0.0` | `2.7381e-07` | valid but weak speedup |
+| cache `div_p` only every step | `24.7118 s` | `19.3851 s` | `1.0654x` | `604.5718 MiB` | `2.0635x` | `0.0` | `2.7381e-07` | current budget-valid baseline |
+
+Interpretation:
+
+- state-cache stride changes are not a viable first route: `state_cache_stride=2`
+  increased peak memory to `7.8443x`.
+- full divergence caching is close in speed but exceeds the memory budget.
+- no divergence caching is memory-safe but gives only a small total speedup.
+- `div_p`-only caching is the best measured budget-valid point and should be
+  the baseline for the next code-level optimization.
+
 ## Full-Record Baseline
 
 | Metric | Baseline |

@@ -438,6 +438,19 @@ candidate class close to the memory boundary: it was measured at about `1.94x`
 peak memory with `1.2332x` total speedup on the reduced 5-iteration gate. The
 next task should optimize that line, not the high-memory saved-state chunk.
 
+The latest observed-pressure one-iteration cache-policy gate refines that
+target:
+
+| Candidate | Total speedup | Peak memory ratio | Decision |
+| --- | ---: | ---: | --- |
+| remat pressure, cache `p,u,w` divergence | `1.2049x` | `2.7631x` | too much memory |
+| remat pressure, no divergence cache | `1.0390x` | `1.7192x` | valid but weak |
+| remat pressure, cache `div_p` only | `1.0654x` | `2.0635x` | current budget-valid baseline |
+
+Next code-level optimization should start from the `div_p`-only remat pressure
+configuration. It must target replay/output overhead while keeping peak memory
+below `2.5x` production checkpoint=10.
+
 ## Comparison Scheme For Next Task
 
 Before/after comparison must use the same:
