@@ -78,6 +78,37 @@ def bytes_to_mib(value):
     return value / (1024.0 * 1024.0)
 
 
+def tensor_health(tensor) -> Dict[str, Any]:
+    """Summarize finite/non-finite tensor entries for parity diagnostics."""
+    import torch
+
+    value = tensor.detach().cpu()
+    finite = torch.isfinite(value)
+    nan_mask = torch.isnan(value)
+    posinf_mask = value == float("inf")
+    neginf_mask = value == float("-inf")
+    nonfinite = ~finite
+    first_nonfinite_index = None
+    first_nonfinite_value = None
+    if bool(nonfinite.any().item()):
+        first = torch.nonzero(nonfinite, as_tuple=False)[0]
+        first_nonfinite_index = [int(item) for item in first.tolist()]
+        first_nonfinite_value = float(value[tuple(first_nonfinite_index)].item())
+    finite_values = value[finite]
+    return {
+        "shape": list(value.shape),
+        "finite": bool(finite.all().item()),
+        "finite_count": int(finite.sum().item()),
+        "nan_count": int(nan_mask.sum().item()),
+        "posinf_count": int(posinf_mask.sum().item()),
+        "neginf_count": int(neginf_mask.sum().item()),
+        "first_nonfinite_index": first_nonfinite_index,
+        "first_nonfinite_value": first_nonfinite_value,
+        "finite_min": float(finite_values.min().item()) if finite_values.numel() else None,
+        "finite_max": float(finite_values.max().item()) if finite_values.numel() else None,
+    }
+
+
 class Timer:
     def __init__(self, backend) -> None:
         self.backend = backend
@@ -243,6 +274,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
         "outputs": outputs,
         "raw_grad": raw_grad,
         "raw_grad_finite": bool(torch.isfinite(raw_grad).all().cpu().item()),
+        "raw_grad_health": tensor_health(raw_grad),
         "timings": timings,
         "timing_total": sum(timings.values()),
     }
@@ -316,6 +348,7 @@ def public_variant(variant: Dict[str, Any]) -> Dict[str, Any]:
         "iteration": {
             "loss": iteration["loss"],
             "raw_grad_finite": iteration["raw_grad_finite"],
+            "raw_grad_health": iteration["raw_grad_health"],
             "timings": iteration["timings"],
             "timing_total": iteration["timing_total"],
         },
@@ -340,6 +373,10 @@ def summarize_pair(pair: Dict[str, Any]) -> Dict[str, Any]:
         "output_max_rel_diff": output_max_rel,
         "raw_grad_max_abs_diff": pair["comparison"]["raw_grad"]["max_abs_diff"],
         "raw_grad_max_rel_diff": pair["comparison"]["raw_grad"]["max_rel_diff"],
+        "raw_grad_health": {
+            "reference": pair["reference"]["iteration"]["raw_grad_health"],
+            "candidate": pair["candidate"]["iteration"]["raw_grad_health"],
+        },
         "speedup": pair["comparison"]["speedup"],
         "memory": pair["comparison"]["memory"],
     }

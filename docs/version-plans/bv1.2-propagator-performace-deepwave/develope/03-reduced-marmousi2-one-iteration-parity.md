@@ -133,3 +133,46 @@ diagnostic:
 - decide whether observed-pressure parity should compare processed gradients
   instead of raw gradients;
 - keep synthetic-energy as the current raw-gradient parity gate.
+
+## 6. Observed-Pressure Gradient Diagnostic
+
+Command:
+
+```bash
+conda run -n adfwi python scripts/benchmark/acoustic_experimental_forward_iteration_parity.py \
+  --device npu:0 \
+  --dtype float32 \
+  --waveform-normalize \
+  --result-json docs/version-plans/bv1.2-propagator-performace-deepwave/develope/acoustic_experimental_forward_iteration_parity_observed_gradient_diagnostic_20260604.json
+```
+
+Result file:
+
+`develope/acoustic_experimental_forward_iteration_parity_observed_gradient_diagnostic_20260604.json`
+
+| Metric | Production | Experimental |
+| --- | ---: | ---: |
+| finite entries | 64 | 64 |
+| NaN entries | 1984 | 1984 |
+| +Inf entries | 0 | 0 |
+| -Inf entries | 0 | 0 |
+| first non-finite index | `[1, 0]` | `[1, 0]` |
+| finite min/max | 0.0 / 0.0 | 0.0 / 0.0 |
+
+Interpretation:
+
+- The observed-pressure raw-gradient non-finite pattern is identical in
+  production and experimental paths.
+- This confirms that the observed-pressure raw-gradient failure is not a
+  candidate-specific regression.
+- For Phase B, raw-gradient parity should continue to use the synthetic-energy
+  gate until the observed-pressure gradient normalization/zero-amplitude
+  behavior is handled separately.
+
+Next boundary:
+
+- use reduced Marmousi2 synthetic-energy as the raw-gradient parity gate;
+- use observed-pressure only for receiver output and loss parity for now;
+- next optimization can move to a short `3 shot x 3 iteration` loop only if it
+  records processed gradient finite checks instead of raw observed-pressure
+  gradient parity.
