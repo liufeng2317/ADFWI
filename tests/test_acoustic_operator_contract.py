@@ -120,6 +120,7 @@ def test_acoustic_pressure_operator_rejects_unknown_backend():
     assert "compiled" in ACOUSTIC_OPERATOR_BACKENDS
     assert "torch_reference" in ACOUSTIC_OPERATOR_BACKENDS
     assert "custom_autograd_forward" in ACOUSTIC_OPERATOR_BACKENDS
+    assert "custom_autograd_remat" in ACOUSTIC_OPERATOR_BACKENDS
     with pytest.raises(ValueError, match="backend"):
         acoustic_pressure_operator(config, inputs, backend="unknown")
 
@@ -190,3 +191,56 @@ def test_acoustic_pressure_operator_custom_autograd_forward_rejects_backward():
 
     with pytest.raises(RuntimeError, match="backward/vp gradient is not implemented"):
         custom_pressure.sum().backward()
+
+
+def test_acoustic_pressure_operator_custom_autograd_remat_matches_reference_vp_grad():
+    config = _config()
+    inputs = _inputs(config)
+    src_v = inputs.src_v.clone()
+    src_v[:, 1] = 1.0
+
+    reference_inputs = AcousticOperatorInputs(
+        src_x=inputs.src_x,
+        src_z=inputs.src_z,
+        src_v=src_v,
+        rcv_x=inputs.rcv_x,
+        rcv_z=inputs.rcv_z,
+        damp=inputs.damp,
+        vp=inputs.vp.clone().requires_grad_(True),
+        rho=inputs.rho,
+    )
+    remat_inputs = AcousticOperatorInputs(
+        src_x=inputs.src_x,
+        src_z=inputs.src_z,
+        src_v=src_v,
+        rcv_x=inputs.rcv_x,
+        rcv_z=inputs.rcv_z,
+        damp=inputs.damp,
+        vp=inputs.vp.clone().requires_grad_(True),
+        rho=inputs.rho,
+    )
+
+    reference_loss = acoustic_pressure_operator(
+        config,
+        reference_inputs,
+        backend="torch_reference",
+    ).square().sum()
+    remat_loss = acoustic_pressure_operator(
+        config,
+        remat_inputs,
+        backend="custom_autograd_remat",
+    ).square().sum()
+
+    reference_loss.backward()
+    remat_loss.backward()
+
+    assert reference_inputs.vp.grad is not None
+    assert remat_inputs.vp.grad is not None
+    assert torch.isfinite(reference_inputs.vp.grad).all()
+    assert torch.isfinite(remat_inputs.vp.grad).all()
+    torch.testing.assert_close(
+        remat_inputs.vp.grad,
+        reference_inputs.vp.grad,
+        atol=0.0,
+        rtol=0.0,
+    )

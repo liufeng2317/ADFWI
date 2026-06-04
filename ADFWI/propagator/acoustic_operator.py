@@ -17,7 +17,12 @@ from .acoustic_kernels import forward_kernel
 
 ACOUSTIC_OPERATOR_STORAGE_MODES = frozenset({"device", "checkpoint", "none"})
 ACOUSTIC_OPERATOR_BACKENDS = frozenset(
-    {"compiled", "torch_reference", "custom_autograd_forward"}
+    {
+        "compiled",
+        "torch_reference",
+        "custom_autograd_forward",
+        "custom_autograd_remat",
+    }
 )
 
 
@@ -271,6 +276,148 @@ def _custom_autograd_forward_pressure_operator(
     )
 
 
+class _AcousticPressureRematFunction(torch.autograd.Function):
+    """Custom-autograd shell that rematerializes forward in backward."""
+
+    @staticmethod
+    def forward(
+        ctx,
+        vp: Tensor,
+        rho: Tensor,
+        damp: Tensor,
+        src_x: Tensor,
+        src_z: Tensor,
+        src_v: Tensor,
+        rcv_x: Tensor,
+        rcv_z: Tensor,
+        nx: int,
+        nz: int,
+        dx: float,
+        dz: float,
+        nt: int,
+        dt: float,
+        nabc: int,
+        free_surface: bool,
+        checkpoint_segments: int,
+    ) -> Tensor:
+        ctx.save_for_backward(vp, rho, damp, src_x, src_z, src_v, rcv_x, rcv_z)
+        ctx.config = (nx, nz, dx, dz, nt, dt, nabc, free_surface, checkpoint_segments)
+        with torch.no_grad():
+            record = forward_kernel(
+                nx,
+                nz,
+                dx,
+                dz,
+                nt,
+                dt,
+                nabc,
+                free_surface,
+                src_x,
+                src_z,
+                int(src_x.numel()),
+                src_v,
+                rcv_x,
+                rcv_z,
+                int(rcv_x.numel()),
+                damp,
+                vp,
+                rho,
+                checkpoint_segments=checkpoint_segments,
+                save_forward_wavefield=False,
+                pressure_only=True,
+                device=vp.device,
+                dtype=vp.dtype,
+            )
+        return record["p"]
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        vp, rho, damp, src_x, src_z, src_v, rcv_x, rcv_z = ctx.saved_tensors
+        nx, nz, dx, dz, nt, dt, nabc, free_surface, checkpoint_segments = ctx.config
+
+        vp_req = vp.detach().requires_grad_(ctx.needs_input_grad[0])
+        rho_req = rho.detach().requires_grad_(ctx.needs_input_grad[1])
+        damp_req = damp.detach().requires_grad_(ctx.needs_input_grad[2])
+        src_v_req = src_v.detach().requires_grad_(ctx.needs_input_grad[5])
+
+        grad_targets = []
+        target_positions = []
+        for position, tensor in (
+            (0, vp_req),
+            (1, rho_req),
+            (2, damp_req),
+            (5, src_v_req),
+        ):
+            if tensor.requires_grad:
+                grad_targets.append(tensor)
+                target_positions.append(position)
+
+        grads = [None] * 17
+        if grad_targets:
+            with torch.enable_grad():
+                record = forward_kernel(
+                    nx,
+                    nz,
+                    dx,
+                    dz,
+                    nt,
+                    dt,
+                    nabc,
+                    free_surface,
+                    src_x,
+                    src_z,
+                    int(src_x.numel()),
+                    src_v_req,
+                    rcv_x,
+                    rcv_z,
+                    int(rcv_x.numel()),
+                    damp_req,
+                    vp_req,
+                    rho_req,
+                    checkpoint_segments=checkpoint_segments,
+                    save_forward_wavefield=False,
+                    pressure_only=True,
+                    device=vp.device,
+                    dtype=vp.dtype,
+                )
+                computed_grads = torch.autograd.grad(
+                    record["p"],
+                    grad_targets,
+                    grad_output,
+                    allow_unused=True,
+                )
+
+            for position, grad in zip(target_positions, computed_grads):
+                grads[position] = grad
+
+        return tuple(grads)
+
+
+def _custom_autograd_remat_pressure_operator(
+    config: AcousticOperatorConfig,
+    inputs: AcousticOperatorInputs,
+) -> Tensor:
+    return _AcousticPressureRematFunction.apply(
+        inputs.vp,
+        inputs.rho,
+        inputs.damp,
+        inputs.src_x,
+        inputs.src_z,
+        inputs.src_v,
+        inputs.rcv_x,
+        inputs.rcv_z,
+        config.nx,
+        config.nz,
+        config.dx,
+        config.dz,
+        config.nt,
+        config.dt,
+        config.nabc,
+        config.free_surface,
+        config.checkpoint_segments,
+    )
+
+
 def acoustic_pressure_operator(
     config: AcousticOperatorConfig,
     inputs: AcousticOperatorInputs,
@@ -283,6 +430,8 @@ def acoustic_pressure_operator(
     validate the operator contract and future compiled backend parity.
     `backend="custom_autograd_forward"` wraps the same forward-pressure formula
     in a custom autograd shell, but intentionally has no backward yet.
+    `backend="custom_autograd_remat"` recomputes forward during backward to
+    provide the first rematerialized gradient prototype.
     `backend="compiled"` is reserved for the future low-level implementation.
     """
 
@@ -295,6 +444,8 @@ def acoustic_pressure_operator(
         return _torch_reference_pressure_operator(config, inputs)
     if backend == "custom_autograd_forward":
         return _custom_autograd_forward_pressure_operator(config, inputs)
+    if backend == "custom_autograd_remat":
+        return _custom_autograd_remat_pressure_operator(config, inputs)
 
     raise CompiledAcousticOperatorUnavailable(
         "compiled acoustic pressure operator is not implemented yet; "
