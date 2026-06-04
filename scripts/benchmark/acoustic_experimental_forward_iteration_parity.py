@@ -27,13 +27,7 @@ from scripts.benchmark.acoustic_experimental_forward import (
     experimental_forward_kernel,
 )
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord
-from ADFWI.propagator.acoustic_custom_kernels import (
-    compressed_custom_chunk_forward_kernel,
-    pressure_divergence_custom_chunk_forward_kernel,
-    rematerialized_pressure_custom_chunk_forward_kernel,
-    rematerialized_custom_chunk_forward_kernel,
-    velocity_divergence_custom_chunk_forward_kernel,
-)
+from ADFWI.propagator.acoustic_custom_kernels import rematerialized_pressure_custom_chunk_forward_kernel
 
 
 DEFAULT_OUTPUT = (
@@ -111,14 +105,6 @@ def experimental_forward_batch(
         forward_kernel = experimental_forward_kernel
     elif mode == "experimental-chunk":
         forward_kernel = experimental_chunk_forward_kernel
-    elif mode == "experimental-compressed-chunk":
-        forward_kernel = compressed_custom_chunk_forward_kernel
-    elif mode == "experimental-pressure-divergence-chunk":
-        forward_kernel = pressure_divergence_custom_chunk_forward_kernel
-    elif mode == "experimental-velocity-divergence-chunk":
-        forward_kernel = velocity_divergence_custom_chunk_forward_kernel
-    elif mode == "experimental-remat-chunk":
-        forward_kernel = rematerialized_custom_chunk_forward_kernel
     elif mode == "experimental-remat-pressure-chunk":
         forward_kernel = rematerialized_pressure_custom_chunk_forward_kernel
     else:
@@ -128,15 +114,8 @@ def experimental_forward_batch(
         "device": propagator.device,
         "dtype": propagator.dtype,
     }
-    if mode in {
-        "experimental-compressed-chunk",
-        "experimental-pressure-divergence-chunk",
-        "experimental-velocity-divergence-chunk",
-        "experimental-remat-chunk",
-        "experimental-remat-pressure-chunk",
-    }:
+    if mode == "experimental-remat-pressure-chunk":
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
-    if mode in {"experimental-remat-chunk", "experimental-remat-pressure-chunk"}:
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
     record_waveform = forward_kernel(
@@ -185,16 +164,6 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     save_forward_wavefield=False,
                 )
             )
-        elif mode == "production-custom-chunk":
-            forward_batch, elapsed = timer.measure(
-                lambda batch_range=batch_range: acoustic_forward_batch(
-                    fwi.propagator,
-                    batch_range,
-                    args.checkpoint_segments,
-                    save_forward_wavefield=False,
-                    use_custom_chunk_backward=True,
-                )
-            )
         elif mode == "production-remat-pressure-stride2":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: acoustic_forward_batch(
@@ -215,14 +184,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     mode=mode,
                 )
             )
-        elif mode in {
-            "experimental-chunk",
-            "experimental-compressed-chunk",
-            "experimental-pressure-divergence-chunk",
-            "experimental-velocity-divergence-chunk",
-            "experimental-remat-chunk",
-            "experimental-remat-pressure-chunk",
-        }:
+        elif mode in {"experimental-chunk", "experimental-remat-pressure-chunk"}:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -420,13 +382,8 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         choices=(
             "experimental",
             "experimental-chunk",
-            "experimental-compressed-chunk",
-            "experimental-pressure-divergence-chunk",
-            "experimental-velocity-divergence-chunk",
-            "experimental-remat-chunk",
             "experimental-remat-pressure-chunk",
             "production",
-            "production-custom-chunk",
             "production-remat-pressure-stride2",
         ),
         default="experimental",
@@ -443,7 +400,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         type=int,
         default=0,
         help=(
-            "For experimental-remat-chunk only: 0 recomputes all divergence terms; "
+            "For experimental-remat-pressure-chunk only: 0 recomputes all divergence terms; "
             "1 caches every step; N caches every Nth step."
         ),
     )
@@ -451,7 +408,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         "--remat-divergence-cache-components",
         default="p,u,w",
         help=(
-            "For experimental-remat-chunk only: comma/space separated subset of "
+            "For experimental-remat-pressure-chunk only: comma/space separated subset of "
             "p,u,w divergence terms to cache; use 'none' to cache no divergence terms."
         ),
     )

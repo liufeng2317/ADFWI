@@ -406,22 +406,16 @@ Result file:
 | candidate peak memory | `16138.0376 MiB` |
 | candidate / reference peak memory | `55.0816x` |
 
-Decision: the production-interface custom chunk passes the finite observed
-pressure-loss gate and gives meaningful speedup, but its saved-state memory is
-far too high for promotion. The next valid optimization is memory reduction for
-this observed-pressure production-chunk path, not more speed-only testing.
+Decision: the production-interface saved-state custom chunk passed the finite
+observed pressure-loss gate and gave meaningful speedup, but its memory cost was
+far too high for promotion. This path was removed from the active code on
+2026-06-04 and should be treated only as historical speed-ceiling evidence.
 
-Custom chunk speed/memory gate:
+Historical saved-state custom chunk speed/memory gate:
 
-```bash
-conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
-  --validation-case reduced \
-  --device npu:0 \
-  --dtype float32 \
-  --iterations 5 \
-  --checkpoint-segments 10 \
-  --candidate-mode production-custom-chunk
-```
+This was measured with the removed production-interface saved-state custom
+chunk mode. The command is intentionally not retained because that mode is no
+longer part of the active benchmark matrix.
 
 Current result:
 
@@ -435,17 +429,10 @@ Current result:
 | peak allocated memory | `272.5190 MiB` | `7882.8569 MiB` |
 | memory ratio | baseline | `28.9259x` |
 
-Saved-state custom compression gate:
+Historical saved-state custom compression gate:
 
-```bash
-conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compare.py \
-  --validation-case reduced \
-  --device npu:0 \
-  --dtype float32 \
-  --iterations 5 \
-  --checkpoint-segments 10 \
-  --candidate-mode experimental-pressure-divergence-chunk
-```
+This was measured with a removed saved-state compression prototype. The command
+is intentionally not retained because the prototype is no longer active.
 
 Current best saved-state compression point:
 
@@ -512,7 +499,7 @@ for new comparisons.
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
 | lazy zero placeholders for pressure-only `u/w` outputs | production pressure-only kernel path | steady-state total `26.4793s -> 25.9895s`, `+1.85%`; backward `22.0680s -> 21.4941s`, `+2.60%`; loss and update exact | not run | removes up-front allocation of unused velocity receiver and wavefield placeholder tensors |
-| `use_custom_chunk_backward=True` | opt-in high-memory custom backward | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | not yet run as full-record gate | high-value speed path, but peak allocation rises `28.9259x`; next work is memory reduction, not default promotion |
+| saved-state custom backward | removed high-memory prototype | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | historical reduced-case gate only | removed from active code because peak allocation rose `28.9259x` and added misleading API complexity |
 | saved-state divergence compression | experimental benchmark path | best candidate saves only `div_p`: total `139.9340s -> 106.0862s`, `1.3191x`; backward `1.5719x`; loss and update exact | not run | reduces memory from saved-all `7882.8569 MiB` to `5643.8008 MiB`, but still `20.7x` production; not promotion-ready |
 | rematerialized pressure-only boundary/divergence cache | experimental benchmark path | latest same-run gate total `131.5525s -> 106.6786s` over 5 iterations, `1.2332x`; backward `1.3994x`; loss and update exact | not run | keeps memory near production (`1.94x`); candidate absolute time improved from prior `111.2747s`, but still below saved-state speed ceiling |
 
@@ -609,7 +596,7 @@ conda run -n adfwi python scripts/benchmark/acoustic_checkpoint_memory_matrix.py
   --checkpoint-segments 10 \
   --no-save-forward-wavefield \
   --no-grad-forw-illumination \
-  --matrix-variants production:10,production:1,production-custom-chunk:10 \
+  --matrix-variants production:10,production:1,production-remat-pressure-stride2:10,experimental-remat-pressure-chunk:10 \
   --reference-variant production:ckpt10
 ```
 

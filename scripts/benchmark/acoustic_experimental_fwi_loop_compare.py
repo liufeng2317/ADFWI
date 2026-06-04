@@ -70,17 +70,6 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     batch_range,
                     args.checkpoint_segments,
                     save_forward_wavefield=args.save_forward_wavefield,
-                    use_custom_chunk_backward=False,
-                )
-            )
-        elif mode == "production-custom-chunk":
-            forward_batch, elapsed = timer.measure(
-                lambda batch_range=batch_range: acoustic_forward_batch(
-                    fwi.propagator,
-                    batch_range,
-                    args.checkpoint_segments,
-                    save_forward_wavefield=False,
-                    use_custom_chunk_backward=True,
                 )
             )
         elif mode == "production-remat-pressure-stride2":
@@ -94,13 +83,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     pressure_only=True,
                 )
             )
-        elif mode in {
-            "experimental-compressed-chunk",
-            "experimental-pressure-divergence-chunk",
-            "experimental-velocity-divergence-chunk",
-            "experimental-remat-chunk",
-            "experimental-remat-pressure-chunk",
-        }:
+        elif mode == "experimental-remat-pressure-chunk":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -287,15 +270,10 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--candidate-mode",
         choices=(
-            "production-custom-chunk",
             "production-remat-pressure-stride2",
-            "experimental-compressed-chunk",
-            "experimental-pressure-divergence-chunk",
-            "experimental-velocity-divergence-chunk",
-            "experimental-remat-chunk",
             "experimental-remat-pressure-chunk",
         ),
-        default="experimental-remat-chunk",
+        default="production-remat-pressure-stride2",
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")

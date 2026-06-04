@@ -61,17 +61,16 @@ def acoustic_gradient_parameter_specs():
     return parameter_specs(ACOUSTIC_PARAMETER_NAMES)
 
 
-def resolve_acoustic_pressure_only_policy(pressure_only, use_custom_chunk_backward=False):
+def resolve_acoustic_pressure_only_policy(pressure_only):
     """Resolve AcousticFWI's pressure-only policy.
 
     Acoustic FWI builds the data loss from pressure records only. The default
-    ``"auto"`` policy therefore uses the pressure-only propagator path unless an
-    incompatible expert path is requested. Explicit booleans preserve caller
-    control for compatibility and benchmarking.
+    ``"auto"`` policy therefore uses the pressure-only propagator path. Explicit
+    booleans preserve caller control for compatibility and benchmarking.
     """
 
     if pressure_only == "auto":
-        return not use_custom_chunk_backward
+        return True
     if isinstance(pressure_only, bool):
         return pressure_only
     raise ValueError("pressure_only must be True, False, or 'auto'")
@@ -371,7 +370,6 @@ class AcousticFWI(torch.nn.Module):
                 batch_size:Optional[int]            = None,
                 checkpoint_segments:Optional[int]   = 1 ,
                 save_forward_wavefield:bool         = True,
-                use_custom_chunk_backward:bool      = False,
                 pressure_only                       = "auto",
                 start_iter                          = 0,
                 cutoff_freq                         = None,
@@ -383,19 +381,14 @@ class AcousticFWI(torch.nn.Module):
         batch_size (Optional[int])          : The number of shots (data samples) in each batch. Default is None, meaning use all available shots.
         checkpoint_segments (Optional[int]) : The number of segments into which the time series should be divided for memory efficiency. Default is 1, which means no segmentation.
         save_forward_wavefield (bool)           : Whether to accumulate detached forward wavefield summaries. Set False only when gradient processors do not use forward illumination.
-        use_custom_chunk_backward (bool)        : Expert opt-in acoustic speed mode. It can reduce backward time when device memory is sufficient, but it is not a checkpoint memory-saving replacement and requires save_forward_wavefield=False.
         pressure_only (bool | "auto")           : Acoustic pressure-output policy. "auto" uses pressure-only propagation for standard AcousticFWI pressure loss; False keeps the full p/u/w path for compatibility checks.
         start_iter (int)                    : The starting iteration for the optimization process (e.g., for optimizers like Adam/AdamW, and learning rate schedulers like step_lr). Default is 0.
         cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
-        if use_custom_chunk_backward and save_forward_wavefield:
-            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
-        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only, use_custom_chunk_backward)
-        if use_custom_chunk_backward and pressure_only:
-            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
+        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only)
         self._validate_forward_wavefield_policy(save_forward_wavefield)
         if isinstance(self.optimizer,torch.optim.LBFGS) or isinstance(self.optimizer,NLCG):
-            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,save_forward_wavefield=save_forward_wavefield,use_custom_chunk_backward=use_custom_chunk_backward,pressure_only=pressure_only,start_iter=start_iter,cutoff_freq=cutoff_freq)
+            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,save_forward_wavefield=save_forward_wavefield,pressure_only=pressure_only,start_iter=start_iter,cutoff_freq=cutoff_freq)
 
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
@@ -417,7 +410,6 @@ class AcousticFWI(torch.nn.Module):
                     batch_range=batch_range,
                     checkpoint_segments=checkpoint_segments,
                     save_forward_wavefield=save_forward_wavefield,
-                    use_custom_chunk_backward=use_custom_chunk_backward,
                     pressure_only=pressure_only,
                     observed_pressure=self.obs_p,
                     prepare_loss_pair=self._prepare_loss_pair,
@@ -456,18 +448,13 @@ class AcousticFWI(torch.nn.Module):
                 batch_size:Optional[int]            = None,
                 checkpoint_segments:Optional[int]   = 1 ,
                 save_forward_wavefield:bool         = True,
-                use_custom_chunk_backward:bool      = False,
                 pressure_only                       = "auto",
                 start_iter                          = 0 ,
                 cutoff_freq                         = None,
                 ):
         """ inversion using closure version ==> LBFGS,NLCG
         """
-        if use_custom_chunk_backward and save_forward_wavefield:
-            raise ValueError("use_custom_chunk_backward=True requires save_forward_wavefield=False")
-        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only, use_custom_chunk_backward)
-        if use_custom_chunk_backward and pressure_only:
-            raise ValueError("pressure_only=True is not supported with use_custom_chunk_backward=True")
+        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only)
         self._validate_forward_wavefield_policy(save_forward_wavefield)
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
@@ -492,7 +479,6 @@ class AcousticFWI(torch.nn.Module):
                         batch_range=batch_range,
                         checkpoint_segments=checkpoint_segments,
                         save_forward_wavefield=save_forward_wavefield,
-                        use_custom_chunk_backward=use_custom_chunk_backward,
                         pressure_only=pressure_only,
                         observed_pressure=self.obs_p,
                         prepare_loss_pair=self._prepare_loss_pair,

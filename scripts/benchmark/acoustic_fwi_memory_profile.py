@@ -113,7 +113,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
             "grad_forw_illumination": args.grad_forw_illumination,
-            "use_custom_chunk_backward": args.use_custom_chunk_backward,
+            "custom_chunk_strategy": args.custom_chunk_strategy,
             "gradient_processor": args.gradient_processor,
         },
         "setup_seconds": setup_seconds,

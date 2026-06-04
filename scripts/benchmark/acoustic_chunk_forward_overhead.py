@@ -76,13 +76,7 @@ def run_forward_mode(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) 
                     mode=mode,
                 )
             )
-        elif mode in {
-            "experimental-compressed-chunk",
-            "experimental-pressure-divergence-chunk",
-            "experimental-velocity-divergence-chunk",
-            "experimental-remat-chunk",
-            "experimental-remat-pressure-chunk",
-        }:
+        elif mode == "experimental-remat-pressure-chunk":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,

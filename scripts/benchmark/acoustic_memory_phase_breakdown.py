@@ -74,7 +74,6 @@ def forward_batch_for_mode(fwi, args: argparse.Namespace, batch_range):
             batch_range,
             args.checkpoint_segments,
             save_forward_wavefield=args.save_forward_wavefield,
-            use_custom_chunk_backward=False,
             pressure_only=args.pressure_only,
         )
     if args.mode == "production-remat-pressure-stride2":

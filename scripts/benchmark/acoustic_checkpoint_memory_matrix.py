@@ -33,13 +33,8 @@ DEFAULT_OUTPUT = (
 FORWARD_MODES = {
     "experimental",
     "experimental-chunk",
-    "experimental-compressed-chunk",
-    "experimental-pressure-divergence-chunk",
-    "experimental-velocity-divergence-chunk",
-    "experimental-remat-chunk",
     "experimental-remat-pressure-chunk",
     "production",
-    "production-custom-chunk",
     "production-remat-pressure-stride2",
 }
 
@@ -174,11 +169,13 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--matrix-variants",
         type=parse_variants,
-        default=parse_variants("production:10,production:1,production-custom-chunk:10,experimental-chunk:1"),
+        default=parse_variants(
+            "production:10,production:1,production-remat-pressure-stride2:10,experimental-remat-pressure-chunk:10"
+        ),
         help=(
             "Comma separated mode:checkpoint_segments variants. Default compares "
-            "segmented production, checkpoint=1 production, segmented production "
-            "custom chunk, and full experimental chunk."
+            "segmented production, checkpoint=1 production, wrapper remat pressure, "
+            "and direct remat pressure kernel."
         ),
     )
     parser.add_argument(

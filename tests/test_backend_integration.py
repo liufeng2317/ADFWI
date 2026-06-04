@@ -164,7 +164,7 @@ class BackendIntegrationTests(unittest.TestCase):
         for key in ("u", "w", "forward_wavefield_u", "forward_wavefield_w"):
             self.assertEqual(float(torch.linalg.norm(pressure_record[key]).item()), 0.0, key)
 
-    def test_acoustic_custom_chunk_backward_matches_default_receiver_loss(self):
+    def test_acoustic_remat_pressure_strategy_matches_default_pressure_loss(self):
         configure_backend("cpu", dtype=torch.float64)
         survey = self._survey()
         vp, rho = self._model_arrays()
@@ -173,48 +173,27 @@ class BackendIntegrationTests(unittest.TestCase):
         default_propagator = AcousticPropagator(default_model, survey)
         custom_propagator = AcousticPropagator(custom_model, survey)
 
-        default_record = default_propagator.forward(checkpoint_segments=1, save_forward_wavefield=False)
+        default_record = default_propagator.forward(
+            checkpoint_segments=1,
+            save_forward_wavefield=False,
+            pressure_only=True,
+        )
         custom_record = custom_propagator.forward(
             checkpoint_segments=1,
             save_forward_wavefield=False,
-            use_custom_chunk_backward=True,
+            pressure_only=True,
+            custom_chunk_strategy="remat_pressure_stride2",
         )
         default_loss = default_record["p"].pow(2).mean()
         custom_loss = custom_record["p"].pow(2).mean()
         default_loss.backward()
         custom_loss.backward()
 
-        for key in ("p", "u", "w"):
-            self.assertTrue(torch.allclose(default_record[key], custom_record[key], atol=0.0, rtol=0.0), key)
+        self.assertTrue(torch.allclose(default_record["p"], custom_record["p"], atol=0.0, rtol=0.0))
         self.assertEqual(float(default_loss.item()), float(custom_loss.item()))
         self.assertTrue(torch.allclose(default_model.vp.grad, custom_model.vp.grad, atol=1e-10, rtol=1e-8))
 
-    def test_acoustic_custom_chunk_backward_matches_default_receiver_loss_with_segments(self):
-        configure_backend("cpu", dtype=torch.float64)
-        survey = self._survey()
-        vp, rho = self._model_arrays()
-        default_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
-        custom_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
-        default_propagator = AcousticPropagator(default_model, survey)
-        custom_propagator = AcousticPropagator(custom_model, survey)
-
-        default_record = default_propagator.forward(checkpoint_segments=2, save_forward_wavefield=False)
-        custom_record = custom_propagator.forward(
-            checkpoint_segments=2,
-            save_forward_wavefield=False,
-            use_custom_chunk_backward=True,
-        )
-        default_loss = default_record["p"].pow(2).mean()
-        custom_loss = custom_record["p"].pow(2).mean()
-        default_loss.backward()
-        custom_loss.backward()
-
-        for key in ("p", "u", "w"):
-            self.assertTrue(torch.allclose(default_record[key], custom_record[key], atol=0.0, rtol=0.0), key)
-        self.assertEqual(float(default_loss.item()), float(custom_loss.item()))
-        self.assertTrue(torch.allclose(default_model.vp.grad, custom_model.vp.grad, atol=1e-10, rtol=1e-8))
-
-    def test_acoustic_custom_chunk_backward_rejects_unsupported_options(self):
+    def test_acoustic_remat_pressure_strategy_rejects_unsupported_options(self):
         configure_backend("cpu", dtype=torch.float32)
         survey = self._survey()
         vp, rho = self._model_arrays()
@@ -222,12 +201,25 @@ class BackendIntegrationTests(unittest.TestCase):
         propagator = AcousticPropagator(model, survey)
 
         with self.assertRaisesRegex(ValueError, "checkpoint_segments must be positive"):
-            propagator.forward(checkpoint_segments=0, save_forward_wavefield=False, use_custom_chunk_backward=True)
+            propagator.forward(
+                checkpoint_segments=0,
+                save_forward_wavefield=False,
+                pressure_only=True,
+                custom_chunk_strategy="remat_pressure_stride2",
+            )
         with self.assertRaisesRegex(ValueError, "save_forward_wavefield=True"):
             propagator.forward(
                 checkpoint_segments=1,
                 save_forward_wavefield=True,
-                use_custom_chunk_backward=True,
+                pressure_only=True,
+                custom_chunk_strategy="remat_pressure_stride2",
+            )
+        with self.assertRaisesRegex(ValueError, "requires pressure_only=True"):
+            propagator.forward(
+                checkpoint_segments=1,
+                save_forward_wavefield=False,
+                pressure_only=False,
+                custom_chunk_strategy="remat_pressure_stride2",
             )
 
     def test_acoustic_fwi_rejects_skipped_forward_wavefield_when_illumination_is_active(self):

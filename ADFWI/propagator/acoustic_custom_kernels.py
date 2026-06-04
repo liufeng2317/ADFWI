@@ -592,244 +592,18 @@ def _backward_step_from_saved_divergence(
     )
 
 
-class _SavedStateChunkFunction(torch.autograd.Function):
-    """Custom autograd for a fully saved acoustic chunk.
-
-    Description
-    --------------
-        The forward pass stores every internal time-step state and divergence
-        term for the chunk. The backward pass then walks the chunk in reverse
-        and applies ``_backward_step_from_saved_divergence``.
-
-        This path is faster for some receiver-loss workflows, but it stores
-        more internal state than checkpointed production execution. It is used
-        only behind explicit opt-in controls.
-    """
-
-    @staticmethod
-    def forward(
-        ctx,
-        p,
-        u,
-        w,
-        kappa1,
-        alpha1,
-        kappa2,
-        alpha2,
-        kappa3,
-        source_x,
-        source_z,
-        source_v,
-        rcv_x,
-        rcv_z,
-        free_surface_start: int,
-        use_free_surface: bool,
-        divergence_save_components,
-    ):
-        divergence_save_components = _parse_divergence_cache_components(divergence_save_components)
-        p_states = []
-        u_states = []
-        w_states = []
-        div_p_values = []
-        div_u_values = []
-        div_w_values = []
-        records_p = []
-        records_u = []
-        records_w = []
-
-        for step in range(source_v.shape[0]):
-            p_states.append(p)
-            u_states.append(u)
-            w_states.append(w)
-            p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
-                p,
-                u,
-                w,
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                free_surface_start=free_surface_start,
-                source_x=source_x,
-                source_z=source_z,
-                source_value=source_v[step],
-                use_free_surface=use_free_surface,
-            )
-            if "p" in divergence_save_components:
-                div_p_values.append(div_p)
-            if "u" in divergence_save_components:
-                div_u_values.append(div_u)
-            if "w" in divergence_save_components:
-                div_w_values.append(div_w)
-            records_p.append(p[:, rcv_z, rcv_x])
-            records_u.append(u[:, rcv_z, rcv_x])
-            records_w.append(w[:, rcv_z, rcv_x])
-
-        if "p" in divergence_save_components:
-            div_p_cache = torch.stack(div_p_values)
-        else:
-            div_p_cache = p.new_empty((0,))
-        if "u" in divergence_save_components:
-            div_u_cache = torch.stack(div_u_values)
-        else:
-            div_u_cache = u.new_empty((0,))
-        if "w" in divergence_save_components:
-            div_w_cache = torch.stack(div_w_values)
-        else:
-            div_w_cache = w.new_empty((0,))
-
-        ctx.free_surface_start = free_surface_start
-        ctx.use_free_surface = use_free_surface
-        ctx.divergence_save_components = divergence_save_components
-        ctx.save_for_backward(
-            torch.stack(p_states),
-            torch.stack(u_states),
-            torch.stack(w_states),
-            kappa1,
-            alpha1,
-            kappa2,
-            alpha2,
-            kappa3,
-            div_p_cache,
-            div_u_cache,
-            div_w_cache,
-            source_x,
-            source_z,
-            source_v,
-            rcv_x,
-            rcv_z,
-        )
-        return p, u, w, torch.stack(records_p, dim=1), torch.stack(records_u, dim=1), torch.stack(records_w, dim=1)
-
-    @staticmethod
-    def backward(ctx, grad_p, grad_u, grad_w, grad_rcv_p, grad_rcv_u, grad_rcv_w):
-        (
-            p_states,
-            u_states,
-            w_states,
-            kappa1,
-            alpha1,
-            kappa2,
-            alpha2,
-            kappa3,
-            div_p_values,
-            div_u_values,
-            div_w_values,
-            source_x,
-            source_z,
-            source_v,
-            rcv_x,
-            rcv_z,
-        ) = ctx.saved_tensors
-        grad_kappa1 = torch.zeros_like(kappa1)
-        grad_alpha1 = torch.zeros_like(alpha1)
-        grad_kappa2 = torch.zeros_like(kappa2)
-        grad_alpha2 = torch.zeros_like(alpha2)
-        grad_kappa3 = torch.zeros_like(kappa3)
-
-        for step in range(p_states.shape[0] - 1, -1, -1):
-            grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-            grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-            grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
-            if "p" in ctx.divergence_save_components:
-                div_p = div_p_values[step]
-            else:
-                div_p = _pressure_divergence_from_state(
-                    p_states[step],
-                    u_states[step],
-                    w_states[step],
-                    free_surface_start=ctx.free_surface_start,
-                )
-            if "u" in ctx.divergence_save_components:
-                div_u = div_u_values[step]
-            else:
-                div_u = None
-            if "w" in ctx.divergence_save_components:
-                div_w = div_w_values[step]
-            else:
-                div_w = None
-            if div_u is None or div_w is None:
-                p_new = _rebuild_pressure_from_divergence(
-                    p_states[step],
-                    kappa1,
-                    alpha1,
-                    div_p,
-                    free_surface_start=ctx.free_surface_start,
-                    source_x=source_x,
-                    source_z=source_z,
-                    source_value=source_v[step],
-                    use_free_surface=ctx.use_free_surface,
-                )
-                if div_u is None:
-                    div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
-                if div_w is None:
-                    div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
-            (
-                grad_p,
-                grad_u,
-                grad_w,
-                step_grad_kappa1,
-                step_grad_alpha1,
-                step_grad_kappa2,
-                step_grad_alpha2,
-                step_grad_kappa3,
-            ) = _backward_step_from_saved_divergence(
-                p_states[step],
-                u_states[step],
-                w_states[step],
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                div_p,
-                div_u,
-                div_w,
-                grad_p,
-                grad_u,
-                grad_w,
-                free_surface_start=ctx.free_surface_start,
-                use_free_surface=ctx.use_free_surface,
-            )
-            grad_kappa1 += step_grad_kappa1
-            grad_alpha1 += step_grad_alpha1
-            grad_kappa2 += step_grad_kappa2
-            grad_alpha2 += step_grad_alpha2
-            grad_kappa3 += step_grad_kappa3
-
-        return (
-            grad_p,
-            grad_u,
-            grad_w,
-            grad_kappa1,
-            grad_alpha1,
-            grad_kappa2,
-            grad_alpha2,
-            grad_kappa3,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-
-
 class _RematerializedChunkFunction(torch.autograd.Function):
-    """Custom autograd for a rematerialized acoustic chunk.
+    """Pressure-only custom autograd for a rematerialized acoustic chunk.
 
     Description
     --------------
-        The forward pass records receiver data but saves only chunk boundary
-        state. The backward pass rebuilds internal states as needed, optionally
-        caching selected divergence terms or boundary states.
+        The forward pass records pressure receiver data and saves only the
+        chunk boundary state. The backward pass rebuilds internal states as
+        needed and can cache selected divergence terms during replay.
 
-        This is a memory/speed research path. It is intentionally separate from
-        the default propagator because changing saved state changes the
-        checkpoint and replay contract.
+        This path is deliberately pressure-only because standard AcousticFWI
+        uses pressure records for its data loss. The default propagator remains
+        the source of truth for full p/u/w receiver workflows.
     """
 
     @staticmethod
@@ -852,61 +626,33 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         use_free_surface: bool,
         divergence_cache_stride: int,
         divergence_cache_components,
-        record_velocity_receivers: bool,
     ):
-        records_p = []
-        records_u = []
-        records_w = []
         p_start = p
         u_start = u
         w_start = w
 
-        use_scripted_pressure_forward = not record_velocity_receivers
-        if use_scripted_pressure_forward:
-            p, u, w, rcv_p = _remat_pressure_forward_chunk_script(
-                p,
-                u,
-                w,
-                kappa1,
-                alpha1,
-                kappa2,
-                alpha2,
-                kappa3,
-                source_x,
-                source_z,
-                source_v,
-                rcv_x,
-                rcv_z,
-                free_surface_start,
-                use_free_surface,
-            )
-        else:
-            for step in range(source_v.shape[0]):
-                p, u, w, _, _, _ = _forward_step_with_saved_divergence(
-                    p,
-                    u,
-                    w,
-                    kappa1,
-                    alpha1,
-                    kappa2,
-                    alpha2,
-                    kappa3,
-                    free_surface_start=free_surface_start,
-                    source_x=source_x,
-                    source_z=source_z,
-                    source_value=source_v[step],
-                    use_free_surface=use_free_surface,
-                )
-                records_p.append(p[:, rcv_z, rcv_x])
-                if record_velocity_receivers:
-                    records_u.append(u[:, rcv_z, rcv_x])
-                    records_w.append(w[:, rcv_z, rcv_x])
+        p, u, w, rcv_p = _remat_pressure_forward_chunk_script(
+            p,
+            u,
+            w,
+            kappa1,
+            alpha1,
+            kappa2,
+            alpha2,
+            kappa3,
+            source_x,
+            source_z,
+            source_v,
+            rcv_x,
+            rcv_z,
+            free_surface_start,
+            use_free_surface,
+        )
 
         ctx.free_surface_start = free_surface_start
         ctx.use_free_surface = use_free_surface
         ctx.divergence_cache_stride = divergence_cache_stride
         ctx.divergence_cache_components = _parse_divergence_cache_components(divergence_cache_components)
-        ctx.record_velocity_receivers = record_velocity_receivers
         ctx.save_for_backward(
             p_start,
             u_start,
@@ -922,18 +668,10 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             rcv_x,
             rcv_z,
         )
-        if not use_scripted_pressure_forward:
-            rcv_p = torch.stack(records_p, dim=1)
-        if record_velocity_receivers:
-            rcv_u = torch.stack(records_u, dim=1)
-            rcv_w = torch.stack(records_w, dim=1)
-        else:
-            rcv_u = p.new_empty((p.shape[0], 0, 0))
-            rcv_w = p.new_empty((p.shape[0], 0, 0))
-        return p, u, w, rcv_p, rcv_u, rcv_w
+        return p, u, w, rcv_p
 
     @staticmethod
-    def backward(ctx, grad_p, grad_u, grad_w, grad_rcv_p, grad_rcv_u, grad_rcv_w):
+    def backward(ctx, grad_p, grad_u, grad_w, grad_rcv_p):
         (
             p,
             u,
@@ -990,9 +728,6 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         with _stage_timer("reverse_adjoint_loop", p.device):
             for step in range(len(p_states) - 1, -1, -1):
                 grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
-                if ctx.record_velocity_receivers:
-                    grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
-                    grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
                 div_p = div_p_values[step]
                 div_u = div_u_values[step]
                 div_w = div_w_values[step]
@@ -1070,188 +805,10 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             None,
             None,
             None,
-            None,
         )
 
 
-def custom_chunk_forward_kernel(
-    nx: int,
-    nz: int,
-    dx: float,
-    dz: float,
-    nt: int,
-    dt: float,
-    nabc: int,
-    free_surface: bool,
-    src_x: torch.Tensor,
-    src_z: torch.Tensor,
-    src_n: int,
-    src_v: torch.Tensor,
-    rcv_x: torch.Tensor,
-    rcv_z: torch.Tensor,
-    rcv_n: int,
-    damp: torch.Tensor,
-    v: torch.Tensor,
-    rho: torch.Tensor,
-    *,
-    checkpoint_segments: int = 1,
-    save_forward_wavefield: bool = False,
-    divergence_save_components="p,u,w",
-    device: torch.device = torch.device("cpu"),
-    dtype: torch.dtype = torch.float32,
-) -> Dict[str, torch.Tensor]:
-    """Run the guarded custom-chunk acoustic path.
-
-    Description
-    --------------
-        This function follows the public return contract of the acoustic
-        propagator, but uses ``_SavedStateChunkFunction`` for each chunk.
-
-        ``checkpoint_segments`` controls custom chunk segmentation here; it is
-        not PyTorch checkpoint rematerialization.
-
-    Parameters:
-    --------------
-        nx, nz, dx, dz, nt, dt, nabc, free_surface
-            Acoustic grid and time-stepping settings.
-        src_x, src_z, src_n, src_v
-            Source coordinates and wavelet values.
-        rcv_x, rcv_z, rcv_n
-            Receiver coordinates.
-        damp, v, rho
-            Absorbing boundary and acoustic model parameters.
-        checkpoint_segments
-            Number of custom-autograd chunks.
-        save_forward_wavefield
-            Must be ``False``. This path does not produce illumination
-            wavefield summaries.
-        divergence_save_components
-            Experimental state-memory control. Component subset of divergence
-            terms to save: ``p``, ``u``, and/or ``w``. The default
-            ``p,u,w`` preserves the current high-speed path. ``none`` saves
-            only wavefield states and recomputes divergence terms in backward.
-
-    Returns:
-    ------------------
-        dict
-            Recorded receiver components ``p``, ``u``, ``w`` and zero-valued
-            forward-wavefield summary placeholders.
-    """
-    if checkpoint_segments < 1:
-        raise ValueError("checkpoint_segments must be positive")
-    if save_forward_wavefield:
-        raise ValueError("custom chunk acoustic forward does not support save_forward_wavefield=True")
-    _validate_custom_kernel_inputs(
-        src_v=src_v,
-        src_n=src_n,
-        nt=nt,
-        dx=dx,
-        dz=dz,
-        rcv_n=rcv_n,
-        rcv_x=rcv_x,
-        rcv_z=rcv_z,
-    )
-    state = _prepare_custom_kernel_state(
-        nx=nx,
-        nz=nz,
-        dz=dz,
-        dt=dt,
-        nabc=nabc,
-        free_surface=free_surface,
-        src_n=src_n,
-        damp=damp,
-        v=v,
-        rho=rho,
-        device=device,
-        dtype=dtype,
-    )
-
-    rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    p = state.p
-    u = state.u
-    w = state.w
-    step = 0
-    for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _SavedStateChunkFunction.apply(
-            p,
-            u,
-            w,
-            state.kappa1,
-            state.alpha1,
-            state.kappa2,
-            state.alpha2,
-            state.kappa3,
-            src_x + nabc,
-            src_z + nabc,
-            (dt * chunk).transpose(0, 1).contiguous(),
-            rcv_x + nabc,
-            rcv_z + nabc,
-            state.free_surface_start,
-            free_surface,
-            divergence_save_components,
-        )
-        next_step = step + chunk.shape[-1]
-        rcv_p[:, step:next_step] = rcv_p_temp
-        rcv_u[:, step:next_step] = rcv_u_temp
-        rcv_w[:, step:next_step] = rcv_w_temp
-        step = next_step
-
-    return {
-        "p": rcv_p,
-        "u": rcv_u,
-        "w": rcv_w,
-        **_empty_forward_wavefields(nz, nx, dtype=dtype, device=device),
-    }
-
-
-def compressed_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
-    """Run the saved-state custom chunk path without saved divergence tensors.
-
-    Description
-    --------------
-        This benchmark-only variant keeps every per-step wavefield state, so it
-        avoids rematerialized full-chunk replay, but drops the saved
-        ``div_p/div_u/div_w`` tensors and recomputes them during backward.
-
-        It is used to test whether the high-memory saved-state custom path can
-        be compressed without losing most of its backward speed advantage.
-    """
-    kwargs["divergence_save_components"] = "none"
-    return custom_chunk_forward_kernel(*args, **kwargs)
-
-
-def pressure_divergence_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
-    """Run the saved-state custom chunk path while saving only pressure divergence.
-
-    Description
-    --------------
-        This benchmark-only middle point keeps all per-step wavefield states and
-        ``div_p``. It recomputes ``div_u`` and ``div_w`` during backward. The
-        goal is to recover more speed than the fully compressed path without
-        returning to the full saved-divergence memory cost.
-    """
-    kwargs["divergence_save_components"] = "p"
-    return custom_chunk_forward_kernel(*args, **kwargs)
-
-
-def velocity_divergence_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
-    """Run the saved-state custom chunk path while saving velocity divergences.
-
-    Description
-    --------------
-        This benchmark-only middle point keeps all per-step wavefield states and
-        saves ``div_u/div_w``. It recomputes only ``div_p`` during backward.
-        This avoids rebuilding ``p_new`` and recomputing velocity divergences,
-        so it tests a higher-speed state-compression point than saving only
-        ``div_p``.
-    """
-    kwargs["divergence_save_components"] = "u,w"
-    return custom_chunk_forward_kernel(*args, **kwargs)
-
-
-def rematerialized_custom_chunk_forward_kernel(
+def rematerialized_pressure_custom_chunk_forward_kernel(
     nx: int,
     nz: int,
     dx: float,
@@ -1275,20 +832,18 @@ def rematerialized_custom_chunk_forward_kernel(
     save_forward_wavefield: bool = False,
     divergence_cache_stride: int = 0,
     divergence_cache_components=None,
-    record_velocity_receivers: bool = True,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> Dict[str, torch.Tensor]:
-    """Run a checkpoint-compatible custom acoustic chunk prototype.
+    """Run the pressure-only rematerialized custom acoustic chunk path.
 
     Description
     --------------
-        The forward pass saves only each chunk's boundary state and
-        rematerializes chunk internals during backward. Optional divergence and
-        state caching tune the memory/recompute tradeoff.
-
-        This is experimental and intentionally not wired into the default
-        acoustic propagator path.
+        The forward pass records pressure receivers and saves only each chunk's
+        boundary state. The backward pass rematerializes chunk internals and can
+        cache selected divergence terms during replay. This is the only retained
+        custom-autograd path because it gave useful FWI speedup while keeping
+        memory growth much lower than the removed saved-state prototypes.
 
     Parameters:
     --------------
@@ -1297,11 +852,6 @@ def rematerialized_custom_chunk_forward_kernel(
             caching.
         divergence_cache_components
             Component subset to cache: ``p``, ``u``, ``w``.
-        record_velocity_receivers
-            When ``False``, record only pressure receivers and return zero
-            placeholders for receiver ``u/w``. This is for pressure-loss
-            benchmarks only; propagation state ``u/w`` is still maintained.
-
     Returns:
     ------------------
         dict
@@ -1311,7 +861,7 @@ def rematerialized_custom_chunk_forward_kernel(
     if checkpoint_segments < 1:
         raise ValueError("checkpoint_segments must be positive")
     if save_forward_wavefield:
-        raise ValueError("rematerialized custom chunk acoustic forward does not support save_forward_wavefield=True")
+        raise ValueError("rematerialized pressure custom chunk acoustic forward does not support save_forward_wavefield=True")
     if divergence_cache_stride < 0:
         raise ValueError("divergence_cache_stride must be non-negative")
     _parse_divergence_cache_components(divergence_cache_components)
@@ -1341,18 +891,12 @@ def rematerialized_custom_chunk_forward_kernel(
     )
 
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    if record_velocity_receivers:
-        rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-        rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    else:
-        rcv_u = None
-        rcv_w = None
     p = state.p
     u = state.u
     w = state.w
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _RematerializedChunkFunction.apply(
+        p, u, w, rcv_p_temp = _RematerializedChunkFunction.apply(
             p,
             u,
             w,
@@ -1370,29 +914,14 @@ def rematerialized_custom_chunk_forward_kernel(
             free_surface,
             divergence_cache_stride,
             divergence_cache_components,
-            record_velocity_receivers,
         )
         next_step = step + chunk.shape[-1]
         rcv_p[:, step:next_step] = rcv_p_temp
-        if record_velocity_receivers:
-            rcv_u[:, step:next_step] = rcv_u_temp
-            rcv_w[:, step:next_step] = rcv_w_temp
         step = next_step
-    if not record_velocity_receivers:
-        # Preserve the legacy waveform dictionary shape without spending chunk
-        # time recording velocity receiver traces that pressure-loss FWI ignores.
-        rcv_u = torch.zeros_like(rcv_p)
-        rcv_w = torch.zeros_like(rcv_p)
 
     return {
         "p": rcv_p,
-        "u": rcv_u,
-        "w": rcv_w,
+        "u": torch.zeros_like(rcv_p),
+        "w": torch.zeros_like(rcv_p),
         **_empty_forward_wavefields(nz, nx, dtype=dtype, device=device),
     }
-
-
-def rematerialized_pressure_custom_chunk_forward_kernel(*args, **kwargs) -> Dict[str, torch.Tensor]:
-    """Run the rematerialized custom path with pressure receiver records only."""
-    kwargs["record_velocity_receivers"] = False
-    return rematerialized_custom_chunk_forward_kernel(*args, **kwargs)

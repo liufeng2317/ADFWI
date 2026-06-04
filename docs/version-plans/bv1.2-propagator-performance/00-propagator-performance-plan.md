@@ -205,12 +205,12 @@ Accepted default production changes:
 Accepted opt-in paths:
 
 - `save_forward_wavefield=False`, only when forward illumination is not used;
-- `use_custom_chunk_backward=True`, expert high-memory speed path. It is a
-  speed-ceiling reference, not the current optimization main line.
 - `pressure_only=True`, acoustic FWI pressure-loss path that skips unused `u/w`
   receiver outputs and `u/w` forward-wavefield summaries. It remains opt-in at
   the `AcousticPropagator.forward` API level, while AcousticFWI uses it
   automatically.
+- `custom_chunk_strategy="remat_pressure_stride2"`, expert pressure-only remat
+  path for speed/memory studies when illumination is disabled.
 
 Not promoted:
 
@@ -249,7 +249,7 @@ Useful research results, not promoted:
 
 | Result | Finding | Decision |
 | --- | --- | --- |
-| saved-state custom backward | strong speed ceiling (`1.5367x` reduced total speedup) but very high memory (`28.9259x`) | keep as speed-ceiling reference |
+| saved-state custom backward | strong speed ceiling (`1.5367x` reduced total speedup) but very high memory (`28.9259x`) | removed from active code path; keep only as historical speed-ceiling evidence |
 | remat cache policy study | divergence stride tuning alone cannot reduce full-batch memory enough while preserving current speed | do not continue stride sweeps |
 | phase-level memory breakdown | full-batch remat peak is in backward replay state retention, not forward cache or loss graph | use as future design evidence |
 | block-local reverse replay | full 40-shot peak can drop to `2160.7397 MiB`, but total speed is only `0.6193x` of production because of repeated prefix replay | proves memory mechanism, not an accepted configuration |
