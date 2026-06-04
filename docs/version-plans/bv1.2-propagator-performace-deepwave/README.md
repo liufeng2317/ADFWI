@@ -13,8 +13,10 @@ existing FWI interface.
 | Document | Purpose |
 | --- | --- |
 | `00-deepwave-inspired-outline.md` | Top-to-bottom optimization outline and implementation phases |
+| `01-acoustic-operator-contract.md` | Detailed ADFWI acoustic operator contract and first implementation boundary |
 | `deepwave-method-map.md` | What Deepwave does and what ADFWI can learn from it |
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
+| `implementation-change-log.md` | Compact record of design and implementation steps |
 
 ## Boundary
 
@@ -24,4 +26,3 @@ existing FWI interface.
   are accepted.
 - The first implementation target should be acoustic only. Elastic should wait
   until acoustic proves the design.
-
