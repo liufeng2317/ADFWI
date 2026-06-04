@@ -1,0 +1,341 @@
+{
+  "case": "marmousi2_acoustic_reduced",
+  "config": {
+    "abc_jerjan_alpha": 0.007,
+    "abc_type": "PML",
+    "batch_size": 3,
+    "candidate_mode": "experimental",
+    "checkpoint_segments": 1,
+    "dataset_dir": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/datasets/marmousi2_source",
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "free_surface": true,
+    "gaussian_kernel": 6,
+    "generate_observed": true,
+    "grad_forw_illumination": false,
+    "grad_mute_top": 12,
+    "gradient_processor": "legacy",
+    "iterations": 1,
+    "loss_mode": "synthetic-energy",
+    "lr": 10.0,
+    "mask_extra_depth": 2,
+    "nabc": 30,
+    "nt": 120,
+    "nx": 64,
+    "nz": 32,
+    "output_root": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_reduced/outputs/experimental_forward_iteration_parity",
+    "ox": 0.0,
+    "oz": 0.0,
+    "policy_repeat": 1,
+    "pressure_only": null,
+    "rcv_depth": 10,
+    "remat_divergence_cache_components": "p,u,w",
+    "remat_divergence_cache_stride": 0,
+    "result_json": "docs/version-plans/bv1.2-propagator-performace-deepwave/develope/acoustic_experimental_forward_iteration_processed_gradient_synthetic_energy_20260604.json",
+    "save_forward_wavefield": false,
+    "scheduler_gamma": 0.75,
+    "scheduler_step_size": 200,
+    "shots": 3,
+    "storage_policy": null,
+    "validation_case": "reduced",
+    "waveform_normalize": false
+  },
+  "pair": {
+    "candidate": {
+      "backend": {
+        "available": true,
+        "device": "npu:0",
+        "dtype": "float32",
+        "fallback": false,
+        "index": 0,
+        "memory_allocated": 863744,
+        "name": "npu",
+        "reason": null
+      },
+      "iteration": {
+        "loss": 3.777536767302081e-05,
+        "processed_grad_finite": true,
+        "processed_grad_health": {
+          "finite": true,
+          "finite_count": 2048,
+          "finite_max": 1786.4937744140625,
+          "finite_min": -23.44404411315918,
+          "first_nonfinite_index": null,
+          "first_nonfinite_value": null,
+          "nan_count": 0,
+          "neginf_count": 0,
+          "posinf_count": 0,
+          "shape": [
+            32,
+            64
+          ]
+        },
+        "raw_grad_finite": true,
+        "raw_grad_health": {
+          "finite": true,
+          "finite_count": 2048,
+          "finite_max": 4.189137037258206e-09,
+          "finite_min": -4.434565425981418e-08,
+          "first_nonfinite_index": null,
+          "first_nonfinite_value": null,
+          "nan_count": 0,
+          "neginf_count": 0,
+          "posinf_count": 0,
+          "shape": [
+            32,
+            64
+          ]
+        },
+        "timing_total": 1.0082377884536982,
+        "timings": {
+          "backward": 0.5745762605220079,
+          "forward": 0.4312752690166235,
+          "gradient_processing": 0.0013706013560295105,
+          "loss_evaluation": 0.0006815753877162933,
+          "zero_grad": 0.0003340821713209152
+        }
+      },
+      "memory": {
+        "peak_allocated_bytes": 84130304,
+        "peak_allocated_mib": 80.23291015625
+      },
+      "shape": {
+        "batch_size": 3,
+        "checkpoint_segments": 1,
+        "nt": 120,
+        "nx": 64,
+        "nz": 32,
+        "receivers": 64,
+        "shots": 3
+      }
+    },
+    "comparison": {
+      "loss_abs_diff": 0.0,
+      "memory": {
+        "candidate_over_reference_peak_allocated": 2.443557141794929,
+        "candidate_peak_allocated_mib": 80.23291015625,
+        "reference_peak_allocated_mib": 32.83447265625
+      },
+      "outputs": [
+        {
+          "p": {
+            "candidate_norm": 0.9329222440719604,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 0.9329222440719604,
+            "shape": [
+              3,
+              120,
+              64
+            ]
+          },
+          "u": {
+            "candidate_norm": 3.3987120673373283e-07,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 3.3987120673373283e-07,
+            "shape": [
+              3,
+              120,
+              64
+            ]
+          },
+          "w": {
+            "candidate_norm": 2.55364369650124e-07,
+            "max_abs_diff": 0.0,
+            "max_rel_diff": 0.0,
+            "reference_norm": 2.55364369650124e-07,
+            "shape": [
+              3,
+              120,
+              64
+            ]
+          }
+        }
+      ],
+      "processed_grad": {
+        "candidate_norm": 4683.4736328125,
+        "max_abs_diff": 0.000732421875,
+        "max_rel_diff": 7.871763955336064e-06,
+        "reference_norm": 4683.47216796875,
+        "shape": [
+          32,
+          64
+        ]
+      },
+      "raw_grad": {
+        "candidate_norm": 7.719505390468839e-08,
+        "max_abs_diff": 3.552713678800501e-15,
+        "max_rel_diff": 1.859006033555488e-06,
+        "reference_norm": 7.719505390468839e-08,
+        "shape": [
+          32,
+          64
+        ]
+      },
+      "speedup": {
+        "backward": 1.6369755084233697,
+        "forward": 1.3933043814832746,
+        "total": 1.5609587608214228
+      }
+    },
+    "reference": {
+      "backend": {
+        "available": true,
+        "device": "npu:0",
+        "dtype": "float32",
+        "fallback": false,
+        "index": 0,
+        "memory_allocated": 567296,
+        "name": "npu",
+        "reason": null
+      },
+      "iteration": {
+        "loss": 3.777536767302081e-05,
+        "processed_grad_finite": true,
+        "processed_grad_health": {
+          "finite": true,
+          "finite_count": 2048,
+          "finite_max": 1786.4937744140625,
+          "finite_min": -23.44404411315918,
+          "first_nonfinite_index": null,
+          "first_nonfinite_value": null,
+          "nan_count": 0,
+          "neginf_count": 0,
+          "posinf_count": 0,
+          "shape": [
+            32,
+            64
+          ]
+        },
+        "raw_grad_finite": true,
+        "raw_grad_health": {
+          "finite": true,
+          "finite_count": 2048,
+          "finite_max": 4.189137037258206e-09,
+          "finite_min": -4.4345650707100503e-08,
+          "first_nonfinite_index": null,
+          "first_nonfinite_value": null,
+          "nan_count": 0,
+          "neginf_count": 0,
+          "posinf_count": 0,
+          "shape": [
+            32,
+            64
+          ]
+        },
+        "timing_total": 1.5738176088780165,
+        "timings": {
+          "backward": 0.9405672661960125,
+          "forward": 0.6008977219462395,
+          "gradient_processing": 0.0022814907133579254,
+          "loss_evaluation": 0.029011262580752373,
+          "zero_grad": 0.0010598674416542053
+        }
+      },
+      "memory": {
+        "peak_allocated_bytes": 34429440,
+        "peak_allocated_mib": 32.83447265625
+      },
+      "shape": {
+        "batch_size": 3,
+        "checkpoint_segments": 1,
+        "nt": 120,
+        "nx": 64,
+        "nz": 32,
+        "receivers": 64,
+        "shots": 3
+      }
+    }
+  },
+  "purpose": "Reduced Marmousi2 production vs experimental acoustic forward iteration parity",
+  "status": "ok",
+  "summary": {
+    "loss_abs_diff": 0.0,
+    "memory": {
+      "candidate_over_reference_peak_allocated": 2.443557141794929,
+      "candidate_peak_allocated_mib": 80.23291015625,
+      "reference_peak_allocated_mib": 32.83447265625
+    },
+    "output_max_abs_diff": 0.0,
+    "output_max_rel_diff": 0.0,
+    "processed_grad_health": {
+      "candidate": {
+        "finite": true,
+        "finite_count": 2048,
+        "finite_max": 1786.4937744140625,
+        "finite_min": -23.44404411315918,
+        "first_nonfinite_index": null,
+        "first_nonfinite_value": null,
+        "nan_count": 0,
+        "neginf_count": 0,
+        "posinf_count": 0,
+        "shape": [
+          32,
+          64
+        ]
+      },
+      "reference": {
+        "finite": true,
+        "finite_count": 2048,
+        "finite_max": 1786.4937744140625,
+        "finite_min": -23.44404411315918,
+        "first_nonfinite_index": null,
+        "first_nonfinite_value": null,
+        "nan_count": 0,
+        "neginf_count": 0,
+        "posinf_count": 0,
+        "shape": [
+          32,
+          64
+        ]
+      }
+    },
+    "processed_grad_max_abs_diff": 0.000732421875,
+    "processed_grad_max_rel_diff": 7.871763955336064e-06,
+    "raw_grad_health": {
+      "candidate": {
+        "finite": true,
+        "finite_count": 2048,
+        "finite_max": 4.189137037258206e-09,
+        "finite_min": -4.434565425981418e-08,
+        "first_nonfinite_index": null,
+        "first_nonfinite_value": null,
+        "nan_count": 0,
+        "neginf_count": 0,
+        "posinf_count": 0,
+        "shape": [
+          32,
+          64
+        ]
+      },
+      "reference": {
+        "finite": true,
+        "finite_count": 2048,
+        "finite_max": 4.189137037258206e-09,
+        "finite_min": -4.4345650707100503e-08,
+        "first_nonfinite_index": null,
+        "first_nonfinite_value": null,
+        "nan_count": 0,
+        "neginf_count": 0,
+        "posinf_count": 0,
+        "shape": [
+          32,
+          64
+        ]
+      }
+    },
+    "raw_grad_max_abs_diff": 3.552713678800501e-15,
+    "raw_grad_max_rel_diff": 1.859006033555488e-06,
+    "speedup": {
+      "backward": 1.6369755084233697,
+      "forward": 1.3933043814832746,
+      "total": 1.5609587608214228
+    }
+  }
+}

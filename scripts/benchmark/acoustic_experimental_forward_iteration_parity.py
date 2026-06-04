@@ -177,11 +177,19 @@ def experimental_forward_batch(
 def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> Dict[str, Any]:
     import torch
 
+    from ADFWI.fwi.acoustic_fwi import acoustic_gradient_parameter_specs
     from ADFWI.fwi.iteration.batches import iter_batch_ranges
     from ADFWI.fwi.iteration.loss import acoustic_pressure_loss_input, build_batch_loss, evaluate_loss_inputs
+    from ADFWI.fwi.runtime.gradient import process_named_parameter_gradients
     from ADFWI.fwi.runtime.forward import acoustic_forward_batch
 
-    timings = {"zero_grad": 0.0, "forward": 0.0, "loss_evaluation": 0.0, "backward": 0.0}
+    timings = {
+        "zero_grad": 0.0,
+        "forward": 0.0,
+        "loss_evaluation": 0.0,
+        "backward": 0.0,
+        "gradient_processing": 0.0,
+    }
     outputs = []
     losses = []
 
@@ -268,6 +276,17 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
     if fwi.model.vp.grad is None:
         raise RuntimeError(f"{mode} vp.grad is None")
     raw_grad = fwi.model.vp.grad.detach().clone()
+    _, timings["gradient_processing"] = timer.measure(
+        lambda: process_named_parameter_gradients(
+            fwi.model,
+            acoustic_gradient_parameter_specs(),
+            fwi.process_gradient,
+            forw=None,
+        )
+    )
+    if fwi.model.vp.grad is None:
+        raise RuntimeError(f"{mode} processed vp.grad is None")
+    processed_grad = fwi.model.vp.grad.detach().clone()
     loss_epoch = float(sum(item.scalar for item in losses))
     return {
         "loss": loss_epoch,
@@ -275,6 +294,9 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
         "raw_grad": raw_grad,
         "raw_grad_finite": bool(torch.isfinite(raw_grad).all().cpu().item()),
         "raw_grad_health": tensor_health(raw_grad),
+        "processed_grad": processed_grad,
+        "processed_grad_finite": bool(torch.isfinite(processed_grad).all().cpu().item()),
+        "processed_grad_health": tensor_health(processed_grad),
         "timings": timings,
         "timing_total": sum(timings.values()),
     }
@@ -324,6 +346,10 @@ def compare(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, A
         "loss_abs_diff": abs(candidate["iteration"]["loss"] - reference["iteration"]["loss"]),
         "outputs": output_diffs,
         "raw_grad": profile.tensor_diff(reference["iteration"]["raw_grad"], candidate["iteration"]["raw_grad"]),
+        "processed_grad": profile.tensor_diff(
+            reference["iteration"]["processed_grad"],
+            candidate["iteration"]["processed_grad"],
+        ),
         "speedup": {
             "forward": reference["iteration"]["timings"]["forward"] / candidate["iteration"]["timings"]["forward"],
             "backward": reference["iteration"]["timings"]["backward"] / candidate["iteration"]["timings"]["backward"],
@@ -349,6 +375,8 @@ def public_variant(variant: Dict[str, Any]) -> Dict[str, Any]:
             "loss": iteration["loss"],
             "raw_grad_finite": iteration["raw_grad_finite"],
             "raw_grad_health": iteration["raw_grad_health"],
+            "processed_grad_finite": iteration["processed_grad_finite"],
+            "processed_grad_health": iteration["processed_grad_health"],
             "timings": iteration["timings"],
             "timing_total": iteration["timing_total"],
         },
@@ -376,6 +404,12 @@ def summarize_pair(pair: Dict[str, Any]) -> Dict[str, Any]:
         "raw_grad_health": {
             "reference": pair["reference"]["iteration"]["raw_grad_health"],
             "candidate": pair["candidate"]["iteration"]["raw_grad_health"],
+        },
+        "processed_grad_max_abs_diff": pair["comparison"]["processed_grad"]["max_abs_diff"],
+        "processed_grad_max_rel_diff": pair["comparison"]["processed_grad"]["max_rel_diff"],
+        "processed_grad_health": {
+            "reference": pair["reference"]["iteration"]["processed_grad_health"],
+            "candidate": pair["candidate"]["iteration"]["processed_grad_health"],
         },
         "speedup": pair["comparison"]["speedup"],
         "memory": pair["comparison"]["memory"],
