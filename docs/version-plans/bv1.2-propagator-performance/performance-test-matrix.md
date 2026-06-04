@@ -887,6 +887,33 @@ Interpretation:
   temporary tensors or NPU allocator peak behavior during the backward replay,
   not the forward cache, receiver output, or loss evaluation.
 
+## Remat Backward Internal Memory Breakdown
+
+The stage-memory diagnostic extends the opt-in remat backward stage timer and
+records current/peak memory inside each coarse backward stage. The case is the
+same 40-shot full-batch observed-pressure gate.
+
+| Stage | First chunk before | First chunk after | First chunk peak | Total seconds | Fraction of backward |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| replay states and divergence | `1033.2446 MiB` | `8363.3804 MiB` | `8377.5488 MiB` | `5.5095 s` | `29.04%` |
+| initialize gradient buffers | `8363.3804 MiB` | `8364.1152 MiB` | `8364.1152 MiB` | `0.0023 s` | `0.01%` |
+| reverse adjoint loop | `8364.1152 MiB` | `8374.5532 MiB` | `8444.6533 MiB` | `13.3738 s` | `70.49%` |
+
+Interpretation:
+
+- the large allocation already exists after replaying and retaining the chunk
+  `p/u/w` states and selected divergence values;
+- reverse-loop temporaries add only about `70 MiB` over the retained replay
+  state in the first chunk, so the `8 GiB` peak is not primarily caused by
+  `_backward_step_from_saved_divergence` temporaries;
+- `state_cache_stride=2` is not a fix in the current implementation: it moves
+  state storage into forward boundary caches and reaches `30316.6626 MiB`
+  forward peak memory for the same 40-shot full-batch case;
+- the next viable design should avoid storing all replayed `p/u/w` states while
+  also avoiding the current forward boundary-cache explosion. A useful target
+  is a streaming/block-local reverse replay that keeps only a small block of
+  states live at a time.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid

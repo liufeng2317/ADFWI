@@ -540,6 +540,17 @@ source. The next optimization/research boundary is now specific: inspect and
 reduce temporary tensors inside the rematerialized custom backward replay, or
 confirm that the excess is NPU allocator peak behavior.
 
+The internal stage-memory diagnostic shows that the retained replay state, not
+the reverse-step temporary tensors, dominates this peak. In the first backward
+chunk, `replay_states_and_divergence` raises current memory from
+`1033.2446 MiB` to `8363.3804 MiB` with peak `8377.5488 MiB`; the subsequent
+reverse adjoint loop peaks at `8444.6533 MiB`, only about `70 MiB` higher.
+The existing `state_cache_stride=2` path is not a solution for the full 40-shot
+case because it moves the state storage into forward boundary caches and peaks
+at `30316.6626 MiB` during forward. Therefore the next viable optimization is a
+new block-local reverse replay design that stores only a small local state
+window during backward without creating large forward boundary caches.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the

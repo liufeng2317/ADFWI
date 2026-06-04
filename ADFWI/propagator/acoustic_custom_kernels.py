@@ -31,6 +31,7 @@ from .acoustic_kernels import pad_torchSingle
 
 _REMAT_BACKWARD_STAGE_TIMING = False
 _REMAT_BACKWARD_STAGE_TIMES = {}
+_REMAT_BACKWARD_STAGE_MEMORY = {}
 
 
 def _sync_if_needed(device) -> None:
@@ -40,26 +41,74 @@ def _sync_if_needed(device) -> None:
         torch.cuda.synchronize(device)
 
 
+def _memory_api_for_device(device):
+    if device.type == "npu" and hasattr(torch, "npu"):
+        return torch.npu
+    if device.type == "cuda":
+        return torch.cuda
+    return None
+
+
+def _reset_peak_memory_if_available(device) -> None:
+    api = _memory_api_for_device(device)
+    if api is None:
+        return
+    if hasattr(api, "reset_peak_memory_stats"):
+        api.reset_peak_memory_stats()
+    elif hasattr(api, "reset_max_memory_allocated"):
+        api.reset_max_memory_allocated()
+
+
+def _memory_snapshot(device):
+    api = _memory_api_for_device(device)
+    if api is None or not hasattr(api, "memory_allocated"):
+        return {"current_allocated_mib": None, "peak_allocated_mib": None}
+    current = int(api.memory_allocated())
+    peak = int(api.max_memory_allocated()) if hasattr(api, "max_memory_allocated") else None
+    return {
+        "current_allocated_mib": current / (1024.0 * 1024.0),
+        "peak_allocated_mib": peak / (1024.0 * 1024.0) if peak is not None else None,
+    }
+
+
 @contextmanager
 def _stage_timer(name: str, device):
     if not _REMAT_BACKWARD_STAGE_TIMING:
         yield
         return
     _sync_if_needed(device)
+    _reset_peak_memory_if_available(device)
+    before_memory = _memory_snapshot(device)
     start = time.perf_counter()
     yield
     _sync_if_needed(device)
-    _REMAT_BACKWARD_STAGE_TIMES[name] = _REMAT_BACKWARD_STAGE_TIMES.get(name, 0.0) + (time.perf_counter() - start)
+    elapsed = time.perf_counter() - start
+    after_memory = _memory_snapshot(device)
+    _REMAT_BACKWARD_STAGE_TIMES[name] = _REMAT_BACKWARD_STAGE_TIMES.get(name, 0.0) + elapsed
+    entries = _REMAT_BACKWARD_STAGE_MEMORY.setdefault(name, [])
+    entries.append(
+        {
+            "seconds": elapsed,
+            "before": before_memory,
+            "after": after_memory,
+        }
+    )
 
 
 def clear_remat_backward_stage_timings() -> None:
     """Clear accumulated rematerialized backward stage timings."""
     _REMAT_BACKWARD_STAGE_TIMES.clear()
+    _REMAT_BACKWARD_STAGE_MEMORY.clear()
 
 
 def get_remat_backward_stage_timings() -> Dict[str, float]:
     """Return accumulated rematerialized backward stage timings."""
     return dict(_REMAT_BACKWARD_STAGE_TIMES)
+
+
+def get_remat_backward_stage_memory() -> Dict[str, list]:
+    """Return per-stage memory snapshots collected by the stage timer."""
+    return {name: list(entries) for name, entries in _REMAT_BACKWARD_STAGE_MEMORY.items()}
 
 
 @contextmanager
