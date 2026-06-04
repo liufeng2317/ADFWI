@@ -119,6 +119,7 @@ def test_acoustic_pressure_operator_rejects_unknown_backend():
 
     assert "compiled" in ACOUSTIC_OPERATOR_BACKENDS
     assert "torch_reference" in ACOUSTIC_OPERATOR_BACKENDS
+    assert "custom_autograd_forward" in ACOUSTIC_OPERATOR_BACKENDS
     with pytest.raises(ValueError, match="backend"):
         acoustic_pressure_operator(config, inputs, backend="unknown")
 
@@ -155,3 +156,37 @@ def test_acoustic_pressure_operator_torch_reference_matches_production_pressure_
     )
 
     torch.testing.assert_close(operator_pressure, production_record["p"], atol=0.0, rtol=0.0)
+
+
+def test_acoustic_pressure_operator_custom_autograd_forward_matches_reference():
+    config = _config()
+    inputs = _inputs(config)
+
+    reference_pressure = acoustic_pressure_operator(config, inputs, backend="torch_reference")
+    custom_pressure = acoustic_pressure_operator(config, inputs, backend="custom_autograd_forward")
+
+    torch.testing.assert_close(custom_pressure, reference_pressure, atol=0.0, rtol=0.0)
+
+
+def test_acoustic_pressure_operator_custom_autograd_forward_rejects_backward():
+    config = _config()
+    inputs = _inputs(config)
+    grad_inputs = AcousticOperatorInputs(
+        src_x=inputs.src_x,
+        src_z=inputs.src_z,
+        src_v=inputs.src_v,
+        rcv_x=inputs.rcv_x,
+        rcv_z=inputs.rcv_z,
+        damp=inputs.damp,
+        vp=inputs.vp.clone().requires_grad_(True),
+        rho=inputs.rho,
+    )
+
+    custom_pressure = acoustic_pressure_operator(
+        config,
+        grad_inputs,
+        backend="custom_autograd_forward",
+    )
+
+    with pytest.raises(RuntimeError, match="backward/vp gradient is not implemented"):
+        custom_pressure.sum().backward()

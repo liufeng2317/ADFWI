@@ -16,7 +16,9 @@ from torch import Tensor
 from .acoustic_kernels import forward_kernel
 
 ACOUSTIC_OPERATOR_STORAGE_MODES = frozenset({"device", "checkpoint", "none"})
-ACOUSTIC_OPERATOR_BACKENDS = frozenset({"compiled", "torch_reference"})
+ACOUSTIC_OPERATOR_BACKENDS = frozenset(
+    {"compiled", "torch_reference", "custom_autograd_forward"}
+)
 
 
 class CompiledAcousticOperatorUnavailable(RuntimeError):
@@ -178,6 +180,97 @@ def _torch_reference_pressure_operator(
     return record["p"]
 
 
+class _AcousticPressureForwardOnlyFunction(torch.autograd.Function):
+    """Forward-only custom-autograd shell for pressure receiver output.
+
+    This is the first implementation step toward a real custom acoustic
+    operator. Forward parity is tested through this shell before any backward
+    implementation is added. Calling `.backward()` through this backend is
+    intentionally rejected.
+    """
+
+    @staticmethod
+    def forward(
+        ctx,
+        vp: Tensor,
+        rho: Tensor,
+        damp: Tensor,
+        src_x: Tensor,
+        src_z: Tensor,
+        src_v: Tensor,
+        rcv_x: Tensor,
+        rcv_z: Tensor,
+        nx: int,
+        nz: int,
+        dx: float,
+        dz: float,
+        nt: int,
+        dt: float,
+        nabc: int,
+        free_surface: bool,
+        checkpoint_segments: int,
+    ) -> Tensor:
+        del ctx
+        record = forward_kernel(
+            nx,
+            nz,
+            dx,
+            dz,
+            nt,
+            dt,
+            nabc,
+            free_surface,
+            src_x,
+            src_z,
+            int(src_x.numel()),
+            src_v,
+            rcv_x,
+            rcv_z,
+            int(rcv_x.numel()),
+            damp,
+            vp,
+            rho,
+            checkpoint_segments=checkpoint_segments,
+            save_forward_wavefield=False,
+            pressure_only=True,
+            device=vp.device,
+            dtype=vp.dtype,
+        )
+        return record["p"]
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        raise RuntimeError(
+            "custom_autograd_forward only implements forward pressure parity; "
+            "backward/vp gradient is not implemented yet"
+        )
+
+
+def _custom_autograd_forward_pressure_operator(
+    config: AcousticOperatorConfig,
+    inputs: AcousticOperatorInputs,
+) -> Tensor:
+    return _AcousticPressureForwardOnlyFunction.apply(
+        inputs.vp,
+        inputs.rho,
+        inputs.damp,
+        inputs.src_x,
+        inputs.src_z,
+        inputs.src_v,
+        inputs.rcv_x,
+        inputs.rcv_z,
+        config.nx,
+        config.nz,
+        config.dx,
+        config.dz,
+        config.nt,
+        config.dt,
+        config.nabc,
+        config.free_surface,
+        config.checkpoint_segments,
+    )
+
+
 def acoustic_pressure_operator(
     config: AcousticOperatorConfig,
     inputs: AcousticOperatorInputs,
@@ -188,6 +281,8 @@ def acoustic_pressure_operator(
 
     `backend="torch_reference"` uses the current production kernel only to
     validate the operator contract and future compiled backend parity.
+    `backend="custom_autograd_forward"` wraps the same forward-pressure formula
+    in a custom autograd shell, but intentionally has no backward yet.
     `backend="compiled"` is reserved for the future low-level implementation.
     """
 
@@ -198,6 +293,8 @@ def acoustic_pressure_operator(
 
     if backend == "torch_reference":
         return _torch_reference_pressure_operator(config, inputs)
+    if backend == "custom_autograd_forward":
+        return _custom_autograd_forward_pressure_operator(config, inputs)
 
     raise CompiledAcousticOperatorUnavailable(
         "compiled acoustic pressure operator is not implemented yet; "
