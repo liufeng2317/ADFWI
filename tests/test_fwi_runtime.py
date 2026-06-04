@@ -216,8 +216,15 @@ class FWIRuntimeTests(unittest.TestCase):
         calls = []
 
         class Propagator:
-            def forward(self, *, shot_index, checkpoint_segments):
-                calls.append((shot_index, checkpoint_segments))
+            def forward(
+                self,
+                *,
+                shot_index,
+                checkpoint_segments,
+                save_forward_wavefield=True,
+                pressure_only=False,
+            ):
+                calls.append((shot_index, checkpoint_segments, save_forward_wavefield, pressure_only))
                 return {"p": torch.tensor([[1.0]])}
 
         result = acoustic_forward_batch(Propagator(), batch_range, checkpoint_segments=2)
@@ -225,7 +232,37 @@ class FWIRuntimeTests(unittest.TestCase):
         self.assertIsInstance(result, ForwardBatchRecord)
         self.assertIs(result.shot_index, batch_range.shot_index)
         self.assertEqual(result.record_waveform["p"].tolist(), [[1.0]])
-        self.assertEqual(calls, [(batch_range.shot_index, 2)])
+        self.assertEqual(calls, [(batch_range.shot_index, 2, True, False)])
+
+    def test_acoustic_forward_batch_forwards_storage_policy(self):
+        batch_range = SimpleNamespace(shot_index=torch.tensor([1, 3]))
+        calls = []
+
+        class Propagator:
+            def forward(
+                self,
+                *,
+                shot_index,
+                checkpoint_segments,
+                save_forward_wavefield=True,
+                pressure_only=False,
+                storage_policy=None,
+            ):
+                calls.append(
+                    (shot_index, checkpoint_segments, save_forward_wavefield, pressure_only, storage_policy)
+                )
+                return {"p": torch.tensor([[1.0]])}
+
+        acoustic_forward_batch(
+            Propagator(),
+            batch_range,
+            checkpoint_segments=10,
+            save_forward_wavefield=False,
+            pressure_only=True,
+            storage_policy="pressure_remat",
+        )
+
+        self.assertEqual(calls, [(batch_range.shot_index, 10, False, True, "pressure_remat")])
 
     def test_elastic_forward_batch_preserves_fd_order_and_shot_index(self):
         batch_range = SimpleNamespace(shot_index=torch.tensor([0]))

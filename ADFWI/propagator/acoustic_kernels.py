@@ -10,7 +10,6 @@
 import torch
 from torch import Tensor
 from torch.utils.checkpoint import checkpoint
-import numpy as np
 from typing import Tuple,Dict
 
 @torch.jit.script
@@ -40,11 +39,13 @@ def pad_torchSingle(v: torch.Tensor, pml: int, nz: int, nx: int, ns: int, device
 @torch.jit.script
 def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
                  nabc: int, free_surface: bool,                               # Model settings
-                 src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_v: torch.Tensor,     # Source
+                 src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_index: torch.Tensor, src_v: torch.Tensor,     # Source
                  rcv_x: torch.Tensor, rcv_z: torch.Tensor, rcv_n: int,                  # Receiver
                  kappa1: torch.Tensor, alpha1: torch.Tensor, kappa2: torch.Tensor, alpha2: torch.Tensor,
                  kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
                  p: torch.Tensor, u: torch.Tensor, w: torch.Tensor,
+                 save_forward_wavefield: bool = True,
+                 accumulate_wavefield_in_grad: bool = True,
                  device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Description
@@ -62,6 +63,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         src_x (Tensor)                  : source location in the X-axis
         src_z (Tensor)                  : source location in the Z-axis
         src_n (Tensor)                  : the number of sources
+        src_index (Tensor)              : source batch indices for vectorized source injection
         src_v (Tensor)                  : wavelets for each source
         rcv_x (Tensor)                  : receiver location in the X-axis
         rcv_z (Tensor)                  : receiver location in the Z-axis
@@ -76,6 +78,8 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         p (Tensor)                      : pressure
         u (Tensor)                      : vertical velocity (vx)
         w (Tensor)                      : horizontal velocity (vz)
+        save_forward_wavefield (bool)   : whether to accumulate detached forward wavefield summaries
+        accumulate_wavefield_in_grad (bool): whether to accumulate detached summaries when grad is enabled
         device (str)                    : device type
         dtype (torch.dtype)             : data type for tensors
     
@@ -110,8 +114,6 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
     forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
     forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
 
-    wavefields = []
-    
     for it in range(nt):
         # Update pressure
         p[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] = (
@@ -133,7 +135,7 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         # single source
         if src_z.dim() == 1:
             src_update = dt * (src_v[it] if len(src_v.shape) == 1 else src_v[:, it])
-            p[torch.arange(src_n), src_z, src_x] = p[torch.arange(src_n), src_z, src_x] + src_update
+            p[src_index, src_z, src_x] = p[src_index, src_z, src_x] + src_update
         else:
         # encoded source
             for i in range(src_n):
@@ -177,18 +179,100 @@ def step_forward(nx: int, nz: int, dx: float, dz: float, dt: float,
         rcv_u[:, it, :] = u[:, rcv_z, rcv_x]
         rcv_w[:, it, :] = w[:, rcv_z, rcv_x]
 
-        # Accumulate forward wavefields
-        forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
-        
-    # if you want to save the wavefield, you need to comments the @torch.jit.script
-    #     if it % 10 == 0:
-    #         wavefields.append(p[:,nabc:nabc + nz, nabc:nabc + nx].cpu().detach().numpy())
-    # wavefields = np.array(wavefields)
-    # np.savez(f"/ailab/user/liufeng1/project/04_Inversion/ADFWI-github/examples/acoustic/01-model-test/01-Marmousi2/data/wavefield/wavefields.npz",data=wavefields)
-    
+        # Accumulate detached forward wavefields for gradient processing and visualization.
+        if save_forward_wavefield and (accumulate_wavefield_in_grad or not torch.is_grad_enabled()):
+            forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+            forward_wavefield_u = forward_wavefield_u + torch.sum(u * u, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+            forward_wavefield_w = forward_wavefield_w + torch.sum(w * w, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
     return p, u, w, rcv_p, rcv_u, rcv_w, forward_wavefield_p, forward_wavefield_u, forward_wavefield_w
+
+
+@torch.jit.script
+def step_forward_pressure_only(nx: int, nz: int, dx: float, dz: float, dt: float,
+                               nabc: int, free_surface: bool,
+                               src_x: torch.Tensor, src_z: torch.Tensor, src_n: int, src_index: torch.Tensor, src_v: torch.Tensor,
+                               rcv_x: torch.Tensor, rcv_z: torch.Tensor, rcv_n: int,
+                               kappa1: torch.Tensor, alpha1: torch.Tensor, kappa2: torch.Tensor, alpha2: torch.Tensor,
+                               kappa3: torch.Tensor, c1_staggered: float, c2_staggered: float,
+                               p: torch.Tensor, u: torch.Tensor, w: torch.Tensor,
+                               save_forward_wavefield: bool = True,
+                               accumulate_wavefield_in_grad: bool = True,
+                               device: torch.device = torch.device("cpu"), dtype: torch.dtype = torch.float32) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Forward segment for acoustic FWI pressure-only loss paths.
+
+    This keeps the same wavefield update equations as ``step_forward`` but only
+    records receiver pressure and pressure illumination. It is not the default
+    propagator contract; callers must use it only when ``u/w`` receiver outputs
+    and ``u/w`` forward-wavefield summaries are not consumed.
+    """
+    p = p.clone()
+    u = u.clone()
+    w = w.clone()
+
+    nt = src_v.shape[-1]
+    free_surface_start = nabc if free_surface else 1
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + 2 * nabc
+
+    rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    forward_wavefield_p = torch.zeros((nz, nx), dtype=dtype, device=device)
+
+    for it in range(nt):
+        p[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] = (
+            (1.0 - kappa1[free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2]) *
+            p[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] -
+            alpha1[free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] * (
+                c1_staggered * (u[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] -
+                                u[:, free_surface_start + 1:nz_pml - 2, 1:nx_pml - 3] +
+                                w[:, free_surface_start + 1:nz_pml - 2, 2:nx_pml - 2] -
+                                w[:, free_surface_start:nz_pml - 3, 2:nx_pml - 2]) +
+                c2_staggered * (u[:, free_surface_start + 1:nz_pml - 2, 3:nx_pml - 1] -
+                                u[:, free_surface_start + 1:nz_pml - 2, 0:nx_pml - 4] +
+                                w[:, free_surface_start + 2:nz_pml - 1, 2:nx_pml - 2] -
+                                w[:, free_surface_start - 1:nz_pml - 4, 2:nx_pml - 2])
+            )
+        )
+
+        if src_z.dim() == 1:
+            src_update = dt * (src_v[it] if len(src_v.shape) == 1 else src_v[:, it])
+            p[src_index, src_z, src_x] = p[src_index, src_z, src_x] + src_update
+        else:
+            for i in range(src_n):
+                src_update = dt * (src_v[i,it] if len(src_v.shape) == 2 else src_v[i,:, it])
+                p[i,src_z[i],src_x[i]] = p[i,src_z[i],src_x[i]] + src_update
+
+        if free_surface:
+            p[:, free_surface_start - 1, :] = -p[:, free_surface_start + 1, :]
+
+        u[:, free_surface_start:nz_pml - 1, 1:nx_pml - 2] = (
+            (1.0 - kappa2[free_surface_start:nz_pml - 1, 1:nx_pml - 2]) *
+            u[:, free_surface_start:nz_pml - 1, 1:nx_pml - 2] -
+            alpha2[free_surface_start:nz_pml - 1, 1:nx_pml - 2] * (
+                c1_staggered * (p[:, free_surface_start:nz_pml - 1, 2:nx_pml - 1] -
+                                p[:, free_surface_start:nz_pml - 1, 1:nx_pml - 2]) +
+                c2_staggered * (p[:, free_surface_start:nz_pml - 1, 3:nx_pml] -
+                                p[:, free_surface_start:nz_pml - 1, 0:nx_pml - 3])
+            )
+        )
+
+        w[:, free_surface_start:nz_pml - 2, 1:nx_pml - 1] = (
+            (1.0 - kappa3[free_surface_start:nz_pml - 2, 1:nx_pml - 1]) *
+            w[:, free_surface_start:nz_pml - 2, 1:nx_pml - 1] -
+            alpha2[free_surface_start:nz_pml - 2, 1:nx_pml - 1] * (
+                c1_staggered * (p[:, free_surface_start + 1:nz_pml - 1, 1:nx_pml - 1] -
+                                p[:, free_surface_start:nz_pml - 2, 1:nx_pml - 1]) +
+                c2_staggered * (p[:, free_surface_start + 2:nz_pml, 1:nx_pml - 1] -
+                                p[:, free_surface_start - 1:nz_pml - 3, 1:nx_pml - 1])
+            )
+        )
+
+        if free_surface:
+            w[:, free_surface_start - 1, :] = w[:, free_surface_start, :]
+
+        rcv_p[:, it, :] = p[:, rcv_z, rcv_x]
+        if save_forward_wavefield and (accumulate_wavefield_in_grad or not torch.is_grad_enabled()):
+            forward_wavefield_p = forward_wavefield_p + torch.sum(p * p, dim=0)[nabc:nabc + nz, nabc:nabc + nx].detach()
+    return p, u, w, rcv_p, forward_wavefield_p
 
 
 def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
@@ -198,6 +282,8 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
                    damp: torch.Tensor,                                                              # PML
                    v: torch.Tensor, rho: torch.Tensor,                                              # Velocity model
                    checkpoint_segments: int = 1,                                                    # Finite Difference
+                   save_forward_wavefield: bool = True,
+                   pressure_only: bool = False,
                    device: torch.device = torch.device('cpu'), dtype: torch.dtype = torch.float32
                    ) -> Dict[str, torch.Tensor]:  # Changed return type to Dict for clarity
     """ Forward simulation of Acoustic Waveform Equation
@@ -223,6 +309,10 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
         v (Tensor)                      : P-wave velocity (km/s)
         rho (Tensor)                    : Density (kg/m^3)
         checkpoint_segments (int)       : Segments of the checkpoints for saving memory
+        save_forward_wavefield (bool)   : Whether to accumulate detached forward wavefield summaries
+        pressure_only (bool)            : Opt-in FWI path that records only
+                                          pressure outputs used by acoustic
+                                          pressure loss and illumination
         device (str)                    : Device type, default is "cpu"
         dtype (torch.dtype)             : Data type for tensors, default is torch.float32
     
@@ -250,6 +340,7 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
     
     rcv_x = rcv_x + nabc
     rcv_z = rcv_z + nabc
+    src_index = torch.arange(src_n, dtype=torch.long, device=device)
     
     # Initialize pressure, velocity fields
     p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
@@ -258,11 +349,19 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
 
     # Initialize recorded waveforms
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
-    rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    if pressure_only:
+        rcv_u = None
+        rcv_w = None
+    else:
+        rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+        rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     forward_wavefield_p = torch.zeros((nz, nx), dtype=dtype, device=device)
-    forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
-    forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
+    if pressure_only:
+        forward_wavefield_u = None
+        forward_wavefield_w = None
+    else:
+        forward_wavefield_u = torch.zeros((nz, nx), dtype=dtype, device=device)
+        forward_wavefield_w = torch.zeros((nz, nx), dtype=dtype, device=device)
 
     # Coefficients for the staggered grid
     c1_staggered = 9.0 / 8.0
@@ -281,31 +380,101 @@ def forward_kernel(nx: int, nz: int, dx: float, dz: float, nt: int, dt: float,
     
     k = 0
     for i, chunk in enumerate(torch.chunk(src_v, checkpoint_segments, dim=-1)):
-        # Step forward
-        p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
-            checkpoint(step_forward,
-                       nx, nz, dx, dz, dt,
-                       nabc, free_surface,
-                       src_x, src_z, src_n, chunk,
-                       rcv_x, rcv_z, rcv_n,
-                       kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
-                       p, u, w,
-                       device, dtype, 
-                       use_reentrant=True
-                       )
+        if pressure_only:
+            step_fn = step_forward_pressure_only
+            if checkpoint_segments == 1:
+                p, u, w, rcv_p_temp, forward_wavefield_p_temp = step_fn(
+                    nx, nz, dx, dz, dt,
+                    nabc, free_surface,
+                    src_x, src_z, src_n, src_index, chunk,
+                    rcv_x, rcv_z, rcv_n,
+                    kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                    p, u, w,
+                    save_forward_wavefield,
+                    True,
+                    device, dtype,
+                )
+            else:
+                p, u, w, rcv_p_temp, forward_wavefield_p_temp = checkpoint(
+                    step_fn,
+                    nx, nz, dx, dz, dt,
+                    nabc, free_surface,
+                    src_x, src_z, src_n, src_index, chunk,
+                    rcv_x, rcv_z, rcv_n,
+                    kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                    p, u, w,
+                    save_forward_wavefield,
+                    False,
+                    device, dtype,
+                    use_reentrant=True,
+                )
+        elif checkpoint_segments == 1:
+            # No time segmentation is requested, so checkpointing only adds
+            # autograd recomputation overhead without reducing segment count.
+            p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
+                step_forward(
+                    nx, nz, dx, dz, dt,
+                    nabc, free_surface,
+                    src_x, src_z, src_n, src_index, chunk,
+                    rcv_x, rcv_z, rcv_n,
+                    kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                    p, u, w,
+                    save_forward_wavefield,
+                    True,
+                    device, dtype,
+                )
+        else:
+            # Step forward with PyTorch checkpointing for segmented memory savings.
+            #
+            # Performance-optimization route:
+            # 1. Keep this production checkpoint contract as the numerical
+            #    reference: receiver outputs, loss, and raw vp.grad must match.
+            # 2. Optimize only measured replay overhead in or around
+            #    step_forward, such as invariant tensor setup, repeated small
+            #    allocations, and source/receiver index preparation.
+            # 3. Do not replace this with the experimental custom-autograd or
+            #    boundary-saving kernels without a separate full parity gate;
+            #    those paths have different memory/replay contracts.
+            # 4. Any accepted edit here must be tested with checkpoint_segments
+            #    > 1 and must compare forward, backward, raw gradient, and peak
+            #    memory against this current production path.
+            p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp, forward_wavefield_p_temp, forward_wavefield_u_temp, forward_wavefield_w_temp = \
+                checkpoint(step_forward,
+                           nx, nz, dx, dz, dt,
+                           nabc, free_surface,
+                           src_x, src_z, src_n, src_index, chunk,
+                           rcv_x, rcv_z, rcv_n,
+                           kappa1, alpha1, kappa2, alpha2, kappa3, c1_staggered, c2_staggered,
+                           p, u, w,
+                           save_forward_wavefield,
+                           False,
+                           device, dtype,
+                           use_reentrant=True
+                           )
 
         # Save the waveform recorded on the receiver
         rcv_p[:, k:k + chunk.shape[-1]] = rcv_p_temp
-        rcv_u[:, k:k + chunk.shape[-1]] = rcv_u_temp
-        rcv_w[:, k:k + chunk.shape[-1]] = rcv_w_temp
+        if not pressure_only:
+            rcv_u[:, k:k + chunk.shape[-1]] = rcv_u_temp
+            rcv_w[:, k:k + chunk.shape[-1]] = rcv_w_temp
 
-        # Accumulate the forward wavefield
-        forward_wavefield_p = forward_wavefield_p + forward_wavefield_p_temp.detach()
-        forward_wavefield_u = forward_wavefield_u + forward_wavefield_u_temp.detach()
-        forward_wavefield_w = forward_wavefield_w + forward_wavefield_w_temp.detach()
+        # Accumulate the detached forward wavefield summaries when requested.
+        if save_forward_wavefield:
+            forward_wavefield_p = forward_wavefield_p + forward_wavefield_p_temp.detach()
+            if not pressure_only:
+                forward_wavefield_u = forward_wavefield_u + forward_wavefield_u_temp.detach()
+                forward_wavefield_w = forward_wavefield_w + forward_wavefield_w_temp.detach()
             
         k = k + chunk.shape[-1]
     
+    if pressure_only:
+        # Preserve the public waveform dictionary contract while avoiding
+        # up-front allocation of velocity outputs that pressure-loss FWI ignores.
+        rcv_u = torch.zeros_like(rcv_p)
+        rcv_w = torch.zeros_like(rcv_p)
+        forward_wavefield_u = torch.zeros_like(forward_wavefield_p)
+        forward_wavefield_w = torch.zeros_like(forward_wavefield_p)
+
     record_waveform = {
         "p": rcv_p,
         "u": rcv_u,

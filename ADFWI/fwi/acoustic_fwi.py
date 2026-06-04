@@ -61,6 +61,21 @@ def acoustic_gradient_parameter_specs():
     return parameter_specs(ACOUSTIC_PARAMETER_NAMES)
 
 
+def resolve_acoustic_pressure_only_policy(pressure_only):
+    """Resolve AcousticFWI's pressure-only policy.
+
+    Acoustic FWI builds the data loss from pressure records only. The default
+    ``"auto"`` policy therefore uses the pressure-only propagator path. Explicit
+    booleans preserve caller control for compatibility and benchmarking.
+    """
+
+    if pressure_only == "auto":
+        return True
+    if isinstance(pressure_only, bool):
+        return pressure_only
+    raise ValueError("pressure_only must be True, False, or 'auto'")
+
+
 
 class AcousticFWI(torch.nn.Module):
     """Acoustic Full waveform inversion class
@@ -282,6 +297,38 @@ class AcousticFWI(torch.nn.Module):
             processor_type=GradProcessor,
         )
 
+    def _active_gradient_processors(self):
+        """Yield gradient processors for trainable acoustic parameters."""
+
+        for name, idx in acoustic_gradient_parameter_specs():
+            if not self.model.get_requires_grad(name):
+                continue
+            if self.gradient_processor is None:
+                yield name, None
+            elif isinstance(self.gradient_processor, GradProcessor):
+                yield name, self.gradient_processor
+            else:
+                try:
+                    yield name, self.gradient_processor[idx]
+                except (IndexError, TypeError):
+                    yield name, None
+
+    def _validate_forward_wavefield_policy(self, save_forward_wavefield):
+        """Guard FWI paths that require forward-wavefield illumination."""
+
+        if save_forward_wavefield:
+            return
+        unsafe_parameters = []
+        for name, processor in self._active_gradient_processors():
+            if processor is None or getattr(processor, "forw_illumination", None) is not False:
+                unsafe_parameters.append(name)
+        if unsafe_parameters:
+            raise ValueError(
+                "save_forward_wavefield=False requires all active acoustic "
+                "gradient processors to set forw_illumination=False; unsafe "
+                f"parameters: {unsafe_parameters}"
+            )
+
     def save_figure(self,i,data,model_type="vp"):
         if self.save_fig_epoch == -1:
             return
@@ -322,6 +369,8 @@ class AcousticFWI(torch.nn.Module):
                 iteration:int,
                 batch_size:Optional[int]            = None,
                 checkpoint_segments:Optional[int]   = 1 ,
+                save_forward_wavefield:bool         = True,
+                pressure_only                       = "auto",
                 start_iter                          = 0,
                 cutoff_freq                         = None,
                 ):
@@ -331,11 +380,15 @@ class AcousticFWI(torch.nn.Module):
         iteration (int)                     : The maximum iteration number in the inversion process.
         batch_size (Optional[int])          : The number of shots (data samples) in each batch. Default is None, meaning use all available shots.
         checkpoint_segments (Optional[int]) : The number of segments into which the time series should be divided for memory efficiency. Default is 1, which means no segmentation.
+        save_forward_wavefield (bool)           : Whether to accumulate detached forward wavefield summaries. Set False only when gradient processors do not use forward illumination.
+        pressure_only (bool | "auto")           : Acoustic pressure-output policy. "auto" uses pressure-only propagation for standard AcousticFWI pressure loss; False keeps the full p/u/w path for compatibility checks.
         start_iter (int)                    : The starting iteration for the optimization process (e.g., for optimizers like Adam/AdamW, and learning rate schedulers like step_lr). Default is 0.
         cutoff_freq (Optional[float])       : The cutoff frequency for low-pass filtering, if specified. Default is None (no filtering applied).
         """
+        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only)
+        self._validate_forward_wavefield_policy(save_forward_wavefield)
         if isinstance(self.optimizer,torch.optim.LBFGS) or isinstance(self.optimizer,NLCG):
-            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,start_iter=start_iter,cutoff_freq=cutoff_freq)
+            return self.forward_closure(iteration=iteration,batch_size=batch_size,checkpoint_segments=checkpoint_segments,save_forward_wavefield=save_forward_wavefield,pressure_only=pressure_only,start_iter=start_iter,cutoff_freq=cutoff_freq)
 
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
@@ -356,6 +409,8 @@ class AcousticFWI(torch.nn.Module):
                     propagator=self.propagator,
                     batch_range=batch_range,
                     checkpoint_segments=checkpoint_segments,
+                    save_forward_wavefield=save_forward_wavefield,
+                    pressure_only=pressure_only,
                     observed_pressure=self.obs_p,
                     prepare_loss_pair=self._prepare_loss_pair,
                     loss_fn=self.loss_fn,
@@ -392,11 +447,15 @@ class AcousticFWI(torch.nn.Module):
                 iteration:int,
                 batch_size:Optional[int]            = None,
                 checkpoint_segments:Optional[int]   = 1 ,
+                save_forward_wavefield:bool         = True,
+                pressure_only                       = "auto",
                 start_iter                          = 0 ,
                 cutoff_freq                         = None,
                 ):
         """ inversion using closure version ==> LBFGS,NLCG
         """
+        pressure_only = resolve_acoustic_pressure_only_policy(pressure_only)
+        self._validate_forward_wavefield_policy(save_forward_wavefield)
         n_shots = self.propagator.src_n
         batch_ranges = list(iter_batch_ranges(n_shots, batch_size))
                 
@@ -419,6 +478,8 @@ class AcousticFWI(torch.nn.Module):
                         propagator=self.propagator,
                         batch_range=batch_range,
                         checkpoint_segments=checkpoint_segments,
+                        save_forward_wavefield=save_forward_wavefield,
+                        pressure_only=pressure_only,
                         observed_pressure=self.obs_p,
                         prepare_loss_pair=self._prepare_loss_pair,
                         loss_fn=self.loss_fn,

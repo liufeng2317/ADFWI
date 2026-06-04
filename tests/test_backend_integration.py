@@ -5,7 +5,7 @@ import torch
 
 from ADFWI.backends import configure_backend, get_backend
 from ADFWI.model import AcousticModel, IsotropicElasticModel
-from ADFWI.propagator import AcousticPropagator, ElasticPropagator
+from ADFWI.propagator import AcousticPropagator, ElasticPropagator, GradProcessor
 from ADFWI.fwi import AcousticFWI, ElasticFWI
 from ADFWI.fwi.regularization import regularization_Tikhonov_1order
 from ADFWI.fwi.misfit import Misfit_waveform_L2
@@ -113,6 +113,196 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(propagator.wavelet.device, propagator.device)
         self.assertTrue(np.array_equal(propagator.receiver_masks, survey.receiver_masks))
         self.assertFalse(propagator.receiver_masks_obs)
+
+    def test_acoustic_forward_wavefield_output_can_be_skipped_without_changing_receiver_gradient(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        full_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        skipped_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        full_propagator = AcousticPropagator(full_model, survey)
+        skipped_propagator = AcousticPropagator(skipped_model, survey)
+
+        full_record = full_propagator.forward(checkpoint_segments=1, save_forward_wavefield=True)
+        skipped_record = skipped_propagator.forward(checkpoint_segments=1, save_forward_wavefield=False)
+        full_loss = full_record["p"].pow(2).mean()
+        skipped_loss = skipped_record["p"].pow(2).mean()
+        full_loss.backward()
+        skipped_loss.backward()
+
+        for key in ("p", "u", "w"):
+            self.assertTrue(torch.equal(full_record[key], skipped_record[key]), key)
+        self.assertTrue(torch.equal(full_model.vp.grad, skipped_model.vp.grad))
+        self.assertEqual(float(full_loss.item()), float(skipped_loss.item()))
+        self.assertGreater(float(torch.linalg.norm(full_record["forward_wavefield_p"]).item()), 0.0)
+        self.assertEqual(float(torch.linalg.norm(skipped_record["forward_wavefield_p"]).item()), 0.0)
+
+    def test_acoustic_pressure_only_matches_pressure_loss_and_gradient(self):
+        configure_backend("cpu", dtype=torch.float64)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        full_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        pressure_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        full_propagator = AcousticPropagator(full_model, survey)
+        pressure_propagator = AcousticPropagator(pressure_model, survey)
+
+        full_record = full_propagator.forward(checkpoint_segments=2, save_forward_wavefield=True)
+        pressure_record = pressure_propagator.forward(
+            checkpoint_segments=2,
+            save_forward_wavefield=True,
+            pressure_only=True,
+        )
+        full_loss = full_record["p"].pow(2).mean()
+        pressure_loss = pressure_record["p"].pow(2).mean()
+        full_loss.backward()
+        pressure_loss.backward()
+
+        self.assertTrue(torch.equal(full_record["p"], pressure_record["p"]))
+        self.assertTrue(torch.equal(full_record["forward_wavefield_p"], pressure_record["forward_wavefield_p"]))
+        self.assertEqual(float(full_loss.item()), float(pressure_loss.item()))
+        self.assertTrue(torch.allclose(full_model.vp.grad, pressure_model.vp.grad, atol=1e-10, rtol=1e-8))
+        for key in ("u", "w", "forward_wavefield_u", "forward_wavefield_w"):
+            self.assertEqual(float(torch.linalg.norm(pressure_record[key]).item()), 0.0, key)
+
+    def test_acoustic_remat_pressure_strategy_matches_default_pressure_loss(self):
+        configure_backend("cpu", dtype=torch.float64)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        default_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        custom_model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        default_propagator = AcousticPropagator(default_model, survey)
+        custom_propagator = AcousticPropagator(custom_model, survey)
+
+        default_record = default_propagator.forward(
+            checkpoint_segments=1,
+            save_forward_wavefield=False,
+            pressure_only=True,
+        )
+        custom_record = custom_propagator.forward(
+            checkpoint_segments=1,
+            save_forward_wavefield=False,
+            pressure_only=True,
+            storage_policy="pressure_remat",
+        )
+        default_loss = default_record["p"].pow(2).mean()
+        custom_loss = custom_record["p"].pow(2).mean()
+        default_loss.backward()
+        custom_loss.backward()
+
+        self.assertTrue(torch.allclose(default_record["p"], custom_record["p"], atol=0.0, rtol=0.0))
+        self.assertEqual(float(default_loss.item()), float(custom_loss.item()))
+        self.assertTrue(torch.allclose(default_model.vp.grad, custom_model.vp.grad, atol=1e-10, rtol=1e-8))
+
+    def test_acoustic_remat_pressure_strategy_rejects_unsupported_options(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+
+        with self.assertRaisesRegex(ValueError, "checkpoint_segments must be positive"):
+            propagator.forward(
+                checkpoint_segments=0,
+                save_forward_wavefield=False,
+                pressure_only=True,
+                storage_policy="pressure_remat",
+            )
+        with self.assertRaisesRegex(ValueError, "save_forward_wavefield=True"):
+            propagator.forward(
+                checkpoint_segments=1,
+                save_forward_wavefield=True,
+                pressure_only=True,
+                storage_policy="pressure_remat",
+            )
+        with self.assertRaisesRegex(ValueError, "requires pressure_only=True"):
+            propagator.forward(
+                checkpoint_segments=1,
+                save_forward_wavefield=False,
+                pressure_only=False,
+                storage_policy="pressure_remat",
+            )
+
+    def test_acoustic_fwi_rejects_skipped_forward_wavefield_when_illumination_is_active(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            gradient_processor=GradProcessor(forw_illumination=True),
+            cache_result=False,
+        )
+
+        with self.assertRaisesRegex(ValueError, "forw_illumination=False"):
+            fwi.forward(iteration=0, save_forward_wavefield=False)
+
+    def test_acoustic_fwi_allows_skipped_forward_wavefield_without_illumination(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+        propagator = AcousticPropagator(model, survey)
+        obs_data = SeismicData(survey)
+        obs_data.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+        fwi = AcousticFWI(
+            propagator,
+            model,
+            optimizer,
+            scheduler,
+            Misfit_waveform_L2(dt=survey.source.dt),
+            obs_data,
+            gradient_processor=GradProcessor(forw_illumination=False),
+            cache_result=False,
+        )
+
+        fwi.forward(iteration=0, save_forward_wavefield=False)
+
+    def test_acoustic_fwi_skipped_forward_wavefield_matches_default_without_illumination(self):
+        configure_backend("cpu", dtype=torch.float32)
+        survey = self._survey()
+        vp, rho = self._model_arrays()
+        observed = SeismicData(survey)
+        observed.data = {"p": np.zeros((1, 8, 1), dtype=np.float32)}
+
+        def build_fwi():
+            model = AcousticModel(0, 0, 8, 6, 10, 10, vp, rho, vp_grad=True)
+            propagator = AcousticPropagator(model, survey)
+            optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
+            fwi = AcousticFWI(
+                propagator,
+                model,
+                optimizer,
+                scheduler,
+                Misfit_waveform_L2(dt=survey.source.dt),
+                observed,
+                gradient_processor=GradProcessor(forw_illumination=False, norm_grad=False),
+                waveform_normalize=False,
+                cache_result=False,
+            )
+            return fwi
+
+        default_fwi = build_fwi()
+        skipped_fwi = build_fwi()
+
+        default_fwi.forward(iteration=1, save_forward_wavefield=True)
+        skipped_fwi.forward(iteration=1, save_forward_wavefield=False)
+
+        self.assertEqual(default_fwi.iter_loss, skipped_fwi.iter_loss)
+        self.assertTrue(torch.equal(default_fwi.model.vp, skipped_fwi.model.vp))
+        self.assertTrue(torch.equal(default_fwi.model.vp.grad, skipped_fwi.model.vp.grad))
 
     def test_explicit_model_device_remains_supported(self):
         configure_backend("cpu")

@@ -64,6 +64,8 @@ def apply_acoustic_batch_loss_step(
     propagator,
     batch_range,
     checkpoint_segments,
+    save_forward_wavefield=True,
+    pressure_only=False,
     observed_pressure,
     prepare_loss_pair,
     loss_fn,
@@ -76,7 +78,13 @@ def apply_acoustic_batch_loss_step(
 ) -> AcousticBatchStepResult:
     """Run one acoustic FWI batch and apply the shared loss/backward step."""
 
-    forward_batch = acoustic_forward_batch(propagator, batch_range, checkpoint_segments)
+    forward_batch = acoustic_forward_batch(
+        propagator,
+        batch_range,
+        checkpoint_segments,
+        save_forward_wavefield=save_forward_wavefield,
+        pressure_only=pressure_only,
+    )
     loss_input = acoustic_pressure_loss_input(
         forward_batch.record_waveform,
         observed_pressure,

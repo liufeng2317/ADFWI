@@ -26,7 +26,7 @@ from ADFWI.propagator import GradProcessor, TorchGradProcessor
 from scripts.smoke.acoustic_backend_smoke import parse_dtype
 
 
-PROCESSOR_CASES = ("norm", "marine_smooth", "land_smooth", "illumination")
+PROCESSOR_CASES = ("norm", "marine_smooth", "land_smooth", "illumination", "mask_illumination")
 STRICT_RTOL = 1e-5
 STRICT_ATOL = 2e-3
 TOLERANCE_PROFILES = {
@@ -141,6 +141,20 @@ def case_config(name: str, grad: np.ndarray, forw: Optional[np.ndarray]) -> Dict
                 "grad_mute": 0,
                 "grad_smooth": 0,
                 "grad_mask": None,
+                "norm_grad": True,
+                "forw_illumination": True,
+                "marine_or_land": "land",
+            },
+            "forw": forw,
+        }
+    if name == "mask_illumination":
+        grad_mask = np.ones_like(grad, dtype=np.float32)
+        grad_mask[: min(12, grad_mask.shape[0]), :] = 0.0
+        return {
+            "processor_kwargs": {
+                "grad_mute": 0,
+                "grad_smooth": 0,
+                "grad_mask": grad_mask,
                 "norm_grad": True,
                 "forw_illumination": True,
                 "marine_or_land": "land",
@@ -274,7 +288,7 @@ def run_case(
     return {
         "case": name,
         "status": "failed" if failed else "ok",
-        "processor_kwargs": processor_kwargs,
+        "processor_kwargs": serializable_processor_kwargs(processor_kwargs),
         "rtol": compare_rtol,
         "atol": compare_atol,
         "max_abs_diff": max_abs_diff,
@@ -285,6 +299,23 @@ def run_case(
         "runs": runs,
         "warmup_runs": warmup_runs if args.include_warmup else [],
     }
+
+
+def serializable_processor_kwargs(processor_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    payload = {}
+    for key, value in processor_kwargs.items():
+        if isinstance(value, np.ndarray):
+            payload[key] = {
+                "type": "ndarray",
+                "shape": list(value.shape),
+                "dtype": str(value.dtype),
+                "nonzero": int(np.count_nonzero(value)),
+                "min": float(np.min(value)),
+                "max": float(np.max(value)),
+            }
+        else:
+            payload[key] = value
+    return payload
 
 
 def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:

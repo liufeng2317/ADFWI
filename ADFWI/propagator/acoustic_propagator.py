@@ -5,15 +5,35 @@ builds boundary damping tensors, and dispatches to the acoustic finite-
 difference kernel. Numerical wavefield updates live in `acoustic_kernels.py`.
 """
 
-from typing import Optional,Dict
+from typing import Dict, Optional
+
 import torch
 from torch import Tensor
+
+from ADFWI.backends import get_backend
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
-from ADFWI.backends import get_backend
-from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
+
+from .acoustic_custom_kernels import pressure_remat_forward_kernel
 from .acoustic_kernels import forward_kernel
+from .boundary_condition import bc_gerjan, bc_pml, bc_sincos
+
+
+STORAGE_POLICY_PRESSURE_REMAT = "pressure_remat"
+SUPPORTED_STORAGE_POLICIES = {
+    None,
+    STORAGE_POLICY_PRESSURE_REMAT,
+}
+
+
+def _resolve_storage_policy(storage_policy):
+    if storage_policy not in SUPPORTED_STORAGE_POLICIES:
+        raise ValueError(
+            "storage_policy must be None, "
+            f"or '{STORAGE_POLICY_PRESSURE_REMAT}'"
+        )
+    return storage_policy
 
 class AcousticPropagator(torch.nn.Module):
     """Isotropic acoustic finite-difference propagator interface.
@@ -124,6 +144,9 @@ class AcousticPropagator(torch.nn.Module):
                 model: Optional[AbstractModel] = None,
                 shot_index: Optional[int] = None,
                 checkpoint_segments: int = 1,
+                save_forward_wavefield: bool = True,
+                storage_policy: Optional[str] = None,
+                pressure_only: bool = False,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
 
@@ -131,7 +154,10 @@ class AcousticPropagator(torch.nn.Module):
         -----------
         model (Optional[AbstractModel]) : Model to use for simulation, defaults to the instance's model
         shot_index (Optional[int])       : Index of the shot to simulate
-        checkpoint_segments (int)        : Number of segments for checkpointing to save memory
+        checkpoint_segments (int)        : Number of segments for checkpointing to save memory in the default path
+        save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
+        storage_policy (Optional[str])   : Expert opt-in storage/replay policy. Supported values are None and "pressure_remat".
+        pressure_only (bool)             : Opt-in acoustic FWI path that records only pressure outputs. Default keeps full p/u/w outputs.
 
         Returns:
         --------
@@ -146,15 +172,41 @@ class AcousticPropagator(torch.nn.Module):
         src_z = self.src_z[shot_index] if shot_index is not None else self.src_z
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
+
+        storage_policy = _resolve_storage_policy(storage_policy)
+        if storage_policy is not None and save_forward_wavefield:
+            raise ValueError(
+                "storage_policy requires save_forward_wavefield=False, got save_forward_wavefield=True"
+            )
+        if storage_policy == STORAGE_POLICY_PRESSURE_REMAT and not pressure_only:
+            raise ValueError(
+                f"storage_policy='{STORAGE_POLICY_PRESSURE_REMAT}' requires pressure_only=True"
+            )
+
+        if storage_policy == STORAGE_POLICY_PRESSURE_REMAT:
+            kernel = pressure_remat_forward_kernel
+        else:
+            kernel = forward_kernel
         
-        record_waveform = forward_kernel(
+        kernel_kwargs = {
+            "checkpoint_segments": checkpoint_segments,
+            "save_forward_wavefield": save_forward_wavefield,
+            "device": self.device,
+            "dtype": self.dtype,
+        }
+        if storage_policy is None:
+            kernel_kwargs["pressure_only"] = pressure_only
+        elif storage_policy == STORAGE_POLICY_PRESSURE_REMAT:
+            kernel_kwargs["divergence_cache_stride"] = 2
+            kernel_kwargs["divergence_cache_components"] = "p,u,w"
+
+        record_waveform = kernel(
             self.nx,self.nz,self.dx,self.dz,self.nt,self.dt,
             self.nabc,self.free_surface,
             src_x,src_z,src_n,wavelet,
             self.rcv_x,self.rcv_z,self.rcv_n,
             self.damp,
             model.vp,model.rho,
-            checkpoint_segments=checkpoint_segments,
-            device=self.device,dtype=self.dtype
+            **kernel_kwargs,
         )
         return record_waveform
