@@ -12,12 +12,12 @@ existing FWI interface.
 
 | Document | Purpose |
 | --- | --- |
-| `00-deepwave-inspired-outline.md` | Top-to-bottom optimization outline and implementation phases |
-| `01-acoustic-operator-contract.md` | Detailed ADFWI acoustic operator contract and first implementation boundary |
+| `develope/00-deepwave-inspired-outline.md` | Top-to-bottom optimization outline and implementation phases |
+| `develope/01-acoustic-operator-contract.md` | Detailed ADFWI acoustic operator contract and first implementation boundary |
 | `deepwave-method-map.md` | What Deepwave does and what ADFWI can learn from it |
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
 | `optimization-test-guidelines.md` | Minimal test selection rules for each optimization stage |
-| `implementation-change-log.md` | Compact record of design and implementation steps |
+| `develope/implementation-change-log.md` | Compact record of design and implementation steps |
 | `baselines/checkpoint10/baseline-matrix-results.md` | Current production checkpoint=10 baseline for 1/3/40 shots and 3/10 FWI iterations |
 | `baselines/checkpoint-sweep-results.md` | Production checkpoint=1/5/10 speed and memory comparison |
 
