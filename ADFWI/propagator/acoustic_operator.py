@@ -397,6 +397,12 @@ def _custom_autograd_remat_pressure_operator(
     config: AcousticOperatorConfig,
     inputs: AcousticOperatorInputs,
 ) -> Tensor:
+    if config.checkpoint_segments != 1:
+        raise ValueError(
+            "custom_autograd_remat currently supports checkpoint_segments=1 only; "
+            "production reentrant checkpointing is incompatible with the "
+            "torch.autograd.grad rematerialized backward prototype"
+        )
     return _AcousticPressureRematFunction.apply(
         inputs.vp,
         inputs.rho,

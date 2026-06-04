@@ -244,3 +244,11 @@ def test_acoustic_pressure_operator_custom_autograd_remat_matches_reference_vp_g
         atol=0.0,
         rtol=0.0,
     )
+
+
+def test_acoustic_pressure_operator_custom_autograd_remat_rejects_checkpoint_segments():
+    config = _config(checkpoint_segments=2)
+    inputs = _inputs(config)
+
+    with pytest.raises(ValueError, match="checkpoint_segments=1 only"):
+        acoustic_pressure_operator(config, inputs, backend="custom_autograd_remat")

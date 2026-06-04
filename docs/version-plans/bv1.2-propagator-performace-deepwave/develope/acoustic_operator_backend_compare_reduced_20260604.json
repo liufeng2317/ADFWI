@@ -1,0 +1,54 @@
+{
+  "case": {
+    "device": "npu:0",
+    "dtype": "float32",
+    "nx": 64,
+    "nz": 32,
+    "nt": 120,
+    "shots": 3,
+    "receivers": 64,
+    "checkpoint_segments": 1,
+    "warmups": 1,
+    "runs": 3
+  },
+  "torch_reference": {
+    "elapsed_s_all": [
+      0.751968203112483,
+      0.7327739708125591,
+      0.7392908558249474
+    ],
+    "elapsed_s_median": 0.7392908558249474,
+    "elapsed_s_mean": 0.7413443432499965,
+    "peak_memory_mib_all": [
+      7.673828125,
+      7.8681640625,
+      8.0625
+    ],
+    "peak_memory_mib_max": 8.0625
+  },
+  "custom_autograd_remat": {
+    "elapsed_s_all": [
+      0.8717741463333368,
+      0.8672431167215109,
+      0.8800435326993465
+    ],
+    "elapsed_s_median": 0.8717741463333368,
+    "elapsed_s_mean": 0.8730202652513981,
+    "peak_memory_mib_all": [
+      8.07763671875,
+      8.27197265625,
+      8.46630859375
+    ],
+    "peak_memory_mib_max": 8.46630859375
+  },
+  "speedup_reference_over_remat": 0.8480302598263423,
+  "memory_ratio_remat_over_reference": 1.0500847868217054,
+  "parity": {
+    "output_max_abs_diff": 0.0,
+    "vp_grad_max_abs_diff": 0.0,
+    "vp_grad_reference_max_abs": 2.9593241190895014e-09,
+    "vp_grad_relative_diff": 0.0,
+    "reference_vp_grad_finite": true,
+    "remat_vp_grad_finite": true
+  }
+}
