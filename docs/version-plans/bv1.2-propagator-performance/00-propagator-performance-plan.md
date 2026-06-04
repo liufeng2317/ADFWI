@@ -19,6 +19,32 @@ Improve propagator efficiency without changing the scientific contract:
 Current work is focused on the acoustic production path. Elastic optimization
 is paused until acoustic performance work reaches a stable decision.
 
+## Branch Boundary
+
+The Deepwave-inspired redesign is not part of this branch's remaining work.
+It should be started in a new branch after this branch is closed or explicitly
+paused.
+
+New-branch topic:
+
+```text
+acoustic custom-autograd propagator redesign
+```
+
+Scope for that future branch:
+
+- PyTorch wrapper with a dedicated propagator `torch.autograd.Function`;
+- explicit storage policy, for example `device`, `checkpoint`, `cpu`, `disk`,
+  or `none`;
+- optional survey-domain cropping around active source/receiver batches;
+- optional model-gradient sampling interval;
+- eventual compiled or backend-specialized forward/backward kernels.
+
+Do not continue implementing this redesign in `bv1.2-propagator-performance`.
+This branch should only finish documenting current evidence, keeping accepted
+small production changes, and deciding whether the current experimental remat
+paths should remain as expert opt-in research tools.
+
 ## Baseline
 
 Reference case:
@@ -199,6 +225,36 @@ Not promoted:
 - non-reentrant PyTorch checkpoint on the current NPU TorchScript path.
 - checkpoint replay skip of detached forward-wavefield summaries through a
   `step_forward` signature/branch change.
+
+## Core Effective Outcomes In This Branch
+
+Effective production changes:
+
+| Outcome | Effect | Status |
+| --- | --- | --- |
+| `checkpoint_segments == 1` checkpoint bypass | removes checkpoint overhead when no segmentation is requested; output/loss/raw-gradient parity passed | accepted default |
+| source-index hoist | removes repeated source index construction in acoustic time stepping | accepted default |
+| skip detached illumination summaries during checkpoint replay | improves checkpoint=10 FWI iteration time by `3.52%` reduced and `2.81%` full-record when illumination is off | accepted default |
+| AcousticFWI `pressure_only="auto"` | pressure-loss FWI avoids unused velocity receiver and wavefield summaries; full-record steady-state iteration improved by `10.33%` versus forced full-output FWI | accepted default at FWI layer |
+| lazy zero placeholders for pressure-only outputs | preserves output keys while avoiding eager unused `u/w` placeholder allocations; reduced steady-state iteration improved from `26.4793 s` to `25.9895 s` | accepted default |
+
+Effective expert opt-in changes:
+
+| Outcome | Effect | Status |
+| --- | --- | --- |
+| `save_forward_wavefield=False` guarded policy | avoids forward-wavefield summaries when illumination is not used; incompatible illumination use is rejected | accepted opt-in |
+| `custom_chunk_strategy="remat_pressure_stride2"` | reduced 5-iteration FWI mean iteration improved `27.3676 s -> 22.8406 s`; full-record 40-shot full-batch 10-iteration mean improved `27.2223 s -> 22.1970 s` with exact `vp_update_norm` | accepted expert opt-in, not default |
+| `batch_size` memory dial for remat stride2 | full 40-shot remat peak changes from `8169.3687 MiB` at `batch_size=40` to `4278.2402 MiB` at `batch_size=20` and `2229.2886 MiB` at `batch_size=10` | accepted operational guidance |
+
+Useful research results, not promoted:
+
+| Result | Finding | Decision |
+| --- | --- | --- |
+| saved-state custom backward | strong speed ceiling (`1.5367x` reduced total speedup) but very high memory (`28.9259x`) | keep as speed-ceiling reference |
+| remat cache policy study | divergence stride tuning alone cannot reduce full-batch memory enough while preserving current speed | do not continue stride sweeps |
+| phase-level memory breakdown | full-batch remat peak is in backward replay state retention, not forward cache or loss graph | use as future design evidence |
+| block-local reverse replay | full 40-shot peak can drop to `2160.7397 MiB`, but total speed is only `0.6193x` of production because of repeated prefix replay | proves memory mechanism, not an accepted configuration |
+| Deepwave-inspired architecture review | long-term path is a dedicated custom-autograd propagator with explicit storage policy, not more PyTorch-loop patching | move to new branch |
 
 ## Current Progress
 
@@ -405,23 +461,24 @@ This confirms that divergence-state compression helps, but it does not solve
 the memory problem. Do not continue saved-state divergence sweeps. Keep this
 line as a speed-ceiling reference only.
 
-Current hard constraint:
+Current memory budget guideline:
 
 ```text
-peak memory <= 2.5x production checkpoint_segments=10 baseline
+peak memory around <= 2.5x production checkpoint_segments=10 baseline
 ```
 
 Reason:
 
-- checkpointing is used primarily to control memory, so speedups that exceed a
-  bounded memory envelope are not valid main-line optimizations;
+- checkpointing is used primarily to control memory, so speedups that exceed
+  this envelope must be described as speed-first or expert configurations
+  rather than default main-line optimizations;
 - it preserves exact reduced-FWI loss and update parity;
 - the measured production `checkpoint_segments=1` upper-bound gate gives only
   `1.2087x` total speedup over checkpoint=10 while using `7.4425x` memory, so
-  it fails the new memory constraint;
+  it is not a good default tradeoff;
 - the saved-state custom chunk is faster (`1.3435x` total speedup on the same
-  one-iteration gate), but its `27.1292x` memory cost also fails the memory
-  constraint;
+  one-iteration gate), but its `27.1292x` memory cost is too high for a default
+  policy;
 - remaining work must reduce replay/output cost without storing full per-step
   wavefield states, and any candidate should be judged against production
   checkpoint=10 for both timing and peak memory.

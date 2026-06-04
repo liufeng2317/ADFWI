@@ -4,6 +4,12 @@ This is the only active modification record for
 `bv1.2-propagator-performance`. Detailed per-round notes and raw outputs are in
 `archive/` and should not be used as the active plan.
 
+## Branch-Level Decisions
+
+| Date | Decision | Reason | Next action |
+| --- | --- | --- | --- |
+| 2026-06-04 | Deepwave-inspired custom-autograd propagator redesign will move to a new branch | current branch already contains enough remat/checkpoint evidence; continuing architectural redesign here would mix prototype research with production-performance cleanup | close or pause this branch after documenting accepted changes, then start a separate branch for the dedicated propagator/storage-policy design |
+
 ## Accepted Production Changes
 
 | Date | Change | Files | Validation | Decision |
