@@ -12,6 +12,16 @@ any Deepwave-inspired propagator change.
 | ADFWI opt-in `storage_policy="pressure_remat"` | current accepted expert path |
 | full-record Marmousi2 40-shot 10-iteration case | real-case behavior baseline |
 
+Current measured production matrix:
+
+| Shots | Iterations | Checkpoints | Purpose |
+| --- | --- | --- | --- |
+| 1 | 3, 10 | 10 | single-shot development scale and timing stability |
+| 3 | 3, 10 | 10 | small multi-shot batch behavior |
+| 40 | 3, 10 | 10 | full-record real-case speed and memory gate |
+
+The measured table is stored in `baselines/baseline-matrix-results.md`.
+
 ## 2. Operator-Level Tests
 
 | Test | Shape/case | Required comparison |
@@ -40,6 +50,14 @@ any Deepwave-inspired propagator change.
 | full-record 40-shot 10-iteration | mean iteration time, total speedup, peak memory ratio |
 | memory policy sweep | device/remat/checkpoint/compressed candidates |
 
+Additional baselines to add only when needed:
+
+| Baseline | When to run |
+| --- | --- |
+| production `checkpoint_segments=1` | when estimating speed and memory upper bounds |
+| current `storage_policy="pressure_remat"` | when comparing against the accepted expert opt-in path |
+| reduced/tiny smoke run | during tight implementation loops where full-record matrix is too slow |
+
 ## 5. Promotion Rules
 
 | Promotion level | Required evidence |
@@ -62,4 +80,3 @@ Existing ADFWI benchmark scripts should be reused before new scripts are added:
 
 New scripts should be added only when the existing ones cannot express the new
 operator contract.
-

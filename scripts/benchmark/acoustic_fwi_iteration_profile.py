@@ -112,6 +112,33 @@ def synchronize(backend) -> None:
         backend.synchronize()
 
 
+def memory_api(torch_module, backend):
+    if backend.name == "npu":
+        return torch_module.npu
+    if backend.name == "cuda":
+        return torch_module.cuda
+    return None
+
+
+def reset_peak_memory(torch_module, backend) -> None:
+    api = memory_api(torch_module, backend)
+    if api is None:
+        return
+    if hasattr(api, "empty_cache"):
+        api.empty_cache()
+    if hasattr(api, "reset_peak_memory_stats"):
+        api.reset_peak_memory_stats()
+    elif hasattr(api, "reset_max_memory_allocated"):
+        api.reset_max_memory_allocated()
+
+
+def max_memory_allocated(torch_module, backend):
+    api = memory_api(torch_module, backend)
+    if api is None or not hasattr(api, "max_memory_allocated"):
+        return None
+    return int(api.max_memory_allocated())
+
+
 class Timer:
     def __init__(self, backend) -> None:
         self.backend = backend
@@ -237,6 +264,7 @@ def tensor_diff(reference, candidate, *, atol_floor=1e-12) -> Dict[str, Any]:
     diff = (val - ref).abs()
     denom = torch.maximum(ref.abs(), torch.full_like(ref, atol_floor))
     rel = diff / denom
+    peak_allocated = max_memory_allocated(rt["torch"], backend)
     return {
         "shape": list(ref.shape),
         "max_abs_diff": float(diff.max().item()),
@@ -386,6 +414,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
     backend = rt["ADFWI"].set_backend(args.device, dtype=args.dtype, fallback=args.fallback_cpu)
     observed_report = ensure_observed_data(rt, args, backend)
     fwi, vp_init = build_fwi_state(rt, args, backend)
+    reset_peak_memory(rt["torch"], backend)
     synchronize(backend)
     setup_seconds = time.perf_counter() - setup_start
 
@@ -427,6 +456,14 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
         "observed_data": observed_report,
         "iterations": iteration_reports,
         "vp_update_norm": vp_update_norm,
+        "memory": {
+            "peak_allocated_bytes": peak_allocated,
+            "peak_allocated_mib": (
+                peak_allocated / (1024.0 * 1024.0)
+                if peak_allocated is not None
+                else None
+            ),
+        },
     }
 
 

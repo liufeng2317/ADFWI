@@ -17,6 +17,7 @@ existing FWI interface.
 | `deepwave-method-map.md` | What Deepwave does and what ADFWI can learn from it |
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
 | `implementation-change-log.md` | Compact record of design and implementation steps |
+| `baselines/baseline-matrix-results.md` | Current production baseline for 1/3/40 shots and 3/10 FWI iterations |
 
 ## Boundary
 
@@ -26,3 +27,12 @@ existing FWI interface.
   are accepted.
 - The first implementation target should be acoustic only. Elastic should wait
   until acoustic proves the design.
+
+## Current Baseline
+
+The current production baseline was measured on the full-record Marmousi2
+validation geometry with `checkpoint_segments=10`, `dtype=float32`, and
+`device=npu:0`.
+
+Use `baselines/baseline-matrix-results.md` as the main comparison table before
+and after any Deepwave-inspired implementation.
