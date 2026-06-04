@@ -5,16 +5,39 @@ builds boundary damping tensors, and dispatches to the acoustic finite-
 difference kernel. Numerical wavefield updates live in `acoustic_kernels.py`.
 """
 
-from typing import Optional,Dict
+from typing import Dict, Optional
+
 import torch
 from torch import Tensor
+
+from ADFWI.backends import get_backend
 from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
-from ADFWI.backends import get_backend
-from .boundary_condition import bc_pml,bc_gerjan,bc_sincos
+
 from .acoustic_custom_kernels import custom_chunk_forward_kernel, rematerialized_pressure_custom_chunk_forward_kernel
 from .acoustic_kernels import forward_kernel
+from .boundary_condition import bc_gerjan, bc_pml, bc_sincos
+
+
+CUSTOM_STRATEGY_SAVED_STATE = "saved_state"
+CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2 = "remat_pressure_stride2"
+SUPPORTED_CUSTOM_CHUNK_STRATEGIES = {
+    None,
+    CUSTOM_STRATEGY_SAVED_STATE,
+    CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2,
+}
+
+
+def _resolve_custom_chunk_strategy(custom_chunk_strategy, use_custom_chunk_backward):
+    if custom_chunk_strategy is None and use_custom_chunk_backward:
+        return CUSTOM_STRATEGY_SAVED_STATE
+    if custom_chunk_strategy not in SUPPORTED_CUSTOM_CHUNK_STRATEGIES:
+        raise ValueError(
+            "custom_chunk_strategy must be None, "
+            f"'{CUSTOM_STRATEGY_SAVED_STATE}', or '{CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2}'"
+        )
+    return custom_chunk_strategy
 
 class AcousticPropagator(torch.nn.Module):
     """Isotropic acoustic finite-difference propagator interface.
@@ -156,24 +179,23 @@ class AcousticPropagator(torch.nn.Module):
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
 
-        if custom_chunk_strategy is None and use_custom_chunk_backward:
-            custom_chunk_strategy = "saved_state"
-        if custom_chunk_strategy not in {None, "saved_state", "remat_pressure_stride2"}:
-            raise ValueError(
-                "custom_chunk_strategy must be None, 'saved_state', or 'remat_pressure_stride2'"
-            )
+        custom_chunk_strategy = _resolve_custom_chunk_strategy(custom_chunk_strategy, use_custom_chunk_backward)
         if custom_chunk_strategy is not None and save_forward_wavefield:
             raise ValueError(
                 "custom_chunk_strategy requires save_forward_wavefield=False, got save_forward_wavefield=True"
             )
-        if custom_chunk_strategy == "saved_state" and pressure_only:
-            raise ValueError("pressure_only=True is not supported with custom_chunk_strategy='saved_state'")
-        if custom_chunk_strategy == "remat_pressure_stride2" and not pressure_only:
-            raise ValueError("custom_chunk_strategy='remat_pressure_stride2' requires pressure_only=True")
+        if custom_chunk_strategy == CUSTOM_STRATEGY_SAVED_STATE and pressure_only:
+            raise ValueError(
+                f"pressure_only=True is not supported with custom_chunk_strategy='{CUSTOM_STRATEGY_SAVED_STATE}'"
+            )
+        if custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2 and not pressure_only:
+            raise ValueError(
+                f"custom_chunk_strategy='{CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2}' requires pressure_only=True"
+            )
 
-        if custom_chunk_strategy == "saved_state":
+        if custom_chunk_strategy == CUSTOM_STRATEGY_SAVED_STATE:
             kernel = custom_chunk_forward_kernel
-        elif custom_chunk_strategy == "remat_pressure_stride2":
+        elif custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2:
             kernel = rematerialized_pressure_custom_chunk_forward_kernel
         else:
             kernel = forward_kernel
@@ -186,7 +208,7 @@ class AcousticPropagator(torch.nn.Module):
         }
         if custom_chunk_strategy is None:
             kernel_kwargs["pressure_only"] = pressure_only
-        elif custom_chunk_strategy == "remat_pressure_stride2":
+        elif custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2:
             kernel_kwargs["divergence_cache_stride"] = 2
             kernel_kwargs["divergence_cache_components"] = "p,u,w"
 

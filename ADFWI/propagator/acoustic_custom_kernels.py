@@ -20,7 +20,9 @@ Optimization boundary
     case.
 """
 
+import time
 from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import Dict, Tuple
 
 import torch
@@ -45,8 +47,6 @@ def _stage_timer(name: str, device):
         yield
         return
     _sync_if_needed(device)
-    import time
-
     start = time.perf_counter()
     yield
     _sync_if_needed(device)
@@ -200,6 +200,97 @@ def _parse_divergence_cache_components(components) -> frozenset[str]:
     if invalid:
         raise ValueError(f"unknown divergence cache component(s): {sorted(invalid)}")
     return selected
+
+
+@dataclass(frozen=True)
+class _AcousticKernelState:
+    p: torch.Tensor
+    u: torch.Tensor
+    w: torch.Tensor
+    kappa1: torch.Tensor
+    alpha1: torch.Tensor
+    kappa2: torch.Tensor
+    alpha2: torch.Tensor
+    kappa3: torch.Tensor
+    free_surface_start: int
+
+
+def _validate_custom_kernel_inputs(
+    *,
+    src_v: torch.Tensor,
+    src_n: int,
+    nt: int,
+    dx: float,
+    dz: float,
+    rcv_n: int,
+    rcv_x: torch.Tensor,
+    rcv_z: torch.Tensor,
+) -> None:
+    if src_v.shape != (src_n, nt):
+        raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
+    if dx <= 0 or dz <= 0:
+        raise ValueError("dx and dz must be positive")
+    if rcv_n != rcv_x.numel() or rcv_n != rcv_z.numel():
+        raise ValueError("rcv_n must match receiver coordinate lengths")
+
+
+def _prepare_custom_kernel_state(
+    *,
+    nx: int,
+    nz: int,
+    dz: float,
+    dt: float,
+    nabc: int,
+    free_surface: bool,
+    src_n: int,
+    damp: torch.Tensor,
+    v: torch.Tensor,
+    rho: torch.Tensor,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> _AcousticKernelState:
+    c = pad_torchSingle(v, nabc, nz, nx, src_n, device=device)
+    den = pad_torchSingle(rho, nabc, nz, nx, src_n, device=device)
+    nx_pml = nx + 2 * nabc
+    nz_pml = nz + 2 * nabc
+    p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
+    u = torch.zeros((src_n, nz_pml, nx_pml - 1), dtype=dtype, device=device)
+    w = torch.zeros((src_n, nz_pml - 1, nx_pml), dtype=dtype, device=device)
+    free_surface_start = nabc if free_surface else 1
+
+    alpha1 = den * c * c * dt / dz
+    kappa1 = damp * dt
+    alpha2 = dt / (den * dz)
+    kappa2 = torch.zeros_like(damp, device=device)
+    kappa2[:, 1 : nx_pml - 2] = 0.5 * (damp[:, 1 : nx_pml - 2] + damp[:, 2 : nx_pml - 1]) * dt
+    kappa3 = torch.zeros_like(damp, device=device)
+    kappa3[free_surface_start : nz_pml - 2, :] = (
+        0.5
+        * (
+            damp[free_surface_start : nz_pml - 2, :]
+            + damp[free_surface_start + 1 : nz_pml - 1, :]
+        )
+        * dt
+    )
+    return _AcousticKernelState(
+        p=p,
+        u=u,
+        w=w,
+        kappa1=kappa1,
+        alpha1=alpha1,
+        kappa2=kappa2,
+        alpha2=alpha2,
+        kappa3=kappa3,
+        free_surface_start=free_surface_start,
+    )
+
+
+def _empty_forward_wavefields(nz: int, nx: int, *, dtype: torch.dtype, device: torch.device) -> Dict[str, torch.Tensor]:
+    return {
+        "forward_wavefield_p": torch.zeros((nz, nx), dtype=dtype, device=device),
+        "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
+        "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
+    }
 
 
 def _forward_step_with_saved_divergence(
@@ -1050,57 +1141,54 @@ def custom_chunk_forward_kernel(
         raise ValueError("checkpoint_segments must be positive")
     if save_forward_wavefield:
         raise ValueError("custom chunk acoustic forward does not support save_forward_wavefield=True")
-    if src_v.shape != (src_n, nt):
-        raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
-    if dx <= 0 or dz <= 0:
-        raise ValueError("dx and dz must be positive")
-    if rcv_n != rcv_x.numel() or rcv_n != rcv_z.numel():
-        raise ValueError("rcv_n must match receiver coordinate lengths")
-
-    c = pad_torchSingle(v, nabc, nz, nx, src_n, device=device)
-    den = pad_torchSingle(rho, nabc, nz, nx, src_n, device=device)
-    nx_pml = nx + 2 * nabc
-    nz_pml = nz + 2 * nabc
-    p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
-    u = torch.zeros((src_n, nz_pml, nx_pml - 1), dtype=dtype, device=device)
-    w = torch.zeros((src_n, nz_pml - 1, nx_pml), dtype=dtype, device=device)
-    free_surface_start = nabc if free_surface else 1
-
-    alpha1 = den * c * c * dt / dz
-    kappa1 = damp * dt
-    alpha2 = dt / (den * dz)
-    kappa2 = torch.zeros_like(damp, device=device)
-    kappa2[:, 1 : nx_pml - 2] = 0.5 * (damp[:, 1 : nx_pml - 2] + damp[:, 2 : nx_pml - 1]) * dt
-    kappa3 = torch.zeros_like(damp, device=device)
-    kappa3[free_surface_start : nz_pml - 2, :] = (
-        0.5
-        * (
-            damp[free_surface_start : nz_pml - 2, :]
-            + damp[free_surface_start + 1 : nz_pml - 1, :]
-        )
-        * dt
+    _validate_custom_kernel_inputs(
+        src_v=src_v,
+        src_n=src_n,
+        nt=nt,
+        dx=dx,
+        dz=dz,
+        rcv_n=rcv_n,
+        rcv_x=rcv_x,
+        rcv_z=rcv_z,
+    )
+    state = _prepare_custom_kernel_state(
+        nx=nx,
+        nz=nz,
+        dz=dz,
+        dt=dt,
+        nabc=nabc,
+        free_surface=free_surface,
+        src_n=src_n,
+        damp=damp,
+        v=v,
+        rho=rho,
+        device=device,
+        dtype=dtype,
     )
 
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_u = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
     rcv_w = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
+    p = state.p
+    u = state.u
+    w = state.w
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
         p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _SavedStateChunkFunction.apply(
             p,
             u,
             w,
-            kappa1,
-            alpha1,
-            kappa2,
-            alpha2,
-            kappa3,
+            state.kappa1,
+            state.alpha1,
+            state.kappa2,
+            state.alpha2,
+            state.kappa3,
             src_x + nabc,
             src_z + nabc,
             (dt * chunk).transpose(0, 1).contiguous(),
             rcv_x + nabc,
             rcv_z + nabc,
-            free_surface_start,
+            state.free_surface_start,
             free_surface,
             divergence_save_components,
         )
@@ -1114,9 +1202,7 @@ def custom_chunk_forward_kernel(
         "p": rcv_p,
         "u": rcv_u,
         "w": rcv_w,
-        "forward_wavefield_p": torch.zeros((nz, nx), dtype=dtype, device=device),
-        "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
-        "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
+        **_empty_forward_wavefields(nz, nx, dtype=dtype, device=device),
     }
 
 
@@ -1229,35 +1315,29 @@ def rematerialized_custom_chunk_forward_kernel(
     if divergence_cache_stride < 0:
         raise ValueError("divergence_cache_stride must be non-negative")
     _parse_divergence_cache_components(divergence_cache_components)
-    if src_v.shape != (src_n, nt):
-        raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
-    if dx <= 0 or dz <= 0:
-        raise ValueError("dx and dz must be positive")
-    if rcv_n != rcv_x.numel() or rcv_n != rcv_z.numel():
-        raise ValueError("rcv_n must match receiver coordinate lengths")
-
-    c = pad_torchSingle(v, nabc, nz, nx, src_n, device=device)
-    den = pad_torchSingle(rho, nabc, nz, nx, src_n, device=device)
-    nx_pml = nx + 2 * nabc
-    nz_pml = nz + 2 * nabc
-    p = torch.zeros((src_n, nz_pml, nx_pml), dtype=dtype, device=device)
-    u = torch.zeros((src_n, nz_pml, nx_pml - 1), dtype=dtype, device=device)
-    w = torch.zeros((src_n, nz_pml - 1, nx_pml), dtype=dtype, device=device)
-    free_surface_start = nabc if free_surface else 1
-
-    alpha1 = den * c * c * dt / dz
-    kappa1 = damp * dt
-    alpha2 = dt / (den * dz)
-    kappa2 = torch.zeros_like(damp, device=device)
-    kappa2[:, 1 : nx_pml - 2] = 0.5 * (damp[:, 1 : nx_pml - 2] + damp[:, 2 : nx_pml - 1]) * dt
-    kappa3 = torch.zeros_like(damp, device=device)
-    kappa3[free_surface_start : nz_pml - 2, :] = (
-        0.5
-        * (
-            damp[free_surface_start : nz_pml - 2, :]
-            + damp[free_surface_start + 1 : nz_pml - 1, :]
-        )
-        * dt
+    _validate_custom_kernel_inputs(
+        src_v=src_v,
+        src_n=src_n,
+        nt=nt,
+        dx=dx,
+        dz=dz,
+        rcv_n=rcv_n,
+        rcv_x=rcv_x,
+        rcv_z=rcv_z,
+    )
+    state = _prepare_custom_kernel_state(
+        nx=nx,
+        nz=nz,
+        dz=dz,
+        dt=dt,
+        nabc=nabc,
+        free_surface=free_surface,
+        src_n=src_n,
+        damp=damp,
+        v=v,
+        rho=rho,
+        device=device,
+        dtype=dtype,
     )
 
     rcv_p = torch.zeros((src_n, nt, rcv_n), dtype=dtype, device=device)
@@ -1267,23 +1347,26 @@ def rematerialized_custom_chunk_forward_kernel(
     else:
         rcv_u = None
         rcv_w = None
+    p = state.p
+    u = state.u
+    w = state.w
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
         p, u, w, rcv_p_temp, rcv_u_temp, rcv_w_temp = _RematerializedChunkFunction.apply(
             p,
             u,
             w,
-            kappa1,
-            alpha1,
-            kappa2,
-            alpha2,
-            kappa3,
+            state.kappa1,
+            state.alpha1,
+            state.kappa2,
+            state.alpha2,
+            state.kappa3,
             src_x + nabc,
             src_z + nabc,
             (dt * chunk).transpose(0, 1).contiguous(),
             rcv_x + nabc,
             rcv_z + nabc,
-            free_surface_start,
+            state.free_surface_start,
             free_surface,
             divergence_cache_stride,
             divergence_cache_components,
@@ -1305,9 +1388,7 @@ def rematerialized_custom_chunk_forward_kernel(
         "p": rcv_p,
         "u": rcv_u,
         "w": rcv_w,
-        "forward_wavefield_p": torch.zeros((nz, nx), dtype=dtype, device=device),
-        "forward_wavefield_u": torch.zeros((nz, nx), dtype=dtype, device=device),
-        "forward_wavefield_w": torch.zeros((nz, nx), dtype=dtype, device=device),
+        **_empty_forward_wavefields(nz, nx, dtype=dtype, device=device),
     }
 
 
