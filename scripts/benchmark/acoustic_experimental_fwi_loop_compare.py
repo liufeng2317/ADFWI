@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -84,7 +85,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     pressure_only=True,
                 )
             )
-        elif mode == "experimental-pressure-remat":
+        elif mode in {"experimental", "experimental-chunk", "experimental-pressure-remat"}:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -223,11 +224,13 @@ def compare(reference: Dict[str, Any], candidate: Dict[str, Any]) -> Dict[str, A
     ref = summarize_variant(reference)
     cand = summarize_variant(candidate)
     loss_abs_diffs = [abs(a - b) for a, b in zip(ref["losses"], cand["losses"])]
+    finite_loss_abs_diffs = [value for value in loss_abs_diffs if math.isfinite(value)]
     return {
         "reference": ref,
         "candidate": cand,
         "loss_abs_diffs": loss_abs_diffs,
-        "max_loss_abs_diff": max(loss_abs_diffs),
+        "loss_abs_diffs_all_finite": len(finite_loss_abs_diffs) == len(loss_abs_diffs),
+        "max_loss_abs_diff": max(finite_loss_abs_diffs) if finite_loss_abs_diffs else None,
         "vp_update_norm_abs_diff": abs(cand["vp_update_norm"] - ref["vp_update_norm"]),
         "speedup": {
             "total": ref["total_seconds"] / cand["total_seconds"],
@@ -271,27 +274,29 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--candidate-mode",
         choices=(
+            "experimental",
+            "experimental-chunk",
             "production-pressure-remat",
             "experimental-pressure-remat",
         ),
-        default="production-pressure-remat",
+        default="experimental",
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,
-        iterations=5,
+        iterations=3,
         output_root=REPO_ROOT
         / "examples"
         / "validation"
         / "marmousi2_acoustic_reduced"
         / "outputs"
-        / "experimental_fwi_loop_compare",
+        / "experimental_fwi_loop_compare_64x32_nt120",
         shots=3,
         batch_size=3,
-        nx=200,
-        nz=88,
-        nt=3000,
+        nx=64,
+        nz=32,
+        nt=120,
         checkpoint_segments=10,
         save_forward_wavefield=False,
         grad_forw_illumination=False,

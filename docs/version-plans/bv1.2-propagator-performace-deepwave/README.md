@@ -22,6 +22,7 @@ existing FWI interface.
 | `develope/02-phase-b-forward-parity-start.md` | Current Phase B focus and first parity smoke plan |
 | `develope/03-reduced-marmousi2-one-iteration-parity.md` | Reduced Marmousi2 one-iteration parity results and next diagnostic boundary |
 | `develope/04-processed-gradient-gate.md` | Processed-gradient gate definition for observed-pressure parity |
+| `develope/05-short-loop-gate.md` | Short-loop gate result and decision to stop expanding test standards |
 | `baselines/checkpoint10/baseline-matrix-results.md` | Current production checkpoint=10 baseline for 1/3/40 shots and 3/10 FWI iterations |
 | `baselines/checkpoint-sweep-results.md` | Production checkpoint=1/5/10 speed and memory comparison |
 

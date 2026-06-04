@@ -1,0 +1,269 @@
+{
+  "candidate": {
+    "backend": {
+      "available": true,
+      "device": "npu:0",
+      "dtype": "float32",
+      "fallback": false,
+      "index": 0,
+      "memory_allocated": 288768,
+      "name": "npu",
+      "reason": null
+    },
+    "iterations": [
+      {
+        "loss": 0.00019976586918346584,
+        "loss_finite": true,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 0.941611222922802,
+        "timings": {
+          "backward": 0.4935158807784319,
+          "forward": 0.4418135527521372,
+          "gradient_processing": 0.0011210795491933823,
+          "loss_evaluation": 0.002608632668852806,
+          "optimizer_step": 0.0019056890159845352,
+          "wavefield_accumulation": 0.00032027438282966614,
+          "zero_grad": 0.0003261137753725052
+        }
+      },
+      {
+        "loss": NaN,
+        "loss_finite": false,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 0.8579432480037212,
+        "timings": {
+          "backward": 0.4928873348981142,
+          "forward": 0.3586063049733639,
+          "gradient_processing": 0.001241752877831459,
+          "loss_evaluation": 0.002818664535880089,
+          "optimizer_step": 0.001878025010228157,
+          "wavefield_accumulation": 0.0003373231738805771,
+          "zero_grad": 0.00017384253442287445
+        }
+      },
+      {
+        "loss": NaN,
+        "loss_finite": false,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 0.8141415454447269,
+        "timings": {
+          "backward": 0.4619325064122677,
+          "forward": 0.3464297838509083,
+          "gradient_processing": 0.0011563673615455627,
+          "loss_evaluation": 0.0025182999670505524,
+          "optimizer_step": 0.0015698205679655075,
+          "wavefield_accumulation": 0.00030220672488212585,
+          "zero_grad": 0.00023256056010723114
+        }
+      }
+    ],
+    "memory": {
+      "peak_allocated_bytes": 132213760,
+      "peak_allocated_mib": 126.0888671875
+    },
+    "mode": "experimental",
+    "shape": {
+      "batch_size": 3,
+      "checkpoint_segments": 10,
+      "grad_forw_illumination": false,
+      "nt": 120,
+      "nx": 64,
+      "nz": 32,
+      "receivers": 64,
+      "save_forward_wavefield": false,
+      "shots": 3
+    },
+    "vp_update_norm": NaN
+  },
+  "case": "marmousi2_acoustic_reduced",
+  "config": {
+    "abc_jerjan_alpha": 0.007,
+    "abc_type": "PML",
+    "batch_size": 3,
+    "candidate_mode": "experimental",
+    "checkpoint_segments": 10,
+    "dataset_dir": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/datasets/marmousi2_source",
+    "device": "npu:0",
+    "dt": 0.003,
+    "dtype": "float32",
+    "dx": 40.0,
+    "dz": 40.0,
+    "f0": 5.0,
+    "fallback_cpu": false,
+    "free_surface": true,
+    "gaussian_kernel": 6,
+    "generate_observed": true,
+    "grad_forw_illumination": false,
+    "grad_mute_top": 12,
+    "gradient_processor": "legacy",
+    "iterations": 3,
+    "lr": 10.0,
+    "mask_extra_depth": 2,
+    "nabc": 30,
+    "nt": 120,
+    "nx": 64,
+    "nz": 32,
+    "output_root": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_reduced/outputs/experimental_fwi_loop_compare_64x32_nt120",
+    "ox": 0.0,
+    "oz": 0.0,
+    "policy_repeat": 1,
+    "pressure_only": null,
+    "rcv_depth": 10,
+    "remat_divergence_cache_components": "p,u,w",
+    "remat_divergence_cache_stride": 1,
+    "result_json": "docs/version-plans/bv1.2-propagator-performace-deepwave/develope/acoustic_experimental_fwi_loop_compare_3shot3iter_20260604.json",
+    "save_forward_wavefield": false,
+    "scheduler_gamma": 0.75,
+    "scheduler_step_size": 200,
+    "shots": 3,
+    "storage_policy": null,
+    "validation_case": "reduced"
+  },
+  "purpose": "Short FWI loop comparison: production vs experimental",
+  "reference": {
+    "backend": {
+      "available": true,
+      "device": "npu:0",
+      "dtype": "float32",
+      "fallback": false,
+      "index": 0,
+      "memory_allocated": 288768,
+      "name": "npu",
+      "reason": null
+    },
+    "iterations": [
+      {
+        "loss": 0.00019976586918346584,
+        "loss_finite": true,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 2.3719793036580086,
+        "timings": {
+          "backward": 1.094922162592411,
+          "forward": 0.4577359203249216,
+          "gradient_processing": 0.0011808816343545914,
+          "loss_evaluation": 0.05814329348504543,
+          "optimizer_step": 0.7586440518498421,
+          "wavefield_accumulation": 0.00023331306874752045,
+          "zero_grad": 0.0011196807026863098
+        }
+      },
+      {
+        "loss": NaN,
+        "loss_finite": false,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 1.2385392859578133,
+        "timings": {
+          "backward": 1.0730869229882956,
+          "forward": 0.1599330436438322,
+          "gradient_processing": 0.0009917281568050385,
+          "loss_evaluation": 0.002459980547428131,
+          "optimizer_step": 0.0016012042760849,
+          "wavefield_accumulation": 0.00021512433886528015,
+          "zero_grad": 0.0002512820065021515
+        }
+      },
+      {
+        "loss": NaN,
+        "loss_finite": false,
+        "processed_grad_finite": false,
+        "processed_grad_norm": NaN,
+        "raw_grad_finite": false,
+        "raw_grad_norm": NaN,
+        "timing_total": 1.2316324599087238,
+        "timings": {
+          "backward": 1.066155131906271,
+          "forward": 0.1601697839796543,
+          "gradient_processing": 0.0009681787341833115,
+          "loss_evaluation": 0.0022598393261432648,
+          "optimizer_step": 0.0016691423952579498,
+          "wavefield_accumulation": 0.00021870434284210205,
+          "zero_grad": 0.0001916792243719101
+        }
+      }
+    ],
+    "memory": {
+      "peak_allocated_bytes": 55758848,
+      "peak_allocated_mib": 53.17578125
+    },
+    "mode": "production",
+    "shape": {
+      "batch_size": 3,
+      "checkpoint_segments": 10,
+      "grad_forw_illumination": false,
+      "nt": 120,
+      "nx": 64,
+      "nz": 32,
+      "receivers": 64,
+      "save_forward_wavefield": false,
+      "shots": 3
+    },
+    "vp_update_norm": NaN
+  },
+  "status": "ok",
+  "summary": {
+    "candidate": {
+      "all_finite": false,
+      "backward_seconds": 1.4483357220888138,
+      "forward_seconds": 1.1468496415764093,
+      "gradient_processing_seconds": 0.003519199788570404,
+      "losses": [
+        0.00019976586918346584,
+        NaN,
+        NaN
+      ],
+      "mean_seconds_per_iteration": 0.8712320054570833,
+      "peak_allocated_mib": 126.0888671875,
+      "total_seconds": 2.61369601637125,
+      "vp_update_norm": NaN
+    },
+    "loss_abs_diffs": [
+      0.0,
+      NaN,
+      NaN
+    ],
+    "loss_abs_diffs_all_finite": false,
+    "max_loss_abs_diff": 0.0,
+    "memory": {
+      "candidate_over_reference_peak_allocated": 2.371170939543084,
+      "candidate_peak_allocated_mib": 126.0888671875,
+      "reference_peak_allocated_mib": 53.17578125
+    },
+    "reference": {
+      "all_finite": false,
+      "backward_seconds": 3.2341642174869776,
+      "forward_seconds": 0.7778387479484081,
+      "gradient_processing_seconds": 0.0031407885253429413,
+      "losses": [
+        0.00019976586918346584,
+        NaN,
+        NaN
+      ],
+      "mean_seconds_per_iteration": 1.6140503498415153,
+      "peak_allocated_mib": 53.17578125,
+      "total_seconds": 4.842151049524546,
+      "vp_update_norm": NaN
+    },
+    "speedup": {
+      "backward": 2.2330210932190586,
+      "forward": 0.678239517849284,
+      "mean_iteration": 1.8526068139504581,
+      "total": 1.852606813950458
+    },
+    "vp_update_norm_abs_diff": NaN
+  }
+}

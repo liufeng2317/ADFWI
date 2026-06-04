@@ -41,6 +41,18 @@ Choose tests from `../optimization-test-guidelines.md`:
 
 If the output or gradient path changes, include output/loss/gradient parity.
 
+Testing-framework work is capped at three gate definitions for this branch:
+
+| Gate | Status |
+| --- | --- |
+| baseline/checkpoint and Phase B parity gates | complete |
+| short-loop `3 shot x 3 iter` gate | current |
+| full `40 shot x 10 iter` promotion gate | only after a concrete algorithmic gain |
+
+After the short-loop gate is recorded, further work must focus on algorithm or
+operator implementation. Do not add new gate categories unless a clear bug makes
+one of these gates invalid.
+
 ## 5. Summarize The Result
 
 Each round summary must answer:
