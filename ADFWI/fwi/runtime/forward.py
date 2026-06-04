@@ -23,7 +23,7 @@ def acoustic_forward_batch(
     checkpoint_segments,
     *,
     save_forward_wavefield=True,
-    custom_chunk_strategy=None,
+    storage_policy=None,
     pressure_only=False,
 ):
     """Run one acoustic forward batch and keep its shot selection with the record."""
@@ -34,8 +34,8 @@ def acoustic_forward_batch(
         "save_forward_wavefield": save_forward_wavefield,
         "pressure_only": pressure_only,
     }
-    if custom_chunk_strategy is not None:
-        forward_kwargs["custom_chunk_strategy"] = custom_chunk_strategy
+    if storage_policy is not None:
+        forward_kwargs["storage_policy"] = storage_policy
     record_waveform = propagator.forward(**forward_kwargs)
     return ForwardBatchRecord(shot_index=shot_index, record_waveform=record_waveform)
 

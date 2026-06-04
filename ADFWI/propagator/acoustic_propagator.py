@@ -15,25 +15,25 @@ from ADFWI.model import AbstractModel
 from ADFWI.survey import Survey
 from ADFWI.utils import numpy2tensor
 
-from .acoustic_custom_kernels import rematerialized_pressure_custom_chunk_forward_kernel
+from .acoustic_custom_kernels import pressure_remat_forward_kernel
 from .acoustic_kernels import forward_kernel
 from .boundary_condition import bc_gerjan, bc_pml, bc_sincos
 
 
-CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2 = "remat_pressure_stride2"
-SUPPORTED_CUSTOM_CHUNK_STRATEGIES = {
+STORAGE_POLICY_PRESSURE_REMAT = "pressure_remat"
+SUPPORTED_STORAGE_POLICIES = {
     None,
-    CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2,
+    STORAGE_POLICY_PRESSURE_REMAT,
 }
 
 
-def _resolve_custom_chunk_strategy(custom_chunk_strategy):
-    if custom_chunk_strategy not in SUPPORTED_CUSTOM_CHUNK_STRATEGIES:
+def _resolve_storage_policy(storage_policy):
+    if storage_policy not in SUPPORTED_STORAGE_POLICIES:
         raise ValueError(
-            "custom_chunk_strategy must be None, "
-            f"or '{CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2}'"
+            "storage_policy must be None, "
+            f"or '{STORAGE_POLICY_PRESSURE_REMAT}'"
         )
-    return custom_chunk_strategy
+    return storage_policy
 
 class AcousticPropagator(torch.nn.Module):
     """Isotropic acoustic finite-difference propagator interface.
@@ -145,7 +145,7 @@ class AcousticPropagator(torch.nn.Module):
                 shot_index: Optional[int] = None,
                 checkpoint_segments: int = 1,
                 save_forward_wavefield: bool = True,
-                custom_chunk_strategy: Optional[str] = None,
+                storage_policy: Optional[str] = None,
                 pressure_only: bool = False,
                 ) -> Dict[str, Tensor]:
         """Forward simulation for selected shots.
@@ -156,7 +156,7 @@ class AcousticPropagator(torch.nn.Module):
         shot_index (Optional[int])       : Index of the shot to simulate
         checkpoint_segments (int)        : Number of segments for checkpointing to save memory in the default path
         save_forward_wavefield (bool)    : Whether to accumulate detached forward wavefield summaries
-        custom_chunk_strategy (Optional[str]): Expert opt-in custom backward strategy. Supported values are None and "remat_pressure_stride2".
+        storage_policy (Optional[str])   : Expert opt-in storage/replay policy. Supported values are None and "pressure_remat".
         pressure_only (bool)             : Opt-in acoustic FWI path that records only pressure outputs. Default keeps full p/u/w outputs.
 
         Returns:
@@ -173,18 +173,18 @@ class AcousticPropagator(torch.nn.Module):
         src_n = len(src_x)
         wavelet = self.wavelet[shot_index] if shot_index is not None else self.wavelet
 
-        custom_chunk_strategy = _resolve_custom_chunk_strategy(custom_chunk_strategy)
-        if custom_chunk_strategy is not None and save_forward_wavefield:
+        storage_policy = _resolve_storage_policy(storage_policy)
+        if storage_policy is not None and save_forward_wavefield:
             raise ValueError(
-                "custom_chunk_strategy requires save_forward_wavefield=False, got save_forward_wavefield=True"
+                "storage_policy requires save_forward_wavefield=False, got save_forward_wavefield=True"
             )
-        if custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2 and not pressure_only:
+        if storage_policy == STORAGE_POLICY_PRESSURE_REMAT and not pressure_only:
             raise ValueError(
-                f"custom_chunk_strategy='{CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2}' requires pressure_only=True"
+                f"storage_policy='{STORAGE_POLICY_PRESSURE_REMAT}' requires pressure_only=True"
             )
 
-        if custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2:
-            kernel = rematerialized_pressure_custom_chunk_forward_kernel
+        if storage_policy == STORAGE_POLICY_PRESSURE_REMAT:
+            kernel = pressure_remat_forward_kernel
         else:
             kernel = forward_kernel
         
@@ -194,9 +194,9 @@ class AcousticPropagator(torch.nn.Module):
             "device": self.device,
             "dtype": self.dtype,
         }
-        if custom_chunk_strategy is None:
+        if storage_policy is None:
             kernel_kwargs["pressure_only"] = pressure_only
-        elif custom_chunk_strategy == CUSTOM_STRATEGY_REMAT_PRESSURE_STRIDE2:
+        elif storage_policy == STORAGE_POLICY_PRESSURE_REMAT:
             kernel_kwargs["divergence_cache_stride"] = 2
             kernel_kwargs["divergence_cache_components"] = "p,u,w"
 

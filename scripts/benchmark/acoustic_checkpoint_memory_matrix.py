@@ -33,9 +33,9 @@ DEFAULT_OUTPUT = (
 FORWARD_MODES = {
     "experimental",
     "experimental-chunk",
-    "experimental-remat-pressure-chunk",
+    "experimental-pressure-remat",
     "production",
-    "production-remat-pressure-stride2",
+    "production-pressure-remat",
 }
 
 
@@ -170,7 +170,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         "--matrix-variants",
         type=parse_variants,
         default=parse_variants(
-            "production:10,production:1,production-remat-pressure-stride2:10,experimental-remat-pressure-chunk:10"
+            "production:10,production:1,production-pressure-remat:10,experimental-pressure-remat:10"
         ),
         help=(
             "Comma separated mode:checkpoint_segments variants. Default compares "

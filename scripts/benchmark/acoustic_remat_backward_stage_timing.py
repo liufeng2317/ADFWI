@@ -67,7 +67,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     parser.description = __doc__
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,
-        candidate_mode="experimental-remat-pressure-chunk",
+        candidate_mode="experimental-pressure-remat",
         loss_mode="observed-pressure",
         waveform_normalize=True,
     )
@@ -78,8 +78,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = build_parser(argv)
     args = parser.parse_args(argv)
     profile.forward_modeling.validate_case_args(parser, args)
-    if args.candidate_mode != "experimental-remat-pressure-chunk":
-        parser.error("stage timing currently expects --candidate-mode experimental-remat-pressure-chunk")
+    if args.candidate_mode != "experimental-pressure-remat":
+        parser.error("stage timing currently expects --candidate-mode experimental-pressure-remat")
     if args.save_forward_wavefield:
         parser.error("stage timing requires --no-save-forward-wavefield")
     report = run(args)

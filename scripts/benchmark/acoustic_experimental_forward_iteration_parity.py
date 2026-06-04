@@ -27,7 +27,7 @@ from scripts.benchmark.acoustic_experimental_forward import (
     experimental_forward_kernel,
 )
 from ADFWI.fwi.runtime.forward import ForwardBatchRecord
-from ADFWI.propagator.acoustic_custom_kernels import rematerialized_pressure_custom_chunk_forward_kernel
+from ADFWI.propagator.acoustic_custom_kernels import pressure_remat_forward_kernel
 
 
 DEFAULT_OUTPUT = (
@@ -105,8 +105,8 @@ def experimental_forward_batch(
         forward_kernel = experimental_forward_kernel
     elif mode == "experimental-chunk":
         forward_kernel = experimental_chunk_forward_kernel
-    elif mode == "experimental-remat-pressure-chunk":
-        forward_kernel = rematerialized_pressure_custom_chunk_forward_kernel
+    elif mode == "experimental-pressure-remat":
+        forward_kernel = pressure_remat_forward_kernel
     else:
         raise ValueError(f"unknown experimental mode: {mode}")
     forward_kwargs = {
@@ -114,7 +114,7 @@ def experimental_forward_batch(
         "device": propagator.device,
         "dtype": propagator.dtype,
     }
-    if mode == "experimental-remat-pressure-chunk":
+    if mode == "experimental-pressure-remat":
         forward_kwargs["checkpoint_segments"] = checkpoint_segments
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
@@ -164,14 +164,14 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     save_forward_wavefield=False,
                 )
             )
-        elif mode == "production-remat-pressure-stride2":
+        elif mode == "production-pressure-remat":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: acoustic_forward_batch(
                     fwi.propagator,
                     batch_range,
                     args.checkpoint_segments,
                     save_forward_wavefield=False,
-                    custom_chunk_strategy="remat_pressure_stride2",
+                    storage_policy="pressure_remat",
                     pressure_only=True,
                 )
             )
@@ -184,7 +184,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     mode=mode,
                 )
             )
-        elif mode in {"experimental-chunk", "experimental-remat-pressure-chunk"}:
+        elif mode in {"experimental-chunk", "experimental-pressure-remat"}:
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -382,9 +382,9 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         choices=(
             "experimental",
             "experimental-chunk",
-            "experimental-remat-pressure-chunk",
+            "experimental-pressure-remat",
             "production",
-            "production-remat-pressure-stride2",
+            "production-pressure-remat",
         ),
         default="experimental",
         help="Compare production against an experimental path or a second production run.",
@@ -400,7 +400,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         type=int,
         default=0,
         help=(
-            "For experimental-remat-pressure-chunk only: 0 recomputes all divergence terms; "
+            "For experimental-pressure-remat only: 0 recomputes all divergence terms; "
             "1 caches every step; N caches every Nth step."
         ),
     )
@@ -408,7 +408,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         "--remat-divergence-cache-components",
         default="p,u,w",
         help=(
-            "For experimental-remat-pressure-chunk only: comma/space separated subset of "
+            "For experimental-pressure-remat only: comma/space separated subset of "
             "p,u,w divergence terms to cache; use 'none' to cache no divergence terms."
         ),
     )

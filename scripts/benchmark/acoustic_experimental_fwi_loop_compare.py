@@ -72,18 +72,18 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     save_forward_wavefield=args.save_forward_wavefield,
                 )
             )
-        elif mode == "production-remat-pressure-stride2":
+        elif mode == "production-pressure-remat":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: acoustic_forward_batch(
                     fwi.propagator,
                     batch_range,
                     args.checkpoint_segments,
                     save_forward_wavefield=False,
-                    custom_chunk_strategy="remat_pressure_stride2",
+                    storage_policy="pressure_remat",
                     pressure_only=True,
                 )
             )
-        elif mode == "experimental-remat-pressure-chunk":
+        elif mode == "experimental-pressure-remat":
             forward_batch, elapsed = timer.measure(
                 lambda batch_range=batch_range: experimental_forward_batch(
                     fwi.propagator,
@@ -270,10 +270,10 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--candidate-mode",
         choices=(
-            "production-remat-pressure-stride2",
-            "experimental-remat-pressure-chunk",
+            "production-pressure-remat",
+            "experimental-pressure-remat",
         ),
-        default="production-remat-pressure-stride2",
+        default="production-pressure-remat",
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")

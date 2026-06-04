@@ -86,10 +86,10 @@ def add_arguments(parser: argparse.ArgumentParser, validation_case: str) -> None
     parser.add_argument("--save-forward-wavefield", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--grad-forw-illumination", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument(
-        "--custom-chunk-strategy",
-        choices=("remat_pressure_stride2",),
+        "--storage-policy",
+        choices=("pressure_remat",),
         default=None,
-        help="Expert opt-in AcousticPropagator custom backward strategy. Default keeps the production path.",
+        help="Expert opt-in AcousticPropagator storage/replay policy. Default keeps the production path.",
     )
     parser.add_argument(
         "--pressure-only",
@@ -285,7 +285,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: Timer, *, keep_tenso
                 batch_range,
                 args.checkpoint_segments,
                 save_forward_wavefield=args.save_forward_wavefield,
-                custom_chunk_strategy=args.custom_chunk_strategy,
+                storage_policy=args.storage_policy,
                 pressure_only="auto" if args.pressure_only is None else args.pressure_only,
             )
         )
@@ -419,7 +419,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_segments": args.checkpoint_segments,
             "save_forward_wavefield": args.save_forward_wavefield,
             "grad_forw_illumination": args.grad_forw_illumination,
-            "custom_chunk_strategy": args.custom_chunk_strategy,
+            "storage_policy": args.storage_policy,
             "pressure_only": "auto" if args.pressure_only is None else args.pressure_only,
             "gradient_processor": args.gradient_processor,
         },

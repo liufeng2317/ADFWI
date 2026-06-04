@@ -182,7 +182,7 @@ class BackendIntegrationTests(unittest.TestCase):
             checkpoint_segments=1,
             save_forward_wavefield=False,
             pressure_only=True,
-            custom_chunk_strategy="remat_pressure_stride2",
+            storage_policy="pressure_remat",
         )
         default_loss = default_record["p"].pow(2).mean()
         custom_loss = custom_record["p"].pow(2).mean()
@@ -205,21 +205,21 @@ class BackendIntegrationTests(unittest.TestCase):
                 checkpoint_segments=0,
                 save_forward_wavefield=False,
                 pressure_only=True,
-                custom_chunk_strategy="remat_pressure_stride2",
+                storage_policy="pressure_remat",
             )
         with self.assertRaisesRegex(ValueError, "save_forward_wavefield=True"):
             propagator.forward(
                 checkpoint_segments=1,
                 save_forward_wavefield=True,
                 pressure_only=True,
-                custom_chunk_strategy="remat_pressure_stride2",
+                storage_policy="pressure_remat",
             )
         with self.assertRaisesRegex(ValueError, "requires pressure_only=True"):
             propagator.forward(
                 checkpoint_segments=1,
                 save_forward_wavefield=False,
                 pressure_only=False,
-                custom_chunk_strategy="remat_pressure_stride2",
+                storage_policy="pressure_remat",
             )
 
     def test_acoustic_fwi_rejects_skipped_forward_wavefield_when_illumination_is_active(self):

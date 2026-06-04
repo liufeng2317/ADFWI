@@ -216,7 +216,7 @@ Result file:
 
 | Item | Reference | Candidate |
 | --- | ---: | ---: |
-| recurrence | normal PyTorch autograd | custom backward for coupled `p/u/w` recurrence |
+| recurrence | normal PyTorch autograd | storage/replay for coupled `p/u/w` recurrence |
 | source injection | enabled | enabled |
 | free-surface boundary write | enabled | enabled |
 | receiver recording | enabled | enabled |
@@ -230,7 +230,7 @@ Result file:
 | mean total speedup | baseline | `1.5144x` |
 
 Decision: this is now the strongest evidence for the high-value path. The
-custom backward reduces backward cost substantially on the coupled recurrence,
+storage/replay reduces backward cost substantially on the coupled recurrence,
 with exact outputs/loss and small absolute gradient differences. It is still a
 tiny benchmark, so the next step is a longer-step or production-chunk gate
 before wiring anything into `acoustic_kernels.py`.
@@ -464,7 +464,7 @@ conda run -n adfwi python scripts/benchmark/acoustic_experimental_fwi_loop_compa
   --dtype float32 \
   --iterations 5 \
   --checkpoint-segments 10 \
-  --candidate-mode experimental-remat-pressure-chunk \
+  --candidate-mode experimental-pressure-remat \
   --remat-divergence-cache-stride 1 \
   --remat-divergence-cache-components p,u,w \
   --remat-state-cache-stride 10
@@ -499,7 +499,7 @@ for new comparisons.
 | `pressure_only=True` | opt-in acoustic FWI pressure path | total `29.31s -> 25.37s`, `+13.44%` | total `28.20s -> 26.51s`, `+6.02%` | validates pressure-only path before making it AcousticFWI auto policy |
 | AcousticFWI `pressure_only="auto"` | production FWI-layer policy | total `29.5813s -> 26.7011s`, `+9.74%`; backward `+9.24%` | total `28.2031s -> 25.2902s`, `+10.33%`; backward `+10.32%` | current default for AcousticFWI pressure-loss inversion loops |
 | lazy zero placeholders for pressure-only `u/w` outputs | production pressure-only kernel path | steady-state total `26.4793s -> 25.9895s`, `+1.85%`; backward `22.0680s -> 21.4941s`, `+2.60%`; loss and update exact | not run | removes up-front allocation of unused velocity receiver and wavefield placeholder tensors |
-| saved-state custom backward | removed high-memory prototype | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | historical reduced-case gate only | removed from active code because peak allocation rose `28.9259x` and added misleading API complexity |
+| saved-state storage/replay | removed high-memory prototype | total `139.9710s -> 91.0837s` over 5 iterations, `1.5367x`; backward `1.9362x`; loss and update exact | historical reduced-case gate only | removed from active code because peak allocation rose `28.9259x` and added misleading API complexity |
 | saved-state divergence compression | experimental benchmark path | best candidate saves only `div_p`: total `139.9340s -> 106.0862s`, `1.3191x`; backward `1.5719x`; loss and update exact | not run | reduces memory from saved-all `7882.8569 MiB` to `5643.8008 MiB`, but still `20.7x` production; not promotion-ready |
 | rematerialized pressure-only boundary/divergence cache | experimental benchmark path | latest same-run gate total `131.5525s -> 106.6786s` over 5 iterations, `1.2332x`; backward `1.3994x`; loss and update exact | not run | keeps memory near production (`1.94x`); candidate absolute time improved from prior `111.2747s`, but still below saved-state speed ceiling |
 
@@ -596,7 +596,7 @@ conda run -n adfwi python scripts/benchmark/acoustic_checkpoint_memory_matrix.py
   --checkpoint-segments 10 \
   --no-save-forward-wavefield \
   --no-grad-forw-illumination \
-  --matrix-variants production:10,production:1,production-remat-pressure-stride2:10,experimental-remat-pressure-chunk:10 \
+  --matrix-variants production:10,production:1,production-pressure-remat:10,experimental-pressure-remat:10 \
   --reference-variant production:ckpt10
 ```
 
@@ -622,7 +622,7 @@ Interpretation:
   production checkpoint=10; raw `vp.grad` absolute differences remain small,
   while relative differences are inflated by near-zero gradient entries.
 - the next valuable route is not more speed-only saved-state custom chunking;
-  it is a memory-aware custom backward/rematerialization route that improves
+  it is a memory-aware storage/replay/rematerialization route that improves
   total time while staying under `2.5x` checkpoint=10 peak memory.
 
 ## Memory-Budget Remat Cache Policy Gate
@@ -733,7 +733,7 @@ used only as guidance for the next optimization target.
 
 Interpretation:
 
-- the dominant cost is `_backward_step_from_saved_divergence`, not receiver
+- the dominant cost is `_step_adjoint_from_divergence`, not receiver
   scatter or divergence recovery;
 - coefficient-gradient accumulation itself is small, and a previous attempt to
   change its accumulation order broke raw `vp.grad` parity;
@@ -755,7 +755,7 @@ manual adjoint step, not more local variable rewrites.
 ## Production Wrapper Opt-In Remat Strategy Gate
 
 The validated stride=2 remat policy is exposed through
-`AcousticPropagator.forward(custom_chunk_strategy="remat_pressure_stride2")`.
+`AcousticPropagator.forward(storage_policy="pressure_remat")`.
 This path requires `save_forward_wavefield=False` and `pressure_only=True`; the
 default production path is unchanged.
 
@@ -763,11 +763,11 @@ One-iteration wrapper gate:
 
 | Candidate | Total time | Speedup vs ckpt10 | Peak memory | Memory vs ckpt10 | Loss diff | Raw `vp.grad` max abs diff |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| production wrapper `remat_pressure_stride2` | `24.5541 s` | `1.2339x` | `657.3506 MiB` | `2.2436x` | `0.0` | `2.7381e-07` |
+| production wrapper `pressure_remat` | `24.5541 s` | `1.2339x` | `657.3506 MiB` | `2.2436x` | `0.0` | `2.7381e-07` |
 
 Short reduced-FWI wrapper gate:
 
-| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| Metric | Production ckpt10 | Wrapper `pressure_remat` |
 | --- | ---: | ---: |
 | losses | `[6375.7920, 6006.2812, 5719.2793, 5500.7910, 5341.6523]` | exact match |
 | `vp_update_norm` | `4970.22314453125` | `4970.22314453125` |
@@ -781,7 +781,7 @@ Short reduced-FWI wrapper gate:
 
 Longer full-record-geometry wrapper gate:
 
-| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| Metric | Production ckpt10 | Wrapper `pressure_remat` |
 | --- | ---: | ---: |
 | case | `marmousi2_acoustic_full_record` | same |
 | shape | `shots=3`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
@@ -798,7 +798,7 @@ Longer full-record-geometry wrapper gate:
 
 Full 40-shot full-batch wrapper gate:
 
-| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| Metric | Production ckpt10 | Wrapper `pressure_remat` |
 | --- | ---: | ---: |
 | case | `marmousi2_acoustic_full_record` | same |
 | shape | `shots=40`, `batch_size=40`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
@@ -818,7 +818,7 @@ Post-simplification rerun, same 40-shot full-batch gate:
 Result file:
 `acoustic_production_remat_stride2_full_record_40shot_10iter_after_simplify_20260604.json`.
 
-| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| Metric | Production ckpt10 | Wrapper `pressure_remat` |
 | --- | ---: | ---: |
 | case | `marmousi2_acoustic_full_record` | same |
 | shape | `shots=40`, `batch_size=40`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
@@ -902,7 +902,7 @@ Interpretation:
 - replacing observed-pressure loss with synthetic-energy loss keeps the remat
   backward peak at about `8.17 GiB`, so receiver/loss graph construction is not
   the dominant source;
-- the remaining memory target is inside the rematerialized custom backward
+- the remaining memory target is inside the rematerialized storage/replay
   temporary tensors or NPU allocator peak behavior during the backward replay,
   not the forward cache, receiver output, or loss evaluation.
 
@@ -924,7 +924,7 @@ Interpretation:
   `p/u/w` states and selected divergence values;
 - reverse-loop temporaries add only about `70 MiB` over the retained replay
   state in the first chunk, so the `8 GiB` peak is not primarily caused by
-  `_backward_step_from_saved_divergence` temporaries;
+  `_step_adjoint_from_divergence` temporaries;
 - `state_cache_stride=2` is not a fix in the current implementation: it moves
   state storage into forward boundary caches and reaches `30316.6626 MiB`
   forward peak memory for the same 40-shot full-batch case;
@@ -987,7 +987,7 @@ Interpretation:
 - gradient-buffer initialization is negligible;
 - the reverse adjoint loop is the next optimization target. Work should focus
   on reducing `p_new` rebuild, `div_u/div_w` recomputation, receiver adjoint
-  scatter, or `_backward_step_from_saved_divergence` cost without increasing
+  scatter, or `_step_adjoint_from_divergence` cost without increasing
   peak memory above `2.5x` checkpoint=10.
 
 ## Closed Reverse-Loop Buffer Accumulation Test

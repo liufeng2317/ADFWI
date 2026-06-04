@@ -160,7 +160,7 @@ flowchart TD
     E --> E1["measured PyTorch hot-path cleanup"]
     E --> E2["checkpoint/rematerialization policy"]
     E --> E3["output policy with explicit guards"]
-    E --> E4["expert opt-in custom backward"]
+    E --> E4["expert opt-in storage/replay"]
 
     E1 --> E11["only after profiling identifies cost"]
     E1 --> E12["one bounded code change"]
@@ -209,7 +209,7 @@ Accepted opt-in paths:
   receiver outputs and `u/w` forward-wavefield summaries. It remains opt-in at
   the `AcousticPropagator.forward` API level, while AcousticFWI uses it
   automatically.
-- `custom_chunk_strategy="remat_pressure_stride2"`, expert pressure-only remat
+- `storage_policy="pressure_remat"`, expert pressure-only remat
   path for speed/memory studies when illumination is disabled.
 
 Not promoted:
@@ -242,14 +242,14 @@ Effective expert opt-in changes:
 | Outcome | Effect | Status |
 | --- | --- | --- |
 | `save_forward_wavefield=False` guarded policy | avoids forward-wavefield summaries when illumination is not used; incompatible illumination use is rejected | accepted opt-in |
-| `custom_chunk_strategy="remat_pressure_stride2"` | reduced 5-iteration FWI mean iteration improved `27.3676 s -> 22.8406 s`; full-record 40-shot full-batch 10-iteration mean improved `27.2223 s -> 22.1970 s` with exact `vp_update_norm` | accepted expert opt-in, not default |
+| `storage_policy="pressure_remat"` | reduced 5-iteration FWI mean iteration improved `27.3676 s -> 22.8406 s`; full-record 40-shot full-batch 10-iteration mean improved `27.2223 s -> 22.1970 s` with exact `vp_update_norm` | accepted expert opt-in, not default |
 | `batch_size` memory dial for remat stride2 | full 40-shot remat peak changes from `8169.3687 MiB` at `batch_size=40` to `4278.2402 MiB` at `batch_size=20` and `2229.2886 MiB` at `batch_size=10` | accepted operational guidance |
 
 Useful research results, not promoted:
 
 | Result | Finding | Decision |
 | --- | --- | --- |
-| saved-state custom backward | strong speed ceiling (`1.5367x` reduced total speedup) but very high memory (`28.9259x`) | removed from active code path; keep only as historical speed-ceiling evidence |
+| saved-state storage/replay | strong speed ceiling (`1.5367x` reduced total speedup) but very high memory (`28.9259x`) | removed from active code path; keep only as historical speed-ceiling evidence |
 | remat cache policy study | divergence stride tuning alone cannot reduce full-batch memory enough while preserving current speed | do not continue stride sweeps |
 | phase-level memory breakdown | full-batch remat peak is in backward replay state retention, not forward cache or loss graph | use as future design evidence |
 | block-local reverse replay | full 40-shot peak can drop to `2160.7397 MiB`, but total speed is only `0.6193x` of production because of repeated prefix replay | proves memory mechanism, not an accepted configuration |
@@ -371,7 +371,7 @@ Current coupled custom-backward gate:
 
 | Item | Result |
 | --- | ---: |
-| prototype | coupled `p/u/w` custom backward |
+| prototype | coupled `p/u/w` storage/replay |
 | enabled features | source injection, free-surface write, receiver recording |
 | loss components | `p,rcv_p` |
 | output/loss max abs diff | `0.0` |
@@ -536,7 +536,7 @@ propagator.forward(
     checkpoint_segments=10,
     save_forward_wavefield=False,
     pressure_only=True,
-    custom_chunk_strategy="remat_pressure_stride2",
+    storage_policy="pressure_remat",
 )
 ```
 
@@ -593,7 +593,7 @@ production backward peaks at `2290.0200 MiB`, while remat stride=2 peaks at
 backward. Replacing observed-pressure loss with synthetic-energy loss still
 peaks at `8166.6865 MiB`, so the receiver/loss graph is not the dominant
 source. The next optimization/research boundary is now specific: inspect and
-reduce temporary tensors inside the rematerialized custom backward replay, or
+reduce temporary tensors inside the rematerialized storage/replay replay, or
 confirm that the excess is NPU allocator peak behavior.
 
 The internal stage-memory diagnostic shows that the retained replay state, not
@@ -635,7 +635,7 @@ Therefore the next optimization should focus on the reverse adjoint loop:
 
 - avoid or cheapen `p_new` reconstruction for `div_u/div_w`;
 - reduce receiver adjoint scatter cost;
-- reduce `_backward_step_from_saved_divergence` cost;
+- reduce `_step_adjoint_from_divergence` cost;
 - keep the memory ratio below `2.5x`.
 
 After switching the active candidate to `p,u,w` divergence cache stride=2, the
@@ -649,7 +649,7 @@ fine-grained reverse-loop diagnostic shows the current cost order:
 | coefficient accumulation | `1.63%` |
 
 The next code-level optimization should therefore target
-`_backward_step_from_saved_divergence` itself. Divergence recovery is now a
+`_step_adjoint_from_divergence` itself. Divergence recovery is now a
 secondary target because stride=2 already reduced the recompute pressure.
 
 Two direct manual-adjoint micro-edits were rejected after one-iteration gates:

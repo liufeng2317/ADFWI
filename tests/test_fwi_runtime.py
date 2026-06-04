@@ -234,7 +234,7 @@ class FWIRuntimeTests(unittest.TestCase):
         self.assertEqual(result.record_waveform["p"].tolist(), [[1.0]])
         self.assertEqual(calls, [(batch_range.shot_index, 2, True, False)])
 
-    def test_acoustic_forward_batch_forwards_custom_chunk_strategy(self):
+    def test_acoustic_forward_batch_forwards_storage_policy(self):
         batch_range = SimpleNamespace(shot_index=torch.tensor([1, 3]))
         calls = []
 
@@ -246,10 +246,10 @@ class FWIRuntimeTests(unittest.TestCase):
                 checkpoint_segments,
                 save_forward_wavefield=True,
                 pressure_only=False,
-                custom_chunk_strategy=None,
+                storage_policy=None,
             ):
                 calls.append(
-                    (shot_index, checkpoint_segments, save_forward_wavefield, pressure_only, custom_chunk_strategy)
+                    (shot_index, checkpoint_segments, save_forward_wavefield, pressure_only, storage_policy)
                 )
                 return {"p": torch.tensor([[1.0]])}
 
@@ -259,10 +259,10 @@ class FWIRuntimeTests(unittest.TestCase):
             checkpoint_segments=10,
             save_forward_wavefield=False,
             pressure_only=True,
-            custom_chunk_strategy="remat_pressure_stride2",
+            storage_policy="pressure_remat",
         )
 
-        self.assertEqual(calls, [(batch_range.shot_index, 10, False, True, "remat_pressure_stride2")])
+        self.assertEqual(calls, [(batch_range.shot_index, 10, False, True, "pressure_remat")])
 
     def test_elastic_forward_batch_preserves_fd_order_and_shot_index(self):
         batch_range = SimpleNamespace(shot_index=torch.tensor([0]))

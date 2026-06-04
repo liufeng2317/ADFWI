@@ -81,7 +81,7 @@ def remat_backward_stage_timing(enabled: bool = True):
 
 
 @torch.jit.script
-def _remat_pressure_forward_chunk_script(
+def _script_pressure_remat_forward(
     p: torch.Tensor,
     u: torch.Tensor,
     w: torch.Tensor,
@@ -293,7 +293,7 @@ def _empty_forward_wavefields(nz: int, nx: int, *, dtype: torch.dtype, device: t
     }
 
 
-def _forward_step_with_saved_divergence(
+def _step_forward_with_divergence(
     p,
     u,
     w,
@@ -474,7 +474,7 @@ def _vertical_velocity_divergence(p_new, *, free_surface_start: int):
     )
 
 
-def _backward_step_from_saved_divergence(
+def _step_adjoint_from_divergence(
     p,
     u,
     w,
@@ -498,7 +498,7 @@ def _backward_step_from_saved_divergence(
     Description
     --------------
         This function is the backward counterpart of
-        ``_forward_step_with_saved_divergence``.
+        ``_step_forward_with_divergence``.
         It propagates gradients from ``p_new``, ``u_new``, and ``w_new`` back to
         the previous states and model coefficients.
 
@@ -592,7 +592,7 @@ def _backward_step_from_saved_divergence(
     )
 
 
-class _RematerializedChunkFunction(torch.autograd.Function):
+class _PressureRematFunction(torch.autograd.Function):
     """Pressure-only custom autograd for a rematerialized acoustic chunk.
 
     Description
@@ -631,7 +631,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         u_start = u
         w_start = w
 
-        p, u, w, rcv_p = _remat_pressure_forward_chunk_script(
+        p, u, w, rcv_p = _script_pressure_remat_forward(
             p,
             u,
             w,
@@ -699,7 +699,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                 p_states.append(p)
                 u_states.append(u)
                 w_states.append(w)
-                p, u, w, div_p, div_u, div_w = _forward_step_with_saved_divergence(
+                p, u, w, div_p, div_u, div_w = _step_forward_with_divergence(
                     p,
                     u,
                     w,
@@ -763,7 +763,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                     step_grad_kappa2,
                     step_grad_alpha2,
                     step_grad_kappa3,
-                ) = _backward_step_from_saved_divergence(
+                ) = _step_adjoint_from_divergence(
                     p_states[step],
                     u_states[step],
                     w_states[step],
@@ -808,7 +808,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         )
 
 
-def rematerialized_pressure_custom_chunk_forward_kernel(
+def pressure_remat_forward_kernel(
     nx: int,
     nz: int,
     dx: float,
@@ -896,7 +896,7 @@ def rematerialized_pressure_custom_chunk_forward_kernel(
     w = state.w
     step = 0
     for chunk in torch.chunk(src_v, checkpoint_segments, dim=-1):
-        p, u, w, rcv_p_temp = _RematerializedChunkFunction.apply(
+        p, u, w, rcv_p_temp = _PressureRematFunction.apply(
             p,
             u,
             w,

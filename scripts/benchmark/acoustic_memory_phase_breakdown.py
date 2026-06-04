@@ -76,16 +76,16 @@ def forward_batch_for_mode(fwi, args: argparse.Namespace, batch_range):
             save_forward_wavefield=args.save_forward_wavefield,
             pressure_only=args.pressure_only,
         )
-    if args.mode == "production-remat-pressure-stride2":
+    if args.mode == "production-pressure-remat":
         return acoustic_forward_batch(
             fwi.propagator,
             batch_range,
             args.checkpoint_segments,
             save_forward_wavefield=False,
-            custom_chunk_strategy="remat_pressure_stride2",
+            storage_policy="pressure_remat",
             pressure_only=True,
         )
-    if args.mode == "experimental-remat-pressure-chunk":
+    if args.mode == "experimental-pressure-remat":
         return parity.experimental_forward_batch(
             fwi.propagator,
             batch_range,
@@ -205,7 +205,7 @@ def run_mode(args: argparse.Namespace, *, mode: str) -> Dict[str, Any]:
 
 def parse_modes(value: str) -> list[str]:
     modes = [item.strip() for item in value.split(",") if item.strip()]
-    allowed = {"production", "production-remat-pressure-stride2", "experimental-remat-pressure-chunk"}
+    allowed = {"production", "production-pressure-remat", "experimental-pressure-remat"}
     unknown = sorted(set(modes) - allowed)
     if unknown:
         raise argparse.ArgumentTypeError(f"unknown mode(s): {unknown}; allowed: {sorted(allowed)}")
@@ -221,7 +221,7 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--modes",
         type=parse_modes,
-        default=parse_modes("production,production-remat-pressure-stride2"),
+        default=parse_modes("production,production-pressure-remat"),
         help="Comma separated modes to profile.",
     )
     parser.add_argument(
