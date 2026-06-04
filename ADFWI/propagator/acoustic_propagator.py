@@ -189,7 +189,6 @@ class AcousticPropagator(torch.nn.Module):
         elif custom_chunk_strategy == "remat_pressure_stride2":
             kernel_kwargs["divergence_cache_stride"] = 2
             kernel_kwargs["divergence_cache_components"] = "p,u,w"
-            kernel_kwargs["state_cache_stride"] = 1
 
         record_waveform = kernel(
             self.nx,self.nz,self.dx,self.dz,self.nt,self.dt,

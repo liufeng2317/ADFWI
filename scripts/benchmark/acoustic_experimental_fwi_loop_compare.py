@@ -110,8 +110,6 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     checkpoint_segments=args.checkpoint_segments,
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
-                    remat_state_cache_stride=args.remat_state_cache_stride,
-                    remat_backward_replay_block_size=args.remat_backward_replay_block_size,
                 )
             )
         else:
@@ -301,7 +299,6 @@ def build_parser(argv: Optional[List[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=1)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")
-    parser.add_argument("--remat-state-cache-stride", type=int, default=10)
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,
         iterations=5,

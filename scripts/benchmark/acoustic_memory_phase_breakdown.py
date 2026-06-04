@@ -95,8 +95,6 @@ def forward_batch_for_mode(fwi, args: argparse.Namespace, batch_range):
             checkpoint_segments=args.checkpoint_segments,
             remat_divergence_cache_stride=args.remat_divergence_cache_stride,
             remat_divergence_cache_components=args.remat_divergence_cache_components,
-            remat_state_cache_stride=args.remat_state_cache_stride,
-            remat_backward_replay_block_size=args.remat_backward_replay_block_size,
         )
     raise ValueError(f"unsupported mode: {args.mode}")
 
@@ -197,8 +195,6 @@ def run_mode(args: argparse.Namespace, *, mode: str) -> Dict[str, Any]:
             "save_forward_wavefield": mode_args.save_forward_wavefield,
             "remat_divergence_cache_stride": mode_args.remat_divergence_cache_stride,
             "remat_divergence_cache_components": mode_args.remat_divergence_cache_components,
-            "remat_state_cache_stride": mode_args.remat_state_cache_stride,
-            "remat_backward_replay_block_size": mode_args.remat_backward_replay_block_size,
         },
         "loss": float(batch_loss.scalar),
         "loss_finite": bool(torch.isfinite(batch_loss.tensor.detach()).cpu().item()),
@@ -241,8 +237,6 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
     )
     parser.add_argument("--remat-divergence-cache-stride", type=int, default=2)
     parser.add_argument("--remat-divergence-cache-components", default="p,u,w")
-    parser.add_argument("--remat-state-cache-stride", type=int, default=1)
-    parser.add_argument("--remat-backward-replay-block-size", type=int, default=0)
     parser.set_defaults(
         result_json=DEFAULT_OUTPUT,
         output_root=REPO_ROOT

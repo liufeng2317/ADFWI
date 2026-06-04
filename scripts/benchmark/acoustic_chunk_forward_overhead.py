@@ -92,8 +92,6 @@ def run_forward_mode(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) 
                     checkpoint_segments=args.checkpoint_segments,
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
-                    remat_state_cache_stride=args.remat_state_cache_stride,
-                    remat_backward_replay_block_size=args.remat_backward_replay_block_size,
                 )
             )
         else:
@@ -240,12 +238,6 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
         "--remat-divergence-cache-components",
         default="p,u,w",
         help="For rematerialized modes: comma/space separated subset of p,u,w divergence terms.",
-    )
-    parser.add_argument(
-        "--remat-state-cache-stride",
-        type=int,
-        default=1,
-        help="For rematerialized modes: internal replay state cache stride.",
     )
     parser.add_argument("--warmup", type=int, default=0)
     parser.add_argument("--repeat", type=int, default=1)

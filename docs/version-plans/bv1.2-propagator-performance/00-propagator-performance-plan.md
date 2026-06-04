@@ -107,7 +107,6 @@ flowchart TD
     C --> C1["acoustic_kernels.py<br/>default production acoustic path"]
     C --> C2["elastic_kernels.py<br/>default elastic path"]
     C --> C3["acoustic_custom_kernels.py<br/>expert opt-in / benchmark path"]
-    C --> C4["acoustic_kernels_bs.py<br/>research prototype, not production-wired"]
 
     C1 --> C11["pad model"]
     C1 --> C12["time-step recurrence"]
@@ -119,8 +118,8 @@ flowchart TD
     C2 --> C22["fd_order variants"]
     C2 --> C23["five output components"]
 
-    C3 --> C31["manual autograd chunk"]
-    C3 --> C32["high-memory speed path"]
+    C3 --> C31["saved-state speed ceiling"]
+    C3 --> C32["remat pressure stride2 candidate"]
     C3 --> C33["not default"]
 
     C4 --> C41["boundary-saving prototype"]
@@ -602,20 +601,19 @@ the reverse-step temporary tensors, dominates this peak. In the first backward
 chunk, `replay_states_and_divergence` raises current memory from
 `1033.2446 MiB` to `8363.3804 MiB` with peak `8377.5488 MiB`; the subsequent
 reverse adjoint loop peaks at `8444.6533 MiB`, only about `70 MiB` higher.
-The existing `state_cache_stride=2` path is not a solution for the full 40-shot
-case because it moves the state storage into forward boundary caches and peaks
-at `30316.6626 MiB` during forward. Therefore the next viable optimization is a
-new block-local reverse replay design that stores only a small local state
-window during backward without creating large forward boundary caches.
+The removed `state_cache_stride=2` experiment was not a solution for the full
+40-shot case because it moved the state storage into forward boundary caches
+and peaked at `30316.6626 MiB` during forward. The current branch no longer
+exposes this as a tunable kernel path.
 
-The first block-local reverse replay prototype confirms the memory mechanism:
+The removed block-local reverse replay prototype confirmed the memory mechanism:
 with `backward_replay_block_size=30`, the full 40-shot one-iteration remat peak
 drops to `2160.7397 MiB`, below the production checkpoint=10 peak
 (`2621.7451 MiB`). Loss diff is `0.0` and raw `vp.grad` max abs diff is
 `4.5449e-07`. The cost is speed: total time becomes `47.0796 s` versus
 production `29.1558 s` (`0.6193x`). This proves the memory issue is solvable,
-but the naive prototype recomputes prefixes too often. The next design must
-retain the low-memory property while avoiding repeated full-prefix replay.
+but the naive prototype recomputes prefixes too often. It is recorded as a
+future-design reference, not kept as an active implementation in this branch.
 
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite

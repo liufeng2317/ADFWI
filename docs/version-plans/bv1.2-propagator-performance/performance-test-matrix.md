@@ -914,12 +914,16 @@ Interpretation:
   is a streaming/block-local reverse replay that keeps only a small block of
   states live at a time.
 
-## Block-Local Reverse Replay Prototype
+## Removed Block-Local Reverse Replay Prototype
 
-This prototype adds an experimental `backward_replay_block_size` control to the
-benchmark-only remat path. It does not change the production wrapper. A positive
-block size recomputes a local backward block and keeps only that block's
-`p/u/w` states live, instead of retaining the whole chunk.
+This historical prototype added an experimental `backward_replay_block_size`
+control to the benchmark-only remat path. It did not change the production
+wrapper. A positive block size recomputed a local backward block and kept only
+that block's `p/u/w` states live, instead of retaining the whole chunk.
+
+The active code path was removed after the strategy audit because the prototype
+was numerically valid but too slow for the performance branch. The table below
+is retained only as evidence for a future redesign branch.
 
 | Case | Block size | Total time | Speedup vs production | Peak memory | Memory vs production | Loss diff | Raw `vp.grad` max abs diff | Decision |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |

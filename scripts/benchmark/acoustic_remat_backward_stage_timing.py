@@ -21,7 +21,6 @@ if str(REPO_ROOT) not in sys.path:
 
 from ADFWI.propagator.acoustic_custom_kernels import (
     clear_remat_backward_stage_timings,
-    get_remat_backward_stage_memory,
     get_remat_backward_stage_timings,
     remat_backward_stage_timing,
 )
@@ -43,7 +42,6 @@ def run(args: argparse.Namespace):
     with remat_backward_stage_timing(True):
         variant = parity.run_variant(args, mode=args.candidate_mode)
     stages = get_remat_backward_stage_timings()
-    stage_memory = get_remat_backward_stage_memory()
     backward = variant["iteration"]["timings"]["backward"]
     return {
         "status": "ok",
@@ -55,7 +53,6 @@ def run(args: argparse.Namespace):
         },
         "variant": parity.public_variant(variant),
         "stage_timings": stages,
-        "stage_memory": stage_memory,
         "stage_fraction_of_backward": {
             name: value / backward if backward > 0 else None
             for name, value in stages.items()
