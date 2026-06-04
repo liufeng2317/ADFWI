@@ -16,8 +16,9 @@ existing FWI interface.
 | `01-acoustic-operator-contract.md` | Detailed ADFWI acoustic operator contract and first implementation boundary |
 | `deepwave-method-map.md` | What Deepwave does and what ADFWI can learn from it |
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
+| `optimization-test-guidelines.md` | Minimal test selection rules for each optimization stage |
 | `implementation-change-log.md` | Compact record of design and implementation steps |
-| `baselines/baseline-matrix-results.md` | Current production baseline for 1/3/40 shots and 3/10 FWI iterations |
+| `baselines/checkpoint10/baseline-matrix-results.md` | Current production checkpoint=10 baseline for 1/3/40 shots and 3/10 FWI iterations |
 | `baselines/checkpoint-sweep-results.md` | Production checkpoint=1/5/10 speed and memory comparison |
 
 ## Boundary
@@ -35,8 +36,8 @@ The current production baseline was measured on the full-record Marmousi2
 validation geometry with `checkpoint_segments=10`, `dtype=float32`, and
 `device=npu:0`.
 
-Use `baselines/baseline-matrix-results.md` as the main comparison table before
-and after any Deepwave-inspired implementation.
+Use `baselines/checkpoint10/baseline-matrix-results.md` as the main production
+comparison table before and after any Deepwave-inspired implementation.
 
 The checkpoint sweep shows that `checkpoint_segments=1` is the current speed
 upper-bound reference, but it increases peak memory by about 6.82x-8.91x.

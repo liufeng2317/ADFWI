@@ -20,7 +20,8 @@ Current measured production matrix:
 | 3 | 3, 10 | 10 | small multi-shot batch behavior |
 | 40 | 3, 10 | 10 | full-record real-case speed and memory gate |
 
-The measured table is stored in `baselines/baseline-matrix-results.md`.
+The measured checkpoint=10 table is stored in
+`baselines/checkpoint10/baseline-matrix-results.md`.
 
 Checkpoint sweep results are stored in `baselines/checkpoint-sweep-results.md`.
 The current observation is:
