@@ -22,6 +22,19 @@ Current measured production matrix:
 
 The measured table is stored in `baselines/baseline-matrix-results.md`.
 
+Checkpoint sweep results are stored in `baselines/checkpoint-sweep-results.md`.
+The current observation is:
+
+| Checkpoints | Result |
+| --- | --- |
+| 10 | current memory-oriented production baseline |
+| 5 | slower than 10 and uses more memory in the measured Marmousi2 cases |
+| 1 | fastest reference, but peak memory rises by about 6.82x-8.91x |
+
+This means the next high-value optimization target is not simply lowering the
+checkpoint count. It should aim for checkpoint=1-like speed while preserving
+checkpoint=10-like memory behavior.
+
 ## 2. Operator-Level Tests
 
 | Test | Shape/case | Required comparison |

@@ -1,0 +1,150 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 15020544,
+    "name": "npu",
+    "reason": null
+  },
+  "case": "marmousi2_acoustic_full_record",
+  "iterations": [
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 3,
+          "loss": 6375.7919921875
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 67952.7265625,
+      "loss": 6375.7919921875,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.8779116272926331,
+      "timing_fraction": {
+        "backward": 0.7912306479797835,
+        "forward": 0.1587325492361296,
+        "gradient_processing": 0.022643652249664296,
+        "loss_evaluation": 0.0013821490270324497,
+        "optimizer_step": 0.025962230881888895,
+        "wavefield_accumulation": 9.45727824321495e-06,
+        "zero_grad": 3.931334725811109e-05
+      },
+      "timing_total": 28.540154613554478,
+      "timings": {
+        "backward": 22.581845028325915,
+        "forward": 4.530251497402787,
+        "gradient_processing": 0.6462533362209797,
+        "loss_evaluation": 0.03944674693048,
+        "optimizer_step": 0.7409660834819078,
+        "wavefield_accumulation": 0.0002699121832847595,
+        "zero_grad": 0.0011220090091228485
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 3,
+          "loss": 6006.28125
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 56409.8359375,
+      "loss": 6006.28125,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.7982844114303589,
+      "timing_fraction": {
+        "backward": 0.8314651622780695,
+        "forward": 0.14426839853796794,
+        "gradient_processing": 0.023984775101467716,
+        "loss_evaluation": 0.00014491457988705588,
+        "optimizer_step": 0.00011691486766991656,
+        "wavefield_accumulation": 9.907431966062197e-06,
+        "zero_grad": 9.927202971777418e-06
+      },
+      "timing_total": 26.755908627063036,
+      "timings": {
+        "backward": 22.246605908498168,
+        "forward": 3.8600320890545845,
+        "gradient_processing": 0.6417344510555267,
+        "loss_evaluation": 0.003877321258187294,
+        "optimizer_step": 0.003128163516521454,
+        "wavefield_accumulation": 0.00026508234441280365,
+        "zero_grad": 0.00026561133563518524
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 3,
+          "loss": 5718.1337890625
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 59677.59375,
+      "loss": 5718.1337890625,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.7173624634742737,
+      "timing_fraction": {
+        "backward": 0.8308996508832196,
+        "forward": 0.14431573029095102,
+        "gradient_processing": 0.024480757626432748,
+        "loss_evaluation": 0.00014128332550793993,
+        "optimizer_step": 0.00014328645218702606,
+        "wavefield_accumulation": 1.1617212945891595e-05,
+        "zero_grad": 7.67420875578106e-06
+      },
+      "timing_total": 26.268795685842633,
+      "timings": {
+        "backward": 21.82673316448927,
+        "forward": 3.791000433266163,
+        "gradient_processing": 0.6430800203233957,
+        "loss_evaluation": 0.0037113428115844727,
+        "optimizer_step": 0.003763962537050247,
+        "wavefield_accumulation": 0.0003051701933145523,
+        "zero_grad": 0.00020159222185611725
+      },
+      "vp_finite_after_optimizer": true
+    }
+  ],
+  "memory": {
+    "peak_allocated_bytes": 490316800,
+    "peak_allocated_mib": 467.6025390625
+  },
+  "observed_data": {
+    "generated": false,
+    "path": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_full_record/outputs/deepwave_baseline/shot3/waveform/obs_data.npz",
+    "seconds": 0.0
+  },
+  "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
+  "setup_seconds": 57.220687532797456,
+  "shape": {
+    "batch_size": 3,
+    "checkpoint_segments": 5,
+    "grad_forw_illumination": true,
+    "gradient_processor": "legacy",
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "pressure_only": "auto",
+    "receivers": 200,
+    "save_forward_wavefield": true,
+    "shots": 3,
+    "storage_policy": null
+  },
+  "status": "ok",
+  "vp_update_norm": 3275.76318359375
+}

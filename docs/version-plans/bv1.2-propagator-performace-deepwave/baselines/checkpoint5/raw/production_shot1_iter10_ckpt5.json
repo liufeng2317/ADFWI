@@ -1,0 +1,402 @@
+{
+  "backend": {
+    "available": true,
+    "device": "npu:0",
+    "dtype": "float32",
+    "fallback": false,
+    "index": 0,
+    "memory_allocated": 5396480,
+    "name": "npu",
+    "reason": null
+  },
+  "case": "marmousi2_acoustic_full_record",
+  "iterations": [
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 2197.3671875
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 62815.0234375,
+      "loss": 2197.3671875,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.40780773758888245,
+      "timing_fraction": {
+        "backward": 0.8180356942874358,
+        "forward": 0.14103684065835737,
+        "gradient_processing": 0.018956540932223254,
+        "loss_evaluation": 0.0011938686885917572,
+        "optimizer_step": 0.02073829959035746,
+        "wavefield_accumulation": 8.914784284069798e-06,
+        "zero_grad": 2.9841058750265853e-05
+      },
+      "timing_total": 34.028832618147135,
+      "timings": {
+        "backward": 27.836799716576934,
+        "forward": 4.799319043755531,
+        "gradient_processing": 0.64506895840168,
+        "loss_evaluation": 0.040625957772135735,
+        "optimizer_step": 0.7057001255452633,
+        "wavefield_accumulation": 0.0003033597022294998,
+        "zero_grad": 0.0010154563933610916
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 2058.806640625
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 58742.9765625,
+      "loss": 2058.806640625,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.37804415822029114,
+      "timing_fraction": {
+        "backward": 0.8544041928363171,
+        "forward": 0.12522241187711491,
+        "gradient_processing": 0.02017014846350676,
+        "loss_evaluation": 0.00010892650193555203,
+        "optimizer_step": 7.789164763790872e-05,
+        "wavefield_accumulation": 9.257983386764187e-06,
+        "zero_grad": 7.1706901010282284e-06
+      },
+      "timing_total": 31.731015793979168,
+      "timings": {
+        "backward": 27.1111129373312,
+        "forward": 3.973434329032898,
+        "gradient_processing": 0.6400192994624376,
+        "loss_evaluation": 0.003456348553299904,
+        "optimizer_step": 0.0024715811014175415,
+        "wavefield_accumulation": 0.00029376521706581116,
+        "zero_grad": 0.0002275332808494568
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1943.429443359375
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 55184.85546875,
+      "loss": 1943.429443359375,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.35850733518600464,
+      "timing_fraction": {
+        "backward": 0.853957493022941,
+        "forward": 0.1254035789091694,
+        "gradient_processing": 0.020440783128756114,
+        "loss_evaluation": 0.00010659371292462805,
+        "optimizer_step": 7.778887650657134e-05,
+        "wavefield_accumulation": 7.098028337328954e-06,
+        "zero_grad": 6.664321364905859e-06
+      },
+      "timing_total": 31.33419537357986,
+      "timings": {
+        "backward": 26.758070927113295,
+        "forward": 3.929420242086053,
+        "gradient_processing": 0.6404954921454191,
+        "loss_evaluation": 0.00334002822637558,
+        "optimizer_step": 0.0024374518543481827,
+        "wavefield_accumulation": 0.00022241100668907166,
+        "zero_grad": 0.0002088211476802826
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1853.290771484375
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 54138.5,
+      "loss": 1853.290771484375,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.295497864484787,
+      "timing_fraction": {
+        "backward": 0.8534285561859399,
+        "forward": 0.1264861853061761,
+        "gradient_processing": 0.019884663509389527,
+        "loss_evaluation": 0.00010471977206050755,
+        "optimizer_step": 8.175594328229538e-05,
+        "wavefield_accumulation": 8.092946164396919e-06,
+        "zero_grad": 6.026336987257536e-06
+      },
+      "timing_total": 32.18740355223417,
+      "timings": {
+        "backward": 27.469649340957403,
+        "forward": 4.071261890232563,
+        "gradient_processing": 0.6400356888771057,
+        "loss_evaluation": 0.0033706575632095337,
+        "optimizer_step": 0.00263151153922081,
+        "wavefield_accumulation": 0.00026049092411994934,
+        "zero_grad": 0.0001939721405506134
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1784.81201171875
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 53409.62109375,
+      "loss": 1784.81201171875,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.2826375961303711,
+      "timing_fraction": {
+        "backward": 0.8578042052091072,
+        "forward": 0.12254333571745119,
+        "gradient_processing": 0.019461496228603225,
+        "loss_evaluation": 0.00010034690374876485,
+        "optimizer_step": 7.689907440851374e-05,
+        "wavefield_accumulation": 7.304178436087187e-06,
+        "zero_grad": 6.4126882450411515e-06
+      },
+      "timing_total": 32.991015719249845,
+      "timings": {
+        "backward": 28.299832018092275,
+        "forward": 4.042829114943743,
+        "gradient_processing": 0.6420545279979706,
+        "loss_evaluation": 0.0033105462789535522,
+        "optimizer_step": 0.0025369785726070404,
+        "wavefield_accumulation": 0.00024097226560115814,
+        "zero_grad": 0.00021156109869480133
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1730.861083984375
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 59341.31640625,
+      "loss": 1730.861083984375,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.2739911675453186,
+      "timing_fraction": {
+        "backward": 0.8502577731130728,
+        "forward": 0.1299997167776914,
+        "gradient_processing": 0.019553016914406487,
+        "loss_evaluation": 0.0001028053356750001,
+        "optimizer_step": 7.41788355617613e-05,
+        "wavefield_accumulation": 7.03847460500369e-06,
+        "zero_grad": 5.470548987483946e-06
+      },
+      "timing_total": 32.83067817054689,
+      "timings": {
+        "backward": 27.91453931108117,
+        "forward": 4.267978863790631,
+        "gradient_processing": 0.6419388055801392,
+        "loss_evaluation": 0.003375168889760971,
+        "optimizer_step": 0.002435341477394104,
+        "wavefield_accumulation": 0.0002310778945684433,
+        "zero_grad": 0.00017960183322429657
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1678.82080078125
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 40088.76953125,
+      "loss": 1678.82080078125,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.2638665437698364,
+      "timing_fraction": {
+        "backward": 0.8497145555159838,
+        "forward": 0.1305821489789859,
+        "gradient_processing": 0.019512256983477735,
+        "loss_evaluation": 0.0001026384117876346,
+        "optimizer_step": 7.513261009117941e-05,
+        "wavefield_accumulation": 7.394329917486634e-06,
+        "zero_grad": 5.873169756235239e-06
+      },
+      "timing_total": 32.818776458501816,
+      "timings": {
+        "backward": 27.886592051014304,
+        "forward": 4.2855463568121195,
+        "gradient_processing": 0.6403684001415968,
+        "loss_evaluation": 0.003368467092514038,
+        "optimizer_step": 0.0024657603353261948,
+        "wavefield_accumulation": 0.000242672860622406,
+        "zero_grad": 0.0001927502453327179
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1636.753662109375
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 68013.296875,
+      "loss": 1636.753662109375,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.2371577024459839,
+      "timing_fraction": {
+        "backward": 0.8605493429834048,
+        "forward": 0.11976715318932245,
+        "gradient_processing": 0.0194979298168058,
+        "loss_evaluation": 0.00010030242393671236,
+        "optimizer_step": 7.302301983879689e-05,
+        "wavefield_accumulation": 6.600501117858563e-06,
+        "zero_grad": 5.648065573627311e-06
+      },
+      "timing_total": 32.915802750736475,
+      "timings": {
+        "backward": 28.32567243091762,
+        "forward": 3.9422319903969765,
+        "gradient_processing": 0.6417900118976831,
+        "loss_evaluation": 0.003301534801721573,
+        "optimizer_step": 0.0024036113172769547,
+        "wavefield_accumulation": 0.00021726079285144806,
+        "zero_grad": 0.00018591061234474182
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1593.897705078125
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 60299.19921875,
+      "loss": 1593.897705078125,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.22524885833263397,
+      "timing_fraction": {
+        "backward": 0.8552719862746653,
+        "forward": 0.1243797209391312,
+        "gradient_processing": 0.02015078769320741,
+        "loss_evaluation": 0.00010290759431847246,
+        "optimizer_step": 7.860767667577021e-05,
+        "wavefield_accumulation": 6.711271780651713e-06,
+        "zero_grad": 9.278550221245824e-06
+      },
+      "timing_total": 31.761656783521175,
+      "timings": {
+        "backward": 27.16485528461635,
+        "forward": 3.950506007298827,
+        "gradient_processing": 0.6400224026292562,
+        "loss_evaluation": 0.0032685156911611557,
+        "optimizer_step": 0.0024967100471258163,
+        "wavefield_accumulation": 0.00021316111087799072,
+        "zero_grad": 0.00029470212757587433
+      },
+      "vp_finite_after_optimizer": true
+    },
+    {
+      "batches": [
+        {
+          "batch": 0,
+          "begin": 0,
+          "end": 1,
+          "loss": 1552.200927734375
+        }
+      ],
+      "grad_finite_after_processing": true,
+      "grad_norm_after_processing": 47846.48828125,
+      "loss": 1552.200927734375,
+      "loss_finite": true,
+      "raw_grad_finite": true,
+      "raw_grad_norm": 0.2186250388622284,
+      "timing_fraction": {
+        "backward": 0.8527408022722407,
+        "forward": 0.12666019521434432,
+        "gradient_processing": 0.020400429487057326,
+        "loss_evaluation": 0.00010783171038159784,
+        "optimizer_step": 7.755378919338509e-05,
+        "wavefield_accumulation": 7.436004266871007e-06,
+        "zero_grad": 5.751522515861877e-06
+      },
+      "timing_total": 31.37062354758382,
+      "timings": {
+        "backward": 26.75101069174707,
+        "forward": 3.973409302532673,
+        "gradient_processing": 0.6399741936475039,
+        "loss_evaluation": 0.003382747992873192,
+        "optimizer_step": 0.0024329107254743576,
+        "wavefield_accumulation": 0.00023327209055423737,
+        "zero_grad": 0.00018042884767055511
+      },
+      "vp_finite_after_optimizer": true
+    }
+  ],
+  "memory": {
+    "peak_allocated_bytes": 308211712,
+    "peak_allocated_mib": 293.93359375
+  },
+  "observed_data": {
+    "generated": false,
+    "path": "/liufeng1afs/project/04_Inversion/ADFWI-github/examples/validation/marmousi2_acoustic_full_record/outputs/deepwave_baseline/shot1/waveform/obs_data.npz",
+    "seconds": 0.0
+  },
+  "purpose": "Phase A end-to-end acoustic FWI iteration cost breakdown",
+  "setup_seconds": 57.72455953992903,
+  "shape": {
+    "batch_size": 1,
+    "checkpoint_segments": 5,
+    "grad_forw_illumination": true,
+    "gradient_processor": "legacy",
+    "nt": 3000,
+    "nx": 200,
+    "nz": 88,
+    "pressure_only": "auto",
+    "receivers": 200,
+    "save_forward_wavefield": true,
+    "shots": 1,
+    "storage_policy": null
+  },
+  "status": "ok",
+  "vp_update_norm": 8682.021484375
+}

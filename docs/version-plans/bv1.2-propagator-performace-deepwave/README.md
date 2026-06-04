@@ -18,6 +18,7 @@ existing FWI interface.
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
 | `implementation-change-log.md` | Compact record of design and implementation steps |
 | `baselines/baseline-matrix-results.md` | Current production baseline for 1/3/40 shots and 3/10 FWI iterations |
+| `baselines/checkpoint-sweep-results.md` | Production checkpoint=1/5/10 speed and memory comparison |
 
 ## Boundary
 
@@ -36,3 +37,8 @@ validation geometry with `checkpoint_segments=10`, `dtype=float32`, and
 
 Use `baselines/baseline-matrix-results.md` as the main comparison table before
 and after any Deepwave-inspired implementation.
+
+The checkpoint sweep shows that `checkpoint_segments=1` is the current speed
+upper-bound reference, but it increases peak memory by about 6.82x-8.91x.
+`checkpoint_segments=5` is slower than `10` and uses more memory in the current
+Marmousi2 matrix, so it is not a useful default target.

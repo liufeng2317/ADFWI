@@ -1,0 +1,186 @@
+{
+  "status": "ok",
+  "baseline_checkpoint_segments": 10,
+  "summary": [
+    {
+      "checkpoint_segments": 10,
+      "shots": 1,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 30.368057342246175,
+      "peak_allocated_mib": 159.06689453125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 1,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 32.7047517336905,
+      "peak_allocated_mib": 293.93359375,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.9285518382627806,
+      "memory_ratio_vs_checkpoint10": 1.8478615215075713
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 1,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 29.6848211819306,
+      "peak_allocated_mib": 1417.251953125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0230163475174128,
+      "memory_ratio_vs_checkpoint10": 8.909785768443284
+    },
+    {
+      "checkpoint_segments": 10,
+      "shots": 1,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 30.10683846929007,
+      "peak_allocated_mib": 159.06689453125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 1,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 32.21568534999258,
+      "peak_allocated_mib": 293.93359375,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.934539748020509,
+      "memory_ratio_vs_checkpoint10": 1.8478615215075713
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 1,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 27.247993019305998,
+      "peak_allocated_mib": 1417.251953125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.104919487022714,
+      "memory_ratio_vs_checkpoint10": 8.909785768443284
+    },
+    {
+      "checkpoint_segments": 10,
+      "shots": 3,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 25.325205001980066,
+      "peak_allocated_mib": 268.017578125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 3,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 26.512352156452835,
+      "peak_allocated_mib": 467.6025390625,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.9552228656489149,
+      "memory_ratio_vs_checkpoint10": 1.7446711605028238
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 3,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 22.717958780936897,
+      "peak_allocated_mib": 2132.30908203125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.114765866343193,
+      "memory_ratio_vs_checkpoint10": 7.955855347057752
+    },
+    {
+      "checkpoint_segments": 10,
+      "shots": 3,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 25.109067030044066,
+      "peak_allocated_mib": 268.017578125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 3,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 26.288394175055956,
+      "peak_allocated_mib": 467.6025390625,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.9551388670925017,
+      "memory_ratio_vs_checkpoint10": 1.7446711605028238
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 3,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 21.97898981740905,
+      "peak_allocated_mib": 2132.30908203125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.1424122418108476,
+      "memory_ratio_vs_checkpoint10": 7.955855347057752
+    },
+    {
+      "checkpoint_segments": 10,
+      "shots": 40,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 25.13115513138473,
+      "peak_allocated_mib": 2290.02001953125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 40,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 26.801897874101996,
+      "peak_allocated_mib": 3677.09130859375,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.937663267334077,
+      "memory_ratio_vs_checkpoint10": 1.6057026913443417
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 40,
+      "iterations": 3,
+      "steady_mean_iteration_seconds": 21.792591313831508,
+      "peak_allocated_mib": 15608.869140625,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.1531971930035816,
+      "memory_ratio_vs_checkpoint10": 6.816040474536995
+    },
+    {
+      "checkpoint_segments": 10,
+      "shots": 40,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 24.719622504380013,
+      "peak_allocated_mib": 2290.02001953125,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.0,
+      "memory_ratio_vs_checkpoint10": 1.0
+    },
+    {
+      "checkpoint_segments": 5,
+      "shots": 40,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 26.391398975211715,
+      "peak_allocated_mib": 3677.09130859375,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 0.9366544959438516,
+      "memory_ratio_vs_checkpoint10": 1.6057026913443417
+    },
+    {
+      "checkpoint_segments": 1,
+      "shots": 40,
+      "iterations": 10,
+      "steady_mean_iteration_seconds": 21.674903988424276,
+      "peak_allocated_mib": 15608.869140625,
+      "all_finite": true,
+      "speedup_vs_checkpoint10": 1.1404720647243376,
+      "memory_ratio_vs_checkpoint10": 6.816040474536995
+    }
+  ]
+}

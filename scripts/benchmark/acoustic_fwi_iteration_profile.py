@@ -264,7 +264,6 @@ def tensor_diff(reference, candidate, *, atol_floor=1e-12) -> Dict[str, Any]:
     diff = (val - ref).abs()
     denom = torch.maximum(ref.abs(), torch.full_like(ref, atol_floor))
     rel = diff / denom
-    peak_allocated = max_memory_allocated(rt["torch"], backend)
     return {
         "shape": list(ref.shape),
         "max_abs_diff": float(diff.max().item()),
@@ -432,6 +431,7 @@ def run_profile(args: argparse.Namespace) -> Dict[str, Any]:
         .cpu()
         .item()
     )
+    peak_allocated = max_memory_allocated(rt["torch"], backend)
 
     return {
         "status": "ok",
