@@ -813,6 +813,38 @@ Full 40-shot full-batch wrapper gate:
 | peak memory ratio | baseline | `3.4826x` |
 | total speedup | baseline | `1.2264x` |
 
+Post-simplification rerun, same 40-shot full-batch gate:
+
+Result file:
+`acoustic_production_remat_stride2_full_record_40shot_10iter_after_simplify_20260604.json`.
+
+| Metric | Production ckpt10 | Wrapper `remat_pressure_stride2` |
+| --- | ---: | ---: |
+| case | `marmousi2_acoustic_full_record` | same |
+| shape | `shots=40`, `batch_size=40`, `receivers=200`, `nt=3000`, `nx=200`, `nz=88` | same |
+| iterations | `10` | `10` |
+| max loss abs diff | baseline | `0.00390625` |
+| `vp_update_norm` | `8810.4013671875` | `8810.4013671875` |
+| total seconds, 10 iterations | `262.2764 s` | `221.5510 s` |
+| mean seconds / iteration | `26.2276 s` | `22.1551 s` |
+| backward seconds | `225.1707 s` | `186.5335 s` |
+| forward seconds | `36.1325 s` | `34.9024 s` |
+| peak memory | `2345.7451 MiB` | `8169.3687 MiB` |
+| peak memory ratio | baseline | `3.4826x` |
+| total speedup | baseline | `1.1838x` |
+
+Interpretation of rerun:
+
+- the branch simplification did not change the full 40-shot numerical contract:
+  the loss trajectory differs only at the same float32-level scale and
+  `vp_update_norm` remains exact;
+- the remat memory peak remains unchanged relative to the earlier full-batch
+  gate, so the cleanup did not hide or move the main memory issue;
+- the relative speedup is lower than the earlier `1.2264x` measurement because
+  the production reference in this rerun was faster (`27.2223 s -> 26.2276 s`
+  mean iteration), while the remat candidate stayed near the same absolute time
+  (`22.1970 s -> 22.1551 s`).
+
 40-shot batch-size memory reduction probes:
 
 | Batch size | Iterations | Production peak | Remat peak | Remat extra memory | Remat peak vs full-batch remat | Mean iteration production | Mean iteration remat | Speedup | Max loss abs diff | `vp_update_norm` diff |
