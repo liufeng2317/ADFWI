@@ -38,7 +38,8 @@ DEFAULT_OUTPUT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_receiver_recording_microbenchmark_20260531.json"
 )
 

@@ -32,7 +32,8 @@ DEFAULT_OUTPUT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_remat_backward_stage_timing_20260603.json"
 )
 

@@ -31,7 +31,8 @@ DEFAULT_OUTPUT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_custom_timestep_update_probe_20260531.json"
 )
 

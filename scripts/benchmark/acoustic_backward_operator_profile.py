@@ -36,7 +36,8 @@ DEFAULT_OUTPUT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_backward_operator_profile_20260531.json"
 )
 

@@ -45,7 +45,8 @@ DEFAULT_RESULT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_fwi_iteration_profile_20260531.json"
 )
 forward_modeling = None

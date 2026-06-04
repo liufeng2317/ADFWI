@@ -37,7 +37,8 @@ DEFAULT_OUTPUT = (
     REPO_ROOT
     / "docs"
     / "version-plans"
-    / "bv1.2-propagator-performance"
+    / "bv1.2-propagator-performace-deepwave"
+    / "develope"
     / "acoustic_custom_chunk_forward_20260531.json"
 )
 

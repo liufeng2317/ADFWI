@@ -17,7 +17,9 @@ existing FWI interface.
 | `deepwave-method-map.md` | What Deepwave does and what ADFWI can learn from it |
 | `performance-test-matrix.md` | Required tests before any Deepwave-inspired change is promoted |
 | `optimization-test-guidelines.md` | Minimal test selection rules for each optimization stage |
+| `develope/optimization-workflow.md` | Per-round workflow for focused optimization updates |
 | `develope/implementation-change-log.md` | Compact record of design and implementation steps |
+| `develope/02-phase-b-forward-parity-start.md` | Current Phase B focus and first parity smoke plan |
 | `baselines/checkpoint10/baseline-matrix-results.md` | Current production checkpoint=10 baseline for 1/3/40 shots and 3/10 FWI iterations |
 | `baselines/checkpoint-sweep-results.md` | Production checkpoint=1/5/10 speed and memory comparison |
 
