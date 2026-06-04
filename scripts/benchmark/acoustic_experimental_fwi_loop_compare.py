@@ -111,6 +111,7 @@ def run_one_iteration(fwi, args: argparse.Namespace, timer: profile.Timer, *, mo
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
                     remat_state_cache_stride=args.remat_state_cache_stride,
+                    remat_backward_replay_block_size=args.remat_backward_replay_block_size,
                 )
             )
         else:

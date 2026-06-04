@@ -914,6 +914,29 @@ Interpretation:
   is a streaming/block-local reverse replay that keeps only a small block of
   states live at a time.
 
+## Block-Local Reverse Replay Prototype
+
+This prototype adds an experimental `backward_replay_block_size` control to the
+benchmark-only remat path. It does not change the production wrapper. A positive
+block size recomputes a local backward block and keeps only that block's
+`p/u/w` states live, instead of retaining the whole chunk.
+
+| Case | Block size | Total time | Speedup vs production | Peak memory | Memory vs production | Loss diff | Raw `vp.grad` max abs diff | Decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| reduced, 3 shots | `30` | `46.6643 s` | `0.6153x` | `165.1528 MiB` | `0.5637x` | `0.0` | `2.7381e-07` | numerically valid, much slower |
+| full record, 40 shots | `30` | `47.0796 s` | `0.6193x` | `2160.7397 MiB` | `0.8242x` | `0.0` | `4.5449e-07` | proves memory can be reduced, too slow |
+
+Interpretation:
+
+- block-local replay solves the retained-state memory issue: full 40-shot remat
+  peak drops from the `8 GiB` range to `2160.7397 MiB`;
+- the current prototype is slower than production because every reverse block
+  replays from the chunk start to that block, causing repeated prefix replay;
+- this is a valid research direction but not an acceptable performance
+  configuration. The next useful design would need checkpointed block boundary
+  states without the current forward-cache explosion, or a two-level replay
+  scheme that avoids repeated full-prefix recomputation.
+
 ## Memory-Budget Remat Backward Stage Timing
 
 This diagnostic enables coarse stage timing only for the current budget-valid

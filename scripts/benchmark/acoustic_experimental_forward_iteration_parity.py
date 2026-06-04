@@ -105,6 +105,7 @@ def experimental_forward_batch(
     remat_divergence_cache_stride: int = 0,
     remat_divergence_cache_components: str = "p,u,w",
     remat_state_cache_stride: int = 1,
+    remat_backward_replay_block_size: int = 0,
 ):
     propagator.model.forward()
     shot_index = batch_range.shot_index
@@ -141,6 +142,7 @@ def experimental_forward_batch(
         forward_kwargs["divergence_cache_stride"] = remat_divergence_cache_stride
         forward_kwargs["divergence_cache_components"] = remat_divergence_cache_components
         forward_kwargs["state_cache_stride"] = remat_state_cache_stride
+        forward_kwargs["backward_replay_block_size"] = remat_backward_replay_block_size
     record_waveform = forward_kernel(
         propagator.nx,
         propagator.nz,
@@ -235,6 +237,7 @@ def run_iteration(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) -> 
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
                     remat_state_cache_stride=args.remat_state_cache_stride,
+                    remat_backward_replay_block_size=args.remat_backward_replay_block_size,
                 )
             )
         else:
@@ -466,6 +469,16 @@ def build_parser(argv: Optional[list[str]] = None) -> argparse.ArgumentParser:
             "For experimental-remat-chunk only: 1 keeps the current all-step "
             "state replay cache; N stores only every Nth p/u/w state and replays "
             "local blocks during backward."
+        ),
+    )
+    parser.add_argument(
+        "--remat-backward-replay-block-size",
+        type=int,
+        default=0,
+        help=(
+            "For experimental-remat-chunk only: 0 keeps full-chunk backward "
+            "replay state retention; positive values keep only a local replay "
+            "block live during backward."
         ),
     )
     parser.set_defaults(

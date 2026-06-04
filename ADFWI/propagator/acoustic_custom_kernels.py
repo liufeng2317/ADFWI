@@ -809,6 +809,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         divergence_cache_stride: int,
         divergence_cache_components,
         state_cache_stride: int,
+        backward_replay_block_size: int,
         record_velocity_receivers: bool,
     ):
         records_p = []
@@ -880,6 +881,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
         ctx.divergence_cache_stride = divergence_cache_stride
         ctx.divergence_cache_components = _parse_divergence_cache_components(divergence_cache_components)
         ctx.state_cache_stride = state_cache_stride
+        ctx.backward_replay_block_size = backward_replay_block_size
         ctx.record_velocity_receivers = record_velocity_receivers
         ctx.save_for_backward(
             p_start,
@@ -929,7 +931,12 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             boundary_u_cache,
             boundary_w_cache,
         ) = ctx.saved_tensors
-        if ctx.state_cache_stride <= 1:
+        use_block_local_replay = (
+            ctx.state_cache_stride <= 1
+            and ctx.backward_replay_block_size > 0
+            and ctx.backward_replay_block_size < source_v.shape[0]
+        )
+        if ctx.state_cache_stride <= 1 and not use_block_local_replay:
             p_states = []
             u_states = []
             w_states = []
@@ -977,7 +984,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             grad_alpha2 = torch.zeros_like(alpha2)
             grad_kappa3 = torch.zeros_like(kappa3)
 
-        if ctx.state_cache_stride <= 1:
+        if ctx.state_cache_stride <= 1 and not use_block_local_replay:
             with _stage_timer("reverse_adjoint_loop", p.device):
                 for step in range(len(p_states) - 1, -1, -1):
                     grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
@@ -1042,6 +1049,130 @@ class _RematerializedChunkFunction(torch.autograd.Function):
                     grad_kappa2 += step_grad_kappa2
                     grad_alpha2 += step_grad_alpha2
                     grad_kappa3 += step_grad_kappa3
+        elif use_block_local_replay:
+            p_start = p
+            u_start = u
+            w_start = w
+            block_size = ctx.backward_replay_block_size
+            last_block_start = ((source_v.shape[0] - 1) // block_size) * block_size
+            with _stage_timer("block_local_reverse_replay_loop", p.device):
+                for block_start in range(last_block_start, -1, -block_size):
+                    block_end = min(block_start + block_size, source_v.shape[0])
+                    p_local = p_start
+                    u_local = u_start
+                    w_local = w_start
+
+                    for step in range(block_start):
+                        p_local, u_local, w_local, _, _, _ = _forward_step_with_saved_divergence(
+                            p_local,
+                            u_local,
+                            w_local,
+                            kappa1,
+                            alpha1,
+                            kappa2,
+                            alpha2,
+                            kappa3,
+                            free_surface_start=ctx.free_surface_start,
+                            source_x=source_x,
+                            source_z=source_z,
+                            source_value=source_v[step],
+                            use_free_surface=ctx.use_free_surface,
+                        )
+
+                    p_states = []
+                    u_states = []
+                    w_states = []
+                    div_p_values = []
+                    div_u_values = []
+                    div_w_values = []
+                    for step in range(block_start, block_end):
+                        p_states.append(p_local)
+                        u_states.append(u_local)
+                        w_states.append(w_local)
+                        p_local, u_local, w_local, div_p, div_u, div_w = _forward_step_with_saved_divergence(
+                            p_local,
+                            u_local,
+                            w_local,
+                            kappa1,
+                            alpha1,
+                            kappa2,
+                            alpha2,
+                            kappa3,
+                            free_surface_start=ctx.free_surface_start,
+                            source_x=source_x,
+                            source_z=source_z,
+                            source_value=source_v[step],
+                            use_free_surface=ctx.use_free_surface,
+                        )
+                        should_cache = ctx.divergence_cache_stride > 0 and step % ctx.divergence_cache_stride == 0
+                        div_p_values.append(div_p if should_cache and "p" in ctx.divergence_cache_components else None)
+                        div_u_values.append(div_u if should_cache and "u" in ctx.divergence_cache_components else None)
+                        div_w_values.append(div_w if should_cache and "w" in ctx.divergence_cache_components else None)
+
+                    for local_index in range(len(p_states) - 1, -1, -1):
+                        step = block_start + local_index
+                        grad_p[:, rcv_z, rcv_x] += grad_rcv_p[:, step, :]
+                        if ctx.record_velocity_receivers:
+                            grad_u[:, rcv_z, rcv_x] += grad_rcv_u[:, step, :]
+                            grad_w[:, rcv_z, rcv_x] += grad_rcv_w[:, step, :]
+                        div_p = div_p_values[local_index]
+                        div_u = div_u_values[local_index]
+                        div_w = div_w_values[local_index]
+                        if div_p is None:
+                            div_p = _pressure_divergence_from_state(
+                                p_states[local_index],
+                                u_states[local_index],
+                                w_states[local_index],
+                                free_surface_start=ctx.free_surface_start,
+                            )
+                        if div_u is None or div_w is None:
+                            p_new = _rebuild_pressure_from_divergence(
+                                p_states[local_index],
+                                kappa1,
+                                alpha1,
+                                div_p,
+                                free_surface_start=ctx.free_surface_start,
+                                source_x=source_x,
+                                source_z=source_z,
+                                source_value=source_v[step],
+                                use_free_surface=ctx.use_free_surface,
+                            )
+                            if div_u is None:
+                                div_u = _horizontal_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
+                            if div_w is None:
+                                div_w = _vertical_velocity_divergence(p_new, free_surface_start=ctx.free_surface_start)
+                        (
+                            grad_p,
+                            grad_u,
+                            grad_w,
+                            step_grad_kappa1,
+                            step_grad_alpha1,
+                            step_grad_kappa2,
+                            step_grad_alpha2,
+                            step_grad_kappa3,
+                        ) = _backward_step_from_saved_divergence(
+                            p_states[local_index],
+                            u_states[local_index],
+                            w_states[local_index],
+                            kappa1,
+                            alpha1,
+                            kappa2,
+                            alpha2,
+                            kappa3,
+                            div_p,
+                            div_u,
+                            div_w,
+                            grad_p,
+                            grad_u,
+                            grad_w,
+                            free_surface_start=ctx.free_surface_start,
+                            use_free_surface=ctx.use_free_surface,
+                        )
+                        grad_kappa1 += step_grad_kappa1
+                        grad_alpha1 += step_grad_alpha1
+                        grad_kappa2 += step_grad_kappa2
+                        grad_alpha2 += step_grad_alpha2
+                        grad_kappa3 += step_grad_kappa3
         else:
             for block_index in range(boundary_p_cache.shape[0] - 1, -1, -1):
                 block_start = block_index * ctx.state_cache_stride
@@ -1154,6 +1285,7 @@ class _RematerializedChunkFunction(torch.autograd.Function):
             grad_kappa2,
             grad_alpha2,
             grad_kappa3,
+            None,
             None,
             None,
             None,
@@ -1375,6 +1507,7 @@ def rematerialized_custom_chunk_forward_kernel(
     divergence_cache_stride: int = 0,
     divergence_cache_components=None,
     state_cache_stride: int = 1,
+    backward_replay_block_size: int = 0,
     record_velocity_receivers: bool = True,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
@@ -1399,6 +1532,10 @@ def rematerialized_custom_chunk_forward_kernel(
             Component subset to cache: ``p``, ``u``, ``w``.
         state_cache_stride
             Save internal state every N steps during backward replay.
+        backward_replay_block_size
+            Experimental memory-first backward replay. ``0`` keeps the normal
+            full-chunk replay. Positive values recompute a local block during
+            backward and keep only that block's states live.
         record_velocity_receivers
             When ``False``, record only pressure receivers and return zero
             placeholders for receiver ``u/w``. This is for pressure-loss
@@ -1418,6 +1555,8 @@ def rematerialized_custom_chunk_forward_kernel(
         raise ValueError("divergence_cache_stride must be non-negative")
     if state_cache_stride < 1:
         raise ValueError("state_cache_stride must be positive")
+    if backward_replay_block_size < 0:
+        raise ValueError("backward_replay_block_size must be non-negative")
     _parse_divergence_cache_components(divergence_cache_components)
     if src_v.shape != (src_n, nt):
         raise ValueError(f"expected src_v shape ({src_n}, {nt}), got {tuple(src_v.shape)}")
@@ -1478,6 +1617,7 @@ def rematerialized_custom_chunk_forward_kernel(
             divergence_cache_stride,
             divergence_cache_components,
             state_cache_stride,
+            backward_replay_block_size,
             record_velocity_receivers,
         )
         next_step = step + chunk.shape[-1]

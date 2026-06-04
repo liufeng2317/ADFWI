@@ -93,6 +93,7 @@ def run_forward_mode(fwi, args: argparse.Namespace, timer: Timer, *, mode: str) 
                     remat_divergence_cache_stride=args.remat_divergence_cache_stride,
                     remat_divergence_cache_components=args.remat_divergence_cache_components,
                     remat_state_cache_stride=args.remat_state_cache_stride,
+                    remat_backward_replay_block_size=args.remat_backward_replay_block_size,
                 )
             )
         else:

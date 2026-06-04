@@ -551,6 +551,15 @@ at `30316.6626 MiB` during forward. Therefore the next viable optimization is a
 new block-local reverse replay design that stores only a small local state
 window during backward without creating large forward boundary caches.
 
+The first block-local reverse replay prototype confirms the memory mechanism:
+with `backward_replay_block_size=30`, the full 40-shot one-iteration remat peak
+drops to `2160.7397 MiB`, below the production checkpoint=10 peak
+(`2621.7451 MiB`). Loss diff is `0.0` and raw `vp.grad` max abs diff is
+`4.5449e-07`. The cost is speed: total time becomes `47.0796 s` versus
+production `29.1558 s` (`0.6193x`). This proves the memory issue is solvable,
+but the naive prototype recomputes prefixes too often. The next design must
+retain the low-memory property while avoiding repeated full-prefix replay.
+
 Do not use full `torch.autograd.profiler` as the next step for this route.
 Observed-pressure short gates can be numerically invalid, while finite
 `nt=3000` and even tiny synthetic-energy profiler runs were too slow on the
