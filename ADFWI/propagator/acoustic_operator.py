@@ -13,8 +13,10 @@ from typing import Iterable
 import torch
 from torch import Tensor
 
+from .acoustic_kernels import forward_kernel
 
 ACOUSTIC_OPERATOR_STORAGE_MODES = frozenset({"device", "checkpoint", "none"})
+ACOUSTIC_OPERATOR_BACKENDS = frozenset({"compiled", "torch_reference"})
 
 
 class CompiledAcousticOperatorUnavailable(RuntimeError):
@@ -52,6 +54,7 @@ class AcousticOperatorConfig:
     free_surface: bool
     storage_mode: str = "checkpoint"
     pressure_only: bool = True
+    checkpoint_segments: int = 1
 
     def validate(self) -> None:
         """Validate scalar metadata before dispatching to a custom operator."""
@@ -75,6 +78,12 @@ class AcousticOperatorConfig:
 
         if not self.pressure_only:
             raise ValueError("the first acoustic operator contract only supports pressure_only=True")
+
+        if not isinstance(self.checkpoint_segments, int) or self.checkpoint_segments <= 0:
+            raise ValueError(
+                "checkpoint_segments must be a positive integer, "
+                f"got {self.checkpoint_segments!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -135,15 +144,63 @@ def compiled_acoustic_operator_available() -> bool:
     return False
 
 
-def acoustic_pressure_operator(config: AcousticOperatorConfig, inputs: AcousticOperatorInputs) -> Tensor:
-    """Dispatch the future compiled pressure-only acoustic operator.
+def _torch_reference_pressure_operator(
+    config: AcousticOperatorConfig,
+    inputs: AcousticOperatorInputs,
+) -> Tensor:
+    """Run the current production kernel through the operator contract."""
 
-    The function validates the public contract now, then raises an explicit
-    availability error until a compiled forward/backward backend is added.
+    record = forward_kernel(
+        config.nx,
+        config.nz,
+        config.dx,
+        config.dz,
+        config.nt,
+        config.dt,
+        config.nabc,
+        config.free_surface,
+        inputs.src_x,
+        inputs.src_z,
+        int(inputs.src_x.numel()),
+        inputs.src_v,
+        inputs.rcv_x,
+        inputs.rcv_z,
+        int(inputs.rcv_x.numel()),
+        inputs.damp,
+        inputs.vp,
+        inputs.rho,
+        checkpoint_segments=config.checkpoint_segments,
+        save_forward_wavefield=False,
+        pressure_only=True,
+        device=inputs.vp.device,
+        dtype=inputs.vp.dtype,
+    )
+    return record["p"]
+
+
+def acoustic_pressure_operator(
+    config: AcousticOperatorConfig,
+    inputs: AcousticOperatorInputs,
+    *,
+    backend: str = "compiled",
+) -> Tensor:
+    """Dispatch a pressure-only acoustic operator backend.
+
+    `backend="torch_reference"` uses the current production kernel only to
+    validate the operator contract and future compiled backend parity.
+    `backend="compiled"` is reserved for the future low-level implementation.
     """
 
     inputs.validate(config)
+    if backend not in ACOUSTIC_OPERATOR_BACKENDS:
+        valid = ", ".join(sorted(ACOUSTIC_OPERATOR_BACKENDS))
+        raise ValueError(f"backend must be one of {{{valid}}}, got {backend!r}")
+
+    if backend == "torch_reference":
+        return _torch_reference_pressure_operator(config, inputs)
+
     raise CompiledAcousticOperatorUnavailable(
         "compiled acoustic pressure operator is not implemented yet; "
-        "use AcousticPropagator.forward for the production path"
+        "use backend='torch_reference' for contract parity checks or "
+        "AcousticPropagator.forward for the production path"
     )

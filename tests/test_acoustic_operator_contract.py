@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from ADFWI.propagator.acoustic_operator import (
+    ACOUSTIC_OPERATOR_BACKENDS,
     ACOUSTIC_OPERATOR_STORAGE_MODES,
     AcousticOperatorConfig,
     AcousticOperatorInputs,
@@ -9,6 +10,7 @@ from ADFWI.propagator.acoustic_operator import (
     acoustic_pressure_operator,
     compiled_acoustic_operator_available,
 )
+from ADFWI.propagator.acoustic_kernels import forward_kernel
 
 
 def _config(**kwargs):
@@ -109,3 +111,47 @@ def test_acoustic_pressure_operator_has_explicit_unavailable_boundary():
     assert compiled_acoustic_operator_available() is False
     with pytest.raises(CompiledAcousticOperatorUnavailable):
         acoustic_pressure_operator(config, inputs)
+
+
+def test_acoustic_pressure_operator_rejects_unknown_backend():
+    config = _config()
+    inputs = _inputs(config)
+
+    assert "compiled" in ACOUSTIC_OPERATOR_BACKENDS
+    assert "torch_reference" in ACOUSTIC_OPERATOR_BACKENDS
+    with pytest.raises(ValueError, match="backend"):
+        acoustic_pressure_operator(config, inputs, backend="unknown")
+
+
+def test_acoustic_pressure_operator_torch_reference_matches_production_pressure_path():
+    config = _config()
+    inputs = _inputs(config)
+
+    operator_pressure = acoustic_pressure_operator(config, inputs, backend="torch_reference")
+    production_record = forward_kernel(
+        config.nx,
+        config.nz,
+        config.dx,
+        config.dz,
+        config.nt,
+        config.dt,
+        config.nabc,
+        config.free_surface,
+        inputs.src_x,
+        inputs.src_z,
+        int(inputs.src_x.numel()),
+        inputs.src_v,
+        inputs.rcv_x,
+        inputs.rcv_z,
+        int(inputs.rcv_x.numel()),
+        inputs.damp,
+        inputs.vp,
+        inputs.rho,
+        checkpoint_segments=config.checkpoint_segments,
+        save_forward_wavefield=False,
+        pressure_only=True,
+        device=inputs.vp.device,
+        dtype=inputs.vp.dtype,
+    )
+
+    torch.testing.assert_close(operator_pressure, production_record["p"], atol=0.0, rtol=0.0)
