@@ -76,3 +76,6 @@ examples/acoustic/02-misfit-functions-test/03-NewMisfit-Test
 examples/acoustic/02-misfit-functions-test/03-NewMisfit-Design
 
 # new feature docs
+
+# Local third-party reference repositories.
+external/
