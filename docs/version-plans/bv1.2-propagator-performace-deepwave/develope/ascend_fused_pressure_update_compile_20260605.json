@@ -1,0 +1,133 @@
+{
+  "block_dim": 8,
+  "compile": {
+    "command": [
+      "bash",
+      "build.sh"
+    ],
+    "cwd": "/tmp/adfwi_pressure_update_op_ob7i16_u/out",
+    "output_tail": "\n    CMAKE_CROSS_PLATFORM_COMPILER\n\n\n-- Build files have been written to: /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out\n[ 66%] Building CXX object op_host/CMakeFiles/cust_optiling.dir/fused_pressure_update_forward.cpp.o\n[ 66%] Generating tbe/op_info_cfg/ai_core/ascend910b/aic-ascend910b-ops-info.json\n\n\n==============check valid for ops info start==============\n==============check valid for ops info end================\n\n\nCompile op info cfg successfully.\n[ 66%] Built target ops_info_gen_ascend910b\n[100%] Linking CXX shared library libcust_opmaster_rt2.0.so\n[100%] Built target cust_optiling\n[ascend910b] Generating FusedPressureUpdateForward_2070bb44a97621fed1796e958d9aeffd ...\n[INFO] ATRACE(1971252,python3.9):2026-06-05-09:28:10.273.164 [trace_recorder.c:52](tid:1971252) get path by env ASCEND_WORK_PATH: /liufeng1afs/ascend_cache\n[INFO] RUNTIME(1971252,python3.9):2026-06-05-09:28:10.275.612 [task_fail_callback_data_manager.cc:58] 1971252 TaskFailCallBackManager: Constructor.\nOpc tool start working now, please wait for a moment.\n[INFO] RUNTIME(1971252,python3.9):2026-06-05-09:28:19.503.043 [task_fail_callback_data_manager.cc:63] 1971252 ~TaskFailCallBackManager: Destructor.\n[INFO] ATRACE(1971252,python3.9):2026-06-05-09:28:19.990.960 [stacktrace_signal.c:194](tid:1971252) unregister all signal handler, can not capture signal.\n[ascend910b] Generating FusedPressureUpdateForward_2070bb44a97621fed1796e958d9aeffd Done\n[100%] Built target FusedPressureUpdateForward_ascend910b\n[100%] Built target ascendc_bin_ascend910b_gen_ops_config\n[100%] Built target binary\nConsolidate compiler generated dependencies of target cust_optiling\n[ 60%] Generating tbe/op_info_cfg/ai_core/npu_supported_ops.json\n[ 60%] Generating scripts/install.sh, scripts/upgrade.sh\n[ 60%] Building CXX object op_host/CMakeFiles/cust_op_proto.dir/__/autogen/op_proto.cc.o\n[ 60%] Built target ops_info_gen_ascend910b\n[ 60%] Building CXX object op_host/CMakeFiles/cust_op_proto.dir/fused_pressure_update_forward.cpp.o\n[ 60%] Building CXX object op_host/CMakeFiles/cust_opapi.dir/__/autogen/aclnn_fused_pressure_update_forward.cpp.o\n[ 80%] Built target cust_optiling\n/tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/autogen /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/op_kernel/tbe/op_info_cfg/ai_core\n[ 80%] Built target gen_version_info\n[ 80%] Built target optiling_compat\n[ 80%] Built target modify_vendor\n[INFO] Succed generated /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/op_kernel/tbe/op_info_cfg/ai_core/npu_supported_ops.json\n[ 80%] Built target npu_supported_ops\n[ 90%] Linking CXX shared library libcust_opapi.so\n[ 90%] Built target cust_opapi\n[100%] Linking CXX shared library libcust_opsproto_rt2.0.so\n[100%] Built target cust_op_proto\nRun CPack packaging tool...\nCPack: Create package using External\nCPack: Install projects\nCPack: - Run preinstall target for: opp\nCPack: - Install project: opp []\nCPack: Create package\n\nAbout to compress 716 KB of data...\nAdding files to archive named \"custom_opp_ubuntu_aarch64.run\"...\n./help.info\n./install.sh\n./packages/vendors/customize/framework/pytorch/npu_supported_ops.json\n./packages/vendors/customize/op_api/include/aclnn_fused_pressure_update_forward.h\n./packages/vendors/customize/op_api/lib/libcust_opapi.so\n./packages/vendors/customize/op_impl/ai_core/tbe/config/ascend910b/aic-ascend910b-ops-info.json\n./packages/vendors/customize/op_impl/ai_core/tbe/customize_impl/dynamic/fused_pressure_update_forward.cpp\n./packages/vendors/customize/op_impl/ai_core/tbe/customize_impl/dynamic/fused_pressure_update_forward.py\n./packages/vendors/customize/op_impl/ai_core/tbe/kernel/ascend910b/fused_pressure_update_forward/FusedPressureUpdateForward_2070bb44a97621fed1796e958d9aeffd.json\n./packages/vendors/customize/op_impl/ai_core/tbe/kernel/ascend910b/fused_pressure_update_forward/FusedPressureUpdateForward_2070bb44a97621fed1796e958d9aeffd.o\n./packages/vendors/customize/op_impl/ai_core/tbe/kernel/config/ascend910b/binary_info_config.json\n./packages/vendors/customize/op_impl/ai_core/tbe/kernel/config/ascend910b/fused_pressure_update_forward.json\n./packages/vendors/customize/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64/libcust_opmaster_rt2.0.so\n./packages/vendors/customize/op_impl/ai_core/tbe/op_tiling/liboptiling.so\n./packages/vendors/customize/op_proto/inc/op_proto.h\n./packages/vendors/customize/op_proto/lib/linux/aarch64/libcust_opsproto_rt2.0.so\n./packages/vendors/customize/version.info\n./upgrade.sh\nCRC: 2413572228\nSHA256: b1c3487b3bf6b3fbdc575cad7dc2c175f07365f6b004085adafad2df6009ec14\nSkipping md5sum at user request\n\nSelf-extractable archive \"custom_opp_ubuntu_aarch64.run\" successfully created.\nCopy /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/_CPack_Packages/Linux/External/custom_opp_ubuntu_aarch64.run/custom_opp_ubuntu_aarch64.run to /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/\nCPack: - package: /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/custom_opp_ubuntu_aarch64.run.json generated.\nCPack: - package: /tmp/adfwi_pressure_update_op_ob7i16_u/out/build_out/custom_opp_ubuntu_aarch64.run generated.",
+    "returncode": 0,
+    "timed_out": false,
+    "timeout_seconds": 300
+  },
+  "compile_requested": true,
+  "generated_files": {
+    "file_count": 54,
+    "first_files": [
+      "CMakeLists.txt",
+      "CMakePresets.json",
+      "build.sh",
+      "cmake/config.cmake",
+      "cmake/device_task.cmake",
+      "cmake/func.cmake",
+      "cmake/intf.cmake",
+      "cmake/makeself.cmake",
+      "cmake/util/__init__.py",
+      "cmake/util/ascendc_bin_param_build.py",
+      "cmake/util/ascendc_compile_kernel.py",
+      "cmake/util/ascendc_gen_options.py",
+      "cmake/util/ascendc_get_op_name.py",
+      "cmake/util/ascendc_impl_build.py",
+      "cmake/util/ascendc_op_info.py",
+      "cmake/util/ascendc_ops_config.py",
+      "cmake/util/ascendc_pack_kernel.py",
+      "cmake/util/ascendc_pack_opregistry.py",
+      "cmake/util/ascendc_replay_build.py",
+      "cmake/util/batch_replay_impl.temp",
+      "cmake/util/code_channel_infer.py",
+      "cmake/util/const_var.py",
+      "cmake/util/gen_impl_and_mrege_json.sh",
+      "cmake/util/gen_ops_filter.sh",
+      "cmake/util/gen_version_info.sh",
+      "cmake/util/insert_op_info.py",
+      "cmake/util/insert_simplified_keys.py",
+      "cmake/util/kernel_entry.py",
+      "cmake/util/kernel_impl.temp",
+      "cmake/util/makeself/COPYING",
+      "cmake/util/makeself/README.md",
+      "cmake/util/makeself/VERSION",
+      "cmake/util/makeself/make-release.sh",
+      "cmake/util/makeself/makeself-header.sh",
+      "cmake/util/makeself/makeself.1",
+      "cmake/util/makeself/makeself.lsm",
+      "cmake/util/makeself/makeself.sh",
+      "cmake/util/makeself/run-tests.sh",
+      "cmake/util/merge_aicpu_info_json.sh",
+      "cmake/util/opdesc_parser.py",
+      "cmake/util/parse_ini_to_json.py",
+      "cmake/util/preset_parse.py",
+      "cmake/util/replay_codegen.py",
+      "cmake/util/replay_impl.temp",
+      "cmake/util/tiling_data_def_build.py",
+      "framework/CMakeLists.txt",
+      "op_host/CMakeLists.txt",
+      "op_host/fused_pressure_update_forward.cpp",
+      "op_host/fused_pressure_update_forward_tiling.h",
+      "op_kernel/CMakeLists.txt",
+      "op_kernel/fused_pressure_update_forward.cpp",
+      "scripts/help.info",
+      "scripts/install.sh",
+      "scripts/upgrade.sh"
+    ],
+    "required_files_present": {
+      "CMakeLists.txt": true,
+      "CMakePresets.json": true,
+      "build.sh": true,
+      "op_host/fused_pressure_update_forward.cpp": true,
+      "op_host/fused_pressure_update_forward_tiling.h": true,
+      "op_kernel/fused_pressure_update_forward.cpp": true
+    }
+  },
+  "generation": {
+    "command": [
+      "/usr/local/Ascend/ascend-toolkit/8.2.RC2/python/site-packages/bin/msopgen",
+      "gen",
+      "-i",
+      "/tmp/adfwi_pressure_update_op_ob7i16_u/fused_pressure_update_forward.json",
+      "-f",
+      "pytorch",
+      "-c",
+      "ai_core-ascend910b2",
+      "-out",
+      "/tmp/adfwi_pressure_update_op_ob7i16_u/out",
+      "-op",
+      "FusedPressureUpdateForward",
+      "-lan",
+      "cpp"
+    ],
+    "cwd": null,
+    "output": "2026-06-05 09:27:46 (1971119) - [INFO] Start to generate AI Core operator files. \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the ir template:/tmp/adfwi_pressure_update_op_ob7i16_u/fused_pressure_update_forward.json \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse 'FusedPressureUpdateForward' in the json ir template. \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the input_desc: p \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the input_desc: u \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the input_desc: w \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the input_desc: kappa1 \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the input_desc: alpha1 \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the output_desc: p_next \n2026-06-05 09:27:46 (1971119) - [INFO] Start to parse the attribute: free_surface_start \n2026-06-05 09:27:46 (1971119) - [INFO] Start to check the type and format between the inputs/outputs in IR template. \n2026-06-05 09:27:46 (1971119) - [INFO] Start to generate a new project. \n2026-06-05 09:27:46 (1971119) - [WARNING] File config.cmake lack of ASCEND_FRAMEWORK_TYPE. Please check your config env. \n2026-06-05 09:27:46 (1971119) - [WARNING] File /tmp/adfwi_pressure_update_op_ob7i16_u/out/cmake/config.cmake already exists and will be overwrite! \n2026-06-05 09:27:46 (1971119) - [INFO] File /tmp/adfwi_pressure_update_op_ob7i16_u/out/cmake/config.cmake generated successfully. \n2026-06-05 09:27:46 (1971119) - [INFO] File /tmp/adfwi_pressure_update_op_ob7i16_u/out/op_host/fused_pressure_update_forward_tiling.h generated successfully. \n2026-06-05 09:27:46 (1971119) - [INFO] File /tmp/adfwi_pressure_update_op_ob7i16_u/out/op_host/fused_pressure_update_forward.cpp generated successfully. \n2026-06-05 09:27:46 (1971119) - [INFO] File /tmp/adfwi_pressure_update_op_ob7i16_u/out/op_kernel/fused_pressure_update_forward.cpp generated successfully. \n2026-06-05 09:27:46 (1971119) - [INFO] Generation completed. \n",
+    "returncode": 0
+  },
+  "kernel_mode": "pressure",
+  "patch_generated_python": {
+    "changed_files": [
+      "CMakePresets.json",
+      "build.sh",
+      "cmake/util/ascendc_compile_kernel.py"
+    ]
+  },
+  "patch_pressure_update_project": {
+    "block_dim": 8,
+    "changed_files": [
+      "op_host/fused_pressure_update_forward_tiling.h",
+      "op_kernel/fused_pressure_update_forward.cpp",
+      "op_host/fused_pressure_update_forward.cpp"
+    ],
+    "kernel_mode": "pressure"
+  },
+  "purpose": "minimal AscendC pressure-update custom-op compile gate",
+  "reference_contract": {
+    "allclose": true,
+    "free_surface_start": 2,
+    "max_abs_diff": 0.0,
+    "shape": [
+      2,
+      9,
+      10
+    ]
+  },
+  "status": "ok",
+  "workspace": "/tmp/adfwi_pressure_update_op_ob7i16_u"
+}
