@@ -51,6 +51,7 @@ BEGIN_TILING_DATA_DEF(FusedPressureUpdateForwardTilingData)
   TILING_DATA_FIELD_DEF(uint32_t, nz_pml);
   TILING_DATA_FIELD_DEF(uint32_t, nx_pml);
   TILING_DATA_FIELD_DEF(uint32_t, free_surface_start);
+  TILING_DATA_FIELD_DEF(uint32_t, block_dim);
 END_TILING_DATA_DEF;
 
 REGISTER_TILING_DATA_CLASS(FusedPressureUpdateForward, FusedPressureUpdateForwardTilingData)
@@ -138,6 +139,94 @@ extern "C" __global__ __aicore__ void fused_pressure_update_forward(
     KernelFusedPressureUpdateForward op;
     op.Init(p, u, w, kappa1, alpha1, p_next, tiling_data.size, tiling_data.src_n,
             tiling_data.nz_pml, tiling_data.nx_pml, tiling_data.free_surface_start);
+    op.Process();
+}
+'''
+
+PRESSURE_ALIGNED_CHUNKS_KERNEL_CPP = r'''
+#include "kernel_operator.h"
+
+using namespace AscendC;
+
+class KernelFusedPressureUpdateForwardAligned {
+public:
+    __aicore__ inline KernelFusedPressureUpdateForwardAligned() {}
+
+    __aicore__ inline void Init(GM_ADDR p, GM_ADDR u, GM_ADDR w, GM_ADDR kappa1, GM_ADDR alpha1,
+                                GM_ADDR p_next, uint32_t size, uint32_t src_n, uint32_t nz_pml,
+                                uint32_t nx_pml, uint32_t free_surface_start, uint32_t block_dim) {
+        this->size = size;
+        this->src_n = src_n;
+        this->nz_pml = nz_pml;
+        this->nx_pml = nx_pml;
+        this->free_surface_start = free_surface_start;
+        this->block_dim = block_dim;
+        p_gm.SetGlobalBuffer((__gm__ float*)p, size);
+        u_gm.SetGlobalBuffer((__gm__ float*)u, size);
+        w_gm.SetGlobalBuffer((__gm__ float*)w, size);
+        kappa1_gm.SetGlobalBuffer((__gm__ float*)kappa1, nz_pml * nx_pml);
+        alpha1_gm.SetGlobalBuffer((__gm__ float*)alpha1, nz_pml * nx_pml);
+        p_next_gm.SetGlobalBuffer((__gm__ float*)p_next, size);
+    }
+
+    __aicore__ inline void Process() {
+        const uint32_t block_idx = GetBlockIdx();
+        const uint32_t raw_elems_per_block = (size + block_dim - 1) / block_dim;
+        const uint32_t elems_per_block = ((raw_elems_per_block + ALIGN_ELEMS - 1) / ALIGN_ELEMS) * ALIGN_ELEMS;
+        const uint32_t begin = block_idx * elems_per_block;
+        uint32_t end = begin + elems_per_block;
+        if (end > size) {
+            end = size;
+        }
+
+        constexpr float c1 = 9.0f / 8.0f;
+        constexpr float c2 = -1.0f / 24.0f;
+        const uint32_t plane = nz_pml * nx_pml;
+
+        for (uint32_t index = begin; index < end; ++index) {
+            const uint32_t local = index % plane;
+            const uint32_t z = local / nx_pml;
+            const uint32_t x = local % nx_pml;
+            float value = p_gm.GetValue(index);
+
+            if (z >= free_surface_start + 1 && z < nz_pml - 2 && x >= 2 && x < nx_pml - 2) {
+                const float div_p =
+                    c1 * (u_gm.GetValue(index) - u_gm.GetValue(index - 1) +
+                          w_gm.GetValue(index) - w_gm.GetValue(index - nx_pml)) +
+                    c2 * (u_gm.GetValue(index + 1) - u_gm.GetValue(index - 2) +
+                          w_gm.GetValue(index + nx_pml) - w_gm.GetValue(index - 2 * nx_pml));
+                const uint32_t model_index = z * nx_pml + x;
+                value = (1.0f - kappa1_gm.GetValue(model_index)) * value -
+                        alpha1_gm.GetValue(model_index) * div_p;
+            }
+            p_next_gm.SetValue(index, value);
+        }
+    }
+
+private:
+    static constexpr uint32_t ALIGN_ELEMS = 32;
+    uint32_t size;
+    uint32_t src_n;
+    uint32_t nz_pml;
+    uint32_t nx_pml;
+    uint32_t free_surface_start;
+    uint32_t block_dim;
+    GlobalTensor<float> p_gm;
+    GlobalTensor<float> u_gm;
+    GlobalTensor<float> w_gm;
+    GlobalTensor<float> kappa1_gm;
+    GlobalTensor<float> alpha1_gm;
+    GlobalTensor<float> p_next_gm;
+};
+
+extern "C" __global__ __aicore__ void fused_pressure_update_forward(
+    GM_ADDR p, GM_ADDR u, GM_ADDR w, GM_ADDR kappa1, GM_ADDR alpha1,
+    GM_ADDR p_next, GM_ADDR workspace, GM_ADDR tiling) {
+    GET_TILING_DATA(tiling_data, tiling);
+    KernelFusedPressureUpdateForwardAligned op;
+    op.Init(p, u, w, kappa1, alpha1, p_next, tiling_data.size, tiling_data.src_n,
+            tiling_data.nz_pml, tiling_data.nx_pml, tiling_data.free_surface_start,
+            tiling_data.block_dim);
     op.Process();
 }
 '''
@@ -250,6 +339,55 @@ extern "C" __global__ __aicore__ void fused_pressure_update_forward(
 }
 '''
 
+COPY_ALIGNED_CHUNKS_KERNEL_CPP = r'''
+#include "kernel_operator.h"
+
+using namespace AscendC;
+
+class KernelFusedPressureUpdateForwardAlignedCopy {
+public:
+    __aicore__ inline KernelFusedPressureUpdateForwardAlignedCopy() {}
+
+    __aicore__ inline void Init(GM_ADDR p, GM_ADDR p_next, uint32_t size, uint32_t block_dim) {
+        this->size = size;
+        this->block_dim = block_dim;
+        p_gm.SetGlobalBuffer((__gm__ float*)p, size);
+        p_next_gm.SetGlobalBuffer((__gm__ float*)p_next, size);
+    }
+
+    __aicore__ inline void Process() {
+        const uint32_t block_idx = GetBlockIdx();
+        const uint32_t raw_elems_per_block = (size + block_dim - 1) / block_dim;
+        const uint32_t elems_per_block = ((raw_elems_per_block + ALIGN_ELEMS - 1) / ALIGN_ELEMS) * ALIGN_ELEMS;
+        const uint32_t begin = block_idx * elems_per_block;
+        uint32_t end = begin + elems_per_block;
+        if (end > size) {
+            end = size;
+        }
+
+        for (uint32_t index = begin; index < end; ++index) {
+            p_next_gm.SetValue(index, p_gm.GetValue(index));
+        }
+    }
+
+private:
+    static constexpr uint32_t ALIGN_ELEMS = 32;
+    uint32_t size;
+    uint32_t block_dim;
+    GlobalTensor<float> p_gm;
+    GlobalTensor<float> p_next_gm;
+};
+
+extern "C" __global__ __aicore__ void fused_pressure_update_forward(
+    GM_ADDR p, GM_ADDR u, GM_ADDR w, GM_ADDR kappa1, GM_ADDR alpha1,
+    GM_ADDR p_next, GM_ADDR workspace, GM_ADDR tiling) {
+    GET_TILING_DATA(tiling_data, tiling);
+    KernelFusedPressureUpdateForwardAlignedCopy op;
+    op.Init(p, p_next, tiling_data.size, tiling_data.block_dim);
+    op.Process();
+}
+'''
+
 
 HOST_TILING_OLD = '''  FusedPressureUpdateForwardTilingData tiling;
   const gert::StorageShape* x1_shape = context->GetInputShape(0);
@@ -276,6 +414,7 @@ HOST_TILING_NEW_TEMPLATE = '''  FusedPressureUpdateForwardTilingData tiling;
   tiling.set_nz_pml(static_cast<uint32_t>(storage_shape.GetDim(1)));
   tiling.set_nx_pml(static_cast<uint32_t>(storage_shape.GetDim(2)));
   tiling.set_free_surface_start(static_cast<uint32_t>(*free_surface_start));
+  tiling.set_block_dim(__BLOCK_DIM__);
   context->SetBlockDim(__BLOCK_DIM__);
   tiling.SaveToBuffer(context->GetRawTilingData()->GetData(), context->GetRawTilingData()->GetCapacity());
   context->GetRawTilingData()->SetDataSize(tiling.GetDataSize());
@@ -379,8 +518,12 @@ def patch_pressure_update_project(project_dir: Path, *, kernel_mode: str, block_
     tiling_header.write_text(TILING_HEADER)
     changed.append(str(tiling_header.relative_to(project_dir)))
 
-    if kernel_mode == "copy":
+    if kernel_mode == "pressure_aligned_chunks":
+        kernel_source = PRESSURE_ALIGNED_CHUNKS_KERNEL_CPP
+    elif kernel_mode == "copy":
         kernel_source = COPY_KERNEL_CPP
+    elif kernel_mode == "copy_aligned_chunks":
+        kernel_source = COPY_ALIGNED_CHUNKS_KERNEL_CPP
     elif kernel_mode == "copy_vector":
         kernel_source = COPY_VECTOR_KERNEL_CPP
     else:
@@ -511,7 +654,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--compile-timeout", type=int, default=300)
     parser.add_argument("--compile", action="store_true")
-    parser.add_argument("--kernel-mode", choices=("pressure", "copy", "copy_vector"), default="pressure")
+    parser.add_argument(
+        "--kernel-mode",
+        choices=(
+            "pressure",
+            "pressure_aligned_chunks",
+            "copy",
+            "copy_aligned_chunks",
+            "copy_vector",
+        ),
+        default="pressure",
+    )
     parser.add_argument("--block-dim", type=int, default=8)
     return parser
 

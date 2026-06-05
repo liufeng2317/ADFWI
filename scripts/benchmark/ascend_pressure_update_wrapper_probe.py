@@ -338,7 +338,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--install-timeout", type=int, default=120)
     parser.add_argument("--wrapper-build-timeout", type=int, default=300)
     parser.add_argument("--runtime-timeout", type=int, default=120)
-    parser.add_argument("--kernel-mode", choices=("pressure", "copy", "copy_vector"), default="pressure")
+    parser.add_argument(
+        "--kernel-mode",
+        choices=(
+            "pressure",
+            "pressure_aligned_chunks",
+            "copy",
+            "copy_aligned_chunks",
+            "copy_vector",
+        ),
+        default="pressure",
+    )
     parser.add_argument("--block-dim", type=int, default=8)
     parser.add_argument("--runtime-shape", type=int, nargs=3, default=(2, 9, 10))
     return parser
