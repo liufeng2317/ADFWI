@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Benchmark the aligned Ascend pressure-update forward prototype.
+"""Benchmark Ascend pressure-update forward prototypes.
 
-This benchmark compares a single pressure update implemented in PyTorch tensor
-operations with the experimental AscendC ``pressure_aligned_chunks`` custom op.
-It is a forward-only feasibility benchmark and does not modify production
-ADFWI propagator code.
+This benchmark compares a single pressure update or copy implemented in PyTorch
+tensor operations with experimental AscendC custom-op variants. It is a
+forward-only feasibility benchmark and does not modify production ADFWI
+propagator code.
 """
 
 from __future__ import annotations
@@ -106,7 +106,7 @@ def summarize(seconds):
     }
 
 
-def run_case(shape, warmup, repeats):
+def run_case(shape, warmup, repeats, kernel_mode):
     torch.manual_seed(20260605)
     device = "npu:0"
     free_surface_start = 2
@@ -118,7 +118,10 @@ def run_case(shape, warmup, repeats):
     synchronize()
 
     custom_fn = lambda: wrapper.fused_pressure_update_forward(p, u, w, kappa1, alpha1, free_surface_start)
-    torch_fn = lambda: reference(p, u, w, kappa1, alpha1, free_surface_start)
+    if kernel_mode.startswith("copy"):
+        torch_fn = lambda: p.clone()
+    else:
+        torch_fn = lambda: reference(p, u, w, kappa1, alpha1, free_surface_start)
 
     custom_out, custom_seconds = time_call(custom_fn, warmup, repeats)
     torch_out, torch_seconds = time_call(torch_fn, warmup, repeats)
@@ -131,6 +134,7 @@ def run_case(shape, warmup, repeats):
     return {
         "shape": list(shape),
         "device": device,
+        "kernel_mode": kernel_mode,
         "free_surface_start": free_surface_start,
         "warmup": warmup,
         "repeats": repeats,
@@ -148,7 +152,8 @@ def run_case(shape, warmup, repeats):
 shapes = [tuple(int(part) for part in item.split(",")) for item in os.environ["ADFWI_BENCHMARK_SHAPES"].split(";")]
 warmup = int(os.environ["ADFWI_BENCHMARK_WARMUP"])
 repeats = int(os.environ["ADFWI_BENCHMARK_REPEATS"])
-results = [run_case(shape, warmup, repeats) for shape in shapes]
+kernel_mode = os.environ["ADFWI_KERNEL_MODE"]
+results = [run_case(shape, warmup, repeats, kernel_mode) for shape in shapes]
 print("ADFWI_PRESSURE_FORWARD_BENCHMARK_JSON=" + json.dumps({"cases": results}, sort_keys=True))
 '''
 
@@ -204,7 +209,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
     compile_report = compile_pressure_update_package(
         workspace,
         args.compile_timeout,
-        kernel_mode="pressure_aligned_chunks",
+        kernel_mode=args.kernel_mode,
         block_dim=args.block_dim,
     )
     status = "ok"
@@ -224,6 +229,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
             env = os.environ.copy()
             env["ASCEND_CUSTOM_OPP_PATH"] = f"{vendor_root}:{env.get('ASCEND_CUSTOM_OPP_PATH', '')}"
             env["LD_LIBRARY_PATH"] = f"{vendor_root / 'op_api' / 'lib'}:{env.get('LD_LIBRARY_PATH', '')}"
+            env["ADFWI_KERNEL_MODE"] = args.kernel_mode
             env["ADFWI_BENCHMARK_SHAPES"] = ";".join(",".join(str(v) for v in shape) for shape in args.shape)
             env["ADFWI_BENCHMARK_WARMUP"] = str(args.warmup)
             env["ADFWI_BENCHMARK_REPEATS"] = str(args.repeats)
@@ -254,7 +260,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
     return {
         "status": status,
         "purpose": "forward-only benchmark for aligned Ascend pressure-update custom op",
-        "kernel_mode": "pressure_aligned_chunks",
+        "kernel_mode": args.kernel_mode,
         "block_dim": args.block_dim,
         "workspace": str(workspace),
         "shapes": [list(shape) for shape in args.shape],
@@ -276,6 +282,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--warmup", type=int, default=10)
     parser.add_argument("--repeats", type=int, default=50)
     parser.add_argument("--block-dim", type=int, default=8)
+    parser.add_argument(
+        "--kernel-mode",
+        choices=(
+            "pressure_aligned_chunks",
+            "copy_aligned_chunks",
+        ),
+        default="pressure_aligned_chunks",
+    )
     parser.add_argument("--compile-timeout", type=int, default=300)
     parser.add_argument("--install-timeout", type=int, default=120)
     parser.add_argument("--wrapper-build-timeout", type=int, default=300)
