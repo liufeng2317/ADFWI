@@ -24,7 +24,9 @@ ACOUSTIC_OPERATOR_BACKENDS = frozenset(
         "custom_autograd_remat",
     }
 )
-ACOUSTIC_SEGMENT_BACKENDS = frozenset({"torch_reference", "compiled"})
+ACOUSTIC_SEGMENT_BACKENDS = frozenset(
+    {"torch_reference", "custom_autograd_forward", "compiled"}
+)
 
 
 class CompiledAcousticOperatorUnavailable(RuntimeError):
@@ -566,6 +568,32 @@ def acoustic_pressure_segment(
         valid = ", ".join(sorted(ACOUSTIC_SEGMENT_BACKENDS))
         raise ValueError(f"backend must be one of {{{valid}}}, got {backend!r}")
 
+    if backend == "custom_autograd_forward":
+        p, u, w, rcv_p = _AcousticPressureSegmentForwardOnlyFunction.apply(
+            inputs.p,
+            inputs.u,
+            inputs.w,
+            inputs.src_v,
+            inputs.src_x,
+            inputs.src_z,
+            inputs.src_index,
+            inputs.rcv_x,
+            inputs.rcv_z,
+            inputs.kappa1,
+            inputs.alpha1,
+            inputs.kappa2,
+            inputs.alpha2,
+            inputs.kappa3,
+            config.nx,
+            config.nz,
+            config.dx,
+            config.dz,
+            config.dt,
+            config.nabc,
+            config.free_surface,
+        )
+        return AcousticPressureSegmentOutput(p=p, u=u, w=w, rcv_p=rcv_p)
+
     if backend != "torch_reference":
         raise CompiledAcousticOperatorUnavailable(
             "compiled acoustic pressure segment is not implemented yet; "
@@ -605,6 +633,75 @@ def acoustic_pressure_segment(
     )
     return AcousticPressureSegmentOutput(p=p, u=u, w=w, rcv_p=rcv_p)
 
+
+class _AcousticPressureSegmentForwardOnlyFunction(torch.autograd.Function):
+    """Forward-only custom-autograd shell for one pressure time segment."""
+
+    @staticmethod
+    def forward(
+        ctx,
+        p: Tensor,
+        u: Tensor,
+        w: Tensor,
+        src_v: Tensor,
+        src_x: Tensor,
+        src_z: Tensor,
+        src_index: Tensor,
+        rcv_x: Tensor,
+        rcv_z: Tensor,
+        kappa1: Tensor,
+        alpha1: Tensor,
+        kappa2: Tensor,
+        alpha2: Tensor,
+        kappa3: Tensor,
+        nx: int,
+        nz: int,
+        dx: float,
+        dz: float,
+        dt: float,
+        nabc: int,
+        free_surface: bool,
+    ):
+        del ctx
+        p_out, u_out, w_out, rcv_p, _ = step_forward_pressure_only(
+            nx,
+            nz,
+            dx,
+            dz,
+            dt,
+            nabc,
+            free_surface,
+            src_x,
+            src_z,
+            int(src_x.numel()),
+            src_index,
+            src_v,
+            rcv_x,
+            rcv_z,
+            int(rcv_x.numel()),
+            kappa1,
+            alpha1,
+            kappa2,
+            alpha2,
+            kappa3,
+            9.0 / 8.0,
+            -1.0 / 24.0,
+            p,
+            u,
+            w,
+            save_forward_wavefield=False,
+            accumulate_wavefield_in_grad=False,
+            device=p.device,
+            dtype=p.dtype,
+        )
+        return p_out, u_out, w_out, rcv_p
+
+    @staticmethod
+    def backward(ctx, *grad_outputs):
+        raise RuntimeError(
+            "custom_autograd_forward segment backend only implements forward "
+            "parity; backward/gradient policy is not implemented yet"
+        )
 
 def acoustic_pressure_operator(
     config: AcousticOperatorConfig,

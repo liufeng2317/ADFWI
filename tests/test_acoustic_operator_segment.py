@@ -155,3 +155,32 @@ def test_acoustic_pressure_segment_compiled_backend_is_explicitly_unavailable():
     except CompiledAcousticOperatorUnavailable:
         return
     raise AssertionError("compiled segment backend should be explicitly unavailable")
+
+
+def test_acoustic_pressure_segment_custom_autograd_forward_matches_reference():
+    case = _make_case(nt=4)
+    cfg = case["config"]
+    inputs = _inputs(case, case["src_v"])
+    reference = acoustic_pressure_segment(cfg, inputs, backend="torch_reference")
+    candidate = acoustic_pressure_segment(cfg, inputs, backend="custom_autograd_forward")
+
+    assert torch.equal(candidate.rcv_p, reference.rcv_p)
+    assert torch.equal(candidate.p, reference.p)
+    assert torch.equal(candidate.u, reference.u)
+    assert torch.equal(candidate.w, reference.w)
+
+
+def test_acoustic_pressure_segment_custom_autograd_backward_is_explicitly_unavailable():
+    case = _make_case(nt=4)
+    case["p"] = case["p"].requires_grad_()
+    out = acoustic_pressure_segment(
+        case["config"],
+        _inputs(case, case["src_v"]),
+        backend="custom_autograd_forward",
+    )
+    try:
+        out.rcv_p.sum().backward()
+    except RuntimeError as exc:
+        assert "backward/gradient policy is not implemented" in str(exc)
+        return
+    raise AssertionError("custom_autograd_forward segment backward should be unavailable")

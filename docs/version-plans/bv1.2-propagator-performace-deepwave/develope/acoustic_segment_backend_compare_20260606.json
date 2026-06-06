@@ -1,0 +1,214 @@
+{
+  "backend": {
+    "device": "npu:0",
+    "dtype": "torch.float32",
+    "name": "npu"
+  },
+  "cases": [
+    {
+      "custom_autograd_forward_seconds": {
+        "max": 0.03302507475018501,
+        "mean": 0.010700346156954765,
+        "median": 0.005019189789891243,
+        "min": 0.004936939105391502,
+        "values": [
+          0.03302507475018501,
+          0.004936939105391502,
+          0.005019189789891243,
+          0.004957890138030052,
+          0.005562637001276016
+        ]
+      },
+      "diff": {
+        "p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "rcv_p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "u": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "w": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        }
+      },
+      "finite_ok": true,
+      "parity_ok": true,
+      "repeats": 5,
+      "segment_nt": 4,
+      "speedup_vs_torch_reference_median": 1.0369880099767799,
+      "torch_reference_seconds": {
+        "max": 0.09130404889583588,
+        "mean": 0.022363969683647157,
+        "median": 0.0052048396319150925,
+        "min": 0.004968149587512016,
+        "values": [
+          0.09130404889583588,
+          0.0052048396319150925,
+          0.004968149587512016,
+          0.00512412004172802,
+          0.005218690261244774
+        ]
+      }
+    },
+    {
+      "custom_autograd_forward_seconds": {
+        "max": 0.010259272530674934,
+        "mean": 0.009751948714256286,
+        "median": 0.00944751501083374,
+        "min": 0.009374396875500679,
+        "values": [
+          0.010239321738481522,
+          0.010259272530674934,
+          0.00944751501083374,
+          0.009374396875500679,
+          0.009439237415790558
+        ]
+      },
+      "diff": {
+        "p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "rcv_p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "u": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "w": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        }
+      },
+      "finite_ok": true,
+      "parity_ok": true,
+      "repeats": 5,
+      "segment_nt": 8,
+      "speedup_vs_torch_reference_median": 1.032319577547428,
+      "torch_reference_seconds": {
+        "max": 0.011713137850165367,
+        "mean": 0.010082897171378136,
+        "median": 0.009752854704856873,
+        "min": 0.009456796571612358,
+        "values": [
+          0.011713137850165367,
+          0.009950099512934685,
+          0.009752854704856873,
+          0.009456796571612358,
+          0.009541597217321396
+        ]
+      }
+    },
+    {
+      "custom_autograd_forward_seconds": {
+        "max": 0.018317578360438347,
+        "mean": 0.018153891339898108,
+        "median": 0.01818963885307312,
+        "min": 0.01789773441851139,
+        "values": [
+          0.01789773441851139,
+          0.018317578360438347,
+          0.018250757828354836,
+          0.01818963885307312,
+          0.018113747239112854
+        ]
+      },
+      "diff": {
+        "p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "rcv_p": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "u": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        },
+        "w": {
+          "allclose_atol1e_6_rtol1e_6": true,
+          "finite_candidate": true,
+          "finite_reference": true,
+          "max_abs_diff": 0.0,
+          "relative_max_abs_diff": 0.0
+        }
+      },
+      "finite_ok": true,
+      "parity_ok": true,
+      "repeats": 5,
+      "segment_nt": 16,
+      "speedup_vs_torch_reference_median": 1.003649792002202,
+      "torch_reference_seconds": {
+        "max": 0.019784990698099136,
+        "mean": 0.018562233820557595,
+        "median": 0.01825602725148201,
+        "min": 0.018178915604948997,
+        "values": [
+          0.019784990698099136,
+          0.01825602725148201,
+          0.018178915604948997,
+          0.01836760900914669,
+          0.018223626539111137
+        ]
+      }
+    }
+  ],
+  "config": {
+    "free_surface": false,
+    "nabc": 8,
+    "nx": 64,
+    "nz": 48,
+    "receivers": 64,
+    "repeats": 5,
+    "segment_nt": [
+      4,
+      8,
+      16
+    ],
+    "shots": 40
+  },
+  "purpose": "forward-only backend comparison for acoustic pressure segment boundary",
+  "status": "ok"
+}
