@@ -13,7 +13,7 @@ from typing import Iterable
 import torch
 from torch import Tensor
 
-from .acoustic_kernels import forward_kernel
+from .acoustic_kernels import forward_kernel, step_forward_pressure_only
 
 ACOUSTIC_OPERATOR_STORAGE_MODES = frozenset({"device", "checkpoint", "none"})
 ACOUSTIC_OPERATOR_BACKENDS = frozenset(
@@ -24,6 +24,7 @@ ACOUSTIC_OPERATOR_BACKENDS = frozenset(
         "custom_autograd_remat",
     }
 )
+ACOUSTIC_SEGMENT_BACKENDS = frozenset({"torch_reference", "compiled"})
 
 
 class CompiledAcousticOperatorUnavailable(RuntimeError):
@@ -143,6 +144,129 @@ class AcousticOperatorInputs:
                 raise ValueError(
                     f"{name} must be on device {reference_device}, got {tensor.device}"
                 )
+
+
+@dataclass(frozen=True)
+class AcousticPressureSegmentConfig:
+    """Non-differentiable metadata for a pressure-only time segment.
+
+    This config is intentionally narrower than ``AcousticOperatorConfig``: it
+    targets one local time segment with already-built PML coefficients and
+    incoming wavefield state. It is not used by production propagators unless a
+    caller opts in explicitly.
+    """
+
+    nx: int
+    nz: int
+    dx: float
+    dz: float
+    dt: float
+    nabc: int
+    free_surface: bool
+
+    def validate(self) -> None:
+        for name in ("nx", "nz"):
+            value = getattr(self, name)
+            if not isinstance(value, int) or value <= 0:
+                raise ValueError(f"{name} must be a positive integer, got {value!r}")
+
+        if not isinstance(self.nabc, int) or self.nabc < 0:
+            raise ValueError(f"nabc must be a non-negative integer, got {self.nabc!r}")
+
+        for name in ("dx", "dz", "dt"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or value <= 0:
+                raise ValueError(f"{name} must be positive, got {value!r}")
+
+
+@dataclass(frozen=True)
+class AcousticPressureSegmentInputs:
+    """Tensor inputs for one pressure-only local time segment."""
+
+    src_x: Tensor
+    src_z: Tensor
+    src_index: Tensor
+    src_v: Tensor
+    rcv_x: Tensor
+    rcv_z: Tensor
+    kappa1: Tensor
+    alpha1: Tensor
+    kappa2: Tensor
+    alpha2: Tensor
+    kappa3: Tensor
+    p: Tensor
+    u: Tensor
+    w: Tensor
+
+    def validate(self, config: AcousticPressureSegmentConfig) -> None:
+        config.validate()
+
+        if self.src_x.ndim != 1:
+            raise ValueError(f"src_x must be 1-D, got {self.src_x.ndim}-D")
+        if self.src_z.ndim != 1:
+            raise ValueError(f"src_z must be 1-D, got {self.src_z.ndim}-D")
+        if self.src_index.ndim != 1:
+            raise ValueError(f"src_index must be 1-D, got {self.src_index.ndim}-D")
+        if self.rcv_x.ndim != 1:
+            raise ValueError(f"rcv_x must be 1-D, got {self.rcv_x.ndim}-D")
+        if self.rcv_z.ndim != 1:
+            raise ValueError(f"rcv_z must be 1-D, got {self.rcv_z.ndim}-D")
+        if self.src_v.ndim != 2:
+            raise ValueError(f"src_v must have shape (src_n, segment_nt), got {tuple(self.src_v.shape)}")
+
+        src_n = int(self.src_x.numel())
+        rcv_n = int(self.rcv_x.numel())
+        segment_nt = int(self.src_v.shape[1])
+        nx_pml = config.nx + 2 * config.nabc
+        nz_pml = config.nz + 2 * config.nabc
+
+        _require_shape("src_z", self.src_z, (src_n,))
+        _require_shape("src_index", self.src_index, (src_n,))
+        _require_shape("src_v", self.src_v, (src_n, segment_nt))
+        _require_shape("rcv_z", self.rcv_z, (rcv_n,))
+        _require_shape("kappa1", self.kappa1, (nz_pml, nx_pml))
+        _require_shape("alpha1", self.alpha1, (nz_pml, nx_pml))
+        _require_shape("kappa2", self.kappa2, (nz_pml, nx_pml - 1))
+        _require_shape("alpha2", self.alpha2, (nz_pml, nx_pml - 1))
+        _require_shape("kappa3", self.kappa3, (nz_pml - 1, nx_pml))
+        _require_shape("p", self.p, (src_n, nz_pml, nx_pml))
+        _require_shape("u", self.u, (src_n, nz_pml, nx_pml - 1))
+        _require_shape("w", self.w, (src_n, nz_pml - 1, nx_pml))
+
+        for name in ("src_x", "src_z", "src_index", "rcv_x", "rcv_z"):
+            _require_integer_tensor(name, getattr(self, name))
+
+        reference_device = self.p.device
+        for name in (
+            "src_x",
+            "src_z",
+            "src_index",
+            "src_v",
+            "rcv_x",
+            "rcv_z",
+            "kappa1",
+            "alpha1",
+            "kappa2",
+            "alpha2",
+            "kappa3",
+            "u",
+            "w",
+        ):
+            tensor = getattr(self, name)
+            if tensor.device != reference_device:
+                raise ValueError(
+                    f"{name} must be on device {reference_device}, got {tensor.device}"
+                )
+
+
+@dataclass(frozen=True)
+class AcousticPressureSegmentOutput:
+    """Output state from one pressure-only local time segment."""
+
+    p: Tensor
+    u: Tensor
+    w: Tensor
+    rcv_p: Tensor
 
 
 def compiled_acoustic_operator_available() -> bool:
@@ -422,6 +546,64 @@ def _custom_autograd_remat_pressure_operator(
         config.free_surface,
         config.checkpoint_segments,
     )
+
+
+def acoustic_pressure_segment(
+    config: AcousticPressureSegmentConfig,
+    inputs: AcousticPressureSegmentInputs,
+    *,
+    backend: str = "torch_reference",
+) -> AcousticPressureSegmentOutput:
+    """Run one opt-in pressure-only acoustic time segment.
+
+    This is an experimental boundary for future fused time-segment work. The
+    reference backend delegates to the current production single-segment
+    function and returns the final wavefield state plus local receiver samples.
+    """
+
+    inputs.validate(config)
+    if backend not in ACOUSTIC_SEGMENT_BACKENDS:
+        valid = ", ".join(sorted(ACOUSTIC_SEGMENT_BACKENDS))
+        raise ValueError(f"backend must be one of {{{valid}}}, got {backend!r}")
+
+    if backend != "torch_reference":
+        raise CompiledAcousticOperatorUnavailable(
+            "compiled acoustic pressure segment is not implemented yet; "
+            "use backend='torch_reference' for segment contract checks"
+        )
+
+    p, u, w, rcv_p, _ = step_forward_pressure_only(
+        config.nx,
+        config.nz,
+        config.dx,
+        config.dz,
+        config.dt,
+        config.nabc,
+        config.free_surface,
+        inputs.src_x,
+        inputs.src_z,
+        int(inputs.src_x.numel()),
+        inputs.src_index,
+        inputs.src_v,
+        inputs.rcv_x,
+        inputs.rcv_z,
+        int(inputs.rcv_x.numel()),
+        inputs.kappa1,
+        inputs.alpha1,
+        inputs.kappa2,
+        inputs.alpha2,
+        inputs.kappa3,
+        9.0 / 8.0,
+        -1.0 / 24.0,
+        inputs.p,
+        inputs.u,
+        inputs.w,
+        save_forward_wavefield=False,
+        accumulate_wavefield_in_grad=False,
+        device=inputs.p.device,
+        dtype=inputs.p.dtype,
+    )
+    return AcousticPressureSegmentOutput(p=p, u=u, w=w, rcv_p=rcv_p)
 
 
 def acoustic_pressure_operator(
